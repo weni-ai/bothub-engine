@@ -106,3 +106,6 @@ venv.bak/
 
 # python decouple
 settings.ini
+
+# IDEs
+.vscode/
