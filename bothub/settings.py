@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'bothub.authentication',
 ]
 
 MIDDLEWARE = [
@@ -65,6 +66,11 @@ WSGI_APPLICATION = 'bothub.wsgi.application'
 
 DATABASES = {}
 DATABASES['default'] = dj_database_url.parse(config('DEFAULT_DATABASE', default='sqlite:///db.sqlite3'))
+
+
+# Auth
+
+AUTH_USER_MODEL = 'authentication.User'
 
 
 # Password validation
