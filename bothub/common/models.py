@@ -66,6 +66,19 @@ class RepositoryUpdate(models.Model):
         _('trained at'),
         blank=True,
         null=True)
+    
+    @property
+    def examples(self):
+        exclude = models.Q(deleted_in=self)
+        if self.training_started_at:
+            exclude += models.Q(deleted_in__training_started_at__lt=self.training_started_at)
+        return RepositoryExample.objects.filter(repository_update__repository=self.repository).exclude(exclude)
+
+    @property
+    def rasa_nlu_data(self):
+        return {
+            'common_examples': [example.to_rsa_nlu_data for example in self.examples]
+        }
 
 
 class RepositoryExample(models.Model):
@@ -95,6 +108,14 @@ class RepositoryExample(models.Model):
         max_length=64,
         blank=True,
         editable=False)
+    
+    @property
+    def to_rsa_nlu_data(self):
+        return {
+            'text': self.text,
+            'intent': self.intent,
+            'entities': [entity.to_rsa_nlu_data for entity in self.entities.all()],
+        }
 
 
 class RepositoryExampleEntity(models.Model):
@@ -121,3 +142,12 @@ class RepositoryExampleEntity(models.Model):
     @property
     def value(self):
         return self.repository_example.text[self.start:self.end]
+    
+    @property
+    def to_rsa_nlu_data(self):
+        return {
+            'start': self.start,
+            'end': self.end,
+            'value': self.value,
+            'entity': self.entity,
+        }
