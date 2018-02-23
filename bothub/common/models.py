@@ -2,6 +2,7 @@ import uuid
 
 from django.db import models
 from django.utils.translation import gettext as _
+
 from bothub.authentication.models import User
 
 
@@ -28,6 +29,11 @@ class Repository(models.Model):
     created_at = models.DateTimeField(
         _('created at'),
         auto_now_add=True)
+    
+    @property
+    def current_update(self):
+        repository_update, created = self.updates.get_or_create(training_started_at=None)
+        return repository_update
 
 
 class RepositoryUpdate(models.Model):
@@ -40,26 +46,33 @@ class RepositoryUpdate(models.Model):
         Repository,
         models.CASCADE,
         related_name='updates')
+    created_at = models.DateTimeField(
+        _('created at'),
+        auto_now_add=True)
     bot_data = models.TextField(
         _('bot data'),
         blank=True,
         editable=False)
     by = models.ForeignKey(
         User,
-        models.CASCADE)
-    created_at = models.DateTimeField(
-        _('created at'),
-        auto_now_add=True)
+        models.CASCADE,
+        blank=True,
+        null=True)
+    training_started_at = models.DateTimeField(
+        _('training started at'),
+        blank=True,
+        null=True)
+    trained_at = models.DateTimeField(
+        _('trained at'),
+        blank=True,
+        null=True)
+
 
 class RepositoryExample(models.Model):
     class Meta:
         verbose_name = _('repository example')
         verbose_name_plural = _('repository examples')
     
-    repository = models.ForeignKey(
-        Repository,
-        models.CASCADE,
-        editable=False)
     repository_update = models.ForeignKey(
         RepositoryUpdate,
         models.CASCADE,
@@ -82,6 +95,7 @@ class RepositoryExample(models.Model):
         max_length=64,
         blank=True,
         editable=False)
+
 
 class RepositoryExampleEntity(models.Model):
     class Meta:
