@@ -57,7 +57,7 @@ class RepositoryExample(models.Model):
         verbose_name_plural = _('repository examples')
     
     repository = models.ForeignKey(
-        RepositoryUpdate,
+        Repository,
         models.CASCADE,
         editable=False)
     repository_update = models.ForeignKey(
