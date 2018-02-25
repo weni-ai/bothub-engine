@@ -108,6 +108,9 @@ class RepositoryExample(models.Model):
         max_length=64,
         blank=True,
         editable=False)
+    created_at = models.DateTimeField(
+        _('created at'),
+        auto_now_add=True)
     
     @property
     def to_rsa_nlu_data(self):
@@ -138,6 +141,9 @@ class RepositoryExampleEntity(models.Model):
         _('entity'),
         max_length=64,
         editable=False)
+    created_at = models.DateTimeField(
+        _('created at'),
+        auto_now_add=True)
 
     @property
     def value(self):
