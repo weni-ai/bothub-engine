@@ -35,6 +35,7 @@ class MyRepositoriesViewSet(
 
 class RepositoryViewSet(
     mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
     viewsets.GenericViewSet):
     queryset = Repository.objects
     serializer_class = RepositorySerializer
