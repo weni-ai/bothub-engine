@@ -151,3 +151,25 @@ class RepositoryExampleEntity(models.Model):
             'value': self.value,
             'entity': self.entity,
         }
+
+
+class RepositoryAuthorization(models.Model):
+    class Meta:
+        verbose_name = _('repository authorization')
+        verbose_name_plural = _('repository authorizations')
+        unique_together = ['user', 'repository']
+    
+    uuid = models.UUIDField(
+        _('UUID'),
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False)
+    user = models.ForeignKey(
+        User,
+        models.CASCADE)
+    repository = models.ForeignKey(
+        Repository,
+        models.CASCADE)
+    created_at = models.DateTimeField(
+        _('created at'),
+        auto_now_add=True)
