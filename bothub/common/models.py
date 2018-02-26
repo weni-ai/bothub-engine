@@ -96,16 +96,13 @@ class RepositoryExample(models.Model):
         models.CASCADE,
         related_name='deleted',
         blank=True,
-        null=True,
-        editable=False)
+        null=True)
     text = models.TextField(
-        _('text'),
-        editable=False)
+        _('text'))
     intent = models.CharField(
         _('intent'),
         max_length=64,
-        blank=True,
-        editable=False)
+        blank=True)
     created_at = models.DateTimeField(
         _('created at'),
         auto_now_add=True)
@@ -130,15 +127,12 @@ class RepositoryExampleEntity(models.Model):
         related_name='entities',
         editable=False)
     start = models.PositiveIntegerField(
-        _('start'),
-        editable=False)
+        _('start'))
     end = models.PositiveIntegerField(
-        _('end'),
-        editable=False)
+        _('end'))
     entity = models.CharField(
         _('entity'),
-        max_length=64,
-        editable=False)
+        max_length=64)
     created_at = models.DateTimeField(
         _('created at'),
         auto_now_add=True)
