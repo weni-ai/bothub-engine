@@ -90,8 +90,6 @@ class RepositoryExample(models.Model):
         RepositoryUpdate,
         models.CASCADE,
         related_name='added',
-        blank=True,
-        null=True,
         editable=False)
     deleted_in = models.ForeignKey(
         RepositoryUpdate,
