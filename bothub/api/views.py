@@ -37,6 +37,7 @@ class MyRepositoriesViewSet(
         return self.queryset.filter(owner=self.request.user)
 
 class RepositoryViewSet(
+    mixins.RetrieveModelMixin,
     mixins.UpdateModelMixin,
     mixins.DestroyModelMixin,
     viewsets.GenericViewSet):
