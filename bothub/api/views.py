@@ -37,6 +37,10 @@ class IsRepositoryUUIDOwner(permissions.BasePermission):
         
         return repository.owner == request.user
 
+class IsRepositoryUpdateOwner(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        return obj.repository_update.repository.owner == request.user
+
 
 # ViewSets
 
@@ -85,4 +89,14 @@ class NewRepositoryExampleViewSet(
     permission_classes = [
         permissions.IsAuthenticated,
         IsRepositoryUUIDOwner,
+    ]
+
+class RepositoryExampleViewSet(
+    mixins.RetrieveModelMixin,
+    viewsets.GenericViewSet):
+    queryset = RepositoryExample.objects
+    serializer_class = RepositoryExampleSerializer
+    permission_classes = [
+        permissions.IsAuthenticated,
+        IsRepositoryUpdateOwner,
     ]
