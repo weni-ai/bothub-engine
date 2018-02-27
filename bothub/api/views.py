@@ -145,6 +145,7 @@ class NewRepositoryExampleEntityViewSet(
 
 class RepositoryExampleEntityViewSet(
     mixins.RetrieveModelMixin,
+    mixins.DestroyModelMixin,
     GenericViewSet):
     queryset = RepositoryExampleEntity.objects
     serializer_class = RepositoryExampleEntitySerializer
