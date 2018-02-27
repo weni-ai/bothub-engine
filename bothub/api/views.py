@@ -3,6 +3,7 @@ from rest_framework.viewsets import GenericViewSet
 from rest_framework import mixins
 from rest_framework import permissions
 from rest_framework.decorators import detail_route
+from rest_framework.decorators import list_route
 from rest_framework.response import Response
 from rest_framework.exceptions import APIException
 from django.utils.translation import gettext as _
@@ -86,6 +87,23 @@ class RepositoryViewSet(
         instance = self.get_object()
         serializer = CurrentRepositoryUpdateSerializer(instance.current_update)
         return Response(dict(serializer.data))
+    
+    @detail_route(
+        methods=['GET'],
+        url_name='repository-examples')
+    def examples(self, request, **kwargs):
+        repository = self.get_object()
+        examples = RepositoryExample.objects.filter(
+            repository_update__repository=repository,
+            deleted_in__isnull=True)
+        
+        page = self.paginate_queryset(examples)
+        if page is not None:
+            serializer = RepositoryExampleSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        
+        serializer = RepositoryExampleSerializer(examples, many=True)
+        return Response(serializer.data)
 
 class NewRepositoryExampleViewSet(
     mixins.CreateModelMixin,
