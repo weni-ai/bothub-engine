@@ -6,6 +6,7 @@ from rest_framework.decorators import detail_route
 from rest_framework.decorators import list_route
 from rest_framework.response import Response
 from rest_framework.exceptions import APIException
+from rest_framework.exceptions import NotFound
 from django.utils.translation import gettext as _
 from django.core.exceptions import ValidationError as DjangoValidationError
 
