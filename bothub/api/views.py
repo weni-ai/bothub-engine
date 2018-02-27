@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from rest_framework import viewsets
+from rest_framework.viewsets import GenericViewSet
 from rest_framework import mixins
 from rest_framework import permissions
 from rest_framework.decorators import detail_route
@@ -11,8 +11,10 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 from .serializers import RepositorySerializer
 from .serializers import CurrentRepositoryUpdateSerializer
 from .serializers import RepositoryExampleSerializer
+from .serializers import RepositoryExampleEntitySerializer
 from bothub.common.models import Repository
 from bothub.common.models import RepositoryExample
+from bothub.common.models import RepositoryExampleEntity
 
 
 # Permisions
@@ -41,19 +43,23 @@ class IsRepositoryUpdateOwner(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         return obj.repository_update.repository.owner == request.user
 
+class IsRepositoryExampleOwner(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        return obj.repository_example.repository_update.repository.owner == request.user
+
 
 # ViewSets
 
 class NewRepositoryViewSet(
     mixins.CreateModelMixin,
-    viewsets.GenericViewSet):
+    GenericViewSet):
     queryset = Repository.objects
     serializer_class = RepositorySerializer
     permission_classes = [permissions.IsAuthenticated]
 
 class MyRepositoriesViewSet(
     mixins.ListModelMixin,
-    viewsets.GenericViewSet):
+    GenericViewSet):
     queryset = Repository.objects
     serializer_class = RepositorySerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -65,7 +71,7 @@ class RepositoryViewSet(
     mixins.RetrieveModelMixin,
     mixins.UpdateModelMixin,
     mixins.DestroyModelMixin,
-    viewsets.GenericViewSet):
+    GenericViewSet):
     queryset = Repository.objects
     serializer_class = RepositorySerializer
     permission_classes = [
@@ -83,7 +89,7 @@ class RepositoryViewSet(
 
 class NewRepositoryExampleViewSet(
     mixins.CreateModelMixin,
-    viewsets.GenericViewSet):
+    GenericViewSet):
     queryset = RepositoryExample.objects
     serializer_class = RepositoryExampleSerializer
     permission_classes = [
@@ -93,10 +99,20 @@ class NewRepositoryExampleViewSet(
 
 class RepositoryExampleViewSet(
     mixins.RetrieveModelMixin,
-    viewsets.GenericViewSet):
+    GenericViewSet):
     queryset = RepositoryExample.objects
     serializer_class = RepositoryExampleSerializer
     permission_classes = [
         permissions.IsAuthenticated,
         IsRepositoryUpdateOwner,
+    ]
+
+class NewRepositoryExampleEntityViewSet(
+    mixins.CreateModelMixin,
+    GenericViewSet):
+    queryset = RepositoryExampleEntity.objects
+    serializer_class = RepositoryExampleEntitySerializer
+    permission_classes = [
+        permissions.IsAuthenticated,
+        IsRepositoryExampleOwner,
     ]
