@@ -116,3 +116,13 @@ class NewRepositoryExampleEntityViewSet(
         permissions.IsAuthenticated,
         IsRepositoryExampleOwner,
     ]
+
+class RepositoryExampleEntityViewSet(
+    mixins.RetrieveModelMixin,
+    GenericViewSet):
+    queryset = RepositoryExampleEntity.objects
+    serializer_class = RepositoryExampleEntitySerializer
+    permission_classes = [
+        permissions.IsAuthenticated,
+        IsRepositoryExampleOwner,
+    ]
