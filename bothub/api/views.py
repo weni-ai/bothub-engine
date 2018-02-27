@@ -105,6 +105,13 @@ class RepositoryViewSet(
         
         serializer = RepositoryExampleSerializer(examples, many=True)
         return Response(serializer.data)
+    
+    @detail_route(
+        methods=['GET'],
+        url_name='repository-current-rasa-nlu-data')
+    def currentrasanludata(self, request, **kwargs):
+        repository = self.get_object()
+        return Response(repository.current_rasa_nlu_data)
 
 class NewRepositoryExampleViewSet(
     mixins.CreateModelMixin,

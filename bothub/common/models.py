@@ -34,6 +34,10 @@ class Repository(models.Model):
     def current_update(self):
         repository_update, created = self.updates.get_or_create(training_started_at=None)
         return repository_update
+    
+    @property
+    def current_rasa_nlu_data(self):
+        return self.current_update.rasa_nlu_data
 
 
 class RepositoryUpdate(models.Model):
