@@ -118,6 +118,7 @@ class NewRepositoryExampleViewSet(
 
 class RepositoryExampleViewSet(
     mixins.RetrieveModelMixin,
+    mixins.DestroyModelMixin,
     GenericViewSet):
     queryset = RepositoryExample.objects
     serializer_class = RepositoryExampleSerializer
@@ -125,6 +126,12 @@ class RepositoryExampleViewSet(
         permissions.IsAuthenticated,
         IsRepositoryUpdateOwner,
     ]
+
+    def perform_destroy(self, obj):
+        if obj.deleted_in:
+            raise APIException(_('Example already deleted'))
+        obj.deleted_in = obj.repository_update.repository.current_update
+        obj.save(update_fields=['deleted_in'])
 
 class NewRepositoryExampleEntityViewSet(
     mixins.CreateModelMixin,
