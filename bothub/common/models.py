@@ -4,6 +4,7 @@ from django.db import models
 from django.utils.translation import gettext as _
 
 from bothub.authentication.models import User
+from . import languages
 
 
 class Repository(models.Model):
@@ -30,9 +31,10 @@ class Repository(models.Model):
         _('created at'),
         auto_now_add=True)
     
-    @property
-    def current_update(self):
-        repository_update, created = self.updates.get_or_create(training_started_at=None)
+    def current_update(self, language):
+        repository_update, created = self.updates.get_or_create(
+            language=language,
+            training_started_at=None)
         return repository_update
     
     @property
@@ -60,6 +62,10 @@ class RepositoryUpdate(models.Model):
         Repository,
         models.CASCADE,
         related_name='updates')
+    language = models.CharField(
+        _('language'),
+        choices=languages.LANGUAGE_CHOICES,
+        max_length=2)
     created_at = models.DateTimeField(
         _('created at'),
         auto_now_add=True)

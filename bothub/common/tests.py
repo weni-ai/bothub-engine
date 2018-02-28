@@ -13,7 +13,7 @@ class RepositoryUpdateTest(TestCase):
         self.repository = Repository.objects.create(
             owner=owner,
             slug='test')
-        self.repository_update = self.repository.current_update
+        self.repository_update = self.repository.current_update('en')
         example = RepositoryExample.objects.create(
             repository_update=self.repository_update,
             text='my name is Douglas')
@@ -30,8 +30,8 @@ class RepositoryUpdateTest(TestCase):
         self.assertDictEqual(self.repository_update.rasa_nlu_data, RepositoryUpdateTest.EXPECTED_RASA_NLU_DATA)
     
     def test_repository_current_update(self):
-        update1 = self.repository.current_update
-        self.assertEqual(update1, self.repository.current_update)
+        update1 = self.repository.current_update('en')
+        self.assertEqual(update1, self.repository.current_update('en'))
         update1.training_started_at = timezone.now()
         update1.save()
-        self.assertNotEqual(update1, self.repository.current_update)
+        self.assertNotEqual(update1, self.repository.current_update('en'))
