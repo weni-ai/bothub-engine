@@ -83,21 +83,30 @@ class RepositoryViewSet(
     ]
 
     @detail_route(
-        methods=['GET'],
+        methods=['POST'],
         url_name='repository-current-update')
     def currentupdate(self, request, **kwargs):
         instance = self.get_object()
-        serializer = CurrentRepositoryUpdateSerializer(instance.current_update)
+        language = request.POST.get('language')
+        
+        if not language:
+            raise APIException(_('language is required'))
+        
+        serializer = CurrentRepositoryUpdateSerializer(instance.current_update(language))
+        
         return Response(dict(serializer.data))
     
     @detail_route(
-        methods=['GET'],
+        methods=['POST'],
         url_name='repository-examples')
     def examples(self, request, **kwargs):
         repository = self.get_object()
-        examples = RepositoryExample.objects.filter(
-            repository_update__repository=repository,
-            deleted_in__isnull=True)
+        
+        language = request.POST.get('language')
+        if not language:
+            raise APIException(_('language is required'))
+        
+        examples = repository.current_update(language).examples
         
         page = self.paginate_queryset(examples)
         if page is not None:
@@ -108,11 +117,16 @@ class RepositoryViewSet(
         return Response(serializer.data)
     
     @detail_route(
-        methods=['GET'],
+        methods=['POST'],
         url_name='repository-current-rasa-nlu-data')
     def currentrasanludata(self, request, **kwargs):
         repository = self.get_object()
-        return Response(repository.current_rasa_nlu_data)
+
+        language = request.POST.get('language')
+        if not language:
+            raise APIException(_('language is required'))
+
+        return Response(repository.current_rasa_nlu_data(language))
     
     @detail_route(
         methods=['GET'],

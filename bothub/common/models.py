@@ -37,9 +37,8 @@ class Repository(models.Model):
             training_started_at=None)
         return repository_update
     
-    @property
-    def current_rasa_nlu_data(self):
-        return self.current_update.rasa_nlu_data
+    def current_rasa_nlu_data(self, language):
+        return self.current_update(language).rasa_nlu_data
     
     def get_user_authorization(self, user):
         if self.is_private and self.owner is not user:
