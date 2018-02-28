@@ -8,6 +8,7 @@ from bothub.common.models import Repository
 from bothub.common.models import RepositoryUpdate
 from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryExampleEntity
+from bothub.common.models import RepositoryAuthorization
 
 
 # Defaults
@@ -122,3 +123,13 @@ class RepositoryExampleEntitySerializer(serializers.ModelSerializer):
 
     def get_value(self, obj):
         return obj.value
+
+class RepositoryAuthorizationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RepositoryAuthorization
+        fields = [
+            'uuid',
+            'user',
+            'repository',
+            'created_at',
+        ]

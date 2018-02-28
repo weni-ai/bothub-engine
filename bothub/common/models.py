@@ -38,6 +38,16 @@ class Repository(models.Model):
     @property
     def current_rasa_nlu_data(self):
         return self.current_update.rasa_nlu_data
+    
+    def get_user_authorization(self, user):
+        if self.is_private and self.owner is not user:
+            return False
+        
+        get, created = RepositoryAuthorization.objects.get_or_create(
+            user=user,
+            repository=self)
+
+        return get
 
 
 class RepositoryUpdate(models.Model):

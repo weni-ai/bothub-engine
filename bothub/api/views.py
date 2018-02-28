@@ -14,6 +14,7 @@ from .serializers import RepositorySerializer
 from .serializers import CurrentRepositoryUpdateSerializer
 from .serializers import RepositoryExampleSerializer
 from .serializers import RepositoryExampleEntitySerializer
+from .serializers import RepositoryAuthorizationSerializer
 from bothub.common.models import Repository
 from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryExampleEntity
@@ -112,6 +113,20 @@ class RepositoryViewSet(
     def currentrasanludata(self, request, **kwargs):
         repository = self.get_object()
         return Response(repository.current_rasa_nlu_data)
+    
+    @detail_route(
+        methods=['GET'],
+        url_name='repository-authorization',
+        permission_classes=[permissions.IsAuthenticated])
+    def authorization(self, request, **kwargs):
+        repository = self.get_object()
+        user_authorization = repository.get_user_authorization(request.user)
+        
+        if not user_authorization:
+            raise APIException(_('User don\'t have authorization for this repository'))
+        
+        serializer = RepositoryAuthorizationSerializer(user_authorization)
+        return Response(serializer.data)
 
 class NewRepositoryExampleViewSet(
     mixins.CreateModelMixin,
