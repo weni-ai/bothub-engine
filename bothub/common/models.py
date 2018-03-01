@@ -40,6 +40,10 @@ class Repository(models.Model):
     def current_rasa_nlu_data(self, language):
         return self.current_update(language).rasa_nlu_data
     
+    def last_trained_update(self, language):
+        return self.updates.filter(
+            by__isnull=False).first()
+    
     def get_user_authorization(self, user):
         if self.is_private and self.owner is not user:
             return False
