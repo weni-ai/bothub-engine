@@ -88,10 +88,12 @@ class RepositoryUpdate(models.Model):
     
     @property
     def examples(self):
-        exclude = models.Q(deleted_in=self)
+        examples = RepositoryExample.objects.filter(repository_update__repository=self.repository)
         if self.training_started_at:
-            exclude += models.Q(deleted_in__training_started_at__lt=self.training_started_at)
-        return RepositoryExample.objects.filter(repository_update__repository=self.repository).exclude(exclude)
+            examples = examples.exclude(models.Q(deleted_in=self) | models.Q(deleted_in__training_started_at__lt=self.training_started_at))
+        else:
+            examples = examples.exclude(deleted_in=self)
+        return examples
 
     @property
     def rasa_nlu_data(self):
