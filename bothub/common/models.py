@@ -45,7 +45,7 @@ class Repository(models.Model):
             by__isnull=False).first()
     
     def get_user_authorization(self, user):
-        if self.is_private and self.owner is not user:
+        if self.is_private and self.owner.pk is not user.pk:
             return False
         
         get, created = RepositoryAuthorization.objects.get_or_create(
