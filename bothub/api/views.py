@@ -7,6 +7,7 @@ from rest_framework.decorators import list_route
 from rest_framework.response import Response
 from rest_framework.exceptions import APIException
 from rest_framework.exceptions import NotFound
+from rest_framework.exceptions import PermissionDenied
 from django.utils.translation import gettext as _
 from django.core.exceptions import ValidationError as DjangoValidationError
 
@@ -137,7 +138,7 @@ class RepositoryViewSet(
         user_authorization = repository.get_user_authorization(request.user)
         
         if not user_authorization:
-            raise APIException(_('User don\'t have authorization for this repository'))
+            raise PermissionDenied(_('User don\'t have authorization for this repository'))
         
         serializer = RepositoryAuthorizationSerializer(user_authorization)
         return Response(serializer.data)
