@@ -145,7 +145,7 @@ class RepositoryAuthorizationView(GenericViewSet):
         except Repository.DoesNotExist:
             raise NotFound(_('Repository {} does not exist').format(repository_uuid))
         except DjangoValidationError:
-            raise ValidationError(_('Invalid repository_uuid'))
+            raise APIException(_('Invalid repository_uuid'))
         
         user_authorization = repository.get_user_authorization(request.user)
 
