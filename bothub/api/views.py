@@ -19,6 +19,7 @@ from .serializers import RepositoryAuthorizationSerializer
 from bothub.common.models import Repository
 from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryExampleEntity
+from bothub.common.models import RepositoryAuthorization
 
 
 # Permisions
@@ -129,18 +130,29 @@ class RepositoryViewSet(
 
         return Response(repository.current_rasa_nlu_data(language))
     
-    @detail_route(
-        methods=['GET'],
-        url_name='repository-authorization',
-        permission_classes=[permissions.IsAuthenticated])
-    def authorization(self, request, **kwargs):
-        repository = self.get_object()
-        user_authorization = repository.get_user_authorization(request.user)
+class RepositoryAuthorizationView(GenericViewSet):
+    serializer_class = RepositoryAuthorizationSerializer
+    queryset = RepositoryAuthorization.objects
+    permission_classes = [permissions.IsAuthenticated]
+
+    def create(self, request, **kwargs):
+        repository_uuid = request.POST.get('repository_uuid')
+        if not repository_uuid:
+            raise APIException(_('repository_uuid is required'))
         
+        try:
+            repository = Repository.objects.get(uuid=repository_uuid)
+        except Repository.DoesNotExist:
+            raise NotFound(_('Repository {} does not exist').format(repository_uuid))
+        except DjangoValidationError:
+            raise ValidationError(_('Invalid repository_uuid'))
+        
+        user_authorization = repository.get_user_authorization(request.user)
+
         if not user_authorization:
             raise PermissionDenied(_('User don\'t have authorization for this repository'))
         
-        serializer = RepositoryAuthorizationSerializer(user_authorization)
+        serializer = self.get_serializer(user_authorization)
         return Response(serializer.data)
 
 class NewRepositoryExampleViewSet(
