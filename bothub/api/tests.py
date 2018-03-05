@@ -296,6 +296,14 @@ class APITestCase(TestCase):
         })
         self.assertEqual(response.status_code, 400)
     
+    def test_new_repository_example_language_required(self):
+        response, content_data = self._new_repository_example_request({
+            'repository_uuid': 'invalid',
+            'text': 'hey',
+            'intent': 'greet',
+        })
+        self.assertEqual(response.status_code, 400)
+    
     def test_repository_example_retrieve(self):
         request = self.factory.get(
             '/api/example/{}/'.format(self.example.id),
