@@ -139,6 +139,10 @@ class RepositoryExample(models.Model):
             'intent': self.intent,
             'entities': [entity.to_rsa_nlu_data for entity in self.entities.all()],
         }
+    
+    def delete(self):
+        self.deleted_in = self.repository_update.repository.current_update(self.repository_update.language)
+        self.save(update_fields=['deleted_in'])
 
 
 class RepositoryExampleEntity(models.Model):

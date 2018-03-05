@@ -163,8 +163,7 @@ class RepositoryExampleViewSet(
     def perform_destroy(self, obj):
         if obj.deleted_in:
             raise APIException(_('Example already deleted'))
-        obj.deleted_in = obj.repository_update.repository.current_update(obj.repository_update.language)
-        obj.save(update_fields=['deleted_in'])
+        obj.delete()
 
 class NewRepositoryExampleEntityViewSet(
     mixins.CreateModelMixin,
