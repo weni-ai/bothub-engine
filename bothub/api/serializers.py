@@ -40,27 +40,6 @@ class CurrentUpdateDefault(object):
     def __repr__(self):
         return unicode_to_repr('%s()' % self.__class__.__name__)
 
-class RepositoryExampleDefault(object):
-    def set_context(self, serializer_field):
-        request = serializer_field.context['request']
-        repository_example_id = request.POST.get('repository_example_id')
-        
-        if not repository_example_id:
-            raise ValidationError(_('repository_example_id is required'))
-        
-        try:
-            self.repository_example = RepositoryExample.objects.get(id=repository_example_id)
-        except RepositoryExample.DoesNotExist:
-            raise NotFound(_('Repository example entity {} does not exist').format(repository_example_id))
-        except DjangoValidationError:
-            raise ValidationError(_('Invalid repository_example_id'))
-
-    def __call__(self):
-        return self.repository_example
-
-    def __repr__(self):
-        return unicode_to_repr('%s()' % self.__class__.__name__)
-
 
 # Serializers
 
@@ -122,8 +101,7 @@ class RepositoryExampleEntitySerializer(serializers.ModelSerializer):
         ]
     
     repository_example = serializers.PrimaryKeyRelatedField(
-        read_only=True,
-        default=RepositoryExampleDefault())
+        queryset=RepositoryExample.objects)
     value = serializers.SerializerMethodField()
 
     def get_value(self, obj):

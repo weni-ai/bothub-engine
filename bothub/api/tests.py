@@ -332,7 +332,7 @@ class APITestCase(TestCase):
     
     def test_new_repository_example_entity(self):
         response, content_data = self._new_repository_example_entity_request({
-            'repository_example_id': self.example.id,
+            'repository_example': self.example.id,
             'start': 4,
             'end': 11,
             'entity': 'name',
