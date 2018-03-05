@@ -318,6 +318,17 @@ class APITestCase(TestCase):
         self.example = RepositoryExample.objects.get(id=self.example.id)
         self.assertEqual(self.example.deleted_in, self.repository.current_update(self.example.repository_update.language))
     
+    def test_repository_example_already_deleted(self):
+        self.example.delete()
+        request = self.factory.delete(
+            '/api/example/{}/'.format(self.example.id),
+            **{
+                'HTTP_AUTHORIZATION': 'Token {}'.format(self.user_token.key),
+            })
+        response = RepositoryExampleViewSet.as_view({ 'delete': 'destroy' })(request, pk=self.example.id)
+        response.render()
+        self.assertEqual(response.status_code, 500)
+    
     def _new_repository_example_entity_request(self, data):
         request = self.factory.post(
             '/api/entity/new/',
