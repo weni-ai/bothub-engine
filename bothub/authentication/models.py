@@ -9,7 +9,8 @@ from django.core.validators import RegexValidator, _lazy_re_compile
 user_nick_re = _lazy_re_compile(r'^[-a-zA-Z0-9_]+\Z')
 validate_user_nick = RegexValidator(
     user_nick_re,
-    _("Enter a valid 'nick' consisting of letters, numbers, underscores or hyphens."),
+    _('Enter a valid \'nick\' consisting of letters, numbers, underscores ' +
+        'or hyphens.'),
     'invalid'
 )
 
@@ -20,7 +21,7 @@ class UserManager(BaseUserManager):
             raise ValueError('The given email must be set')
         if not nick:
             raise ValueError('The given nick must be set')
-        
+
         email = self.normalize_email(email)
         user = self.model(email=email, nick=nick, **extra_fields)
         user.set_password(password)
@@ -49,7 +50,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['nick']
-    
+
     email = models.EmailField(
         _('email'),
         unique=True)
@@ -72,5 +73,5 @@ class User(AbstractBaseUser, PermissionsMixin):
     joined_at = models.DateField(
         _('joined at'),
         auto_now_add=True)
-    
+
     objects = UserManager()

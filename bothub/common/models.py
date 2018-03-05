@@ -30,24 +30,24 @@ class Repository(models.Model):
     created_at = models.DateTimeField(
         _('created at'),
         auto_now_add=True)
-    
+
     def current_update(self, language):
         repository_update, created = self.updates.get_or_create(
             language=language,
             training_started_at=None)
         return repository_update
-    
+
     def current_rasa_nlu_data(self, language):
         return self.current_update(language).rasa_nlu_data
-    
+
     def last_trained_update(self, language):
         return self.updates.filter(
             by__isnull=False).first()
-    
+
     def get_user_authorization(self, user):
         if self.is_private and self.owner.pk is not user.pk:
             return False
-        
+
         get, created = RepositoryAuthorization.objects.get_or_create(
             user=user,
             repository=self)
@@ -60,7 +60,7 @@ class RepositoryUpdate(models.Model):
         verbose_name = _('repository update')
         verbose_name_plural = _('repository updates')
         ordering = ['-created_at']
-    
+
     repository = models.ForeignKey(
         Repository,
         models.CASCADE,
@@ -89,12 +89,16 @@ class RepositoryUpdate(models.Model):
         _('trained at'),
         blank=True,
         null=True)
-    
+
     @property
     def examples(self):
-        examples = RepositoryExample.objects.filter(repository_update__repository=self.repository)
+        examples = RepositoryExample.objects.filter(
+            repository_update__repository=self.repository)
         if self.training_started_at:
-            examples = examples.exclude(models.Q(deleted_in=self) | models.Q(deleted_in__training_started_at__lt=self.training_started_at))
+            t_started_at = self.training_started_at
+            examples = examples.exclude(
+                models.Q(deleted_in=self) |
+                models.Q(deleted_in__training_started_at__lt=t_started_at))
         else:
             examples = examples.exclude(deleted_in=self)
         return examples
@@ -102,7 +106,8 @@ class RepositoryUpdate(models.Model):
     @property
     def rasa_nlu_data(self):
         return {
-            'common_examples': [example.to_rsa_nlu_data for example in self.examples]
+            'common_examples': [
+                example.to_rsa_nlu_data for example in self.examples]
         }
 
 
@@ -110,7 +115,7 @@ class RepositoryExample(models.Model):
     class Meta:
         verbose_name = _('repository example')
         verbose_name_plural = _('repository examples')
-    
+
     repository_update = models.ForeignKey(
         RepositoryUpdate,
         models.CASCADE,
@@ -131,17 +136,19 @@ class RepositoryExample(models.Model):
     created_at = models.DateTimeField(
         _('created at'),
         auto_now_add=True)
-    
+
     @property
     def to_rsa_nlu_data(self):
         return {
             'text': self.text,
             'intent': self.intent,
-            'entities': [entity.to_rsa_nlu_data for entity in self.entities.all()],
+            'entities': [
+                entity.to_rsa_nlu_data for entity in self.entities.all()],
         }
-    
+
     def delete(self):
-        self.deleted_in = self.repository_update.repository.current_update(self.repository_update.language)
+        self.deleted_in = self.repository_update.repository.current_update(
+            self.repository_update.language)
         self.save(update_fields=['deleted_in'])
 
 
@@ -149,7 +156,7 @@ class RepositoryExampleEntity(models.Model):
     class Meta:
         verbose_name = _('repository example entity')
         verbose_name_plural = _('repository example entities')
-    
+
     repository_example = models.ForeignKey(
         RepositoryExample,
         models.CASCADE,
@@ -169,7 +176,7 @@ class RepositoryExampleEntity(models.Model):
     @property
     def value(self):
         return self.repository_example.text[self.start:self.end]
-    
+
     @property
     def to_rsa_nlu_data(self):
         return {
@@ -185,7 +192,7 @@ class RepositoryAuthorization(models.Model):
         verbose_name = _('repository authorization')
         verbose_name_plural = _('repository authorizations')
         unique_together = ['user', 'repository']
-    
+
     uuid = models.UUIDField(
         _('UUID'),
         primary_key=True,

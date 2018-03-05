@@ -11,17 +11,21 @@ from .models import RepositoryAuthorization
 class RepositoryAdmin(admin.ModelAdmin):
     pass
 
+
 @admin.register(RepositoryUpdate)
 class RepositoryUpdateAdmin(admin.ModelAdmin):
     pass
+
 
 @admin.register(RepositoryExample)
 class RepositoryExampleAdmin(admin.ModelAdmin):
     pass
 
+
 @admin.register(RepositoryExampleEntity)
 class RepositoryExampleEntityAdmin(admin.ModelAdmin):
     pass
+
 
 @admin.register(RepositoryAuthorization)
 class RepositoryAuthorizationAdmin(admin.ModelAdmin):

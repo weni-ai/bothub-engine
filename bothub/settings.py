@@ -14,7 +14,8 @@ SECRET_KEY = config('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS',
+ALLOWED_HOSTS = config(
+    'ALLOWED_HOSTS',
     default='*',
     cast=lambda v: [s.strip() for s in v.split(',')])
 
@@ -69,7 +70,10 @@ WSGI_APPLICATION = 'bothub.wsgi.application'
 # Database
 
 DATABASES = {}
-DATABASES['default'] = dj_database_url.parse(config('DEFAULT_DATABASE', default='sqlite:///db.sqlite3'))
+DATABASES['default'] = dj_database_url.parse(
+    config(
+        'DEFAULT_DATABASE',
+        default='sqlite:///db.sqlite3'))
 
 
 # Auth
@@ -81,16 +85,20 @@ AUTH_USER_MODEL = 'authentication.User'
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        'NAME': 'django.contrib.auth.password_validation.' +
+        'UserAttributeSimilarityValidator',
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'NAME': 'django.contrib.auth.password_validation.' +
+        'MinimumLengthValidator',
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+        'NAME': 'django.contrib.auth.password_validation.' +
+        'CommonPasswordValidator',
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+        'NAME': 'django.contrib.auth.password_validation.' +
+        'NumericPasswordValidator',
     },
 ]
 
@@ -121,6 +129,7 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.TokenAuthentication',
     ],
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.' +
+    'LimitOffsetPagination',
     'PAGE_SIZE': 20,
 }

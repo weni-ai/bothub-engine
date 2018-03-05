@@ -6,7 +6,22 @@ from .models import Repository, RepositoryExample, RepositoryExampleEntity
 
 
 class RepositoryUpdateTest(TestCase):
-    EXPECTED_RASA_NLU_DATA = {'common_examples': [{'text': 'my name is Douglas', 'intent': '', 'entities': [{'start': 11, 'end': 18, 'value': 'Douglas', 'entity': 'name'}]}]}
+    EXPECTED_RASA_NLU_DATA = {
+        'common_examples': [
+            {
+                'text': 'my name is Douglas',
+                'intent': '',
+                'entities': [
+                    {
+                        'start': 11,
+                        'end': 18,
+                        'value': 'Douglas',
+                        'entity': 'name',
+                    },
+                ],
+            }
+        ],
+    }
 
     def setUp(self):
         owner = User.objects.create_user('fake@user.com', 'user', '123456')
@@ -27,8 +42,10 @@ class RepositoryUpdateTest(TestCase):
         self.assertEqual(self.entity.value, 'Douglas')
 
     def test_get_rasa_nlu_data(self):
-        self.assertDictEqual(self.repository_update.rasa_nlu_data, RepositoryUpdateTest.EXPECTED_RASA_NLU_DATA)
-    
+        self.assertDictEqual(
+            self.repository_update.rasa_nlu_data,
+            RepositoryUpdateTest.EXPECTED_RASA_NLU_DATA)
+
     def test_repository_current_update(self):
         update1 = self.repository.current_update('en')
         self.assertEqual(update1, self.repository.current_update('en'))
