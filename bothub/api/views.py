@@ -95,13 +95,9 @@ class RepositoryViewSet(
         examples = repository.current_update(language).examples
         
         page = self.paginate_queryset(examples)
-        if page is not None:
-            serializer = RepositoryExampleSerializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
+        serializer = RepositoryExampleSerializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
         
-        serializer = RepositoryExampleSerializer(examples, many=True)
-        return Response(serializer.data)
-    
     @detail_route(
         methods=['POST'],
         url_name='repository-current-rasa-nlu-data')
