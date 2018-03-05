@@ -15,6 +15,7 @@ from .views import RepositoryViewSet
 from .views import NewRepositoryExampleViewSet
 from .views import RepositoryExampleViewSet
 from .views import RepositoryAuthorizationView
+from .views import NewRepositoryExampleEntityViewSet
 
 
 class APITestCase(TestCase):
@@ -38,7 +39,7 @@ class APITestCase(TestCase):
 
         self.example = RepositoryExample.objects.create(
             repository_update=self.repository.current_update('en'),
-            text='hey',
+            text='hey Douglas',
             intent='greet')
     
     def _new_repository_request(self, slug):
@@ -317,8 +318,24 @@ class APITestCase(TestCase):
         self.example = RepositoryExample.objects.get(id=self.example.id)
         self.assertEqual(self.example.deleted_in, self.repository.current_update(self.example.repository_update.language))
     
-    def _new_repository_example_entity_request(self):
-        return
+    def _new_repository_example_entity_request(self, data):
+        request = self.factory.post(
+            '/api/entity/new/',
+            data,
+            **{
+                'HTTP_AUTHORIZATION': 'Token {}'.format(self.user_token.key),
+            })
+        response = NewRepositoryExampleEntityViewSet.as_view({ 'post': 'create' })(request)
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data,)
     
     def test_new_repository_example_entity(self):
-        pass
+        response, content_data = self._new_repository_example_entity_request({
+            'repository_example_id': self.example.id,
+            'start': 4,
+            'end': 11,
+            'entity': 'name',
+        })
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(content_data.get('value'), 'Douglas')
