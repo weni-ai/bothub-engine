@@ -1,0 +1,12 @@
+[run]
+source =
+    ./bothub/api
+    ./bothub/authentication
+    ./bothub/common
+omit =
+    ./bothub/api/apps.py
+    ./bothub/authentication/apps.py
+    ./bothub/common/apps.py
+
+[report]
+fail_under = 90
