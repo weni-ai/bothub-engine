@@ -28,22 +28,6 @@ class IsOwner(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         return obj.owner == request.user
 
-class IsRepositoryUUIDOwner(permissions.BasePermission):
-    def has_permission(self, request, view):
-        repository_uuid = request.POST.get('repository_uuid')
-
-        if not repository_uuid:
-            raise APIException(_('repository_uuid is required'))
-        
-        try:
-            repository = Repository.objects.get(uuid=repository_uuid)
-        except Repository.DoesNotExist:
-            raise NotFound(_('Repository {} does not exist').format(repository_uuid))
-        except DjangoValidationError:
-            raise APIException(_('Invalid repository_uuid'))
-        
-        return repository.owner == request.user
-
 class IsRepositoryUpdateOwner(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         return obj.repository_update.repository.owner == request.user
@@ -162,7 +146,7 @@ class NewRepositoryExampleViewSet(
     serializer_class = RepositoryExampleSerializer
     permission_classes = [
         permissions.IsAuthenticated,
-        IsRepositoryUUIDOwner,
+        IsRepositoryUpdateOwner,
     ]
 
 class RepositoryExampleViewSet(

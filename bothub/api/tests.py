@@ -274,7 +274,7 @@ class APITestCase(TestCase):
             'text': 'hey',
             'intent': 'greet',
         })
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 400)
     
     def test_new_repository_example_repository_does_not_exists(self):
         language = 'en'
@@ -294,7 +294,7 @@ class APITestCase(TestCase):
             'text': 'hey',
             'intent': 'greet',
         })
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 400)
     
     def test_repository_example_retrieve(self):
         request = self.factory.get(
