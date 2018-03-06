@@ -355,7 +355,7 @@ class APITestCase(TestCase):
 
     def test_new_repository_example_language_required(self):
         response, content_data = self._new_repository_example_request({
-            'repository_uuid': 'invalid',
+            'repository_uuid': self.repository.uuid,
             'text': 'hey',
             'intent': 'greet',
         })
