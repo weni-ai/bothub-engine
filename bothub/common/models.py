@@ -188,16 +188,29 @@ class RepositoryExample(models.Model):
         self.save(update_fields=['deleted_in'])
 
 
-class RepositoryExampleEntity(models.Model):
+class RepositoryTranslatedExample(models.Model):
+    class Meta:
+        verbose_name = _('repository translated example')
+        verbose_name_plural = _('repository translated examples')
+    
+    original_example = models.ForeignKey(
+        RepositoryExample,
+        models.CASCADE,
+        related_name='translations',
+        editable=False)
+    language = models.CharField(
+        _('language'),
+        choices=languages.LANGUAGE_CHOICES,
+        max_length=2)
+    text = models.TextField(
+        _('text'))
+
+class EntityBase(models.Model):
     class Meta:
         verbose_name = _('repository example entity')
         verbose_name_plural = _('repository example entities')
+        abstract = True
 
-    repository_example = models.ForeignKey(
-        RepositoryExample,
-        models.CASCADE,
-        related_name='entities',
-        editable=False)
     start = models.PositiveIntegerField(
         _('start'))
     end = models.PositiveIntegerField(
@@ -211,7 +224,7 @@ class RepositoryExampleEntity(models.Model):
 
     @property
     def value(self):
-        return self.repository_example.text[self.start:self.end]
+        return self.get_example().text[self.start:self.end]
 
     @property
     def to_rsa_nlu_data(self):
@@ -221,6 +234,30 @@ class RepositoryExampleEntity(models.Model):
             'value': self.value,
             'entity': self.entity,
         }
+    
+    def get_example(self):
+        pass
+
+class RepositoryExampleEntity(EntityBase):
+    repository_example = models.ForeignKey(
+        RepositoryExample,
+        models.CASCADE,
+        related_name='entities',
+        editable=False)
+    
+    def get_example(self):
+        return self.repository_example
+
+
+class RepositoryTranslatedExampleEntity(EntityBase):
+    repository_translated_example = models.ForeignKey(
+        RepositoryTranslatedExample,
+        models.CASCADE,
+        related_name='entities',
+        editable=False)
+    
+    def get_example(self):
+        return self.repository_translated_example
 
 
 class RepositoryAuthorization(models.Model):
