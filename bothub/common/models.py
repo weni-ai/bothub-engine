@@ -55,6 +55,9 @@ class Repository(models.Model):
         _('category'),
         choices=CATEGORY_CHOICES,
         max_length=2)
+    description = models.TextField(
+        _('description'),
+        blank=True)
     is_private = models.BooleanField(
         _('private'),
         default=False)
