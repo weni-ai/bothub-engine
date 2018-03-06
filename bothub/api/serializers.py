@@ -51,7 +51,10 @@ class RepositorySerializer(serializers.ModelSerializer):
         fields = [
             'uuid',
             'owner',
+            'name',
             'slug',
+            'language',
+            'category',
             'is_private',
             'created_at',
         ]
