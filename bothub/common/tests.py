@@ -2,7 +2,11 @@ from django.test import TestCase
 from django.utils import timezone
 
 from bothub.authentication.models import User
-from .models import Repository, RepositoryExample, RepositoryExampleEntity
+from .models import Repository
+from .models import RepositoryExample
+from .models import RepositoryExampleEntity
+from .models import RepositoryTranslatedExample
+from . import languages
 
 
 class RepositoryUpdateTest(TestCase):
@@ -52,3 +56,26 @@ class RepositoryUpdateTest(TestCase):
         update1.training_started_at = timezone.now()
         update1.save()
         self.assertNotEqual(update1, self.repository.current_update('en'))
+
+class TranslateTest(TestCase):
+    def setUp(self):
+        owner = User.objects.create_user('fake@user.com', 'user', '123456')
+        self.repository = Repository.objects.create(
+            owner=owner,
+            slug='test',
+            language=languages.LANGUAGE_EN,
+            category=Repository.CATEGORY_BUSINESS)
+        self.repository_update = self.repository.current_update('en')
+        self.example = RepositoryExample.objects.create(
+            repository_update=self.repository_update,
+            text='my name is Douglas')
+
+    def test_new_translate(self):
+        language = languages.LANGUAGE_PT
+        translate = RepositoryTranslatedExample.objects.create(
+            original_example=self.example,
+            language=language,
+            text='meu nome é Douglas')
+        self.assertEqual(
+            len(self.repository.current_update(language).examples),
+            1)

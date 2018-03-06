@@ -128,8 +128,9 @@ class RepositoryUpdate(models.Model):
     @property
     def examples(self):
         examples = RepositoryExample.objects.filter(
-            repository_update__repository=self.repository,
-            repository_update__language=self.language)
+            models.Q(repository_update__language=self.language) |
+            models.Q(translations__language=self.language),
+            repository_update__repository=self.repository)
         if self.training_started_at:
             t_started_at = self.training_started_at
             examples = examples.exclude(
@@ -142,9 +143,14 @@ class RepositoryUpdate(models.Model):
     @property
     def rasa_nlu_data(self):
         return {
-            'common_examples': [
-                example.to_rsa_nlu_data for example in self.examples]
+            'common_examples': list(map(
+                lambda example: example.to_rsa_nlu_data(self.language),
+                self.examples))
         }
+
+
+class DoesNotHaveTranslation(Exception):
+    pass
 
 
 class RepositoryExample(models.Model):
@@ -173,13 +179,29 @@ class RepositoryExample(models.Model):
         _('created at'),
         auto_now_add=True)
 
-    @property
-    def to_rsa_nlu_data(self):
+    def get_translation(self, language):
+        try:
+            return self.translations.get(language=language)
+        except RepositoryTranslatedExample.DoesNotExist:
+            raise DoesNotHaveTranslation()
+
+    def get_text(self, language=None):
+        if not language or language == self.repository_update.language:
+            return self.text
+        return self.get_translation(language).text
+    
+    def get_entities(self, language):
+        if not language or language == self.repository_update.language:
+            return self.entities.all()
+        return self.get_translation(language).entities.all()
+
+    def to_rsa_nlu_data(self, language):
         return {
-            'text': self.text,
+            'text': self.get_text(language),
             'intent': self.intent,
             'entities': [
-                entity.to_rsa_nlu_data for entity in self.entities.all()],
+                entity.to_rsa_nlu_data for entity in self.get_entities(
+                    language)],
         }
 
     def delete(self):
