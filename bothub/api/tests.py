@@ -142,7 +142,7 @@ class APITestCase(TestCase):
 
     def test_repository_currentupdate(self):
         response, content_data = self._repository_currentupdate_request({
-            'language': 'en',
+            'language': languages.LANGUAGE_EN,
         })
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
@@ -167,7 +167,7 @@ class APITestCase(TestCase):
 
     def test_repository_examples(self):
         response = self._repository_examples_request({
-            'language': 'en',
+            'language': languages.LANGUAGE_EN,
         })
         self.assertEqual(response.status_code, 200)
 
@@ -192,7 +192,7 @@ class APITestCase(TestCase):
 
     def test_repository_currentrasanludata(self):
         response = self._repository_currentrasanludata_request({
-            'language': 'en',
+            'language': languages.LANGUAGE_EN,
         })
         self.assertEqual(response.status_code, 200)
 
@@ -312,7 +312,7 @@ class APITestCase(TestCase):
         return (response, content_data,)
 
     def test_new_repository_example(self):
-        language = 'en'
+        language = languages.LANGUAGE_EN
         response, content_data = self._new_repository_example_request({
             'repository_uuid': self.repository.uuid,
             'language': language,
@@ -325,7 +325,7 @@ class APITestCase(TestCase):
             self.repository.current_update(language).id)
 
     def test_new_repository_example_without_repository_uuid(self):
-        language = 'en'
+        language = languages.LANGUAGE_EN
         response, content_data = self._new_repository_example_request({
             'language': language,
             'text': 'hey',
@@ -334,7 +334,7 @@ class APITestCase(TestCase):
         self.assertEqual(response.status_code, 400)
 
     def test_new_repository_example_repository_does_not_exists(self):
-        language = 'en'
+        language = languages.LANGUAGE_EN
         response, content_data = self._new_repository_example_request({
             'repository_uuid': uuid.uuid4(),
             'language': language,
@@ -344,7 +344,7 @@ class APITestCase(TestCase):
         self.assertEqual(response.status_code, 404)
 
     def test_new_repository_example_invalid_repository_uuid(self):
-        language = 'en'
+        language = languages.LANGUAGE_EN
         response, content_data = self._new_repository_example_request({
             'repository_uuid': 'invalid',
             'language': language,
