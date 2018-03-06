@@ -128,7 +128,8 @@ class RepositoryUpdate(models.Model):
     @property
     def examples(self):
         examples = RepositoryExample.objects.filter(
-            repository_update__repository=self.repository)
+            repository_update__repository=self.repository,
+            repository_update__language=self.language)
         if self.training_started_at:
             t_started_at = self.training_started_at
             examples = examples.exclude(
