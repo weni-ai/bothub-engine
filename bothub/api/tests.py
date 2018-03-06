@@ -312,50 +312,31 @@ class APITestCase(TestCase):
         return (response, content_data,)
 
     def test_new_repository_example(self):
-        language = languages.LANGUAGE_EN
         response, content_data = self._new_repository_example_request({
             'repository_uuid': self.repository.uuid,
-            'language': language,
             'text': 'hey',
             'intent': 'greet',
         })
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(
-            content_data.get('repository_update'),
-            self.repository.current_update(language).id)
 
     def test_new_repository_example_without_repository_uuid(self):
-        language = languages.LANGUAGE_EN
         response, content_data = self._new_repository_example_request({
-            'language': language,
             'text': 'hey',
             'intent': 'greet',
         })
         self.assertEqual(response.status_code, 400)
 
     def test_new_repository_example_repository_does_not_exists(self):
-        language = languages.LANGUAGE_EN
         response, content_data = self._new_repository_example_request({
             'repository_uuid': uuid.uuid4(),
-            'language': language,
             'text': 'hey',
             'intent': 'greet',
         })
         self.assertEqual(response.status_code, 404)
 
     def test_new_repository_example_invalid_repository_uuid(self):
-        language = languages.LANGUAGE_EN
         response, content_data = self._new_repository_example_request({
             'repository_uuid': 'invalid',
-            'language': language,
-            'text': 'hey',
-            'intent': 'greet',
-        })
-        self.assertEqual(response.status_code, 400)
-
-    def test_new_repository_example_language_required(self):
-        response, content_data = self._new_repository_example_request({
-            'repository_uuid': self.repository.uuid,
             'text': 'hey',
             'intent': 'greet',
         })
