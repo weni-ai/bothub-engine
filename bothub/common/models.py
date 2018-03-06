@@ -189,7 +189,7 @@ class RepositoryExample(models.Model):
         if not language or language == self.repository_update.language:
             return self.text
         return self.get_translation(language).text
-    
+
     def get_entities(self, language):
         if not language or language == self.repository_update.language:
             return self.entities.all()
@@ -214,7 +214,7 @@ class RepositoryTranslatedExample(models.Model):
     class Meta:
         verbose_name = _('repository translated example')
         verbose_name_plural = _('repository translated examples')
-    
+
     original_example = models.ForeignKey(
         RepositoryExample,
         models.CASCADE,
@@ -226,6 +226,7 @@ class RepositoryTranslatedExample(models.Model):
         max_length=2)
     text = models.TextField(
         _('text'))
+
 
 class EntityBase(models.Model):
     class Meta:
@@ -256,9 +257,10 @@ class EntityBase(models.Model):
             'value': self.value,
             'entity': self.entity,
         }
-    
+
     def get_example(self):
         pass
+
 
 class RepositoryExampleEntity(EntityBase):
     repository_example = models.ForeignKey(
@@ -266,7 +268,7 @@ class RepositoryExampleEntity(EntityBase):
         models.CASCADE,
         related_name='entities',
         editable=False)
-    
+
     def get_example(self):
         return self.repository_example
 
@@ -277,7 +279,7 @@ class RepositoryTranslatedExampleEntity(EntityBase):
         models.CASCADE,
         related_name='entities',
         editable=False)
-    
+
     def get_example(self):
         return self.repository_translated_example
 

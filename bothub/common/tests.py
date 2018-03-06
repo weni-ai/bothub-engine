@@ -57,6 +57,7 @@ class RepositoryUpdateTest(TestCase):
         update1.save()
         self.assertNotEqual(update1, self.repository.current_update('en'))
 
+
 class TranslateTest(TestCase):
     def setUp(self):
         owner = User.objects.create_user('fake@user.com', 'user', '123456')
@@ -72,7 +73,7 @@ class TranslateTest(TestCase):
 
     def test_new_translate(self):
         language = languages.LANGUAGE_PT
-        translate = RepositoryTranslatedExample.objects.create(
+        RepositoryTranslatedExample.objects.create(
             original_example=self.example,
             language=language,
             text='meu nome é Douglas')

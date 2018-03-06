@@ -123,7 +123,7 @@ class RepositoryTranslatedExampleSerializer(serializers.ModelSerializer):
             'language',
             'text',
         ]
-    
+
     original_example = serializers.PrimaryKeyRelatedField(
         queryset=RepositoryExample.objects)
 

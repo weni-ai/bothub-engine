@@ -404,7 +404,7 @@ class APITestCase(TestCase):
         })
         self.assertEqual(response.status_code, 201)
         self.assertEqual(content_data.get('value'), 'Douglas')
-    
+
     def test_translate_example(self):
         request = self.factory.post(
             '/api/translateexample/',
