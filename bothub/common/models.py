@@ -65,7 +65,8 @@ class Repository(models.Model):
         _('created at'),
         auto_now_add=True)
 
-    def current_update(self, language):
+    def current_update(self, language=None):
+        language = language or self.language
         repository_update, created = self.updates.get_or_create(
             language=language,
             training_started_at=None)
