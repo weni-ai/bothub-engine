@@ -17,6 +17,7 @@ from .views import NewRepositoryExampleViewSet
 from .views import RepositoryExampleViewSet
 from .views import RepositoryAuthorizationView
 from .views import NewRepositoryExampleEntityViewSet
+from .views import NewRepositoryTranslatedExampleViewSet
 
 
 class APITestCase(TestCase):
@@ -403,3 +404,18 @@ class APITestCase(TestCase):
         })
         self.assertEqual(response.status_code, 201)
         self.assertEqual(content_data.get('value'), 'Douglas')
+    
+    def test_translate_example(self):
+        request = self.factory.post(
+            '/api/translateexample/',
+            {
+               'original_example': self.example.id,
+               'language': languages.LANGUAGE_PT,
+               'text': 'ei Douglas',
+            },
+            **{
+                'HTTP_AUTHORIZATION': 'Token {}'.format(self.user_token.key),
+            })
+        response = NewRepositoryTranslatedExampleViewSet.as_view(
+            {'post': 'create'})(request)
+        self.assertEqual(response.status_code, 201)

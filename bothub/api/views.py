@@ -14,10 +14,12 @@ from .serializers import CurrentRepositoryUpdateSerializer
 from .serializers import RepositoryExampleSerializer
 from .serializers import RepositoryExampleEntitySerializer
 from .serializers import RepositoryAuthorizationSerializer
+from .serializers import RepositoryTranslatedExampleSerializer
 from bothub.common.models import Repository
 from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryExampleEntity
 from bothub.common.models import RepositoryAuthorization
+from bothub.common.models import RepositoryTranslatedExample
 
 
 # Permisions
@@ -35,6 +37,12 @@ class IsRepositoryUpdateOwner(permissions.BasePermission):
 class IsRepositoryExampleOwner(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         repository = obj.repository_example.repository_update.repository
+        return repository.owner == request.user
+
+
+class IsOriginalRepositoryExampleOwner(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        repository = obj.original_example.repository_update.repository
         return repository.owner == request.user
 
 
@@ -191,4 +199,15 @@ class RepositoryExampleEntityViewSet(
     permission_classes = [
         permissions.IsAuthenticated,
         IsRepositoryExampleOwner,
+    ]
+
+
+class NewRepositoryTranslatedExampleViewSet(
+        mixins.CreateModelMixin,
+        GenericViewSet):
+    queryset = RepositoryTranslatedExample.objects
+    serializer_class = RepositoryTranslatedExampleSerializer
+    permission_classes = [
+        permissions.IsAuthenticated,
+        IsOriginalRepositoryExampleOwner,
     ]
