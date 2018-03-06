@@ -11,7 +11,7 @@ class Repository(models.Model):
     class Meta:
         verbose_name = _('repository')
         verbose_name_plural = _('repositories')
-    
+
     CATEGORY_BUSINESS = 'BU'
     CATEGORY_COMMUNICATION = 'CO'
     CATEGORY_PROJECT = 'PR'
