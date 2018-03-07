@@ -51,7 +51,7 @@ class RepositorySerializer(serializers.ModelSerializer):
             'name',
             'slug',
             'language',
-            'category',
+            'categories',
             'description',
             'is_private',
             'created_at',
