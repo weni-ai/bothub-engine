@@ -122,6 +122,12 @@ class TranslateTest(TestCase):
             TranslateTest.EXPECTED_RASA_NLU_DATA)
 
     def test_translated_entity(self):
+        RepositoryExampleEntity.objects.create(
+            repository_example=self.example,
+            start=11,
+            end=18,
+            entity='name')
+
         language = languages.LANGUAGE_PT
         translate = RepositoryTranslatedExample.objects.create(
             original_example=self.example,

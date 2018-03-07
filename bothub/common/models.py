@@ -131,9 +131,13 @@ class RepositoryUpdate(models.Model):
     @property
     def rasa_nlu_data(self):
         return {
-            'common_examples': list(map(
-                lambda example: example.to_rasa_nlu_data(self.language),
-                self.examples))
+            'common_examples': list(
+                map(
+                    lambda example: example.to_rasa_nlu_data(self.language),
+                    filter(
+                        lambda example: example.has_valid_entities(
+                            self.language),
+                        self.examples)))
         }
 
 
@@ -166,6 +170,11 @@ class RepositoryExample(models.Model):
     created_at = models.DateTimeField(
         _('created at'),
         auto_now_add=True)
+
+    def has_valid_entities(self, language=None):
+        if not language or language == self.repository_update.language:
+            return True
+        return self.get_translation(language).has_valid_entities
 
     def get_translation(self, language):
         try:
