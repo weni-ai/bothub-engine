@@ -7,6 +7,7 @@ from .models import RepositoryExample
 from .models import RepositoryExampleEntity
 from .models import RepositoryTranslatedExample
 from .models import RepositoryTranslatedExampleEntity
+from .models import DoesNotHaveTranslation
 from . import languages
 
 
@@ -245,3 +246,7 @@ class TranslateTest(TestCase):
         self.assertEqual(
             translate.has_valid_entities,
             False)
+
+    def test_does_not_have_translation(self):
+        with self.assertRaises(DoesNotHaveTranslation):
+            self.example.get_translation(languages.LANGUAGE_NL)
