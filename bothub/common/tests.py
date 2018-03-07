@@ -64,8 +64,7 @@ class TranslateTest(TestCase):
         self.repository = Repository.objects.create(
             owner=owner,
             slug='test',
-            language=languages.LANGUAGE_EN,
-            category=Repository.CATEGORY_BUSINESS)
+            language=languages.LANGUAGE_EN)
         self.repository_update = self.repository.current_update('en')
         self.example = RepositoryExample.objects.create(
             repository_update=self.repository_update,
