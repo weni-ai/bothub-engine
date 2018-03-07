@@ -222,8 +222,7 @@ class RepositoryTranslatedExample(models.Model):
             list(
                 map(
                     lambda x: (x.get('entity'), x.get('many'),),
-                    entities.values(
-                        'entity',
+                    entities.values('entity').annotate(
                         many=models.Count('entity')))))
 
     @property
@@ -236,7 +235,12 @@ class RepositoryTranslatedExample(models.Model):
             .create_entitites_count_dict(original_entities)
         my_entities_dict = RepositoryTranslatedExample \
             .create_entitites_count_dict(my_entities)
-        return len(set(original_entities_dict) ^ set(my_entities_dict)) == 0
+        if len(set(original_entities_dict) ^ set(my_entities_dict)) > 0:
+            return False
+        for key in original_entities_dict:
+            if original_entities_dict.get(key) != my_entities_dict.get(key):
+                return False
+        return True
 
 
 class EntityBase(models.Model):

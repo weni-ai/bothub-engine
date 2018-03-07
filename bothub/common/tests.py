@@ -197,3 +197,45 @@ class TranslateTest(TestCase):
         self.assertEqual(
             translate.has_valid_entities,
             False)
+
+    def test_invalid_many_how_entities(self):
+        RepositoryExampleEntity.objects.create(
+            repository_example=self.example,
+            start=12,
+            end=19,
+            entity='name')
+        RepositoryExampleEntity.objects.create(
+            repository_example=self.example,
+            start=11,
+            end=19,
+            entity='name')
+        RepositoryExampleEntity.objects.create(
+            repository_example=self.example,
+            start=11,
+            end=12,
+            entity='space')
+
+        language = languages.LANGUAGE_PT
+        translate = RepositoryTranslatedExample.objects.create(
+            original_example=self.example,
+            language=language,
+            text='meu nome é Douglas')
+        RepositoryTranslatedExampleEntity.objects.create(
+            repository_translated_example=translate,
+            start=11,
+            end=18,
+            entity='name')
+        RepositoryTranslatedExampleEntity.objects.create(
+            repository_translated_example=translate,
+            start=10,
+            end=11,
+            entity='space')
+        RepositoryTranslatedExampleEntity.objects.create(
+            repository_translated_example=translate,
+            start=10,
+            end=11,
+            entity='space')
+
+        self.assertEqual(
+            translate.has_valid_entities,
+            False)
