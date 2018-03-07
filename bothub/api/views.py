@@ -215,6 +215,7 @@ class NewRepositoryTranslatedExampleViewSet(
 
 class RepositoryTranslatedExampleViewSet(
         mixins.RetrieveModelMixin,
+        mixins.UpdateModelMixin,
         mixins.DestroyModelMixin,
         GenericViewSet):
     queryset = RepositoryTranslatedExample.objects
