@@ -10,6 +10,7 @@ from bothub.common.models import RepositoryUpdate
 from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryExampleEntity
 from bothub.common.models import RepositoryTranslatedExample
+from bothub.common.models import RepositoryTranslatedExampleEntity
 from bothub.common.models import RepositoryAuthorization
 
 
@@ -134,6 +135,26 @@ class RepositoryTranslatedExampleSerializer(serializers.ModelSerializer):
 
     def get_has_valid_entities(self, obj):
         return obj.has_valid_entities
+
+
+class RepositoryTranslatedExampleEntitySeralizer(serializers.ModelSerializer):
+    class Meta:
+        model = RepositoryTranslatedExampleEntity
+        fields = [
+            'repository_translated_example',
+            'start',
+            'end',
+            'entity',
+            'created_at',
+            'value',
+        ]
+
+    repository_translated_example = serializers.PrimaryKeyRelatedField(
+        queryset=RepositoryTranslatedExample.objects)
+    value = serializers.SerializerMethodField()
+
+    def get_value(self, obj):
+        return obj.value
 
 
 class RepositoryAuthorizationSerializer(serializers.ModelSerializer):
