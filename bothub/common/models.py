@@ -132,7 +132,7 @@ class RepositoryUpdate(models.Model):
     def rasa_nlu_data(self):
         return {
             'common_examples': list(map(
-                lambda example: example.to_rsa_nlu_data(self.language),
+                lambda example: example.to_rasa_nlu_data(self.language),
                 self.examples))
         }
 
@@ -183,12 +183,12 @@ class RepositoryExample(models.Model):
             return self.entities.all()
         return self.get_translation(language).entities.all()
 
-    def to_rsa_nlu_data(self, language):
+    def to_rasa_nlu_data(self, language):
         return {
             'text': self.get_text(language),
             'intent': self.intent,
             'entities': [
-                entity.to_rsa_nlu_data for entity in self.get_entities(
+                entity.to_rasa_nlu_data for entity in self.get_entities(
                     language)],
         }
 
@@ -265,7 +265,7 @@ class EntityBase(models.Model):
         return self.get_example().text[self.start:self.end]
 
     @property
-    def to_rsa_nlu_data(self):
+    def to_rasa_nlu_data(self):
         return {
             'start': self.start,
             'end': self.end,

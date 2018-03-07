@@ -109,7 +109,7 @@ class TranslateTest(TestCase):
             len(self.repository.current_update(language).examples),
             1)
 
-    def test_to_rsa_nlu_data(self):
+    def test_to_rasa_nlu_data(self):
         language = languages.LANGUAGE_PT
         RepositoryTranslatedExample.objects.create(
             original_example=self.example,
