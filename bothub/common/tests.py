@@ -6,6 +6,7 @@ from .models import Repository
 from .models import RepositoryExample
 from .models import RepositoryExampleEntity
 from .models import RepositoryTranslatedExample
+from .models import RepositoryTranslatedExampleEntity
 from . import languages
 
 
@@ -69,6 +70,23 @@ class TranslateTest(TestCase):
         ],
     }
 
+    EXPECTED_RASA_NLU_DATA_WITH_ENTITIES = {
+        'common_examples': [
+            {
+                'text': 'meu nome é Douglas',
+                'intent': 'greet',
+                'entities': [
+                    {
+                        'start': 11,
+                        'end': 18,
+                        'value': 'Douglas',
+                        'entity': 'name',
+                    }
+                ],
+            },
+        ],
+    }
+
     def setUp(self):
         owner = User.objects.create_user('fake@user.com', 'user', '123456')
         self.repository = Repository.objects.create(
@@ -102,3 +120,19 @@ class TranslateTest(TestCase):
             self.repository.current_update(
                 languages.LANGUAGE_PT).rasa_nlu_data,
             TranslateTest.EXPECTED_RASA_NLU_DATA)
+
+    def test_translated_entity(self):
+        language = languages.LANGUAGE_PT
+        translate = RepositoryTranslatedExample.objects.create(
+            original_example=self.example,
+            language=language,
+            text='meu nome é Douglas')
+        RepositoryTranslatedExampleEntity.objects.create(
+            repository_translated_example=translate,
+            start=11,
+            end=18,
+            entity='name')
+        self.assertDictEqual(
+            self.repository.current_update(
+                languages.LANGUAGE_PT).rasa_nlu_data,
+            TranslateTest.EXPECTED_RASA_NLU_DATA_WITH_ENTITIES)
