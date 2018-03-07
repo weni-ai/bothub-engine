@@ -11,6 +11,7 @@ from bothub.common.models import Repository
 from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryCategory
 from bothub.common.models import RepositoryTranslatedExample
+from bothub.common.models import RepositoryTranslatedExampleEntity
 from bothub.common import languages
 
 from .views import NewRepositoryViewSet
@@ -23,6 +24,7 @@ from .views import NewRepositoryExampleEntityViewSet
 from .views import NewRepositoryTranslatedExampleViewSet
 from .views import RepositoryTranslatedExampleViewSet
 from .views import NewRepositoryTranslatedExampleEntityViewSet
+from .views import RepositoryTranslatedExampleEntityViewSet
 
 
 class APITestCase(TestCase):
@@ -470,3 +472,18 @@ class APITestCase(TestCase):
         })
         self.assertEqual(response.status_code, 201)
         self.assertEqual(content_data.get('value'), 'Douglas')
+
+    def test_translated_example_entity(self):
+        translated_entity = RepositoryTranslatedExampleEntity.objects.create(
+            repository_translated_example=self.translated,
+            start=4,
+            end=11,
+            entity='name')
+        request = self.factory.get(
+            '/api/translatedentity/{}/'.format(translated_entity.id),
+            **{
+                'HTTP_AUTHORIZATION': 'Token {}'.format(self.user_token.key),
+            })
+        response = RepositoryTranslatedExampleEntityViewSet.as_view(
+            {'get': 'retrieve'})(request, pk=translated_entity.id)
+        self.assertEqual(response.status_code, 200)

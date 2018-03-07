@@ -11,6 +11,7 @@ from .views import RepositoryAuthorizationView
 from .views import NewRepositoryTranslatedExampleViewSet
 from .views import RepositoryTranslatedExampleViewSet
 from .views import NewRepositoryTranslatedExampleEntityViewSet
+from .views import RepositoryTranslatedExampleEntityViewSet
 
 
 router = routers.SimpleRouter()
@@ -26,3 +27,5 @@ router.register('translateexample', NewRepositoryTranslatedExampleViewSet)
 router.register('translated', RepositoryTranslatedExampleViewSet)
 router.register('translatedentity/new',
                 NewRepositoryTranslatedExampleEntityViewSet)
+router.register('translatedentity',
+                RepositoryTranslatedExampleEntityViewSet)

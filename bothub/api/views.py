@@ -243,5 +243,17 @@ class NewRepositoryTranslatedExampleEntityViewSet(
     serializer_class = RepositoryTranslatedExampleEntitySeralizer
     permission_classes = [
         permissions.IsAuthenticated,
-        IsTranslatedExampleOriginalRepositoryExampleOwner
+        IsTranslatedExampleOriginalRepositoryExampleOwner,
+    ]
+
+
+class RepositoryTranslatedExampleEntityViewSet(
+        mixins.RetrieveModelMixin,
+        mixins.DestroyModelMixin,
+        GenericViewSet):
+    queryset = RepositoryTranslatedExampleEntity.objects
+    serializer_class = RepositoryTranslatedExampleEntitySeralizer
+    permission_classes = [
+        permissions.IsAuthenticated,
+        IsTranslatedExampleOriginalRepositoryExampleOwner,
     ]
