@@ -121,10 +121,15 @@ class RepositoryTranslatedExampleSerializer(serializers.ModelSerializer):
             'original_example',
             'language',
             'text',
+            'has_valid_entities',
         ]
 
     original_example = serializers.PrimaryKeyRelatedField(
         queryset=RepositoryExample.objects)
+    has_valid_entities = serializers.SerializerMethodField()
+
+    def get_has_valid_entities(self, obj):
+        return obj.has_valid_entities
 
 
 class RepositoryAuthorizationSerializer(serializers.ModelSerializer):

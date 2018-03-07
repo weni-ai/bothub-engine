@@ -211,3 +211,14 @@ class NewRepositoryTranslatedExampleViewSet(
         permissions.IsAuthenticated,
         IsOriginalRepositoryExampleOwner,
     ]
+
+
+class RepositoryTranslatedExampleViewSet(
+        mixins.RetrieveModelMixin,
+        GenericViewSet):
+    queryset = RepositoryTranslatedExample.objects
+    serializer_class = RepositoryTranslatedExampleSerializer
+    permission_classes = [
+        permissions.IsAuthenticated,
+        IsOriginalRepositoryExampleOwner,
+    ]

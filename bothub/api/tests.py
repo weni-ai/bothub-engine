@@ -10,6 +10,7 @@ from bothub.authentication.models import User
 from bothub.common.models import Repository
 from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryCategory
+from bothub.common.models import RepositoryTranslatedExample
 from bothub.common import languages
 
 from .views import NewRepositoryViewSet
@@ -20,6 +21,7 @@ from .views import RepositoryExampleViewSet
 from .views import RepositoryAuthorizationView
 from .views import NewRepositoryExampleEntityViewSet
 from .views import NewRepositoryTranslatedExampleViewSet
+from .views import RepositoryTranslatedExampleViewSet
 
 
 class APITestCase(TestCase):
@@ -62,6 +64,11 @@ class APITestCase(TestCase):
                 languages.LANGUAGE_EN),
             text='hey Douglas',
             intent='greet')
+
+        self.translated = RepositoryTranslatedExample.objects.create(
+            original_example=self.example,
+            language=languages.LANGUAGE_PT,
+            text='olá Douglas')
 
     def _new_repository_request(self, slug, name, language, categories):
         request = self.factory.post(
@@ -411,12 +418,17 @@ class APITestCase(TestCase):
         self.assertEqual(content_data.get('value'), 'Douglas')
 
     def test_translate_example(self):
+        example = RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(
+                languages.LANGUAGE_EN),
+            text='hi',
+            intent='greet')
         request = self.factory.post(
             '/api/translateexample/',
             {
-               'original_example': self.example.id,
+               'original_example': example.id,
                'language': languages.LANGUAGE_PT,
-               'text': 'ei Douglas',
+               'text': 'oi',
             },
             **{
                 'HTTP_AUTHORIZATION': 'Token {}'.format(self.user_token.key),
@@ -424,3 +436,13 @@ class APITestCase(TestCase):
         response = NewRepositoryTranslatedExampleViewSet.as_view(
             {'post': 'create'})(request)
         self.assertEqual(response.status_code, 201)
+
+    def test_translated_example(self):
+        request = self.factory.get('/api/translated/{}/'.format(
+            self.translated.id),
+            **{
+                'HTTP_AUTHORIZATION': 'Token {}'.format(self.user_token.key),
+            })
+        response = RepositoryTranslatedExampleViewSet.as_view(
+            {'get': 'retrieve'})(request, pk=self.translated.id)
+        self.assertEqual(response.status_code, 200)
