@@ -5,6 +5,8 @@ from .models import Repository
 from .models import RepositoryUpdate
 from .models import RepositoryExample
 from .models import RepositoryExampleEntity
+from .models import RepositoryTranslatedExample
+from .models import RepositoryTranslatedExampleEntity
 from .models import RepositoryAuthorization
 
 
@@ -30,6 +32,16 @@ class RepositoryExampleAdmin(admin.ModelAdmin):
 
 @admin.register(RepositoryExampleEntity)
 class RepositoryExampleEntityAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(RepositoryTranslatedExample)
+class RepositoryTranslatedExampleAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(RepositoryTranslatedExampleEntity)
+class RepositoryTranslatedExampleEntity(admin.ModelAdmin):
     pass
 
 
