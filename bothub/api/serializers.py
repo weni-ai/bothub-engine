@@ -119,6 +119,7 @@ class RepositoryTranslatedExampleSerializer(serializers.ModelSerializer):
     class Meta:
         model = RepositoryTranslatedExample
         fields = [
+            'id',
             'original_example',
             'language',
             'text',
@@ -137,6 +138,7 @@ class RepositoryTranslatedExampleEntitySeralizer(serializers.ModelSerializer):
     class Meta:
         model = RepositoryTranslatedExampleEntity
         fields = [
+            'id',
             'repository_translated_example',
             'start',
             'end',
