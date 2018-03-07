@@ -136,3 +136,64 @@ class TranslateTest(TestCase):
             self.repository.current_update(
                 languages.LANGUAGE_PT).rasa_nlu_data,
             TranslateTest.EXPECTED_RASA_NLU_DATA_WITH_ENTITIES)
+
+    def test_valid_entities(self):
+        RepositoryExampleEntity.objects.create(
+            repository_example=self.example,
+            start=12,
+            end=19,
+            entity='name')
+
+        language = languages.LANGUAGE_PT
+        translate = RepositoryTranslatedExample.objects.create(
+            original_example=self.example,
+            language=language,
+            text='meu nome é Douglas')
+        RepositoryTranslatedExampleEntity.objects.create(
+            repository_translated_example=translate,
+            start=11,
+            end=18,
+            entity='name')
+
+        self.assertEqual(
+            translate.has_valid_entities,
+            True)
+
+    def test_invalid_count_entities(self):
+        RepositoryExampleEntity.objects.create(
+            repository_example=self.example,
+            start=12,
+            end=19,
+            entity='name')
+
+        language = languages.LANGUAGE_PT
+        translate = RepositoryTranslatedExample.objects.create(
+            original_example=self.example,
+            language=language,
+            text='meu nome é Douglas')
+
+        self.assertEqual(
+            translate.has_valid_entities,
+            False)
+
+    def test_invalid_how_entities(self):
+        RepositoryExampleEntity.objects.create(
+            repository_example=self.example,
+            start=12,
+            end=19,
+            entity='name')
+
+        language = languages.LANGUAGE_PT
+        translate = RepositoryTranslatedExample.objects.create(
+            original_example=self.example,
+            language=language,
+            text='meu nome é Douglas')
+        RepositoryTranslatedExampleEntity.objects.create(
+            repository_translated_example=translate,
+            start=11,
+            end=18,
+            entity='nome')
+
+        self.assertEqual(
+            translate.has_valid_entities,
+            False)

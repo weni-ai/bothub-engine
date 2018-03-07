@@ -216,6 +216,28 @@ class RepositoryTranslatedExample(models.Model):
     text = models.TextField(
         _('text'))
 
+    @classmethod
+    def create_entitites_count_dict(cls, entities):
+        return dict(
+            list(
+                map(
+                    lambda x: (x.get('entity'), x.get('many'),),
+                    entities.values(
+                        'entity',
+                        many=models.Count('entity')))))
+
+    @property
+    def has_valid_entities(self):
+        original_entities = self.original_example.entities.all()
+        my_entities = self.entities.all()
+        if original_entities.count() != my_entities.count():
+            return False
+        original_entities_dict = RepositoryTranslatedExample \
+            .create_entitites_count_dict(original_entities)
+        my_entities_dict = RepositoryTranslatedExample \
+            .create_entitites_count_dict(my_entities)
+        return len(set(original_entities_dict) ^ set(my_entities_dict)) == 0
+
 
 class EntityBase(models.Model):
     class Meta:
