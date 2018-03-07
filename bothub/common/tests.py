@@ -59,6 +59,16 @@ class RepositoryUpdateTest(TestCase):
 
 
 class TranslateTest(TestCase):
+    EXPECTED_RASA_NLU_DATA = {
+        'common_examples': [
+            {
+                'text': 'meu nome é Douglas',
+                'intent': 'greet',
+                'entities': [],
+            },
+        ],
+    }
+
     def setUp(self):
         owner = User.objects.create_user('fake@user.com', 'user', '123456')
         self.repository = Repository.objects.create(
@@ -68,7 +78,8 @@ class TranslateTest(TestCase):
         self.repository_update = self.repository.current_update('en')
         self.example = RepositoryExample.objects.create(
             repository_update=self.repository_update,
-            text='my name is Douglas')
+            text='my name is Douglas',
+            intent='greet')
 
     def test_new_translate(self):
         language = languages.LANGUAGE_PT
@@ -79,3 +90,15 @@ class TranslateTest(TestCase):
         self.assertEqual(
             len(self.repository.current_update(language).examples),
             1)
+
+    def test_to_rsa_nlu_data(self):
+        language = languages.LANGUAGE_PT
+        RepositoryTranslatedExample.objects.create(
+            original_example=self.example,
+            language=language,
+            text='meu nome é Douglas')
+
+        self.assertDictEqual(
+            self.repository.current_update(
+                languages.LANGUAGE_PT).rasa_nlu_data,
+            TranslateTest.EXPECTED_RASA_NLU_DATA)
