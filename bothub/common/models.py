@@ -202,6 +202,7 @@ class RepositoryTranslatedExample(models.Model):
     class Meta:
         verbose_name = _('repository translated example')
         verbose_name_plural = _('repository translated examples')
+        unique_together = ['original_example', 'language']
 
     original_example = models.ForeignKey(
         RepositoryExample,
