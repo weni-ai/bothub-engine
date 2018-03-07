@@ -19,7 +19,6 @@ class CurrentUpdateDefault(object):
     def set_context(self, serializer_field):
         request = serializer_field.context['request']
         repository_uuid = request.POST.get('repository_uuid')
-        language = request.POST.get('language', None)
 
         if not repository_uuid:
             raise ValidationError(_('repository_uuid is required'))
@@ -32,7 +31,7 @@ class CurrentUpdateDefault(object):
         except DjangoValidationError:
             raise ValidationError(_('Invalid repository_uuid'))
 
-        self.repository_update = repository.current_update(language)
+        self.repository_update = repository.current_update()
 
     def __call__(self):
         return self.repository_update
@@ -52,7 +51,7 @@ class RepositorySerializer(serializers.ModelSerializer):
             'name',
             'slug',
             'language',
-            'category',
+            'categories',
             'description',
             'is_private',
             'created_at',

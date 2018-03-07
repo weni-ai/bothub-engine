@@ -7,30 +7,20 @@ from bothub.authentication.models import User
 from . import languages
 
 
+class RepositoryCategory(models.Model):
+    class Meta:
+        verbose_name = _('repository category')
+        verbose_name_plural = _('repository categories')
+
+    name = models.CharField(
+        _('name'),
+        max_length=32)
+
+
 class Repository(models.Model):
     class Meta:
         verbose_name = _('repository')
         verbose_name_plural = _('repositories')
-
-    CATEGORY_BUSINESS = 'BU'
-    CATEGORY_COMMUNICATION = 'CO'
-    CATEGORY_PROJECT = 'PR'
-    CATEGORY_EDUCATION = 'ED'
-    CATEGORY_ENTERTAINMENT = 'EN'
-    CATEGORY_FINANCE = 'FI'
-    CATEGORY_HEALTH = 'HE'
-    CATEGORY_IDENTITY = 'ID'
-
-    CATEGORY_CHOICES = [
-        (CATEGORY_BUSINESS, _('Business')),
-        (CATEGORY_COMMUNICATION, _('Communication')),
-        (CATEGORY_PROJECT, _('Project')),
-        (CATEGORY_EDUCATION, _('Education')),
-        (CATEGORY_ENTERTAINMENT, _('Entertainment')),
-        (CATEGORY_FINANCE, _('Finance')),
-        (CATEGORY_HEALTH, _('Health')),
-        (CATEGORY_IDENTITY, _('Identity')),
-    ]
 
     uuid = models.UUIDField(
         _('UUID'),
@@ -51,10 +41,8 @@ class Repository(models.Model):
         _('language'),
         choices=languages.LANGUAGE_CHOICES,
         max_length=2)
-    category = models.CharField(
-        _('category'),
-        choices=CATEGORY_CHOICES,
-        max_length=2)
+    categories = models.ManyToManyField(
+        RepositoryCategory)
     description = models.TextField(
         _('description'),
         blank=True)

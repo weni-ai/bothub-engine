@@ -1,10 +1,16 @@
 from django.contrib import admin
 
+from .models import RepositoryCategory
 from .models import Repository
 from .models import RepositoryUpdate
 from .models import RepositoryExample
 from .models import RepositoryExampleEntity
 from .models import RepositoryAuthorization
+
+
+@admin.register(RepositoryCategory)
+class RepositoryCategoryAdmin(admin.ModelAdmin):
+    pass
 
 
 @admin.register(Repository)
