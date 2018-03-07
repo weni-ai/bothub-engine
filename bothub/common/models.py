@@ -65,6 +65,7 @@ class Repository(models.Model):
 
     def last_trained_update(self, language):
         return self.updates.filter(
+            language=language,
             by__isnull=False).first()
 
     def get_user_authorization(self, user):
