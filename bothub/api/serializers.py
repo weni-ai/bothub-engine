@@ -101,7 +101,7 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
             'text',
             'intent',
             'created_at',
-            'entities'
+            'entities',
         ]
         read_only_fields = [
             'deleted_in',
