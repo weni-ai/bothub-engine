@@ -8,6 +8,10 @@ from . import languages
 
 
 class RepositoryCategory(models.Model):
+    class Meta:
+        verbose_name = _('repository category')
+        verbose_name_plural = _('repository categories')
+
     name = models.CharField(
         _('name'),
         max_length=32)
