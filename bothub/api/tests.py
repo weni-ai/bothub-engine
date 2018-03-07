@@ -7,7 +7,10 @@ from django.test.client import MULTIPART_CONTENT
 from rest_framework.authtoken.models import Token
 
 from bothub.authentication.models import User
-from bothub.common.models import Repository, RepositoryExample
+from bothub.common.models import Repository
+from bothub.common.models import RepositoryExample
+from bothub.common.models import RepositoryCategory
+from bothub.common import languages
 
 from .views import NewRepositoryViewSet
 from .views import MyRepositoriesViewSet
@@ -35,25 +38,38 @@ class APITestCase(TestCase):
         self.other_user_token, create = Token.objects.get_or_create(
             user=self.other_user)
 
+        self.category = RepositoryCategory.objects.create(
+            name='category')
+
         self.repository = Repository.objects.create(
             owner=self.user,
-            slug='test')
+            slug='test',
+            name='test',
+            language=languages.LANGUAGE_EN)
+        self.repository.categories.add(self.category)
 
         self.private_repository = Repository.objects.create(
             owner=self.user,
             slug='private',
-            is_private=True)
+            is_private=True,
+            name='private test',
+            language=languages.LANGUAGE_EN)
+        self.private_repository.categories.add(self.category)
 
         self.example = RepositoryExample.objects.create(
-            repository_update=self.repository.current_update('en'),
+            repository_update=self.repository.current_update(
+                languages.LANGUAGE_EN),
             text='hey Douglas',
             intent='greet')
 
-    def _new_repository_request(self, slug):
+    def _new_repository_request(self, slug, name, language, categories):
         request = self.factory.post(
             '/api/repository/new/',
             {
                 'slug': slug,
+                'name': name,
+                'language': language,
+                'categories': categories,
             },
             **{
                 'HTTP_AUTHORIZATION': 'Token {}'.format(self.user_token.key),
@@ -65,15 +81,27 @@ class APITestCase(TestCase):
 
     def test_new_repository(self):
         test_slug = 'test_{}'.format(random.randint(100, 9999))
-        (response, content_data) = self._new_repository_request(test_slug)
+        (response, content_data) = self._new_repository_request(
+            test_slug,
+            'test',
+            languages.LANGUAGE_EN,
+            [self.category.id])
         self.assertEqual(response.status_code, 201)
         self.assertEqual(content_data.get('slug'), test_slug)
 
     def test_new_repository_unique_slug(self):
         test_slug = 'test_{}'.format(random.randint(100, 9999))
-        (response_1, content_data_1) = self._new_repository_request(test_slug)
+        (response_1, content_data_1) = self._new_repository_request(
+            test_slug,
+            'test',
+            languages.LANGUAGE_EN,
+            [self.category.id])
         self.assertEqual(response_1.status_code, 201)
-        (response_2, content_data_2) = self._new_repository_request(test_slug)
+        (response_2, content_data_2) = self._new_repository_request(
+            test_slug,
+            'test',
+            languages.LANGUAGE_EN,
+            [self.category.id])
         self.assertEqual(response_2.status_code, 400)
 
     def test_my_repositories(self):
@@ -119,7 +147,7 @@ class APITestCase(TestCase):
 
     def test_repository_currentupdate(self):
         response, content_data = self._repository_currentupdate_request({
-            'language': 'en',
+            'language': languages.LANGUAGE_EN,
         })
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
@@ -144,7 +172,7 @@ class APITestCase(TestCase):
 
     def test_repository_examples(self):
         response = self._repository_examples_request({
-            'language': 'en',
+            'language': languages.LANGUAGE_EN,
         })
         self.assertEqual(response.status_code, 200)
 
@@ -169,7 +197,7 @@ class APITestCase(TestCase):
 
     def test_repository_currentrasanludata(self):
         response = self._repository_currentrasanludata_request({
-            'language': 'en',
+            'language': languages.LANGUAGE_EN,
         })
         self.assertEqual(response.status_code, 200)
 
@@ -241,6 +269,9 @@ class APITestCase(TestCase):
             {
                 'slug': new_slug,
                 'is_private': True,
+                'name': self.repository.name,
+                'language': self.repository.language,
+                'categories': [self.category.id],
             })
         self.assertEqual(response.status_code, 200)
         self.assertEqual(content_data.get('slug'), new_slug)
@@ -254,6 +285,9 @@ class APITestCase(TestCase):
             {
                 'uuid': new_uuid,
                 'slug': new_slug,
+                'name': self.repository.name,
+                'language': self.repository.language,
+                'categories': [self.category.id],
             })
         self.assertEqual(response.status_code, 200)
         self.assertNotEqual(content_data.get('uuid'), new_uuid)
@@ -283,48 +317,29 @@ class APITestCase(TestCase):
         return (response, content_data,)
 
     def test_new_repository_example(self):
-        language = 'en'
         response, content_data = self._new_repository_example_request({
             'repository_uuid': self.repository.uuid,
-            'language': language,
             'text': 'hey',
             'intent': 'greet',
         })
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(
-            content_data.get('repository_update'),
-            self.repository.current_update(language).id)
 
     def test_new_repository_example_without_repository_uuid(self):
-        language = 'en'
         response, content_data = self._new_repository_example_request({
-            'language': language,
             'text': 'hey',
             'intent': 'greet',
         })
         self.assertEqual(response.status_code, 400)
 
     def test_new_repository_example_repository_does_not_exists(self):
-        language = 'en'
         response, content_data = self._new_repository_example_request({
             'repository_uuid': uuid.uuid4(),
-            'language': language,
             'text': 'hey',
             'intent': 'greet',
         })
         self.assertEqual(response.status_code, 404)
 
     def test_new_repository_example_invalid_repository_uuid(self):
-        language = 'en'
-        response, content_data = self._new_repository_example_request({
-            'repository_uuid': 'invalid',
-            'language': language,
-            'text': 'hey',
-            'intent': 'greet',
-        })
-        self.assertEqual(response.status_code, 400)
-
-    def test_new_repository_example_language_required(self):
         response, content_data = self._new_repository_example_request({
             'repository_uuid': 'invalid',
             'text': 'hey',

@@ -7,6 +7,16 @@ from bothub.authentication.models import User
 from . import languages
 
 
+class RepositoryCategory(models.Model):
+    class Meta:
+        verbose_name = _('repository category')
+        verbose_name_plural = _('repository categories')
+
+    name = models.CharField(
+        _('name'),
+        max_length=32)
+
+
 class Repository(models.Model):
     class Meta:
         verbose_name = _('repository')
@@ -20,10 +30,22 @@ class Repository(models.Model):
     owner = models.ForeignKey(
         User,
         models.CASCADE)
+    name = models.CharField(
+        _('name'),
+        max_length=64)
     slug = models.CharField(
         _('slug'),
         unique=True,
         max_length=32)
+    language = models.CharField(
+        _('language'),
+        choices=languages.LANGUAGE_CHOICES,
+        max_length=2)
+    categories = models.ManyToManyField(
+        RepositoryCategory)
+    description = models.TextField(
+        _('description'),
+        blank=True)
     is_private = models.BooleanField(
         _('private'),
         default=False)
@@ -31,7 +53,8 @@ class Repository(models.Model):
         _('created at'),
         auto_now_add=True)
 
-    def current_update(self, language):
+    def current_update(self, language=None):
+        language = language or self.language
         repository_update, created = self.updates.get_or_create(
             language=language,
             training_started_at=None)
@@ -93,7 +116,8 @@ class RepositoryUpdate(models.Model):
     @property
     def examples(self):
         examples = RepositoryExample.objects.filter(
-            repository_update__repository=self.repository)
+            repository_update__repository=self.repository,
+            repository_update__language=self.language)
         if self.training_started_at:
             t_started_at = self.training_started_at
             examples = examples.exclude(
