@@ -115,25 +115,6 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
         read_only=True)
 
 
-class RepositoryTranslatedExampleSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = RepositoryTranslatedExample
-        fields = [
-            'id',
-            'original_example',
-            'language',
-            'text',
-            'has_valid_entities',
-        ]
-
-    original_example = serializers.PrimaryKeyRelatedField(
-        queryset=RepositoryExample.objects)
-    has_valid_entities = serializers.SerializerMethodField()
-
-    def get_has_valid_entities(self, obj):
-        return obj.has_valid_entities
-
-
 class RepositoryTranslatedExampleEntitySeralizer(serializers.ModelSerializer):
     class Meta:
         model = RepositoryTranslatedExampleEntity
@@ -153,6 +134,29 @@ class RepositoryTranslatedExampleEntitySeralizer(serializers.ModelSerializer):
 
     def get_value(self, obj):
         return obj.value
+
+
+class RepositoryTranslatedExampleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RepositoryTranslatedExample
+        fields = [
+            'id',
+            'original_example',
+            'language',
+            'text',
+            'has_valid_entities',
+            'entities',
+        ]
+
+    original_example = serializers.PrimaryKeyRelatedField(
+        queryset=RepositoryExample.objects)
+    has_valid_entities = serializers.SerializerMethodField()
+    entities = RepositoryTranslatedExampleEntitySeralizer(
+        many=True,
+        read_only=True)
+
+    def get_has_valid_entities(self, obj):
+        return obj.has_valid_entities
 
 
 class RepositoryAuthorizationSerializer(serializers.ModelSerializer):
