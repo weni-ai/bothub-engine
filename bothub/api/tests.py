@@ -226,7 +226,7 @@ class APITestCase(TestCase):
 
     def test_repository_authorization_without_repository_uuid(self):
         response = self._repository_authorization_request()
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 400)
 
     def test_repository_authorization_repository_does_not_exist(self):
         response = self._repository_authorization_request(
@@ -236,7 +236,7 @@ class APITestCase(TestCase):
     def test_repository_authorization_repository_uuid_invalid(self):
         response = self._repository_authorization_request(
             repository_uuid='invalid')
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 400)
 
     def _update_repository_request(self, repository_uuid, data):
         request = self.factory.put(
