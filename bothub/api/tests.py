@@ -12,6 +12,7 @@ from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryCategory
 from bothub.common.models import RepositoryTranslatedExample
 from bothub.common.models import RepositoryTranslatedExampleEntity
+from bothub.common.models import RepositoryExampleEntity
 from bothub.common import languages
 
 from .views import NewRepositoryViewSet
@@ -21,6 +22,7 @@ from .views import NewRepositoryExampleViewSet
 from .views import RepositoryExampleViewSet
 from .views import RepositoryAuthorizationView
 from .views import NewRepositoryExampleEntityViewSet
+from .views import RepositoryExampleEntityViewSet
 from .views import NewRepositoryTranslatedExampleViewSet
 from .views import RepositoryTranslatedExampleViewSet
 from .views import NewRepositoryTranslatedExampleEntityViewSet
@@ -68,6 +70,12 @@ class APITestCase(TestCase):
                 languages.LANGUAGE_EN),
             text='hey Douglas',
             intent='greet')
+
+        self.entity = RepositoryExampleEntity.objects.create(
+            repository_example=self.example,
+            start=4,
+            end=11,
+            entity='name')
 
         self.translated = RepositoryTranslatedExample.objects.create(
             original_example=self.example,
@@ -411,6 +419,16 @@ class APITestCase(TestCase):
         })
         self.assertEqual(response.status_code, 201)
         self.assertEqual(content_data.get('value'), 'Douglas')
+
+    def test_repository_examples_entity(self):
+        request = self.factory.get(
+            '/api/entity/{}/'.format(self.entity.id),
+            **{
+                'HTTP_AUTHORIZATION': 'Token {}'.format(self.user_token.key),
+            })
+        response = RepositoryExampleEntityViewSet.as_view(
+            {'get': 'retrieve'})(request, pk=self.example.id)
+        self.assertEqual(response.status_code, 200)
 
     def test_translate_example(self):
         example = RepositoryExample.objects.create(
