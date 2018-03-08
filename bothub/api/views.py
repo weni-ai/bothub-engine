@@ -139,14 +139,14 @@ class RepositoryViewSet(
     ]
 
     @detail_route(
-        methods=['POST'],
+        methods=['GET'],
         url_name='repository-current-update')
     def currentupdate(self, request, **kwargs):
         instance = self.get_object()
-        language = request.POST.get('language')
+        language = request.query_params.get('language')
 
         if not language:
-            raise APIException(_('language is required'))
+            raise ValidationError(_('language is required'))
 
         serializer = CurrentRepositoryUpdateSerializer(
             instance.current_update(language))
