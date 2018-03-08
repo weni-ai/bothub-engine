@@ -17,17 +17,17 @@ from .views import RepositoryExamplesViewSet
 
 router = routers.SimpleRouter()
 router.register('repository/new', NewRepositoryViewSet)
-router.register('myrepositories', MyRepositoriesViewSet)
+router.register('my-repositories', MyRepositoriesViewSet)
 router.register('repository', RepositoryViewSet)
 router.register('authorization', RepositoryAuthorizationView)
 router.register('example/new', NewRepositoryExampleViewSet)
 router.register('example', RepositoryExampleViewSet)
 router.register('entity/new', NewRepositoryExampleEntityViewSet)
 router.register('entity', RepositoryExampleEntityViewSet)
-router.register('translateexample', NewRepositoryTranslatedExampleViewSet)
+router.register('translate-example', NewRepositoryTranslatedExampleViewSet)
 router.register('translated', RepositoryTranslatedExampleViewSet)
-router.register('translatedentity/new',
+router.register('translated-entity/new',
                 NewRepositoryTranslatedExampleEntityViewSet)
-router.register('translatedentity',
+router.register('translated-entity',
                 RepositoryTranslatedExampleEntityViewSet)
 router.register('examples', RepositoryExamplesViewSet)
