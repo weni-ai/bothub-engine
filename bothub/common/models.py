@@ -288,7 +288,7 @@ class EntityBase(models.Model):
         }
 
     def get_example(self):
-        pass
+        pass  # pragma: no cover
 
 
 class RepositoryExampleEntity(EntityBase):
