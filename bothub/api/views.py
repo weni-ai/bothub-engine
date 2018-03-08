@@ -1,4 +1,5 @@
 from rest_framework.viewsets import GenericViewSet
+from rest_framework.views import APIView
 from rest_framework import mixins
 from rest_framework import permissions
 from rest_framework.decorators import detail_route
@@ -25,6 +26,21 @@ from bothub.common.models import RepositoryExampleEntity
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryTranslatedExample
 from bothub.common.models import RepositoryTranslatedExampleEntity
+
+
+# Utils
+
+def get_repository_from_uuid(repository_uuid):
+    if not repository_uuid:
+        raise ValidationError(_('repository_uuid is required'), code=400)
+
+    try:
+        return Repository.objects.get(uuid=repository_uuid)
+    except Repository.DoesNotExist:
+        raise NotFound(
+            _('Repository {} does not exist').format(repository_uuid))
+    except DjangoValidationError:
+        raise ValidationError(_('Invalid repository_uuid'))
 
 
 # Permisions
@@ -158,17 +174,7 @@ class RepositoryAuthorizationView(GenericViewSet):
 
     def create(self, request, **kwargs):
         repository_uuid = request.POST.get('repository_uuid')
-        if not repository_uuid:
-            raise APIException(_('repository_uuid is required'))
-
-        try:
-            repository = Repository.objects.get(uuid=repository_uuid)
-        except Repository.DoesNotExist:
-            raise NotFound(
-                _('Repository {} does not exist').format(repository_uuid))
-        except DjangoValidationError:
-            raise APIException(_('Invalid repository_uuid'))
-
+        repository = get_repository_from_uuid(repository_uuid)
         user_authorization = repository.get_user_authorization(request.user)
 
         if not user_authorization:
@@ -290,16 +296,5 @@ class RepositoryExamplesViewSet(
 
     def get_queryset(self):
         repository_uuid = self.request.query_params.get('repository_uuid')
-
-        if not repository_uuid:
-            raise ValidationError(_('repository_uuid is required'), code=400)
-
-        try:
-            repository = Repository.objects.get(uuid=repository_uuid)
-        except Repository.DoesNotExist:
-            raise NotFound(
-                _('Repository {} does not exist').format(repository_uuid))
-        except DjangoValidationError:
-            raise ValidationError(_('Invalid repository_uuid'))
-
+        repository = get_repository_from_uuid(repository_uuid)
         return self.queryset.filter(repository_update__repository=repository)
