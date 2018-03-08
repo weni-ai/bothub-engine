@@ -179,7 +179,7 @@ class APITestCase(TestCase):
         self.assertEqual(response.status_code, 400)
 
     def _repository_currentrasanludata_request(self, data):
-        request = self.factory.post(
+        request = self.factory.get(
             '/api/repository/{}/currentrasanludata/'.format(
                 self.repository.uuid),
             data,
@@ -187,7 +187,7 @@ class APITestCase(TestCase):
                 'HTTP_AUTHORIZATION': 'Token {}'.format(self.user_token.key),
             })
         response = RepositoryViewSet.as_view(
-            {'post': 'currentrasanludata'})(
+            {'get': 'currentrasanludata'})(
                 request,
                 pk=str(self.repository.uuid))
         response.render()
@@ -201,7 +201,7 @@ class APITestCase(TestCase):
 
     def test_repository_currentrasanludata_without_language(self):
         response = self._repository_currentrasanludata_request({})
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 400)
 
     def test_repository_languages_status(self):
         request = self.factory.get(

@@ -154,14 +154,14 @@ class RepositoryViewSet(
         return Response(dict(serializer.data))
 
     @detail_route(
-        methods=['POST'],
+        methods=['GET'],
         url_name='repository-current-rasa-nlu-data')
     def currentrasanludata(self, request, **kwargs):
         repository = self.get_object()
 
-        language = request.POST.get('language')
+        language = request.query_params.get('language')
         if not language:
-            raise APIException(_('language is required'))
+            raise ValidationError(_('language is required'))
 
         return Response(repository.current_rasa_nlu_data(language))
 
