@@ -53,6 +53,55 @@ class Repository(models.Model):
         _('created at'),
         auto_now_add=True)
 
+    @property
+    def languages_status(self):
+        return dict(
+            map(
+                lambda language: (
+                    language,
+                    self.language_status(language)),
+                languages.SUPPORTED_LANGUAGES,
+            ))
+
+    def examples(self, language=None, deleted=True):
+        query = RepositoryExample.objects.filter(
+            repository_update__repository=self)
+        if language:
+            query = query.filter(
+                repository_update__language=language)
+        if deleted:
+            return query.exclude(deleted_in__isnull=False)
+        return query
+
+    def language_status(self, language):
+        is_base_language = self.language == language
+        examples = self.examples(language)
+        base_examples = self.examples(self.language)
+        base_translations = RepositoryTranslatedExample.objects.filter(
+            original_example__in=base_examples,
+            language=language)
+
+        examples_count = examples.count()
+        base_examples_count = base_examples.count()
+        base_translations_count = base_translations.count()
+        base_translations_percentage = (
+            base_translations_count / (
+                base_examples_count if base_examples_count > 0 else 1)) * 100
+
+        return {
+            'is_base_language': is_base_language,
+            'examples': {
+                'count': examples_count,
+                'entities': examples.values_list(
+                    'entities__entity',
+                    flat=True).distinct(),
+            },
+            'base_translations': {
+                'count': base_translations_count,
+                'percentage': base_translations_percentage,
+            },
+        }
+
     def current_update(self, language=None):
         language = language or self.language
         repository_update, created = self.updates.get_or_create(
@@ -116,10 +165,9 @@ class RepositoryUpdate(models.Model):
 
     @property
     def examples(self):
-        examples = RepositoryExample.objects.filter(
+        examples = self.repository.examples(deleted=False).filter(
             models.Q(repository_update__language=self.language) |
-            models.Q(translations__language=self.language),
-            repository_update__repository=self.repository)
+            models.Q(translations__language=self.language))
         if self.training_started_at:
             t_started_at = self.training_started_at
             examples = examples.exclude(
