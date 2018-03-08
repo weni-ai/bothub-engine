@@ -106,22 +106,6 @@ class RepositoryViewSet(
 
     @detail_route(
         methods=['POST'],
-        url_name='repository-examples')
-    def examples(self, request, **kwargs):
-        repository = self.get_object()
-
-        language = request.POST.get('language')
-        if not language:
-            raise APIException(_('language is required'))
-
-        examples = repository.current_update(language).examples
-
-        page = self.paginate_queryset(examples)
-        serializer = RepositoryExampleSerializer(page, many=True)
-        return self.get_paginated_response(serializer.data)
-
-    @detail_route(
-        methods=['POST'],
         url_name='repository-current-rasa-nlu-data')
     def currentrasanludata(self, request, **kwargs):
         repository = self.get_object()
@@ -257,3 +241,26 @@ class RepositoryTranslatedExampleEntityViewSet(
         permissions.IsAuthenticated,
         IsTranslatedExampleOriginalRepositoryExampleOwner,
     ]
+
+
+class RepositoryExamplesViewSet(
+        mixins.ListModelMixin,
+        GenericViewSet):
+    queryset = RepositoryExample.objects
+    serializer_class = RepositoryExampleSerializer
+
+    def get_queryset(self):
+        repository_uuid = self.request.query_params.get('repository_uuid')
+
+        if not repository_uuid:
+            raise APIException(_('repository_uuid is required'))
+
+        try:
+            repository = Repository.objects.get(uuid=repository_uuid)
+        except Repository.DoesNotExist:
+            raise NotFound(
+                _('Repository {} does not exist').format(repository_uuid))
+        except DjangoValidationError:
+            raise APIException(_('Invalid repository_uuid'))
+
+        return self.queryset.filter(repository_update__repository=repository)

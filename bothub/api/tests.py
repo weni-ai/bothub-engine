@@ -169,28 +169,6 @@ class APITestCase(TestCase):
         response, content_data = self._repository_currentupdate_request({})
         self.assertEqual(response.status_code, 500)
 
-    def _repository_examples_request(self, data):
-        request = self.factory.post(
-            '/api/repository/{}/examples/'.format(self.repository.uuid),
-            data,
-            **{
-                'HTTP_AUTHORIZATION': 'Token {}'.format(self.user_token.key),
-            })
-        response = RepositoryViewSet.as_view(
-            {'post': 'examples'})(request, pk=str(self.repository.uuid))
-        response.render()
-        return response
-
-    def test_repository_examples(self):
-        response = self._repository_examples_request({
-            'language': languages.LANGUAGE_EN,
-        })
-        self.assertEqual(response.status_code, 200)
-
-    def test_repository_examples_without_language(self):
-        response = self._repository_examples_request({})
-        self.assertEqual(response.status_code, 500)
-
     def _repository_currentrasanludata_request(self, data):
         request = self.factory.post(
             '/api/repository/{}/currentrasanludata/'.format(
