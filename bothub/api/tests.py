@@ -10,6 +10,8 @@ from bothub.authentication.models import User
 from bothub.common.models import Repository
 from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryCategory
+from bothub.common.models import RepositoryTranslatedExample
+from bothub.common.models import RepositoryTranslatedExampleEntity
 from bothub.common import languages
 
 from .views import NewRepositoryViewSet
@@ -19,6 +21,10 @@ from .views import NewRepositoryExampleViewSet
 from .views import RepositoryExampleViewSet
 from .views import RepositoryAuthorizationView
 from .views import NewRepositoryExampleEntityViewSet
+from .views import NewRepositoryTranslatedExampleViewSet
+from .views import RepositoryTranslatedExampleViewSet
+from .views import NewRepositoryTranslatedExampleEntityViewSet
+from .views import RepositoryTranslatedExampleEntityViewSet
 
 
 class APITestCase(TestCase):
@@ -61,6 +67,11 @@ class APITestCase(TestCase):
                 languages.LANGUAGE_EN),
             text='hey Douglas',
             intent='greet')
+
+        self.translated = RepositoryTranslatedExample.objects.create(
+            original_example=self.example,
+            language=languages.LANGUAGE_PT,
+            text='olá Douglas')
 
     def _new_repository_request(self, slug, name, language, categories):
         request = self.factory.post(
@@ -106,7 +117,7 @@ class APITestCase(TestCase):
 
     def test_my_repositories(self):
         request = self.factory.get(
-            '/api/myrepositories/',
+            '/api/my-repositories/',
             **{
                 'HTTP_AUTHORIZATION': 'Token {}'.format(self.user_token.key),
             })
@@ -408,3 +419,71 @@ class APITestCase(TestCase):
         })
         self.assertEqual(response.status_code, 201)
         self.assertEqual(content_data.get('value'), 'Douglas')
+
+    def test_translate_example(self):
+        example = RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(
+                languages.LANGUAGE_EN),
+            text='hi',
+            intent='greet')
+        request = self.factory.post(
+            '/api/translate-example/',
+            {
+               'original_example': example.id,
+               'language': languages.LANGUAGE_PT,
+               'text': 'oi',
+            },
+            **{
+                'HTTP_AUTHORIZATION': 'Token {}'.format(self.user_token.key),
+            })
+        response = NewRepositoryTranslatedExampleViewSet.as_view(
+            {'post': 'create'})(request)
+        self.assertEqual(response.status_code, 201)
+
+    def test_translated_example(self):
+        request = self.factory.get(
+            '/api/translated/{}/'.format(self.translated.id),
+            **{
+                'HTTP_AUTHORIZATION': 'Token {}'.format(self.user_token.key),
+            })
+        response = RepositoryTranslatedExampleViewSet.as_view(
+            {'get': 'retrieve'})(request, pk=self.translated.id)
+        self.assertEqual(response.status_code, 200)
+
+    def _new_translated_example_entity_request(self, data):
+        request = self.factory.post(
+            '/api/translated-entity/new/',
+            data,
+            **{
+                'HTTP_AUTHORIZATION': 'Token {}'.format(self.user_token.key),
+            })
+        response = NewRepositoryTranslatedExampleEntityViewSet.as_view(
+            {'post': 'create'})(request)
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data,)
+
+    def test_new_translated_example_entity(self):
+        response, content_data = self._new_translated_example_entity_request({
+            'repository_translated_example': self.translated.id,
+            'start': 4,
+            'end': 11,
+            'entity': 'name',
+        })
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(content_data.get('value'), 'Douglas')
+
+    def test_translated_example_entity(self):
+        translated_entity = RepositoryTranslatedExampleEntity.objects.create(
+            repository_translated_example=self.translated,
+            start=4,
+            end=11,
+            entity='name')
+        request = self.factory.get(
+            '/api/translated-entity/{}/'.format(translated_entity.id),
+            **{
+                'HTTP_AUTHORIZATION': 'Token {}'.format(self.user_token.key),
+            })
+        response = RepositoryTranslatedExampleEntityViewSet.as_view(
+            {'get': 'retrieve'})(request, pk=translated_entity.id)
+        self.assertEqual(response.status_code, 200)

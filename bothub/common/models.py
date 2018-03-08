@@ -65,6 +65,7 @@ class Repository(models.Model):
 
     def last_trained_update(self, language):
         return self.updates.filter(
+            language=language,
             by__isnull=False).first()
 
     def get_user_authorization(self, user):
@@ -116,8 +117,9 @@ class RepositoryUpdate(models.Model):
     @property
     def examples(self):
         examples = RepositoryExample.objects.filter(
-            repository_update__repository=self.repository,
-            repository_update__language=self.language)
+            models.Q(repository_update__language=self.language) |
+            models.Q(translations__language=self.language),
+            repository_update__repository=self.repository)
         if self.training_started_at:
             t_started_at = self.training_started_at
             examples = examples.exclude(
@@ -130,9 +132,18 @@ class RepositoryUpdate(models.Model):
     @property
     def rasa_nlu_data(self):
         return {
-            'common_examples': [
-                example.to_rsa_nlu_data for example in self.examples]
+            'common_examples': list(
+                map(
+                    lambda example: example.to_rasa_nlu_data(self.language),
+                    filter(
+                        lambda example: example.has_valid_entities(
+                            self.language),
+                        self.examples)))
         }
+
+
+class DoesNotHaveTranslation(Exception):
+    pass
 
 
 class RepositoryExample(models.Model):
@@ -161,13 +172,34 @@ class RepositoryExample(models.Model):
         _('created at'),
         auto_now_add=True)
 
-    @property
-    def to_rsa_nlu_data(self):
+    def has_valid_entities(self, language=None):
+        if not language or language == self.repository_update.language:
+            return True
+        return self.get_translation(language).has_valid_entities
+
+    def get_translation(self, language):
+        try:
+            return self.translations.get(language=language)
+        except RepositoryTranslatedExample.DoesNotExist:
+            raise DoesNotHaveTranslation()
+
+    def get_text(self, language=None):
+        if not language or language == self.repository_update.language:
+            return self.text
+        return self.get_translation(language).text
+
+    def get_entities(self, language):
+        if not language or language == self.repository_update.language:
+            return self.entities.all()
+        return self.get_translation(language).entities.all()
+
+    def to_rasa_nlu_data(self, language):
         return {
-            'text': self.text,
+            'text': self.get_text(language),
             'intent': self.intent,
             'entities': [
-                entity.to_rsa_nlu_data for entity in self.entities.all()],
+                entity.to_rasa_nlu_data for entity in self.get_entities(
+                    language)],
         }
 
     def delete(self):
@@ -176,16 +208,57 @@ class RepositoryExample(models.Model):
         self.save(update_fields=['deleted_in'])
 
 
-class RepositoryExampleEntity(models.Model):
+class RepositoryTranslatedExample(models.Model):
+    class Meta:
+        verbose_name = _('repository translated example')
+        verbose_name_plural = _('repository translated examples')
+        unique_together = ['original_example', 'language']
+
+    original_example = models.ForeignKey(
+        RepositoryExample,
+        models.CASCADE,
+        related_name='translations',
+        editable=False)
+    language = models.CharField(
+        _('language'),
+        choices=languages.LANGUAGE_CHOICES,
+        max_length=2)
+    text = models.TextField(
+        _('text'))
+
+    @classmethod
+    def create_entitites_count_dict(cls, entities):
+        return dict(
+            list(
+                map(
+                    lambda x: (x.get('entity'), x.get('many'),),
+                    entities.values('entity').annotate(
+                        many=models.Count('entity')))))
+
+    @property
+    def has_valid_entities(self):
+        original_entities = self.original_example.entities.all()
+        my_entities = self.entities.all()
+        if original_entities.count() != my_entities.count():
+            return False
+        original_entities_dict = RepositoryTranslatedExample \
+            .create_entitites_count_dict(original_entities)
+        my_entities_dict = RepositoryTranslatedExample \
+            .create_entitites_count_dict(my_entities)
+        if len(set(original_entities_dict) ^ set(my_entities_dict)) > 0:
+            return False
+        for key in original_entities_dict:
+            if original_entities_dict.get(key) != my_entities_dict.get(key):
+                return False
+        return True
+
+
+class EntityBase(models.Model):
     class Meta:
         verbose_name = _('repository example entity')
         verbose_name_plural = _('repository example entities')
+        abstract = True
 
-    repository_example = models.ForeignKey(
-        RepositoryExample,
-        models.CASCADE,
-        related_name='entities',
-        editable=False)
     start = models.PositiveIntegerField(
         _('start'))
     end = models.PositiveIntegerField(
@@ -199,16 +272,41 @@ class RepositoryExampleEntity(models.Model):
 
     @property
     def value(self):
-        return self.repository_example.text[self.start:self.end]
+        return self.get_example().text[self.start:self.end]
 
     @property
-    def to_rsa_nlu_data(self):
+    def to_rasa_nlu_data(self):
         return {
             'start': self.start,
             'end': self.end,
             'value': self.value,
             'entity': self.entity,
         }
+
+    def get_example(self):
+        pass
+
+
+class RepositoryExampleEntity(EntityBase):
+    repository_example = models.ForeignKey(
+        RepositoryExample,
+        models.CASCADE,
+        related_name='entities',
+        editable=False)
+
+    def get_example(self):
+        return self.repository_example
+
+
+class RepositoryTranslatedExampleEntity(EntityBase):
+    repository_translated_example = models.ForeignKey(
+        RepositoryTranslatedExample,
+        models.CASCADE,
+        related_name='entities',
+        editable=False)
+
+    def get_example(self):
+        return self.repository_translated_example
 
 
 class RepositoryAuthorization(models.Model):

@@ -1,14 +1,16 @@
 from rest_framework import serializers
 from rest_framework.exceptions import NotFound
 from rest_framework.exceptions import ValidationError
-from rest_framework.compat import unicode_to_repr
 from django.utils.translation import gettext as _
 from django.core.exceptions import ValidationError as DjangoValidationError
 
+from bothub.common.models import RepositoryCategory
 from bothub.common.models import Repository
 from bothub.common.models import RepositoryUpdate
 from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryExampleEntity
+from bothub.common.models import RepositoryTranslatedExample
+from bothub.common.models import RepositoryTranslatedExampleEntity
 from bothub.common.models import RepositoryAuthorization
 
 
@@ -35,11 +37,17 @@ class CurrentUpdateDefault(object):
     def __call__(self):
         return self.repository_update
 
-    def __repr__(self):
-        return unicode_to_repr('%s()' % self.__class__.__name__)
-
 
 # Serializers
+
+class RepositoryCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RepositoryCategory
+        fields = [
+            'id',
+            'name',
+        ]
+
 
 class RepositorySerializer(serializers.ModelSerializer):
     class Meta:
@@ -59,6 +67,9 @@ class RepositorySerializer(serializers.ModelSerializer):
     owner = serializers.PrimaryKeyRelatedField(
         read_only=True,
         default=serializers.CurrentUserDefault())
+    categories = RepositoryCategorySerializer(
+        many=True,
+        read_only=True)
 
 
 class CurrentRepositoryUpdateSerializer(serializers.ModelSerializer):
@@ -70,26 +81,6 @@ class CurrentRepositoryUpdateSerializer(serializers.ModelSerializer):
             'language',
             'created_at',
         ]
-
-
-class RepositoryExampleSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = RepositoryExample
-        fields = [
-            'id',
-            'repository_update',
-            'deleted_in',
-            'text',
-            'intent',
-            'created_at',
-        ]
-        read_only_fields = [
-            'deleted_in',
-        ]
-
-    repository_update = serializers.PrimaryKeyRelatedField(
-        read_only=True,
-        default=CurrentUpdateDefault())
 
 
 class RepositoryExampleEntitySerializer(serializers.ModelSerializer):
@@ -111,6 +102,78 @@ class RepositoryExampleEntitySerializer(serializers.ModelSerializer):
 
     def get_value(self, obj):
         return obj.value
+
+
+class RepositoryTranslatedExampleEntitySeralizer(serializers.ModelSerializer):
+    class Meta:
+        model = RepositoryTranslatedExampleEntity
+        fields = [
+            'id',
+            'repository_translated_example',
+            'start',
+            'end',
+            'entity',
+            'created_at',
+            'value',
+        ]
+
+    repository_translated_example = serializers.PrimaryKeyRelatedField(
+        queryset=RepositoryTranslatedExample.objects)
+    value = serializers.SerializerMethodField()
+
+    def get_value(self, obj):
+        return obj.value
+
+
+class RepositoryTranslatedExampleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RepositoryTranslatedExample
+        fields = [
+            'id',
+            'original_example',
+            'language',
+            'text',
+            'has_valid_entities',
+            'entities',
+        ]
+
+    original_example = serializers.PrimaryKeyRelatedField(
+        queryset=RepositoryExample.objects)
+    has_valid_entities = serializers.SerializerMethodField()
+    entities = RepositoryTranslatedExampleEntitySeralizer(
+        many=True,
+        read_only=True)
+
+    def get_has_valid_entities(self, obj):
+        return obj.has_valid_entities
+
+
+class RepositoryExampleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RepositoryExample
+        fields = [
+            'id',
+            'repository_update',
+            'deleted_in',
+            'text',
+            'intent',
+            'created_at',
+            'entities',
+            'translations',
+        ]
+        read_only_fields = [
+            'deleted_in',
+        ]
+
+    repository_update = serializers.PrimaryKeyRelatedField(
+        read_only=True,
+        default=CurrentUpdateDefault())
+    entities = RepositoryExampleEntitySerializer(
+        many=True,
+        read_only=True)
+    translations = RepositoryTranslatedExampleSerializer(
+        many=True,
+        read_only=True)
 
 
 class RepositoryAuthorizationSerializer(serializers.ModelSerializer):
