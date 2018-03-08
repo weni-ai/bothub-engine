@@ -157,6 +157,7 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
             'deleted_in',
             'text',
             'intent',
+            'language',
             'created_at',
             'entities',
             'translations',
@@ -174,6 +175,10 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
     translations = RepositoryTranslatedExampleSerializer(
         many=True,
         read_only=True)
+    language = serializers.SerializerMethodField()
+
+    def get_language(self, obj):
+        return obj.language
 
 
 class RepositoryAuthorizationSerializer(serializers.ModelSerializer):

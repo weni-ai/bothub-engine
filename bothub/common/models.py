@@ -172,6 +172,10 @@ class RepositoryExample(models.Model):
         _('created at'),
         auto_now_add=True)
 
+    @property
+    def language(self):
+        return self.repository_update.language
+
     def has_valid_entities(self, language=None):
         if not language or language == self.repository_update.language:
             return True
