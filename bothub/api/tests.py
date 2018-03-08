@@ -117,7 +117,7 @@ class APITestCase(TestCase):
 
     def test_my_repositories(self):
         request = self.factory.get(
-            '/api/myrepositories/',
+            '/api/my-repositories/',
             **{
                 'HTTP_AUTHORIZATION': 'Token {}'.format(self.user_token.key),
             })
@@ -427,7 +427,7 @@ class APITestCase(TestCase):
             text='hi',
             intent='greet')
         request = self.factory.post(
-            '/api/translateexample/',
+            '/api/translate-example/',
             {
                'original_example': example.id,
                'language': languages.LANGUAGE_PT,
@@ -452,7 +452,7 @@ class APITestCase(TestCase):
 
     def _new_translated_example_entity_request(self, data):
         request = self.factory.post(
-            '/api/translatedentity/new/',
+            '/api/translated-entity/new/',
             data,
             **{
                 'HTTP_AUTHORIZATION': 'Token {}'.format(self.user_token.key),
@@ -480,7 +480,7 @@ class APITestCase(TestCase):
             end=11,
             entity='name')
         request = self.factory.get(
-            '/api/translatedentity/{}/'.format(translated_entity.id),
+            '/api/translated-entity/{}/'.format(translated_entity.id),
             **{
                 'HTTP_AUTHORIZATION': 'Token {}'.format(self.user_token.key),
             })
