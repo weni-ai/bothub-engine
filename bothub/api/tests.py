@@ -195,6 +195,19 @@ class APITestCase(TestCase):
         response = self._repository_currentrasanludata_request({})
         self.assertEqual(response.status_code, 500)
 
+    def test_repository_languages_status(self):
+        request = self.factory.get(
+            '/api/repository/{}/languagesstatus/'.format(
+                self.repository.uuid),
+            **{
+                'HTTP_AUTHORIZATION': 'Token {}'.format(self.user_token.key),
+            })
+        response = RepositoryViewSet.as_view(
+            {'get': 'languagesstatus'})(
+                request,
+                pk=str(self.repository.uuid))
+        self.assertEqual(response.status_code, 200)
+
     def _repository_authorization_request(self, token=None, **data):
         token = token or self.user_token.key
         request = self.factory.post(

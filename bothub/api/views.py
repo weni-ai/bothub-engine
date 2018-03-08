@@ -1,5 +1,4 @@
 from rest_framework.viewsets import GenericViewSet
-from rest_framework.views import APIView
 from rest_framework import mixins
 from rest_framework import permissions
 from rest_framework.decorators import detail_route
@@ -165,6 +164,15 @@ class RepositoryViewSet(
             raise APIException(_('language is required'))
 
         return Response(repository.current_rasa_nlu_data(language))
+
+    @detail_route(
+        methods=['GET'],
+        url_name='languages-status')
+    def languagesstatus(self, request, **kwargs):
+        repository = self.get_object()
+        return Response({
+            'languages_status': repository.languages_status,
+        })
 
 
 class RepositoryAuthorizationView(GenericViewSet):
