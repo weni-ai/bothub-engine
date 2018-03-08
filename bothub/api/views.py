@@ -6,8 +6,11 @@ from rest_framework.response import Response
 from rest_framework.exceptions import APIException
 from rest_framework.exceptions import NotFound
 from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import ValidationError
 from django.utils.translation import gettext as _
 from django.core.exceptions import ValidationError as DjangoValidationError
+from django.db.models import Count
+from django_filters import rest_framework as filters
 
 from .serializers import RepositorySerializer
 from .serializers import CurrentRepositoryUpdateSerializer
@@ -54,6 +57,37 @@ class IsTranslatedExampleOriginalRepositoryExampleOwner(
         repository = obj.repository_translated_example.original_example \
             .repository_update.repository
         return repository.owner == request.user
+
+
+# Filters
+
+class ExamplesFilter(filters.FilterSet):
+    class Meta:
+        model = RepositoryExample
+        fields = [
+            'text',
+            'language',
+        ]
+
+    language = filters.CharFilter(
+        name='language',
+        method='filter_language')
+    has_translation = filters.BooleanFilter(
+        name='has_translation',
+        method='filter_has_translation')
+
+    def filter_language(self, queryset, name, value):
+        return queryset.filter(repository_update__language=value)
+
+    def filter_has_translation(self, queryset, name, value):
+        annotated_queryset = queryset.annotate(
+            translation_count=Count('translations'))
+        if value:
+            return annotated_queryset.filter(
+                translation_count__gt=0)
+        else:
+            return annotated_queryset.filter(
+                translation_count=0)
 
 
 # ViewSets
@@ -248,12 +282,16 @@ class RepositoryExamplesViewSet(
         GenericViewSet):
     queryset = RepositoryExample.objects
     serializer_class = RepositoryExampleSerializer
+    filter_class = ExamplesFilter
+    permission_classes = [
+        permissions.IsAuthenticated,
+    ]
 
     def get_queryset(self):
         repository_uuid = self.request.query_params.get('repository_uuid')
 
         if not repository_uuid:
-            raise APIException(_('repository_uuid is required'))
+            raise ValidationError(_('repository_uuid is required'), code=400)
 
         try:
             repository = Repository.objects.get(uuid=repository_uuid)
@@ -261,6 +299,6 @@ class RepositoryExamplesViewSet(
             raise NotFound(
                 _('Repository {} does not exist').format(repository_uuid))
         except DjangoValidationError:
-            raise APIException(_('Invalid repository_uuid'))
+            raise ValidationError(_('Invalid repository_uuid'))
 
         return self.queryset.filter(repository_update__repository=repository)

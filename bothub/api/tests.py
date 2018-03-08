@@ -25,6 +25,7 @@ from .views import NewRepositoryTranslatedExampleViewSet
 from .views import RepositoryTranslatedExampleViewSet
 from .views import NewRepositoryTranslatedExampleEntityViewSet
 from .views import RepositoryTranslatedExampleEntityViewSet
+from .views import RepositoryExamplesViewSet
 
 
 class APITestCase(TestCase):
@@ -465,3 +466,68 @@ class APITestCase(TestCase):
         response = RepositoryTranslatedExampleEntityViewSet.as_view(
             {'get': 'retrieve'})(request, pk=translated_entity.id)
         self.assertEqual(response.status_code, 200)
+
+    def _examples_request(self, data):
+        request = self.factory.get(
+            '/api/examples/',
+            data,
+            **{
+                'HTTP_AUTHORIZATION': 'Token {}'.format(self.user_token.key),
+            })
+        response = RepositoryExamplesViewSet.as_view(
+            {'get': 'list'})(request)
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data,)
+
+    def test_examples(self):
+        response, content_data = self._examples_request({
+            'repository_uuid': self.repository.uuid,
+        })
+        self.assertEqual(response.status_code, 200)
+
+    def test_examples_without_repository_uuid(self):
+        response, content_data = self._examples_request({})
+        self.assertEqual(response.status_code, 400)
+
+    def test_examples_with_repository_does_not_exist(self):
+        response, content_data = self._examples_request({
+            'repository_uuid': uuid.uuid4(),
+        })
+        self.assertEqual(response.status_code, 404)
+
+    def test_examples_with_invalid_uuid(self):
+        response, content_data = self._examples_request({
+            'repository_uuid': 'invalid',
+        })
+        self.assertEqual(response.status_code, 400)
+
+    def test_examples_language_filter(self):
+        response_1, content_data_1 = self._examples_request({
+            'repository_uuid': self.repository.uuid,
+            'language': languages.LANGUAGE_EN,
+        })
+        self.assertEqual(response_1.status_code, 200)
+        self.assertEqual(content_data_1.get('count'), 1)
+
+        response_2, content_data_2 = self._examples_request({
+            'repository_uuid': self.repository.uuid,
+            'language': languages.LANGUAGE_NL,
+        })
+        self.assertEqual(response_2.status_code, 200)
+        self.assertEqual(content_data_2.get('count'), 0)
+
+    def test_examples_has_translation_filter(self):
+        response_1, content_data_1 = self._examples_request({
+            'repository_uuid': self.repository.uuid,
+            'has_translation': True,
+        })
+        self.assertEqual(response_1.status_code, 200)
+        self.assertEqual(content_data_1.get('count'), 1)
+
+        response_2, content_data_2 = self._examples_request({
+            'repository_uuid': self.repository.uuid,
+            'has_translation': False,
+        })
+        self.assertEqual(response_2.status_code, 200)
+        self.assertEqual(content_data_2.get('count'), 0)
