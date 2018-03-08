@@ -285,6 +285,7 @@ class RepositoryExamplesViewSet(
     filter_class = ExamplesFilter
     permission_classes = [
         permissions.IsAuthenticated,
+        IsRepositoryUpdateOwner,
     ]
 
     def get_queryset(self):
