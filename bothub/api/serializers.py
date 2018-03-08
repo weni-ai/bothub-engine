@@ -4,6 +4,7 @@ from rest_framework.exceptions import ValidationError
 from django.utils.translation import gettext as _
 from django.core.exceptions import ValidationError as DjangoValidationError
 
+from bothub.common.models import RepositoryCategory
 from bothub.common.models import Repository
 from bothub.common.models import RepositoryUpdate
 from bothub.common.models import RepositoryExample
@@ -39,6 +40,15 @@ class CurrentUpdateDefault(object):
 
 # Serializers
 
+class RepositoryCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RepositoryCategory
+        fields = [
+            'id',
+            'name',
+        ]
+
+
 class RepositorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Repository
@@ -57,6 +67,9 @@ class RepositorySerializer(serializers.ModelSerializer):
     owner = serializers.PrimaryKeyRelatedField(
         read_only=True,
         default=serializers.CurrentUserDefault())
+    categories = RepositoryCategorySerializer(
+        many=True,
+        read_only=True)
 
 
 class CurrentRepositoryUpdateSerializer(serializers.ModelSerializer):
