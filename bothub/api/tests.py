@@ -12,6 +12,7 @@ from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryCategory
 from bothub.common.models import RepositoryTranslatedExample
 from bothub.common.models import RepositoryTranslatedExampleEntity
+from bothub.common.models import RepositoryExampleEntity
 from bothub.common import languages
 
 from .views import NewRepositoryViewSet
@@ -21,10 +22,12 @@ from .views import NewRepositoryExampleViewSet
 from .views import RepositoryExampleViewSet
 from .views import RepositoryAuthorizationView
 from .views import NewRepositoryExampleEntityViewSet
+from .views import RepositoryExampleEntityViewSet
 from .views import NewRepositoryTranslatedExampleViewSet
 from .views import RepositoryTranslatedExampleViewSet
 from .views import NewRepositoryTranslatedExampleEntityViewSet
 from .views import RepositoryTranslatedExampleEntityViewSet
+from .views import RepositoryExamplesViewSet
 
 
 class APITestCase(TestCase):
@@ -67,6 +70,12 @@ class APITestCase(TestCase):
                 languages.LANGUAGE_EN),
             text='hey Douglas',
             intent='greet')
+
+        self.entity = RepositoryExampleEntity.objects.create(
+            repository_example=self.example,
+            start=4,
+            end=11,
+            entity='name')
 
         self.translated = RepositoryTranslatedExample.objects.create(
             original_example=self.example,
@@ -169,28 +178,6 @@ class APITestCase(TestCase):
         response, content_data = self._repository_currentupdate_request({})
         self.assertEqual(response.status_code, 500)
 
-    def _repository_examples_request(self, data):
-        request = self.factory.post(
-            '/api/repository/{}/examples/'.format(self.repository.uuid),
-            data,
-            **{
-                'HTTP_AUTHORIZATION': 'Token {}'.format(self.user_token.key),
-            })
-        response = RepositoryViewSet.as_view(
-            {'post': 'examples'})(request, pk=str(self.repository.uuid))
-        response.render()
-        return response
-
-    def test_repository_examples(self):
-        response = self._repository_examples_request({
-            'language': languages.LANGUAGE_EN,
-        })
-        self.assertEqual(response.status_code, 200)
-
-    def test_repository_examples_without_language(self):
-        response = self._repository_examples_request({})
-        self.assertEqual(response.status_code, 500)
-
     def _repository_currentrasanludata_request(self, data):
         request = self.factory.post(
             '/api/repository/{}/currentrasanludata/'.format(
@@ -215,6 +202,19 @@ class APITestCase(TestCase):
     def test_repository_currentrasanludata_without_language(self):
         response = self._repository_currentrasanludata_request({})
         self.assertEqual(response.status_code, 500)
+
+    def test_repository_languages_status(self):
+        request = self.factory.get(
+            '/api/repository/{}/languagesstatus/'.format(
+                self.repository.uuid),
+            **{
+                'HTTP_AUTHORIZATION': 'Token {}'.format(self.user_token.key),
+            })
+        response = RepositoryViewSet.as_view(
+            {'get': 'languagesstatus'})(
+                request,
+                pk=str(self.repository.uuid))
+        self.assertEqual(response.status_code, 200)
 
     def _repository_authorization_request(self, token=None, **data):
         token = token or self.user_token.key
@@ -247,7 +247,7 @@ class APITestCase(TestCase):
 
     def test_repository_authorization_without_repository_uuid(self):
         response = self._repository_authorization_request()
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 400)
 
     def test_repository_authorization_repository_does_not_exist(self):
         response = self._repository_authorization_request(
@@ -257,7 +257,7 @@ class APITestCase(TestCase):
     def test_repository_authorization_repository_uuid_invalid(self):
         response = self._repository_authorization_request(
             repository_uuid='invalid')
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 400)
 
     def _update_repository_request(self, repository_uuid, data):
         request = self.factory.put(
@@ -420,6 +420,16 @@ class APITestCase(TestCase):
         self.assertEqual(response.status_code, 201)
         self.assertEqual(content_data.get('value'), 'Douglas')
 
+    def test_repository_examples_entity(self):
+        request = self.factory.get(
+            '/api/entity/{}/'.format(self.entity.id),
+            **{
+                'HTTP_AUTHORIZATION': 'Token {}'.format(self.user_token.key),
+            })
+        response = RepositoryExampleEntityViewSet.as_view(
+            {'get': 'retrieve'})(request, pk=self.example.id)
+        self.assertEqual(response.status_code, 200)
+
     def test_translate_example(self):
         example = RepositoryExample.objects.create(
             repository_update=self.repository.current_update(
@@ -487,3 +497,68 @@ class APITestCase(TestCase):
         response = RepositoryTranslatedExampleEntityViewSet.as_view(
             {'get': 'retrieve'})(request, pk=translated_entity.id)
         self.assertEqual(response.status_code, 200)
+
+    def _examples_request(self, data):
+        request = self.factory.get(
+            '/api/examples/',
+            data,
+            **{
+                'HTTP_AUTHORIZATION': 'Token {}'.format(self.user_token.key),
+            })
+        response = RepositoryExamplesViewSet.as_view(
+            {'get': 'list'})(request)
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data,)
+
+    def test_examples(self):
+        response, content_data = self._examples_request({
+            'repository_uuid': self.repository.uuid,
+        })
+        self.assertEqual(response.status_code, 200)
+
+    def test_examples_without_repository_uuid(self):
+        response, content_data = self._examples_request({})
+        self.assertEqual(response.status_code, 400)
+
+    def test_examples_with_repository_does_not_exist(self):
+        response, content_data = self._examples_request({
+            'repository_uuid': uuid.uuid4(),
+        })
+        self.assertEqual(response.status_code, 404)
+
+    def test_examples_with_invalid_uuid(self):
+        response, content_data = self._examples_request({
+            'repository_uuid': 'invalid',
+        })
+        self.assertEqual(response.status_code, 400)
+
+    def test_examples_language_filter(self):
+        response_1, content_data_1 = self._examples_request({
+            'repository_uuid': self.repository.uuid,
+            'language': languages.LANGUAGE_EN,
+        })
+        self.assertEqual(response_1.status_code, 200)
+        self.assertEqual(content_data_1.get('count'), 1)
+
+        response_2, content_data_2 = self._examples_request({
+            'repository_uuid': self.repository.uuid,
+            'language': languages.LANGUAGE_NL,
+        })
+        self.assertEqual(response_2.status_code, 200)
+        self.assertEqual(content_data_2.get('count'), 0)
+
+    def test_examples_has_translation_filter(self):
+        response_1, content_data_1 = self._examples_request({
+            'repository_uuid': self.repository.uuid,
+            'has_translation': True,
+        })
+        self.assertEqual(response_1.status_code, 200)
+        self.assertEqual(content_data_1.get('count'), 1)
+
+        response_2, content_data_2 = self._examples_request({
+            'repository_uuid': self.repository.uuid,
+            'has_translation': False,
+        })
+        self.assertEqual(response_2.status_code, 200)
+        self.assertEqual(content_data_2.get('count'), 0)

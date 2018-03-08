@@ -6,8 +6,11 @@ from rest_framework.response import Response
 from rest_framework.exceptions import APIException
 from rest_framework.exceptions import NotFound
 from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import ValidationError
 from django.utils.translation import gettext as _
 from django.core.exceptions import ValidationError as DjangoValidationError
+from django.db.models import Count
+from django_filters import rest_framework as filters
 
 from .serializers import RepositorySerializer
 from .serializers import CurrentRepositoryUpdateSerializer
@@ -22,6 +25,21 @@ from bothub.common.models import RepositoryExampleEntity
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryTranslatedExample
 from bothub.common.models import RepositoryTranslatedExampleEntity
+
+
+# Utils
+
+def get_repository_from_uuid(repository_uuid):
+    if not repository_uuid:
+        raise ValidationError(_('repository_uuid is required'), code=400)
+
+    try:
+        return Repository.objects.get(uuid=repository_uuid)
+    except Repository.DoesNotExist:
+        raise NotFound(
+            _('Repository {} does not exist').format(repository_uuid))
+    except DjangoValidationError:
+        raise ValidationError(_('Invalid repository_uuid'))
 
 
 # Permisions
@@ -54,6 +72,37 @@ class IsTranslatedExampleOriginalRepositoryExampleOwner(
         repository = obj.repository_translated_example.original_example \
             .repository_update.repository
         return repository.owner == request.user
+
+
+# Filters
+
+class ExamplesFilter(filters.FilterSet):
+    class Meta:
+        model = RepositoryExample
+        fields = [
+            'text',
+            'language',
+        ]
+
+    language = filters.CharFilter(
+        name='language',
+        method='filter_language')
+    has_translation = filters.BooleanFilter(
+        name='has_translation',
+        method='filter_has_translation')
+
+    def filter_language(self, queryset, name, value):
+        return queryset.filter(repository_update__language=value)
+
+    def filter_has_translation(self, queryset, name, value):
+        annotated_queryset = queryset.annotate(
+            translation_count=Count('translations'))
+        if value:
+            return annotated_queryset.filter(
+                translation_count__gt=0)
+        else:
+            return annotated_queryset.filter(
+                translation_count=0)
 
 
 # ViewSets
@@ -106,22 +155,6 @@ class RepositoryViewSet(
 
     @detail_route(
         methods=['POST'],
-        url_name='repository-examples')
-    def examples(self, request, **kwargs):
-        repository = self.get_object()
-
-        language = request.POST.get('language')
-        if not language:
-            raise APIException(_('language is required'))
-
-        examples = repository.current_update(language).examples
-
-        page = self.paginate_queryset(examples)
-        serializer = RepositoryExampleSerializer(page, many=True)
-        return self.get_paginated_response(serializer.data)
-
-    @detail_route(
-        methods=['POST'],
         url_name='repository-current-rasa-nlu-data')
     def currentrasanludata(self, request, **kwargs):
         repository = self.get_object()
@@ -132,6 +165,15 @@ class RepositoryViewSet(
 
         return Response(repository.current_rasa_nlu_data(language))
 
+    @detail_route(
+        methods=['GET'],
+        url_name='languages-status')
+    def languagesstatus(self, request, **kwargs):
+        repository = self.get_object()
+        return Response({
+            'languages_status': repository.languages_status,
+        })
+
 
 class RepositoryAuthorizationView(GenericViewSet):
     serializer_class = RepositoryAuthorizationSerializer
@@ -140,17 +182,7 @@ class RepositoryAuthorizationView(GenericViewSet):
 
     def create(self, request, **kwargs):
         repository_uuid = request.POST.get('repository_uuid')
-        if not repository_uuid:
-            raise APIException(_('repository_uuid is required'))
-
-        try:
-            repository = Repository.objects.get(uuid=repository_uuid)
-        except Repository.DoesNotExist:
-            raise NotFound(
-                _('Repository {} does not exist').format(repository_uuid))
-        except DjangoValidationError:
-            raise APIException(_('Invalid repository_uuid'))
-
+        repository = get_repository_from_uuid(repository_uuid)
         user_authorization = repository.get_user_authorization(request.user)
 
         if not user_authorization:
@@ -257,3 +289,20 @@ class RepositoryTranslatedExampleEntityViewSet(
         permissions.IsAuthenticated,
         IsTranslatedExampleOriginalRepositoryExampleOwner,
     ]
+
+
+class RepositoryExamplesViewSet(
+        mixins.ListModelMixin,
+        GenericViewSet):
+    queryset = RepositoryExample.objects
+    serializer_class = RepositoryExampleSerializer
+    filter_class = ExamplesFilter
+    permission_classes = [
+        permissions.IsAuthenticated,
+        IsRepositoryUpdateOwner,
+    ]
+
+    def get_queryset(self):
+        repository_uuid = self.request.query_params.get('repository_uuid')
+        repository = get_repository_from_uuid(repository_uuid)
+        return self.queryset.filter(repository_update__repository=repository)
