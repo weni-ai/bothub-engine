@@ -11,7 +11,7 @@ from .models import DoesNotHaveTranslation
 from . import languages
 
 
-class RepositoryUpdateTest(TestCase):
+class RepositoryUpdateTestCase(TestCase):
     EXPECTED_RASA_NLU_DATA = {
         'common_examples': [
             {
@@ -50,7 +50,7 @@ class RepositoryUpdateTest(TestCase):
     def test_get_rasa_nlu_data(self):
         self.assertDictEqual(
             self.repository_update.rasa_nlu_data,
-            RepositoryUpdateTest.EXPECTED_RASA_NLU_DATA)
+            RepositoryUpdateTestCase.EXPECTED_RASA_NLU_DATA)
 
     def test_repository_current_update(self):
         update1 = self.repository.current_update('en')
@@ -60,7 +60,7 @@ class RepositoryUpdateTest(TestCase):
         self.assertNotEqual(update1, self.repository.current_update('en'))
 
 
-class TranslateTest(TestCase):
+class TranslateTestCase(TestCase):
     EXPECTED_RASA_NLU_DATA = {
         'common_examples': [
             {
@@ -120,7 +120,7 @@ class TranslateTest(TestCase):
         self.assertDictEqual(
             self.repository.current_update(
                 languages.LANGUAGE_PT).rasa_nlu_data,
-            TranslateTest.EXPECTED_RASA_NLU_DATA)
+            TranslateTestCase.EXPECTED_RASA_NLU_DATA)
 
     def test_translated_entity(self):
         RepositoryExampleEntity.objects.create(
@@ -142,7 +142,7 @@ class TranslateTest(TestCase):
         self.assertDictEqual(
             self.repository.current_update(
                 languages.LANGUAGE_PT).rasa_nlu_data,
-            TranslateTest.EXPECTED_RASA_NLU_DATA_WITH_ENTITIES)
+            TranslateTestCase.EXPECTED_RASA_NLU_DATA_WITH_ENTITIES)
 
     def test_valid_entities(self):
         RepositoryExampleEntity.objects.create(
@@ -252,7 +252,7 @@ class TranslateTest(TestCase):
             self.example.get_translation(languages.LANGUAGE_NL)
 
 
-class RepositoryMethodsTest(TestCase):
+class RepositoryTestCase(TestCase):
     def setUp(self):
         self.owner = User.objects.create_user('owner@user.com', 'user')
         self.user = User.objects.create_user('fake@user.com', 'user')
@@ -296,3 +296,35 @@ class RepositoryMethodsTest(TestCase):
             self.private_repository.get_user_authorization(self.owner))
         self.assertFalse(
             self.private_repository.get_user_authorization(self.user))
+
+
+class RepositoryExampleTestCase(TestCase):
+    def setUp(self):
+        self.language = languages.LANGUAGE_EN
+
+        self.owner = User.objects.create_user('owner@user.com', 'user')
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name='Test',
+            slug='test',
+            language=self.language)
+
+        self.example = RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(),
+            text='hi',
+            intent='greet')
+
+    def test_language(self):
+        self.assertEqual(
+            self.example.language,
+            self.example.repository_update.language)
+        self.assertEqual(
+            self.example.language,
+            self.language)
+
+    def teste_delete(self):
+        self.example.delete()
+        self.assertEqual(
+            self.example.deleted_in,
+            self.repository.current_update())
