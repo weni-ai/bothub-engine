@@ -15,19 +15,19 @@ from bothub.common.models import RepositoryTranslatedExampleEntity
 from bothub.common.models import RepositoryExampleEntity
 from bothub.common import languages
 
-from .views import NewRepositoryViewSet
-from .views import MyRepositoriesViewSet
-from .views import RepositoryViewSet
-from .views import NewRepositoryExampleViewSet
-from .views import RepositoryExampleViewSet
-from .views import RepositoryAuthorizationView
-from .views import NewRepositoryExampleEntityViewSet
-from .views import RepositoryExampleEntityViewSet
-from .views import NewRepositoryTranslatedExampleViewSet
-from .views import RepositoryTranslatedExampleViewSet
-from .views import NewRepositoryTranslatedExampleEntityViewSet
-from .views import RepositoryTranslatedExampleEntityViewSet
-from .views import RepositoryExamplesViewSet
+from ..views import NewRepositoryViewSet
+from ..views import MyRepositoriesViewSet
+from ..views import RepositoryViewSet
+from ..views import NewRepositoryExampleViewSet
+from ..views import RepositoryExampleViewSet
+from ..views import RepositoryAuthorizationView
+from ..views import NewRepositoryExampleEntityViewSet
+from ..views import RepositoryExampleEntityViewSet
+from ..views import NewRepositoryTranslatedExampleViewSet
+from ..views import RepositoryTranslatedExampleViewSet
+from ..views import NewRepositoryTranslatedExampleEntityViewSet
+from ..views import RepositoryTranslatedExampleEntityViewSet
+from ..views import RepositoryExamplesViewSet
 
 
 class APITestCase(TestCase):
@@ -82,6 +82,7 @@ class APITestCase(TestCase):
             language=languages.LANGUAGE_PT,
             text='olá Douglas')
 
+    # moved to tests.repository.NewRepositoryTestCase.request
     def _new_repository_request(self, slug, name, language, categories):
         request = self.factory.post(
             '/api/repository/new/',
@@ -99,6 +100,7 @@ class APITestCase(TestCase):
         content_data = json.loads(response.content)
         return (response, content_data,)
 
+    # moved to tests.repository.NewRepositoryTestCase.test_okay
     def test_new_repository(self):
         test_slug = 'test_{}'.format(random.randint(100, 9999))
         (response, content_data) = self._new_repository_request(
