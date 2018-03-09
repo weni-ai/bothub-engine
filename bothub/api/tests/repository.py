@@ -199,6 +199,22 @@ class RetrieveRepositoryTestCase(TestCase):
             response.status_code,
             status.HTTP_403_FORBIDDEN)
 
+    def test_languages_status(self):
+        authorization_header = {
+            'HTTP_AUTHORIZATION': 'Token {}'.format(self.user_token.key),
+        }
+        request = self.factory.get(
+            '/api/repository/{}/languagesstatus/'.format(
+                self.repository.uuid),
+            **authorization_header)
+        response = RepositoryViewSet.as_view(
+            {'get': 'languagesstatus'})(
+                request,
+                pk=self.repository.uuid)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK)
+
 
 class UpdateRepositoryTestCase(TestCase):
     def setUp(self):

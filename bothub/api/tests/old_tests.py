@@ -157,6 +157,7 @@ class APITestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(content_data.get('uuid'), str(self.repository.uuid))
 
+    # moved to tests.repository.RetrieveRepositoryTestCase.test_languages_sta..
     def test_repository_languages_status(self):
         request = self.factory.get(
             '/api/repository/{}/languagesstatus/'.format(
