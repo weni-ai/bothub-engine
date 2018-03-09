@@ -263,6 +263,7 @@ class APITestCase(TestCase):
             repository_uuid='invalid')
         self.assertEqual(response.status_code, 400)
 
+    # moved to tests.repository.UpdateRepositoryTestCase.request
     def _update_repository_request(self, repository_uuid, data):
         request = self.factory.put(
             '/api/repository/{}/'.format(repository_uuid),
@@ -277,6 +278,7 @@ class APITestCase(TestCase):
         content_data = json.loads(response.content)
         return (response, content_data,)
 
+    # moved to tests.repository.UpdateRepositoryTestCase
     def test_repository_update(self):
         new_slug = 'test_{}'.format(random.randint(1, 10))
         (response, content_data) = self._update_repository_request(
@@ -292,6 +294,7 @@ class APITestCase(TestCase):
         self.assertEqual(content_data.get('slug'), new_slug)
         self.assertEqual(content_data.get('is_private'), True)
 
+    # moved to tests.repository.UpdateRepositoryTestCase
     def test_repository_cannot_update_uuid(self):
         new_uuid = str(uuid.uuid4())
         new_slug = 'test_{}'.format(random.randint(1, 10))
