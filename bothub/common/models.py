@@ -33,7 +33,7 @@ class Repository(models.Model):
     name = models.CharField(
         _('name'),
         max_length=64)
-    slug = models.CharField(
+    slug = models.SlugField(
         _('slug'),
         unique=True,
         max_length=32)
