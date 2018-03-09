@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from rest_framework.exceptions import NotFound
 from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import PermissionDenied
 from django.utils.translation import gettext as _
 from django.core.exceptions import ValidationError as DjangoValidationError
 
@@ -30,6 +31,11 @@ class CurrentUpdateDefault(object):
                 _('Repository {} does not exist').format(repository_uuid))
         except DjangoValidationError:
             raise ValidationError(_('Invalid repository_uuid'))
+
+        user_authorization = repository.get_user_authorization(request.user)
+        if not user_authorization.can_contribute:
+            raise PermissionDenied(
+                _('You can\'t contribute in this repository'))
 
         self.repository_update = repository.current_update()
 

@@ -41,36 +41,19 @@ def get_repository_from_uuid(repository_uuid):
 
 # Permisions
 
-class IsPublicOrIsOwner(permissions.BasePermission):
+READ_METHODS = permissions.SAFE_METHODS
+WRITE_METHODS = ['POST', 'PUT', 'PATCH']
+ADMIN_METHODS = ['DELETE']
+
+
+class RepositoryPermission(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
-        if not obj.is_private and request.method in permissions.SAFE_METHODS:
-            return True
-        return obj.owner == request.user
-
-
-class IsRepositoryUpdateOwner(permissions.BasePermission):
-    def has_object_permission(self, request, view, obj):
-        return obj.repository_update.repository.owner == request.user
-
-
-class IsRepositoryExampleOwner(permissions.BasePermission):
-    def has_object_permission(self, request, view, obj):
-        repository = obj.repository_example.repository_update.repository
-        return repository.owner == request.user
-
-
-class IsOriginalRepositoryExampleOwner(permissions.BasePermission):
-    def has_object_permission(self, request, view, obj):
-        repository = obj.original_example.repository_update.repository
-        return repository.owner == request.user
-
-
-class IsTranslatedExampleOriginalRepositoryExampleOwner(
-        permissions.BasePermission):
-    def has_object_permission(self, request, view, obj):
-        repository = obj.repository_translated_example.original_example \
-            .repository_update.repository
-        return repository.owner == request.user
+        authorization = obj.get_user_authorization(request.user)
+        if request.method in READ_METHODS:
+            return authorization.can_read
+        if request.method in WRITE_METHODS:
+            return authorization.can_write
+        return authorization.is_admin
 
 
 # Filters
@@ -134,7 +117,7 @@ class RepositoryViewSet(
     serializer_class = RepositorySerializer
     permission_classes = [
         permissions.IsAuthenticated,
-        IsPublicOrIsOwner,
+        RepositoryPermission,
     ]
 
     @detail_route(
@@ -170,10 +153,7 @@ class RepositoryExampleViewSet(
         GenericViewSet):
     queryset = RepositoryExample.objects
     serializer_class = RepositoryExampleSerializer
-    permission_classes = [
-        permissions.IsAuthenticated,
-        IsRepositoryUpdateOwner,
-    ]
+    permission_classes = [permissions.IsAuthenticated]
 
     def perform_destroy(self, obj):
         if obj.deleted_in:
@@ -195,10 +175,7 @@ class RepositoryExampleEntityViewSet(
         GenericViewSet):
     queryset = RepositoryExampleEntity.objects
     serializer_class = RepositoryExampleEntitySerializer
-    permission_classes = [
-        permissions.IsAuthenticated,
-        IsRepositoryExampleOwner,
-    ]
+    permission_classes = [permissions.IsAuthenticated]
 
 
 class NewRepositoryTranslatedExampleViewSet(
@@ -216,10 +193,7 @@ class RepositoryTranslatedExampleViewSet(
         GenericViewSet):
     queryset = RepositoryTranslatedExample.objects
     serializer_class = RepositoryTranslatedExampleSerializer
-    permission_classes = [
-        permissions.IsAuthenticated,
-        IsOriginalRepositoryExampleOwner,
-    ]
+    permission_classes = [permissions.IsAuthenticated]
 
 
 class NewRepositoryTranslatedExampleEntityViewSet(
@@ -236,10 +210,7 @@ class RepositoryTranslatedExampleEntityViewSet(
         GenericViewSet):
     queryset = RepositoryTranslatedExampleEntity.objects
     serializer_class = RepositoryTranslatedExampleEntitySeralizer
-    permission_classes = [
-        permissions.IsAuthenticated,
-        IsTranslatedExampleOriginalRepositoryExampleOwner,
-    ]
+    permission_classes = [permissions.IsAuthenticated]
 
 
 class RepositoryExamplesViewSet(
@@ -250,7 +221,6 @@ class RepositoryExamplesViewSet(
     filter_class = ExamplesFilter
     permission_classes = [
         permissions.IsAuthenticated,
-        IsRepositoryUpdateOwner,
     ]
 
     def get_queryset(self):

@@ -229,6 +229,7 @@ class APITestCase(TestCase):
         response.render()
         self.assertEqual(response.status_code, 204)
 
+    # moved to tests.example.NewRepositoryExampleTestCase.request
     def _new_repository_example_request(self, data):
         request = self.factory.post(
             '/api/example/new/',
@@ -242,6 +243,7 @@ class APITestCase(TestCase):
         content_data = json.loads(response.content)
         return (response, content_data,)
 
+    # moved to tests.example.NewRepositoryExampleTestCase.test_okay
     def test_new_repository_example(self):
         response, content_data = self._new_repository_example_request({
             'repository_uuid': self.repository.uuid,
