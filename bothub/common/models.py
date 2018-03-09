@@ -92,9 +92,9 @@ class Repository(models.Model):
             'is_base_language': is_base_language,
             'examples': {
                 'count': examples_count,
-                'entities': examples.values_list(
+                'entities': list(examples.values_list(
                     'entities__entity',
-                    flat=True).distinct(),
+                    flat=True).distinct()),
             },
             'base_translations': {
                 'count': base_translations_count,
@@ -109,10 +109,11 @@ class Repository(models.Model):
             training_started_at=None)
         return repository_update
 
-    def current_rasa_nlu_data(self, language):
+    def current_rasa_nlu_data(self, language=None):
         return self.current_update(language).rasa_nlu_data
 
-    def last_trained_update(self, language):
+    def last_trained_update(self, language=None):
+        language = language or self.language
         return self.updates.filter(
             language=language,
             by__isnull=False).first()

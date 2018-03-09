@@ -250,3 +250,40 @@ class TranslateTest(TestCase):
     def test_does_not_have_translation(self):
         with self.assertRaises(DoesNotHaveTranslation):
             self.example.get_translation(languages.LANGUAGE_NL)
+
+
+class RepositoryMethodsTest(TestCase):
+    def setUp(self):
+        self.owner = User.objects.create_user('owner@user.com', 'user')
+        self.user = User.objects.create_user('fake@user.com', 'user')
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name='Test',
+            slug='test',
+            is_private=True)
+
+    def test_languages_status(self):
+        languages_status = self.repository.languages_status
+        self.assertListEqual(
+            list(languages_status.keys()),
+            languages.SUPPORTED_LANGUAGES)
+        # TODO: Update test_languages_status test
+        #       Create expeted result
+
+    def test_current_rasa_nlu_data(self):
+        current_rasa_nlu_data = self.repository.current_rasa_nlu_data()
+        self.assertListEqual(
+            list(current_rasa_nlu_data.keys()),
+            ['common_examples'])
+        # TODO: Update test_current_rasa_nlu_data test
+        #       Create expeted result
+
+    def test_last_trained_update(self):
+        self.assertFalse(self.repository.last_trained_update())
+        # TODO: Update last_trained_update test
+
+    def test_get_user_authorization(self):
+        self.assertTrue(
+            self.repository.get_user_authorization(self.owner))
+        self.assertFalse(
+            self.repository.get_user_authorization(self.user))
