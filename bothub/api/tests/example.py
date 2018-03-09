@@ -1,4 +1,5 @@
 import json
+import uuid
 
 from django.test import TestCase
 from django.test import RequestFactory
@@ -74,3 +75,38 @@ class NewRepositoryExampleTestCase(TestCase):
         self.assertEqual(
             response.status_code,
             status.HTTP_403_FORBIDDEN)
+
+    def test_repository_uuid_required(self):
+        response, content_data = self.request(
+            self.owner_token,
+            {
+                'text': 'hi',
+                'intent': 'greet',
+            })
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST)
+
+    def test_repository_does_not_exists(self):
+        response, content_data = self.request(
+            self.owner_token,
+            {
+                'repository_uuid': uuid.uuid4(),
+                'text': 'hi',
+                'intent': 'greet',
+            })
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_404_NOT_FOUND)
+
+    def test_invalid_repository_uuid(self):
+        response, content_data = self.request(
+            self.owner_token,
+            {
+                'repository_uuid': 'invalid',
+                'text': 'hi',
+                'intent': 'greet',
+            })
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST)

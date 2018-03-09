@@ -252,6 +252,7 @@ class APITestCase(TestCase):
         })
         self.assertEqual(response.status_code, 201)
 
+    # moved to tests.examples.NewRepositoryExampleTestCase.test_repository_uu..
     def test_new_repository_example_without_repository_uuid(self):
         response, content_data = self._new_repository_example_request({
             'text': 'hey',
@@ -259,6 +260,7 @@ class APITestCase(TestCase):
         })
         self.assertEqual(response.status_code, 400)
 
+    # moved to tests.examples.NewRepositoryExampleTestCase.test_repository_do..
     def test_new_repository_example_repository_does_not_exists(self):
         response, content_data = self._new_repository_example_request({
             'repository_uuid': uuid.uuid4(),
@@ -267,6 +269,7 @@ class APITestCase(TestCase):
         })
         self.assertEqual(response.status_code, 404)
 
+    # moved to tests.examples.NewRepositoryExampleTestCase.test_invalid_repos..
     def test_new_repository_example_invalid_repository_uuid(self):
         response, content_data = self._new_repository_example_request({
             'repository_uuid': 'invalid',
