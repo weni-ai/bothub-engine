@@ -20,7 +20,6 @@ from ..views import MyRepositoriesViewSet
 from ..views import RepositoryViewSet
 from ..views import NewRepositoryExampleViewSet
 from ..views import RepositoryExampleViewSet
-from ..views import RepositoryAuthorizationView
 from ..views import NewRepositoryExampleEntityViewSet
 from ..views import RepositoryExampleEntityViewSet
 from ..views import NewRepositoryTranslatedExampleViewSet
@@ -170,49 +169,6 @@ class APITestCase(TestCase):
                 request,
                 pk=str(self.repository.uuid))
         self.assertEqual(response.status_code, 200)
-
-    def _repository_authorization_request(self, token=None, **data):
-        token = token or self.user_token.key
-        request = self.factory.post(
-            '/api/authorization/',
-            data,
-            **{
-                'HTTP_AUTHORIZATION': 'Token {}'.format(token),
-            })
-        response = RepositoryAuthorizationView.as_view(
-            {'post': 'create'})(request)
-        response.render()
-        return response
-
-    def test_repository_authorization(self):
-        response = self._repository_authorization_request(
-            repository_uuid=self.repository.uuid)
-        self.assertEqual(response.status_code, 200)
-
-    def test_repository_authorization_private_and_authorized(self):
-        response = self._repository_authorization_request(
-            repository_uuid=self.private_repository.uuid)
-        self.assertEqual(response.status_code, 200)
-
-    def test_repository_authorization_private_and_unauthorized(self):
-        response = self._repository_authorization_request(
-            repository_uuid=self.private_repository.uuid,
-            token=self.other_user_token.key)
-        self.assertEqual(response.status_code, 403)
-
-    def test_repository_authorization_without_repository_uuid(self):
-        response = self._repository_authorization_request()
-        self.assertEqual(response.status_code, 400)
-
-    def test_repository_authorization_repository_does_not_exist(self):
-        response = self._repository_authorization_request(
-            repository_uuid=uuid.uuid4())
-        self.assertEqual(response.status_code, 404)
-
-    def test_repository_authorization_repository_uuid_invalid(self):
-        response = self._repository_authorization_request(
-            repository_uuid='invalid')
-        self.assertEqual(response.status_code, 400)
 
     # moved to tests.repository.UpdateRepositoryTestCase.request
     def _update_repository_request(self, repository_uuid, data):

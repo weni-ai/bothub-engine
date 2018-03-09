@@ -5,7 +5,6 @@ from rest_framework.decorators import detail_route
 from rest_framework.response import Response
 from rest_framework.exceptions import APIException
 from rest_framework.exceptions import NotFound
-from rest_framework.exceptions import PermissionDenied
 from rest_framework.exceptions import ValidationError
 from django.utils.translation import gettext as _
 from django.core.exceptions import ValidationError as DjangoValidationError
@@ -21,7 +20,6 @@ from .serializers import RepositoryTranslatedExampleEntitySeralizer
 from bothub.common.models import Repository
 from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryExampleEntity
-from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryTranslatedExample
 from bothub.common.models import RepositoryTranslatedExampleEntity
 
@@ -141,29 +139,20 @@ class RepositoryViewSet(
 
     @detail_route(
         methods=['GET'],
-        url_name='languages-status')
+        url_name='repository-languages-status')
     def languagesstatus(self, request, **kwargs):
         repository = self.get_object()
         return Response({
             'languages_status': repository.languages_status,
         })
 
-
-class RepositoryAuthorizationView(GenericViewSet):
-    serializer_class = RepositoryAuthorizationSerializer
-    queryset = RepositoryAuthorization.objects
-    permission_classes = [permissions.IsAuthenticated]
-
-    def create(self, request, **kwargs):
-        repository_uuid = request.POST.get('repository_uuid')
-        repository = get_repository_from_uuid(repository_uuid)
+    @detail_route(
+        methods=['GET'],
+        url_name='repository-authorization')
+    def authorization(self, request, **kwargs):
+        repository = self.get_object()
         user_authorization = repository.get_user_authorization(request.user)
-
-        if not user_authorization:
-            raise PermissionDenied(
-                _('User don\'t have authorization for this repository'))
-
-        serializer = self.get_serializer(user_authorization)
+        serializer = RepositoryAuthorizationSerializer(user_authorization)
         return Response(serializer.data)
 
 
