@@ -46,3 +46,35 @@ class NewRepositoryTestCase(TestCase):
         self.assertEqual(
             response.status_code,
             status.HTTP_201_CREATED)
+
+    def test_fields_required(self):
+        def request_and_check(field, data):
+            response, content_data = self.request(data)
+            self.assertEqual(
+                response.status_code,
+                status.HTTP_400_BAD_REQUEST)
+            self.assertIn(field, content_data.keys())
+
+        request_and_check('name', {
+            'slug': 'test',
+            'language': languages.LANGUAGE_EN,
+            'categories': [self.category.id],
+        })
+
+        request_and_check('slug', {
+            'name': 'Testing',
+            'language': languages.LANGUAGE_EN,
+            'categories': [self.category.id],
+        })
+
+        request_and_check('language', {
+            'name': 'Testing',
+            'slug': 'test',
+            'categories': [self.category.id],
+        })
+
+        request_and_check('categories', {
+            'name': 'Testing',
+            'slug': 'test',
+            'language': languages.LANGUAGE_EN,
+        })
