@@ -256,10 +256,15 @@ class RepositoryMethodsTest(TestCase):
     def setUp(self):
         self.owner = User.objects.create_user('owner@user.com', 'user')
         self.user = User.objects.create_user('fake@user.com', 'user')
+
         self.repository = Repository.objects.create(
             owner=self.owner,
             name='Test',
-            slug='test',
+            slug='test')
+        self.private_repository = Repository.objects.create(
+            owner=self.owner,
+            name='Test',
+            slug='private',
             is_private=True)
 
     def test_languages_status(self):
@@ -285,5 +290,9 @@ class RepositoryMethodsTest(TestCase):
     def test_get_user_authorization(self):
         self.assertTrue(
             self.repository.get_user_authorization(self.owner))
-        self.assertFalse(
+        self.assertTrue(
             self.repository.get_user_authorization(self.user))
+        self.assertTrue(
+            self.private_repository.get_user_authorization(self.owner))
+        self.assertFalse(
+            self.private_repository.get_user_authorization(self.user))
