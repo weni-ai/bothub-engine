@@ -78,3 +78,15 @@ class NewRepositoryTestCase(TestCase):
             'slug': 'test',
             'language': languages.LANGUAGE_EN,
         })
+
+    def test_invalid_slug(self):
+        response, content_data = self.request({
+            'name': 'Testing',
+            'slug': 'invalid slug',
+            'language': languages.LANGUAGE_EN,
+            'categories': [self.category.id],
+        })
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST)
+        self.assertIn('slug', content_data.keys())
