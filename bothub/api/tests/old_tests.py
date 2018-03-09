@@ -310,6 +310,7 @@ class APITestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertNotEqual(content_data.get('uuid'), new_uuid)
 
+    # moved to tests.repository.DestroyRepositoryTestCase
     def test_repository_destroy(self):
         request = self.factory.delete(
             '/api/repository/{}/'.format(self.repository.uuid),

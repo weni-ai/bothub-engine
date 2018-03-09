@@ -306,3 +306,49 @@ class UpdateRepositoryTestCase(TestCase):
                 self.assertNotEqual(
                     content_data.get(field),
                     value)
+
+
+class DestroyRepositoryTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.owner, self.owner_token = create_user_and_token('owner')
+        self.user, self.user_token = create_user_and_token()
+
+        self.category = RepositoryCategory.objects.create(
+            name='ID')
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name='Testing',
+            slug='test',
+            language=languages.LANGUAGE_EN)
+        self.repository.categories.add(self.category)
+
+    def request(self, repository, token):
+        authorization_header = {
+            'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
+        }
+        request = self.factory.delete(
+            '/api/repository/{}/'.format(repository.uuid),
+            **authorization_header)
+        response = RepositoryViewSet.as_view(
+            {'delete': 'destroy'})(request, pk=repository.uuid)
+        response.render()
+        return response
+
+    def test_allowed(self):
+        response = self.request(
+            self.repository,
+            self.owner_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_204_NO_CONTENT)
+
+    def test_forbidden(self):
+        response = self.request(
+            self.repository,
+            self.user_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_403_FORBIDDEN)
