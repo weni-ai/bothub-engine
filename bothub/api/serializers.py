@@ -59,6 +59,7 @@ class RepositorySerializer(serializers.ModelSerializer):
             'slug',
             'language',
             'categories',
+            'categories_list',
             'description',
             'is_private',
             'created_at',
@@ -67,9 +68,10 @@ class RepositorySerializer(serializers.ModelSerializer):
     owner = serializers.PrimaryKeyRelatedField(
         read_only=True,
         default=serializers.CurrentUserDefault())
-    categories = RepositoryCategorySerializer(
-        many=True,
-        read_only=True)
+    categories_list = serializers.SerializerMethodField()
+
+    def get_categories_list(self, obj):
+        return RepositoryCategorySerializer(obj.categories, many=True).data
 
 
 class CurrentRepositoryUpdateSerializer(serializers.ModelSerializer):
