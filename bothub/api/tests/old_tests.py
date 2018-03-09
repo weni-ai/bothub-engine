@@ -156,57 +156,6 @@ class APITestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(content_data.get('uuid'), str(self.repository.uuid))
 
-    def _repository_currentupdate_request(self, data):
-        request = self.factory.get(
-            '/api/repository/{}/currentupdate/'.format(self.repository.uuid),
-            data,
-            **{
-                'HTTP_AUTHORIZATION': 'Token {}'.format(self.user_token.key),
-            })
-        response = RepositoryViewSet.as_view(
-            {'get': 'currentupdate'})(request, pk=str(self.repository.uuid))
-        response.render()
-        content_data = json.loads(response.content)
-        return (response, content_data,)
-
-    def test_repository_currentupdate(self):
-        response, content_data = self._repository_currentupdate_request({
-            'language': languages.LANGUAGE_EN,
-        })
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(
-            content_data.get('repository'),
-            str(self.repository.uuid))
-
-    def test_repository_currentupdate_without_language(self):
-        response, content_data = self._repository_currentupdate_request({})
-        self.assertEqual(response.status_code, 400)
-
-    def _repository_currentrasanludata_request(self, data):
-        request = self.factory.get(
-            '/api/repository/{}/currentrasanludata/'.format(
-                self.repository.uuid),
-            data,
-            **{
-                'HTTP_AUTHORIZATION': 'Token {}'.format(self.user_token.key),
-            })
-        response = RepositoryViewSet.as_view(
-            {'get': 'currentrasanludata'})(
-                request,
-                pk=str(self.repository.uuid))
-        response.render()
-        return response
-
-    def test_repository_currentrasanludata(self):
-        response = self._repository_currentrasanludata_request({
-            'language': languages.LANGUAGE_EN,
-        })
-        self.assertEqual(response.status_code, 200)
-
-    def test_repository_currentrasanludata_without_language(self):
-        response = self._repository_currentrasanludata_request({})
-        self.assertEqual(response.status_code, 400)
-
     def test_repository_languages_status(self):
         request = self.factory.get(
             '/api/repository/{}/languagesstatus/'.format(

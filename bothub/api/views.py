@@ -13,7 +13,6 @@ from django.db.models import Count
 from django_filters import rest_framework as filters
 
 from .serializers import RepositorySerializer
-from .serializers import CurrentRepositoryUpdateSerializer
 from .serializers import RepositoryExampleSerializer
 from .serializers import RepositoryExampleEntitySerializer
 from .serializers import RepositoryAuthorizationSerializer
@@ -139,33 +138,6 @@ class RepositoryViewSet(
         permissions.IsAuthenticated,
         IsPublicOrIsOwner,
     ]
-
-    @detail_route(
-        methods=['GET'],
-        url_name='repository-current-update')
-    def currentupdate(self, request, **kwargs):
-        instance = self.get_object()
-        language = request.query_params.get('language')
-
-        if not language:
-            raise ValidationError(_('language is required'))
-
-        serializer = CurrentRepositoryUpdateSerializer(
-            instance.current_update(language))
-
-        return Response(dict(serializer.data))
-
-    @detail_route(
-        methods=['GET'],
-        url_name='repository-current-rasa-nlu-data')
-    def currentrasanludata(self, request, **kwargs):
-        repository = self.get_object()
-
-        language = request.query_params.get('language')
-        if not language:
-            raise ValidationError(_('language is required'))
-
-        return Response(repository.current_rasa_nlu_data(language))
 
     @detail_route(
         methods=['GET'],

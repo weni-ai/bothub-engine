@@ -6,7 +6,6 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 
 from bothub.common.models import RepositoryCategory
 from bothub.common.models import Repository
-from bothub.common.models import RepositoryUpdate
 from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryExampleEntity
 from bothub.common.models import RepositoryTranslatedExample
@@ -72,17 +71,6 @@ class RepositorySerializer(serializers.ModelSerializer):
 
     def get_categories_list(self, obj):
         return RepositoryCategorySerializer(obj.categories, many=True).data
-
-
-class CurrentRepositoryUpdateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = RepositoryUpdate
-        fields = [
-            'id',
-            'repository',
-            'language',
-            'created_at',
-        ]
 
 
 class RepositoryExampleEntitySerializer(serializers.ModelSerializer):
