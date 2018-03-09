@@ -7,6 +7,9 @@ omit =
     ./bothub/api/apps.py
     ./bothub/authentication/apps.py
     ./bothub/common/apps.py
+    ./bothub/api/tests/*
+    ./bothub/authentication/tests.py
+    ./bothub/common/tests.py
 
 [report]
 fail_under = 90
