@@ -134,15 +134,11 @@ class RetrieveRepositoryTestCase(TestCase):
         self.owner, self.owner_token = create_user_and_token('owner')
         self.user, self.user_token = create_user_and_token()
 
-        self.category = RepositoryCategory.objects.create(
-            name='ID')
-
         self.repository = Repository.objects.create(
             owner=self.owner,
             name='Testing',
             slug='test',
             language=languages.LANGUAGE_EN)
-        self.repository.categories.add(self.category)
 
         self.private_repository = Repository.objects.create(
             owner=self.owner,
@@ -150,7 +146,6 @@ class RetrieveRepositoryTestCase(TestCase):
             slug='private',
             language=languages.LANGUAGE_EN,
             is_private=True)
-        self.private_repository.categories.add(self.category)
 
     def request(self, repository, token):
         authorization_header = {
