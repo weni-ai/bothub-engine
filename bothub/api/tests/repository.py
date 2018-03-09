@@ -12,6 +12,7 @@ from bothub.common.models import Repository
 
 from ..views import NewRepositoryViewSet
 from ..views import RepositoryViewSet
+from ..views import MyRepositoriesViewSet
 
 from .utils import create_user_and_token
 
@@ -352,3 +353,50 @@ class DestroyRepositoryTestCase(TestCase):
         self.assertEqual(
             response.status_code,
             status.HTTP_403_FORBIDDEN)
+
+
+class MyRepositoriesTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.owner, self.owner_token = create_user_and_token('owner')
+        self.user, self.user_token = create_user_and_token()
+
+        self.category = RepositoryCategory.objects.create(
+            name='ID')
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name='Testing',
+            slug='test',
+            language=languages.LANGUAGE_EN)
+        self.repository.categories.add(self.category)
+
+    def request(self, token):
+        authorization_header = {
+            'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
+        }
+        request = self.factory.get(
+            '/api/my-repositories/',
+            **authorization_header)
+        response = MyRepositoriesViewSet.as_view({'get': 'list'})(request)
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data,)
+
+    def test_okay(self):
+        response, content_data = self.request(self.owner_token)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            content_data.get('count'),
+            1)
+        self.assertEqual(
+            uuid.UUID(content_data.get('results')[0].get('uuid')),
+            self.repository.uuid)
+
+    def test_empty_okay(self):
+        response, content_data = self.request(self.user_token)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            content_data.get('count'),
+            0)

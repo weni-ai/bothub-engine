@@ -127,6 +127,7 @@ class APITestCase(TestCase):
             [self.category.id])
         self.assertEqual(response_2.status_code, 400)
 
+    # moved to tests.repository.MyRepositoriesTestCase
     def test_my_repositories(self):
         request = self.factory.get(
             '/api/my-repositories/',
