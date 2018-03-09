@@ -111,6 +111,7 @@ class APITestCase(TestCase):
         self.assertEqual(response.status_code, 201)
         self.assertEqual(content_data.get('slug'), test_slug)
 
+    # moved to tests.repository.NewRepositoryTestCase.test_unique_slug
     def test_new_repository_unique_slug(self):
         test_slug = 'test_{}'.format(random.randint(100, 9999))
         (response_1, content_data_1) = self._new_repository_request(

@@ -105,6 +105,24 @@ class NewRepositoryTestCase(TestCase):
             status.HTTP_400_BAD_REQUEST)
         self.assertIn('language', content_data.keys())
 
+    def test_unique_slug(self):
+        same_slug = 'test'
+        Repository.objects.create(
+            owner=self.user,
+            name='Testing',
+            slug=same_slug,
+            language=languages.LANGUAGE_EN)
+        response, content_data = self.request({
+            'name': 'Testing',
+            'slug': same_slug,
+            'language': languages.LANGUAGE_EN,
+            'categories': [self.category.id],
+        })
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST)
+        self.assertIn('slug', content_data.keys())
+
 
 class RetrieveRepositoryTestCase(TestCase):
     def setUp(self):
