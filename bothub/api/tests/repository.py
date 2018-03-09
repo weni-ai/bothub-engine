@@ -216,14 +216,6 @@ class UpdateRepositoryTestCase(TestCase):
             language=languages.LANGUAGE_EN)
         self.repository.categories.add(self.category)
 
-        self.private_repository = Repository.objects.create(
-            owner=self.owner,
-            name='Testing Private',
-            slug='private',
-            language=languages.LANGUAGE_EN,
-            is_private=True)
-        self.private_repository.categories.add(self.category)
-
     def request(self, repository, token, data, partial=True):
         authorization_header = {
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
