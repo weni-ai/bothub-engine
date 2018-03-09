@@ -140,6 +140,7 @@ class APITestCase(TestCase):
             content_data.get('results')[0].get('uuid'),
             str(self.repository.uuid))
 
+    # moved to tests.repository.RetrieveRepositoryTestCase
     def test_repository_retrieve(self):
         request = self.factory.get(
             '/api/repository/{}/'.format(self.repository.uuid),

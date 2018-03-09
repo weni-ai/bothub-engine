@@ -44,8 +44,10 @@ def get_repository_from_uuid(repository_uuid):
 
 # Permisions
 
-class IsOwner(permissions.BasePermission):
+class IsPublicOrIsOwner(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
+        if not obj.is_private and request.method in permissions.SAFE_METHODS:
+            return True
         return obj.owner == request.user
 
 
@@ -135,7 +137,7 @@ class RepositoryViewSet(
     serializer_class = RepositorySerializer
     permission_classes = [
         permissions.IsAuthenticated,
-        IsOwner,
+        IsPublicOrIsOwner,
     ]
 
     @detail_route(
@@ -198,10 +200,7 @@ class NewRepositoryExampleViewSet(
         GenericViewSet):
     queryset = RepositoryExample.objects
     serializer_class = RepositoryExampleSerializer
-    permission_classes = [
-        permissions.IsAuthenticated,
-        IsRepositoryUpdateOwner,
-    ]
+    permission_classes = [permissions.IsAuthenticated]
 
 
 class RepositoryExampleViewSet(
@@ -226,10 +225,7 @@ class NewRepositoryExampleEntityViewSet(
         GenericViewSet):
     queryset = RepositoryExampleEntity.objects
     serializer_class = RepositoryExampleEntitySerializer
-    permission_classes = [
-        permissions.IsAuthenticated,
-        IsRepositoryExampleOwner,
-    ]
+    permission_classes = [permissions.IsAuthenticated]
 
 
 class RepositoryExampleEntityViewSet(
@@ -249,10 +245,7 @@ class NewRepositoryTranslatedExampleViewSet(
         GenericViewSet):
     queryset = RepositoryTranslatedExample.objects
     serializer_class = RepositoryTranslatedExampleSerializer
-    permission_classes = [
-        permissions.IsAuthenticated,
-        IsOriginalRepositoryExampleOwner,
-    ]
+    permission_classes = [permissions.IsAuthenticated]
 
 
 class RepositoryTranslatedExampleViewSet(
@@ -273,10 +266,7 @@ class NewRepositoryTranslatedExampleEntityViewSet(
         GenericViewSet):
     queryset = RepositoryTranslatedExampleEntity.objects
     serializer_class = RepositoryTranslatedExampleEntitySeralizer
-    permission_classes = [
-        permissions.IsAuthenticated,
-        IsTranslatedExampleOriginalRepositoryExampleOwner,
-    ]
+    permission_classes = [permissions.IsAuthenticated]
 
 
 class RepositoryTranslatedExampleEntityViewSet(
