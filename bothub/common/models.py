@@ -119,9 +119,6 @@ class Repository(models.Model):
             by__isnull=False).first()
 
     def get_user_authorization(self, user):
-        if self.is_private and self.owner.pk is not user.pk:
-            return False
-
         get, created = RepositoryAuthorization.objects.get_or_create(
             user=user,
             repository=self)
@@ -368,6 +365,10 @@ class RepositoryAuthorization(models.Model):
         verbose_name_plural = _('repository authorizations')
         unique_together = ['user', 'repository']
 
+    LEVEL_NOTHING = 0
+    LEVEL_READER = 1
+    LEVEL_ADMIN = 2
+
     uuid = models.UUIDField(
         _('UUID'),
         primary_key=True,
@@ -382,3 +383,34 @@ class RepositoryAuthorization(models.Model):
     created_at = models.DateTimeField(
         _('created at'),
         auto_now_add=True)
+
+    @property
+    def level(self):
+        if self.repository.owner == self.user:
+            return RepositoryAuthorization.LEVEL_ADMIN
+        if self.repository.is_private:
+            return RepositoryAuthorization.LEVEL_NOTHING
+        return RepositoryAuthorization.LEVEL_READER
+
+    @property
+    def can_read(self):
+        return self.level in [
+            RepositoryAuthorization.LEVEL_READER,
+            RepositoryAuthorization.LEVEL_ADMIN,
+        ]
+
+    @property
+    def can_contribute(self):
+        return self.level in [
+            RepositoryAuthorization.LEVEL_ADMIN,
+        ]
+
+    @property
+    def can_write(self):
+        return self.level in [
+            RepositoryAuthorization.LEVEL_ADMIN,
+        ]
+
+    @property
+    def is_admin(self):
+        return self.level == RepositoryAuthorization.LEVEL_ADMIN

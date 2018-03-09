@@ -7,6 +7,7 @@ from .models import RepositoryExample
 from .models import RepositoryExampleEntity
 from .models import RepositoryTranslatedExample
 from .models import RepositoryTranslatedExampleEntity
+from .models import RepositoryAuthorization
 from .models import DoesNotHaveTranslation
 from . import languages
 
@@ -287,16 +288,6 @@ class RepositoryTestCase(TestCase):
         self.assertFalse(self.repository.last_trained_update())
         # TODO: Update last_trained_update test
 
-    def test_get_user_authorization(self):
-        self.assertTrue(
-            self.repository.get_user_authorization(self.owner))
-        self.assertTrue(
-            self.repository.get_user_authorization(self.user))
-        self.assertTrue(
-            self.private_repository.get_user_authorization(self.owner))
-        self.assertFalse(
-            self.private_repository.get_user_authorization(self.user))
-
 
 class RepositoryExampleTestCase(TestCase):
     def setUp(self):
@@ -328,3 +319,110 @@ class RepositoryExampleTestCase(TestCase):
         self.assertEqual(
             self.example.deleted_in,
             self.repository.current_update())
+
+
+class RepositoryAuthorizationTestCase(TestCase):
+    def setUp(self):
+        self.owner = User.objects.create_user('owner@user.com', 'user')
+        self.user = User.objects.create_user('fake@user.com', 'user')
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name='Test',
+            slug='test')
+        self.private_repository = Repository.objects.create(
+            owner=self.owner,
+            name='Test',
+            slug='private',
+            is_private=True)
+
+    def test_admin_level(self):
+        authorization = self.repository.get_user_authorization(self.owner)
+        self.assertEqual(
+            authorization.level,
+            RepositoryAuthorization.LEVEL_ADMIN)
+
+    def test_read_level(self):
+        authorization = self.repository.get_user_authorization(self.user)
+        self.assertEqual(
+            authorization.level,
+            RepositoryAuthorization.LEVEL_READER)
+
+    def test_nothing_level(self):
+        authorization = self.private_repository.get_user_authorization(
+            self.user)
+        self.assertEqual(
+            authorization.level,
+            RepositoryAuthorization.LEVEL_NOTHING)
+
+    def test_can_read(self):
+        # repository owner
+        authorization_owner = self.repository.get_user_authorization(
+            self.owner)
+        self.assertTrue(authorization_owner.can_read)
+        # secondary user in public repository
+        authorization_user = self.repository.get_user_authorization(
+            self.user)
+        self.assertTrue(authorization_user.can_read)
+        # private repository owner
+        private_authorization_owner = self.private_repository \
+            .get_user_authorization(self.owner)
+        self.assertTrue(private_authorization_owner.can_read)
+        # secondary user in private repository
+        private_authorization_user = self.private_repository \
+            .get_user_authorization(self.user)
+        self.assertFalse(private_authorization_user.can_read)
+
+    def test_can_contribute(self):
+        # repository owner
+        authorization_owner = self.repository.get_user_authorization(
+            self.owner)
+        self.assertTrue(authorization_owner.can_contribute)
+        # secondary user in public repository
+        authorization_user = self.repository.get_user_authorization(
+            self.user)
+        self.assertFalse(authorization_user.can_contribute)
+        # private repository owner
+        private_authorization_owner = self.private_repository \
+            .get_user_authorization(self.owner)
+        self.assertTrue(private_authorization_owner.can_contribute)
+        # secondary user in private repository
+        private_authorization_user = self.private_repository \
+            .get_user_authorization(self.user)
+        self.assertFalse(private_authorization_user.can_contribute)
+
+    def test_can_write(self):
+        # repository owner
+        authorization_owner = self.repository.get_user_authorization(
+            self.owner)
+        self.assertTrue(authorization_owner.can_write)
+        # secondary user in public repository
+        authorization_user = self.repository.get_user_authorization(
+            self.user)
+        self.assertFalse(authorization_user.can_write)
+        # private repository owner
+        private_authorization_owner = self.private_repository \
+            .get_user_authorization(self.owner)
+        self.assertTrue(private_authorization_owner.can_write)
+        # secondary user in private repository
+        private_authorization_user = self.private_repository \
+            .get_user_authorization(self.user)
+        self.assertFalse(private_authorization_user.can_write)
+
+    def test_is_admin(self):
+        # repository owner
+        authorization_owner = self.repository.get_user_authorization(
+            self.owner)
+        self.assertTrue(authorization_owner.is_admin)
+        # secondary user in public repository
+        authorization_user = self.repository.get_user_authorization(
+            self.user)
+        self.assertFalse(authorization_user.is_admin)
+        # private repository owner
+        private_authorization_owner = self.private_repository \
+            .get_user_authorization(self.owner)
+        self.assertTrue(private_authorization_owner.is_admin)
+        # secondary user in private repository
+        private_authorization_user = self.private_repository \
+            .get_user_authorization(self.user)
+        self.assertFalse(private_authorization_user.is_admin)
