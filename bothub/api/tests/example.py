@@ -7,8 +7,10 @@ from rest_framework import status
 
 from bothub.common import languages
 from bothub.common.models import Repository
+from bothub.common.models import RepositoryExample
 
 from ..views import NewRepositoryExampleViewSet
+from ..views import RepositoryExampleViewSet
 
 from .utils import create_user_and_token
 
@@ -110,3 +112,43 @@ class NewRepositoryExampleTestCase(TestCase):
         self.assertEqual(
             response.status_code,
             status.HTTP_400_BAD_REQUEST)
+
+
+class RepositoryExampleRetrieveTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.owner, self.owner_token = create_user_and_token('owner')
+        self.user, self.user_token = create_user_and_token()
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name='Testing',
+            slug='test',
+            language=languages.LANGUAGE_EN)
+        self.example = RepositoryExample.objects.create(
+            repository_update=self.repository.current_update())
+
+    def request(self, example, token):
+        authorization_header = {
+            'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
+        }
+        request = self.factory.get(
+            '/api/example/{}/'.format(example.id),
+            **authorization_header)
+        response = RepositoryExampleViewSet.as_view(
+            {'get': 'retrieve'})(request, pk=self.example.id)
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data,)
+
+    def test_okay(self):
+        response, content_data = self.request(
+            self.example,
+            self.owner_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK)
+        self.assertEqual(
+            content_data.get('id'),
+            self.example.id)

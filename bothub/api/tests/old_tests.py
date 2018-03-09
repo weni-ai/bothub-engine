@@ -278,6 +278,7 @@ class APITestCase(TestCase):
         })
         self.assertEqual(response.status_code, 400)
 
+    # moded to test.examples.RepositoryExampleRetrieveTestCase
     def test_repository_example_retrieve(self):
         request = self.factory.get(
             '/api/example/{}/'.format(self.example.id),
