@@ -127,7 +127,18 @@ class RepositoryExampleRetrieveTestCase(TestCase):
             slug='test',
             language=languages.LANGUAGE_EN)
         self.example = RepositoryExample.objects.create(
-            repository_update=self.repository.current_update())
+            repository_update=self.repository.current_update(),
+            text='hi')
+
+        self.private_repository = Repository.objects.create(
+            owner=self.owner,
+            name='Testing Private',
+            slug='private',
+            language=languages.LANGUAGE_EN,
+            is_private=True)
+        self.private_example = RepositoryExample.objects.create(
+            repository_update=self.private_repository.current_update(),
+            text='hi')
 
     def request(self, example, token):
         authorization_header = {
@@ -137,7 +148,7 @@ class RepositoryExampleRetrieveTestCase(TestCase):
             '/api/example/{}/'.format(example.id),
             **authorization_header)
         response = RepositoryExampleViewSet.as_view(
-            {'get': 'retrieve'})(request, pk=self.example.id)
+            {'get': 'retrieve'})(request, pk=example.id)
         response.render()
         content_data = json.loads(response.content)
         return (response, content_data,)
@@ -152,3 +163,11 @@ class RepositoryExampleRetrieveTestCase(TestCase):
         self.assertEqual(
             content_data.get('id'),
             self.example.id)
+
+    def test_forbidden(self):
+        response, content_data = self.request(
+            self.private_example,
+            self.user_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_403_FORBIDDEN)

@@ -56,6 +56,15 @@ class RepositoryPermission(permissions.BasePermission):
         return authorization.is_admin
 
 
+class RepositoryExamplePermission(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        authorization = obj.repository_update.repository \
+            .get_user_authorization(request.user)
+        if request.method in READ_METHODS:
+            return authorization.can_read
+        return authorization.is_admin
+
+
 # Filters
 
 class ExamplesFilter(filters.FilterSet):
@@ -153,7 +162,10 @@ class RepositoryExampleViewSet(
         GenericViewSet):
     queryset = RepositoryExample.objects
     serializer_class = RepositoryExampleSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [
+        permissions.IsAuthenticated,
+        RepositoryExamplePermission,
+    ]
 
     def perform_destroy(self, obj):
         if obj.deleted_in:
