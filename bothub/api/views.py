@@ -5,10 +5,9 @@ from rest_framework.decorators import detail_route
 from rest_framework.response import Response
 from rest_framework.exceptions import APIException
 from rest_framework.exceptions import NotFound
-from rest_framework.exceptions import ValidationError
 from django.utils.translation import gettext as _
-from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db.models import Count
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django_filters import rest_framework as filters
 
 from .serializers import RepositorySerializer
@@ -22,21 +21,6 @@ from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryExampleEntity
 from bothub.common.models import RepositoryTranslatedExample
 from bothub.common.models import RepositoryTranslatedExampleEntity
-
-
-# Utils
-
-def get_repository_from_uuid(repository_uuid):
-    if not repository_uuid:
-        raise ValidationError(_('repository_uuid is required'), code=400)
-
-    try:
-        return Repository.objects.get(uuid=repository_uuid)
-    except Repository.DoesNotExist:
-        raise NotFound(
-            _('Repository {} does not exist').format(repository_uuid))
-    except DjangoValidationError:
-        raise ValidationError(_('Invalid repository_uuid'))
 
 
 # Permisions
@@ -103,12 +87,28 @@ class ExamplesFilter(filters.FilterSet):
             'language',
         ]
 
+    repository_uuid = filters.CharFilter(
+        name='repository_uuid',
+        method='filter_repository_uuid',
+        required=True)
     language = filters.CharFilter(
         name='language',
         method='filter_language')
     has_translation = filters.BooleanFilter(
         name='has_translation',
         method='filter_has_translation')
+
+    def filter_repository_uuid(self, queryset, name, value):
+        try:
+            repository = Repository.objects.get(uuid=value)
+            return queryset.filter(
+                repository_update__repository=repository)
+        except Repository.DoesNotExist:
+            raise NotFound(
+                _('Repository {} does not exist').format(value))
+        except DjangoValidationError:
+            raise NotFound(_('Invalid repository_uuid'))
+        return queryset
 
     def filter_language(self, queryset, name, value):
         return queryset.filter(repository_update__language=value)
@@ -271,8 +271,3 @@ class RepositoryExamplesViewSet(
     permission_classes = [
         permissions.IsAuthenticated,
     ]
-
-    def get_queryset(self):
-        repository_uuid = self.request.query_params.get('repository_uuid')
-        repository = get_repository_from_uuid(repository_uuid)
-        return self.queryset.filter(repository_update__repository=repository)
