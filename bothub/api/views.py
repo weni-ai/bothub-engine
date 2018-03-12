@@ -108,7 +108,6 @@ class ExamplesFilter(filters.FilterSet):
                 _('Repository {} does not exist').format(value))
         except DjangoValidationError:
             raise NotFound(_('Invalid repository_uuid'))
-        return queryset
 
     def filter_language(self, queryset, name, value):
         return queryset.filter(repository_update__language=value)
