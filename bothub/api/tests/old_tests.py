@@ -345,6 +345,7 @@ class APITestCase(TestCase):
         self.assertEqual(response.status_code, 201)
         self.assertEqual(content_data.get('value'), 'Douglas')
 
+    # moved to test.entity.RepositoryExampleEntityRetrieveTestCase.request
     def test_repository_examples_entity(self):
         request = self.factory.get(
             '/api/entity/{}/'.format(self.entity.id),
