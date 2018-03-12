@@ -278,7 +278,7 @@ class APITestCase(TestCase):
         })
         self.assertEqual(response.status_code, 400)
 
-    # moved to test.examples.RepositoryExampleRetrieveTestCase
+    # moved to tests.examples.RepositoryExampleRetrieveTestCase
     def test_repository_example_retrieve(self):
         request = self.factory.get(
             '/api/example/{}/'.format(self.example.id),
@@ -290,7 +290,7 @@ class APITestCase(TestCase):
         response.render()
         self.assertEqual(response.status_code, 200)
 
-    # moved to test.examples.RepositoryExampleDestroyTestCase
+    # moved to tests.examples.RepositoryExampleDestroyTestCase
     def test_repository_example_destroy(self):
         request = self.factory.delete(
             '/api/example/{}/'.format(self.example.id),
@@ -307,7 +307,7 @@ class APITestCase(TestCase):
             self.repository.current_update(
                 self.example.repository_update.language))
 
-    # moved to test.examples.RepositoryExampleDestroyTestCase.test_already_de..
+    # moved to tests.examples.RepositoryExampleDestroyTestCase.test_already_de..
     def test_repository_example_already_deleted(self):
         self.example.delete()
         request = self.factory.delete(
@@ -320,7 +320,7 @@ class APITestCase(TestCase):
         response.render()
         self.assertEqual(response.status_code, 500)
 
-    # moved to test.entity.NewRepositoryExampleTestCase.request
+    # moved to tests.entity.NewRepositoryExampleTestCase.request
     def _new_repository_example_entity_request(self, data):
         request = self.factory.post(
             '/api/entity/new/',
@@ -334,7 +334,7 @@ class APITestCase(TestCase):
         content_data = json.loads(response.content)
         return (response, content_data,)
 
-    # moved to test.entity.NewRepositoryExampleTestCase.test_okay
+    # moved to tests.entity.NewRepositoryExampleTestCase.test_okay
     def test_new_repository_example_entity(self):
         response, content_data = self._new_repository_example_entity_request({
             'repository_example': self.example.id,
@@ -345,7 +345,7 @@ class APITestCase(TestCase):
         self.assertEqual(response.status_code, 201)
         self.assertEqual(content_data.get('value'), 'Douglas')
 
-    # moved to test.entity.RepositoryExampleEntityRetrieveTestCase.request
+    # moved to tests.entity.RepositoryExampleEntityRetrieveTestCase.request
     def test_repository_examples_entity(self):
         request = self.factory.get(
             '/api/entity/{}/'.format(self.entity.id),
@@ -356,7 +356,7 @@ class APITestCase(TestCase):
             {'get': 'retrieve'})(request, pk=self.example.id)
         self.assertEqual(response.status_code, 200)
 
-    # moved to test.translate.TranslateExampleTestCase
+    # moved to tests.translate.TranslateExampleTestCase
     def test_translate_example(self):
         example = RepositoryExample.objects.create(
             repository_update=self.repository.current_update(
@@ -377,6 +377,7 @@ class APITestCase(TestCase):
             {'post': 'create'})(request)
         self.assertEqual(response.status_code, 201)
 
+    # moved to tests.translate.RepositoryTranslatedExampleRetrieveTestCase
     def test_translated_example(self):
         request = self.factory.get(
             '/api/translated/{}/'.format(self.translated.id),
