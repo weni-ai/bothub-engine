@@ -171,3 +171,52 @@ class RepositoryTranslatedExampleRetrieveTestCase(TestCase):
         self.assertEqual(
             response.status_code,
             status.HTTP_403_FORBIDDEN)
+
+
+class RepositoryTranslatedExampleDestroyTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.owner, self.owner_token = create_user_and_token('owner')
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name='Testing',
+            slug='test',
+            language=languages.LANGUAGE_EN)
+        self.example = RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(),
+            text='hi')
+        self.translated = RepositoryTranslatedExample.objects.create(
+            original_example=self.example,
+            language=languages.LANGUAGE_PT,
+            text='oi')
+
+    def request(self, translated, token):
+        authorization_header = {
+            'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
+        }
+        request = self.factory.delete(
+            '/api/translated/{}/'.format(translated.id),
+            **authorization_header)
+        response = RepositoryTranslatedExampleViewSet.as_view(
+            {'delete': 'destroy'})(request, pk=translated.id)
+        return response
+
+    def test_okay(self):
+        response = self.request(
+            self.translated,
+            self.owner_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_204_NO_CONTENT)
+
+    def test_forbidden(self):
+        user, user_token = create_user_and_token()
+
+        response = self.request(
+            self.translated,
+            user_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_403_FORBIDDEN)

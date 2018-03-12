@@ -307,7 +307,7 @@ class APITestCase(TestCase):
             self.repository.current_update(
                 self.example.repository_update.language))
 
-    # moved to tests.examples.RepositoryExampleDestroyTestCase.test_already_de..
+    # moved to tests.examples.RepositoryExampleDestroyTestCase.test_already_d..
     def test_repository_example_already_deleted(self):
         self.example.delete()
         request = self.factory.delete(
