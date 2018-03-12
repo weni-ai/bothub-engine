@@ -171,3 +171,14 @@ class RepositoryExampleRetrieveTestCase(TestCase):
         self.assertEqual(
             response.status_code,
             status.HTTP_403_FORBIDDEN)
+
+    def test_public(self):
+        response, content_data = self.request(
+            self.example,
+            self.user_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK)
+        self.assertEqual(
+            content_data.get('id'),
+            self.example.id)
