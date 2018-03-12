@@ -429,6 +429,7 @@ class APITestCase(TestCase):
             {'get': 'retrieve'})(request, pk=translated_entity.id)
         self.assertEqual(response.status_code, 200)
 
+    # moved to tests.examples.ExamplesTestCase.request
     def _examples_request(self, data):
         request = self.factory.get(
             '/api/examples/',
@@ -442,28 +443,33 @@ class APITestCase(TestCase):
         content_data = json.loads(response.content)
         return (response, content_data,)
 
+    # moved to tests.examples.ExamplesTestCase.test_okay
     def test_examples(self):
         response, content_data = self._examples_request({
             'repository_uuid': self.repository.uuid,
         })
         self.assertEqual(response.status_code, 200)
 
+    # moved to tests.examples.ExamplesTestCase.test_repository_uuid_required
     def test_examples_without_repository_uuid(self):
         response, content_data = self._examples_request({})
         self.assertEqual(response.status_code, 400)
 
+    # moved to tests.examples.ExamplesTestCase.test_repository_does_not_exist
     def test_examples_with_repository_does_not_exist(self):
         response, content_data = self._examples_request({
             'repository_uuid': uuid.uuid4(),
         })
         self.assertEqual(response.status_code, 404)
 
+    # moved to tests.examples.ExamplesTestCase.test_invalid_repository_uuid
     def test_examples_with_invalid_uuid(self):
         response, content_data = self._examples_request({
             'repository_uuid': 'invalid',
         })
         self.assertEqual(response.status_code, 400)
 
+    # moved to tests.examples.ExamplesTestCase.test_language_filter
     def test_examples_language_filter(self):
         response_1, content_data_1 = self._examples_request({
             'repository_uuid': self.repository.uuid,
@@ -479,6 +485,7 @@ class APITestCase(TestCase):
         self.assertEqual(response_2.status_code, 200)
         self.assertEqual(content_data_2.get('count'), 0)
 
+    # moved to tests.examples.ExamplesTestCase.test_has_translation_filter
     def test_examples_has_translation_filter(self):
         response_1, content_data_1 = self._examples_request({
             'repository_uuid': self.repository.uuid,
