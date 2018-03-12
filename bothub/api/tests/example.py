@@ -182,3 +182,73 @@ class RepositoryExampleRetrieveTestCase(TestCase):
         self.assertEqual(
             content_data.get('id'),
             self.example.id)
+
+
+class RepositoryExampleDestroyTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.owner, self.owner_token = create_user_and_token('owner')
+        self.user, self.user_token = create_user_and_token()
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name='Testing',
+            slug='test',
+            language=languages.LANGUAGE_EN)
+        self.example = RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(),
+            text='hi')
+
+        self.private_repository = Repository.objects.create(
+            owner=self.owner,
+            name='Testing Private',
+            slug='private',
+            language=languages.LANGUAGE_EN,
+            is_private=True)
+        self.private_example = RepositoryExample.objects.create(
+            repository_update=self.private_repository.current_update(),
+            text='hi')
+
+    def request(self, example, token):
+        authorization_header = {
+            'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
+        }
+        request = self.factory.delete(
+            '/api/example/{}/'.format(example.id),
+            **authorization_header)
+        response = RepositoryExampleViewSet.as_view(
+            {'delete': 'destroy'})(request, pk=example.id)
+        return response
+
+    def test_okay(self):
+        response = self.request(
+            self.example,
+            self.owner_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_204_NO_CONTENT)
+
+    def test_private_okay(self):
+        response = self.request(
+            self.private_example,
+            self.owner_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_204_NO_CONTENT)
+
+    def test_forbidden(self):
+        response = self.request(
+            self.example,
+            self.user_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_403_FORBIDDEN)
+
+    def test_private_forbidden(self):
+        response = self.request(
+            self.private_example,
+            self.user_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_403_FORBIDDEN)

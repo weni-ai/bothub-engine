@@ -278,7 +278,7 @@ class APITestCase(TestCase):
         })
         self.assertEqual(response.status_code, 400)
 
-    # moded to test.examples.RepositoryExampleRetrieveTestCase
+    # moved to test.examples.RepositoryExampleRetrieveTestCase
     def test_repository_example_retrieve(self):
         request = self.factory.get(
             '/api/example/{}/'.format(self.example.id),
@@ -290,6 +290,7 @@ class APITestCase(TestCase):
         response.render()
         self.assertEqual(response.status_code, 200)
 
+    # moved to test.examples.RepositoryExampleDestroyTestCase
     def test_repository_example_destroy(self):
         request = self.factory.delete(
             '/api/example/{}/'.format(self.example.id),
