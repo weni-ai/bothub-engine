@@ -74,6 +74,15 @@ class RepositoryExampleEntityPermission(permissions.BasePermission):
         return authorization.is_admin
 
 
+class RepositoryTranslatedExamplePermission(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        repository = obj.original_example.repository_update.repository
+        authorization = repository.get_user_authorization(request.user)
+        if request.method in READ_METHODS:
+            return authorization.can_read
+        return authorization.is_admin
+
+
 # Filters
 
 class ExamplesFilter(filters.FilterSet):
@@ -217,7 +226,10 @@ class RepositoryTranslatedExampleViewSet(
         GenericViewSet):
     queryset = RepositoryTranslatedExample.objects
     serializer_class = RepositoryTranslatedExampleSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [
+        permissions.IsAuthenticated,
+        RepositoryTranslatedExamplePermission,
+    ]
 
 
 class NewRepositoryTranslatedExampleEntityViewSet(

@@ -117,7 +117,8 @@ class RepositoryTranslatedExampleRetrieveTestCase(TestCase):
             owner=self.owner,
             name='Private',
             slug='private',
-            language=languages.LANGUAGE_EN)
+            language=languages.LANGUAGE_EN,
+            is_private=True)
         self.private_example = RepositoryExample.objects.create(
             repository_update=self.private_repository.current_update(),
             text='hi')
@@ -149,3 +150,24 @@ class RepositoryTranslatedExampleRetrieveTestCase(TestCase):
         self.assertEqual(
             content_data.get('id'),
             self.translated.id)
+
+    def test_private_okay(self):
+        response, content_data = self.request(
+            self.private_translated,
+            self.owner_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK)
+        self.assertEqual(
+            content_data.get('id'),
+            self.private_translated.id)
+
+    def test_forbidden(self):
+        user, user_token = create_user_and_token()
+
+        response, content_data = self.request(
+            self.private_translated,
+            user_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_403_FORBIDDEN)
