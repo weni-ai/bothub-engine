@@ -252,3 +252,13 @@ class RepositoryExampleDestroyTestCase(TestCase):
         self.assertEqual(
             response.status_code,
             status.HTTP_403_FORBIDDEN)
+
+    def test_already_deleted(self):
+        self.example.delete()
+
+        response = self.request(
+            self.example,
+            self.owner_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_500_INTERNAL_SERVER_ERROR)
