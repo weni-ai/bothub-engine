@@ -152,7 +152,10 @@ class RepositoryTranslatedExampleSerializer(serializers.ModelSerializer):
         ]
 
     original_example = serializers.PrimaryKeyRelatedField(
-        queryset=RepositoryExample.objects)
+        queryset=RepositoryExample.objects,
+        validators=[
+            CanContributeInRepositoryExampleValidator(),
+        ])
     has_valid_entities = serializers.SerializerMethodField()
     entities = RepositoryTranslatedExampleEntitySeralizer(
         many=True,

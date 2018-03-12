@@ -79,6 +79,20 @@ class TranslateExampleTestCase(TestCase):
             'non_field_errors',
             content_data.keys())
 
+    def test_forbidden(self):
+        user, user_token = create_user_and_token()
+
+        response, content_data = self.request(
+            {
+                'original_example': self.example.id,
+                'language': languages.LANGUAGE_PT,
+                'text': 'oi',
+            },
+            user_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_403_FORBIDDEN)
+
 
 class RepositoryTranslatedExampleRetrieveTestCase(TestCase):
     def setUp(self):
