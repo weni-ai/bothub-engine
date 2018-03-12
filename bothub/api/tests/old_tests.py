@@ -320,6 +320,7 @@ class APITestCase(TestCase):
         response.render()
         self.assertEqual(response.status_code, 500)
 
+    # moved to test.entity.NewRepositoryExampleTestCase.request
     def _new_repository_example_entity_request(self, data):
         request = self.factory.post(
             '/api/entity/new/',
@@ -333,6 +334,7 @@ class APITestCase(TestCase):
         content_data = json.loads(response.content)
         return (response, content_data,)
 
+    # moved to test.entity.NewRepositoryExampleTestCase.test_okay
     def test_new_repository_example_entity(self):
         response, content_data = self._new_repository_example_entity_request({
             'repository_example': self.example.id,
