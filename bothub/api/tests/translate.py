@@ -11,6 +11,7 @@ from bothub.common.models import RepositoryTranslatedExample
 
 from ..views import NewRepositoryTranslatedExampleViewSet
 from ..views import RepositoryTranslatedExampleViewSet
+from ..views import NewRepositoryTranslatedExampleEntityViewSet
 
 from .utils import create_user_and_token
 
@@ -216,6 +217,71 @@ class RepositoryTranslatedExampleDestroyTestCase(TestCase):
 
         response = self.request(
             self.translated,
+            user_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_403_FORBIDDEN)
+
+
+class NewRepositoryTranslatedExampleEntityTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.owner, self.owner_token = create_user_and_token('owner')
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name='Testing',
+            slug='test',
+            language=languages.LANGUAGE_EN)
+        self.example = RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(),
+            text='my name is Douglas')
+        self.translated = RepositoryTranslatedExample.objects.create(
+            original_example=self.example,
+            language=languages.LANGUAGE_PT,
+            text='meu nome é Douglas')
+
+    def request(self, data, token):
+        authorization_header = {
+            'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
+        }
+        request = self.factory.post(
+            '/api/translate-example/',
+            data,
+            **authorization_header)
+        response = NewRepositoryTranslatedExampleEntityViewSet.as_view(
+            {'post': 'create'})(request)
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data,)
+
+    def test_okay(self):
+        response, content_data = self.request(
+            {
+                'repository_translated_example': self.translated.id,
+                'start': 11,
+                'end': 18,
+                'entity': 'name',
+            },
+            self.owner_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_201_CREATED)
+        self.assertEqual(
+            content_data.get('value'),
+            'Douglas')
+
+    def test_forbidden(self):
+        user, user_token = create_user_and_token()
+
+        response, content_data = self.request(
+            {
+                'repository_translated_example': self.translated.id,
+                'start': 11,
+                'end': 18,
+                'entity': 'name',
+            },
             user_token)
         self.assertEqual(
             response.status_code,
