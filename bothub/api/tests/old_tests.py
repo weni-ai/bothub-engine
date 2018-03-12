@@ -388,6 +388,7 @@ class APITestCase(TestCase):
             {'get': 'retrieve'})(request, pk=self.translated.id)
         self.assertEqual(response.status_code, 200)
 
+    # moved to tests.translate.NewRepositoryTranslatedExampleEntityTestCase.r..
     def _new_translated_example_entity_request(self, data):
         request = self.factory.post(
             '/api/translated-entity/new/',
@@ -401,6 +402,7 @@ class APITestCase(TestCase):
         content_data = json.loads(response.content)
         return (response, content_data,)
 
+    # moved to tests.translate.NewRepositoryTranslatedExampleEntityTestCase
     def test_new_translated_example_entity(self):
         response, content_data = self._new_translated_example_entity_request({
             'repository_translated_example': self.translated.id,
@@ -411,6 +413,7 @@ class APITestCase(TestCase):
         self.assertEqual(response.status_code, 201)
         self.assertEqual(content_data.get('value'), 'Douglas')
 
+    # moved to tests.translate.RepositoryTranslatedExampleEntityRetrieveTestC..
     def test_translated_example_entity(self):
         translated_entity = RepositoryTranslatedExampleEntity.objects.create(
             repository_translated_example=self.translated,

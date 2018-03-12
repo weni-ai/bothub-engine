@@ -8,10 +8,12 @@ from bothub.common import languages
 from bothub.common.models import Repository
 from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryTranslatedExample
+from bothub.common.models import RepositoryTranslatedExampleEntity
 
 from ..views import NewRepositoryTranslatedExampleViewSet
 from ..views import RepositoryTranslatedExampleViewSet
 from ..views import NewRepositoryTranslatedExampleEntityViewSet
+from ..views import RepositoryTranslatedExampleEntityViewSet
 
 from .utils import create_user_and_token
 
@@ -282,6 +284,97 @@ class NewRepositoryTranslatedExampleEntityTestCase(TestCase):
                 'end': 18,
                 'entity': 'name',
             },
+            user_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_403_FORBIDDEN)
+
+
+class RepositoryTranslatedExampleEntityRetrieveTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.owner, self.owner_token = create_user_and_token('owner')
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name='Testing',
+            slug='test',
+            language=languages.LANGUAGE_EN)
+        self.example = RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(),
+            text='my name is Douglas')
+        self.translated = RepositoryTranslatedExample.objects.create(
+            original_example=self.example,
+            language=languages.LANGUAGE_PT,
+            text='meu nome é Douglas')
+        self.translated_entity = RepositoryTranslatedExampleEntity.objects \
+            .create(
+                repository_translated_example=self.translated,
+                start=11,
+                end=18,
+                entity='name')
+
+        self.private_repository = Repository.objects.create(
+            owner=self.owner,
+            name='Private',
+            slug='private',
+            language=languages.LANGUAGE_EN,
+            is_private=True)
+        self.private_example = RepositoryExample.objects.create(
+            repository_update=self.private_repository.current_update(),
+            text='my name is Douglas')
+        self.private_translated = RepositoryTranslatedExample.objects.create(
+            original_example=self.private_example,
+            language=languages.LANGUAGE_PT,
+            text='meu nome é Douglas')
+        self.private_translated_entity = RepositoryTranslatedExampleEntity \
+            .objects.create(
+                repository_translated_example=self.private_translated,
+                start=11,
+                end=18,
+                entity='name')
+
+    def request(self, translated_entity, token):
+        authorization_header = {
+            'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
+        }
+        request = self.factory.get(
+            '/api/translated-entity/{}/'.format(translated_entity.id),
+            **authorization_header)
+        response = RepositoryTranslatedExampleEntityViewSet.as_view(
+            {'get': 'retrieve'})(request, pk=translated_entity.id)
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data,)
+
+    def test_okay(self):
+        response, content_data = self.request(
+            self.translated_entity,
+            self.owner_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK)
+        self.assertEqual(
+            content_data.get('id'),
+            self.translated_entity.id)
+
+    def test_private_okay(self):
+        response, content_data = self.request(
+            self.private_translated_entity,
+            self.owner_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK)
+        self.assertEqual(
+            content_data.get('id'),
+            self.private_translated_entity.id)
+
+    def test_forbidden(self):
+        user, user_token = create_user_and_token()
+
+        response, content_data = self.request(
+            self.private_translated_entity,
             user_token)
         self.assertEqual(
             response.status_code,
