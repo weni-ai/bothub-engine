@@ -356,6 +356,7 @@ class APITestCase(TestCase):
             {'get': 'retrieve'})(request, pk=self.example.id)
         self.assertEqual(response.status_code, 200)
 
+    # moved to test.translate.TranslateExampleTestCase
     def test_translate_example(self):
         example = RepositoryExample.objects.create(
             repository_update=self.repository.current_update(
