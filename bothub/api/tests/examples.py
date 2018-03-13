@@ -34,6 +34,13 @@ class ExamplesTestCase(TestCase):
             text='oi',
             language=languages.LANGUAGE_PT)
 
+        self.private_repository = Repository.objects.create(
+            owner=self.owner,
+            name='Private',
+            slug='private',
+            language=languages.LANGUAGE_EN,
+            is_private=True)
+
     def request(self, data, token):
         authorization_header = {
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
@@ -142,3 +149,15 @@ class ExamplesTestCase(TestCase):
         self.assertEqual(
             content_data_2.get('count'),
             0)
+
+    def test_forbidden(self):
+        user, user_token = create_user_and_token()
+
+        response, content_data = self.request(
+            {
+                'repository_uuid': self.private_repository.uuid,
+            },
+            user_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_403_FORBIDDEN)
