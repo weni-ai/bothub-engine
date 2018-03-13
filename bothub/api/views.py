@@ -5,6 +5,7 @@ from rest_framework.decorators import detail_route
 from rest_framework.response import Response
 from rest_framework.exceptions import APIException
 from rest_framework.exceptions import NotFound
+from rest_framework.exceptions import PermissionDenied
 from django.utils.translation import gettext as _
 from django.db.models import Count
 from django.core.exceptions import ValidationError as DjangoValidationError
@@ -99,8 +100,12 @@ class ExamplesFilter(filters.FilterSet):
         method='filter_has_translation')
 
     def filter_repository_uuid(self, queryset, name, value):
+        request = self.request
         try:
             repository = Repository.objects.get(uuid=value)
+            authorization = repository.get_user_authorization(request.user)
+            if not authorization.can_read:
+                raise PermissionDenied()
             return queryset.filter(
                 repository_update__repository=repository)
         except Repository.DoesNotExist:
