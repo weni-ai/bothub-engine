@@ -31,3 +31,17 @@ class RegisterUserTestCase(TestCase):
         self.assertEqual(
             response.status_code,
             status.HTTP_201_CREATED)
+
+    def test_invalid_password(self):
+        response, content_data = self.request({
+            'email': 'fake@user.com',
+            'name': 'Fake',
+            'nick': 'fake',
+            'password': 'abc',
+        })
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST)
+        self.assertIn(
+            'password',
+            content_data.keys())
