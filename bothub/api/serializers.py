@@ -242,3 +242,20 @@ class RegisterUserSerializer(serializers.ModelSerializer):
         validators=[
             validate_password,
         ])
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = [
+            'email',
+            'name',
+            'locale',
+            'password',
+        ]
+
+    password = serializers.CharField(
+        write_only=True,
+        validators=[
+            validate_password,
+        ])

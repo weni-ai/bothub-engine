@@ -25,6 +25,7 @@ from .serializers import RepositoryAuthorizationSerializer
 from .serializers import RepositoryTranslatedExampleSerializer
 from .serializers import RepositoryTranslatedExampleEntitySeralizer
 from .serializers import RegisterUserSerializer
+from .serializers import UserSerializer
 
 
 # Permisions
@@ -285,3 +286,13 @@ class RegisterUserViewSet(
         GenericViewSet):
     queryset = User.objects
     serializer_class = RegisterUserSerializer
+
+
+class UserViewSet(
+        mixins.RetrieveModelMixin,
+        GenericViewSet):
+    queryset = User.objects
+    serializer_class = UserSerializer
+    permission_classes = [
+        permissions.IsAuthenticated,
+    ]
