@@ -11,17 +11,20 @@ from django.db.models import Count
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django_filters import rest_framework as filters
 
+from bothub.common.models import Repository
+from bothub.common.models import RepositoryExample
+from bothub.common.models import RepositoryExampleEntity
+from bothub.common.models import RepositoryTranslatedExample
+from bothub.common.models import RepositoryTranslatedExampleEntity
+from bothub.authentication.models import User
+
 from .serializers import RepositorySerializer
 from .serializers import RepositoryExampleSerializer
 from .serializers import RepositoryExampleEntitySerializer
 from .serializers import RepositoryAuthorizationSerializer
 from .serializers import RepositoryTranslatedExampleSerializer
 from .serializers import RepositoryTranslatedExampleEntitySeralizer
-from bothub.common.models import Repository
-from bothub.common.models import RepositoryExample
-from bothub.common.models import RepositoryExampleEntity
-from bothub.common.models import RepositoryTranslatedExample
-from bothub.common.models import RepositoryTranslatedExampleEntity
+from .serializers import RegisterUserSerializer
 
 
 # Permisions
@@ -275,3 +278,10 @@ class RepositoryExamplesViewSet(
     permission_classes = [
         permissions.IsAuthenticated,
     ]
+
+
+class RegisterUserViewSet(
+        mixins.CreateModelMixin,
+        GenericViewSet):
+    queryset = User.objects
+    serializer_class = RegisterUserSerializer

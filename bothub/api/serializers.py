@@ -4,6 +4,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.exceptions import PermissionDenied
 from django.utils.translation import gettext as _
 from django.core.exceptions import ValidationError as DjangoValidationError
+from django.contrib.auth.password_validation import validate_password
 
 from bothub.common.models import RepositoryCategory
 from bothub.common.models import Repository
@@ -12,6 +13,7 @@ from bothub.common.models import RepositoryExampleEntity
 from bothub.common.models import RepositoryTranslatedExample
 from bothub.common.models import RepositoryTranslatedExampleEntity
 from bothub.common.models import RepositoryAuthorization
+from bothub.authentication.models import User
 
 
 # Defaults
@@ -223,3 +225,20 @@ class RepositoryAuthorizationSerializer(serializers.ModelSerializer):
             'repository',
             'created_at',
         ]
+
+
+class RegisterUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = [
+            'email',
+            'name',
+            'nick',
+            'password',
+        ]
+
+    password = serializers.CharField(
+        write_only=True,
+        validators=[
+            validate_password,
+        ])
