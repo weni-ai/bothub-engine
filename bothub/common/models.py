@@ -1,10 +1,17 @@
 import uuid
+import base64
 
 from django.db import models
 from django.utils.translation import gettext as _
+from django.utils import timezone
 
 from bothub.authentication.models import User
+
 from . import languages
+from .exceptions import RepositoryUpdateAlreadyStartedTraining
+from .exceptions import RepositoryUpdateAlreadyTrained
+from .exceptions import TrainingNotAllowed
+from .exceptions import DoesNotHaveTranslation
 
 
 class RepositoryCategory(models.Model):
@@ -33,7 +40,7 @@ class Repository(models.Model):
     name = models.CharField(
         _('name'),
         max_length=64)
-    slug = models.CharField(
+    slug = models.SlugField(
         _('slug'),
         unique=True,
         max_length=32)
@@ -92,9 +99,9 @@ class Repository(models.Model):
             'is_base_language': is_base_language,
             'examples': {
                 'count': examples_count,
-                'entities': examples.values_list(
+                'entities': list(examples.values_list(
                     'entities__entity',
-                    flat=True).distinct(),
+                    flat=True).distinct()),
             },
             'base_translations': {
                 'count': base_translations_count,
@@ -109,18 +116,16 @@ class Repository(models.Model):
             training_started_at=None)
         return repository_update
 
-    def current_rasa_nlu_data(self, language):
+    def current_rasa_nlu_data(self, language=None):
         return self.current_update(language).rasa_nlu_data
 
-    def last_trained_update(self, language):
+    def last_trained_update(self, language=None):
+        language = language or self.language
         return self.updates.filter(
             language=language,
             by__isnull=False).first()
 
     def get_user_authorization(self, user):
-        if self.is_private and self.owner.pk is not user.pk:
-            return False
-
         get, created = RepositoryAuthorization.objects.get_or_create(
             user=user,
             repository=self)
@@ -171,6 +176,7 @@ class RepositoryUpdate(models.Model):
         if self.training_started_at:
             t_started_at = self.training_started_at
             examples = examples.exclude(
+                models.Q(repository_update__created_at__gt=t_started_at) |
                 models.Q(deleted_in=self) |
                 models.Q(deleted_in__training_started_at__lt=t_started_at))
         else:
@@ -189,9 +195,38 @@ class RepositoryUpdate(models.Model):
                         self.examples)))
         }
 
+    def start_training(self, by):
+        if self.trained_at:
+            raise RepositoryUpdateAlreadyTrained()
+        if self.training_started_at:
+            raise RepositoryUpdateAlreadyStartedTraining()
 
-class DoesNotHaveTranslation(Exception):
-    pass
+        authorization = self.repository.get_user_authorization(by)
+        if not authorization.can_write:
+            raise TrainingNotAllowed()
+
+        self.by = by
+        self.training_started_at = timezone.now()
+        self.save(
+            update_fields=[
+                'by',
+                'training_started_at',
+            ])
+
+    def save_training(self, bot_data):
+        if self.trained_at:
+            raise RepositoryUpdateAlreadyTrained()
+
+        self.trained_at = timezone.now()
+        self.bot_data = base64.b64encode(bot_data).decode('utf8')
+        self.save(
+            update_fields=[
+                'trained_at',
+                'bot_data',
+            ])
+
+    def get_bot_data(self):
+        return base64.b64decode(self.bot_data)
 
 
 class RepositoryExample(models.Model):
@@ -367,6 +402,10 @@ class RepositoryAuthorization(models.Model):
         verbose_name_plural = _('repository authorizations')
         unique_together = ['user', 'repository']
 
+    LEVEL_NOTHING = 0
+    LEVEL_READER = 1
+    LEVEL_ADMIN = 2
+
     uuid = models.UUIDField(
         _('UUID'),
         primary_key=True,
@@ -381,3 +420,34 @@ class RepositoryAuthorization(models.Model):
     created_at = models.DateTimeField(
         _('created at'),
         auto_now_add=True)
+
+    @property
+    def level(self):
+        if self.repository.owner == self.user:
+            return RepositoryAuthorization.LEVEL_ADMIN
+        if self.repository.is_private:
+            return RepositoryAuthorization.LEVEL_NOTHING
+        return RepositoryAuthorization.LEVEL_READER
+
+    @property
+    def can_read(self):
+        return self.level in [
+            RepositoryAuthorization.LEVEL_READER,
+            RepositoryAuthorization.LEVEL_ADMIN,
+        ]
+
+    @property
+    def can_contribute(self):
+        return self.level in [
+            RepositoryAuthorization.LEVEL_ADMIN,
+        ]
+
+    @property
+    def can_write(self):
+        return self.level in [
+            RepositoryAuthorization.LEVEL_ADMIN,
+        ]
+
+    @property
+    def is_admin(self):
+        return self.level == RepositoryAuthorization.LEVEL_ADMIN

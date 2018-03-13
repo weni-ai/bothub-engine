@@ -6,14 +6,12 @@ from rest_framework.response import Response
 from rest_framework.exceptions import APIException
 from rest_framework.exceptions import NotFound
 from rest_framework.exceptions import PermissionDenied
-from rest_framework.exceptions import ValidationError
 from django.utils.translation import gettext as _
-from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db.models import Count
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django_filters import rest_framework as filters
 
 from .serializers import RepositorySerializer
-from .serializers import CurrentRepositoryUpdateSerializer
 from .serializers import RepositoryExampleSerializer
 from .serializers import RepositoryExampleEntitySerializer
 from .serializers import RepositoryAuthorizationSerializer
@@ -22,56 +20,62 @@ from .serializers import RepositoryTranslatedExampleEntitySeralizer
 from bothub.common.models import Repository
 from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryExampleEntity
-from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryTranslatedExample
 from bothub.common.models import RepositoryTranslatedExampleEntity
 
 
-# Utils
-
-def get_repository_from_uuid(repository_uuid):
-    if not repository_uuid:
-        raise ValidationError(_('repository_uuid is required'), code=400)
-
-    try:
-        return Repository.objects.get(uuid=repository_uuid)
-    except Repository.DoesNotExist:
-        raise NotFound(
-            _('Repository {} does not exist').format(repository_uuid))
-    except DjangoValidationError:
-        raise ValidationError(_('Invalid repository_uuid'))
-
-
 # Permisions
 
-class IsOwner(permissions.BasePermission):
+READ_METHODS = permissions.SAFE_METHODS
+WRITE_METHODS = ['POST', 'PUT', 'PATCH']
+ADMIN_METHODS = ['DELETE']
+
+
+class RepositoryPermission(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
-        return obj.owner == request.user
+        authorization = obj.get_user_authorization(request.user)
+        if request.method in READ_METHODS:
+            return authorization.can_read
+        if request.method in WRITE_METHODS:
+            return authorization.can_write
+        return authorization.is_admin
 
 
-class IsRepositoryUpdateOwner(permissions.BasePermission):
+class RepositoryExamplePermission(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
-        return obj.repository_update.repository.owner == request.user
+        authorization = obj.repository_update.repository \
+            .get_user_authorization(request.user)
+        if request.method in READ_METHODS:
+            return authorization.can_read
+        return authorization.can_contribute
 
 
-class IsRepositoryExampleOwner(permissions.BasePermission):
+class RepositoryExampleEntityPermission(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
-        repository = obj.repository_example.repository_update.repository
-        return repository.owner == request.user
+        authorization = obj.repository_example.repository_update.repository \
+            .get_user_authorization(request.user)
+        if request.method in READ_METHODS:
+            return authorization.can_read
+        return authorization.can_contribute
 
 
-class IsOriginalRepositoryExampleOwner(permissions.BasePermission):
+class RepositoryTranslatedExamplePermission(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         repository = obj.original_example.repository_update.repository
-        return repository.owner == request.user
+        authorization = repository.get_user_authorization(request.user)
+        if request.method in READ_METHODS:
+            return authorization.can_read
+        return authorization.can_contribute
 
 
-class IsTranslatedExampleOriginalRepositoryExampleOwner(
-        permissions.BasePermission):
+class RepositoryTranslatedExampleEntityPermission(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         repository = obj.repository_translated_example.original_example \
             .repository_update.repository
-        return repository.owner == request.user
+        authorization = repository.get_user_authorization(request.user)
+        if request.method in READ_METHODS:
+            return authorization.can_read
+        return authorization.can_contribute
 
 
 # Filters
@@ -84,12 +88,31 @@ class ExamplesFilter(filters.FilterSet):
             'language',
         ]
 
+    repository_uuid = filters.CharFilter(
+        name='repository_uuid',
+        method='filter_repository_uuid',
+        required=True)
     language = filters.CharFilter(
         name='language',
         method='filter_language')
     has_translation = filters.BooleanFilter(
         name='has_translation',
         method='filter_has_translation')
+
+    def filter_repository_uuid(self, queryset, name, value):
+        request = self.request
+        try:
+            repository = Repository.objects.get(uuid=value)
+            authorization = repository.get_user_authorization(request.user)
+            if not authorization.can_read:
+                raise PermissionDenied()
+            return queryset.filter(
+                repository_update__repository=repository)
+        except Repository.DoesNotExist:
+            raise NotFound(
+                _('Repository {} does not exist').format(value))
+        except DjangoValidationError:
+            raise NotFound(_('Invalid repository_uuid'))
 
     def filter_language(self, queryset, name, value):
         return queryset.filter(repository_update__language=value)
@@ -135,61 +158,25 @@ class RepositoryViewSet(
     serializer_class = RepositorySerializer
     permission_classes = [
         permissions.IsAuthenticated,
-        IsOwner,
+        RepositoryPermission,
     ]
 
     @detail_route(
-        methods=['POST'],
-        url_name='repository-current-update')
-    def currentupdate(self, request, **kwargs):
-        instance = self.get_object()
-        language = request.POST.get('language')
-
-        if not language:
-            raise APIException(_('language is required'))
-
-        serializer = CurrentRepositoryUpdateSerializer(
-            instance.current_update(language))
-
-        return Response(dict(serializer.data))
-
-    @detail_route(
-        methods=['POST'],
-        url_name='repository-current-rasa-nlu-data')
-    def currentrasanludata(self, request, **kwargs):
-        repository = self.get_object()
-
-        language = request.POST.get('language')
-        if not language:
-            raise APIException(_('language is required'))
-
-        return Response(repository.current_rasa_nlu_data(language))
-
-    @detail_route(
         methods=['GET'],
-        url_name='languages-status')
+        url_name='repository-languages-status')
     def languagesstatus(self, request, **kwargs):
         repository = self.get_object()
         return Response({
             'languages_status': repository.languages_status,
         })
 
-
-class RepositoryAuthorizationView(GenericViewSet):
-    serializer_class = RepositoryAuthorizationSerializer
-    queryset = RepositoryAuthorization.objects
-    permission_classes = [permissions.IsAuthenticated]
-
-    def create(self, request, **kwargs):
-        repository_uuid = request.POST.get('repository_uuid')
-        repository = get_repository_from_uuid(repository_uuid)
+    @detail_route(
+        methods=['GET'],
+        url_name='repository-authorization')
+    def authorization(self, request, **kwargs):
+        repository = self.get_object()
         user_authorization = repository.get_user_authorization(request.user)
-
-        if not user_authorization:
-            raise PermissionDenied(
-                _('User don\'t have authorization for this repository'))
-
-        serializer = self.get_serializer(user_authorization)
+        serializer = RepositoryAuthorizationSerializer(user_authorization)
         return Response(serializer.data)
 
 
@@ -198,10 +185,7 @@ class NewRepositoryExampleViewSet(
         GenericViewSet):
     queryset = RepositoryExample.objects
     serializer_class = RepositoryExampleSerializer
-    permission_classes = [
-        permissions.IsAuthenticated,
-        IsRepositoryUpdateOwner,
-    ]
+    permission_classes = [permissions.IsAuthenticated]
 
 
 class RepositoryExampleViewSet(
@@ -212,7 +196,7 @@ class RepositoryExampleViewSet(
     serializer_class = RepositoryExampleSerializer
     permission_classes = [
         permissions.IsAuthenticated,
-        IsRepositoryUpdateOwner,
+        RepositoryExamplePermission,
     ]
 
     def perform_destroy(self, obj):
@@ -226,10 +210,7 @@ class NewRepositoryExampleEntityViewSet(
         GenericViewSet):
     queryset = RepositoryExampleEntity.objects
     serializer_class = RepositoryExampleEntitySerializer
-    permission_classes = [
-        permissions.IsAuthenticated,
-        IsRepositoryExampleOwner,
-    ]
+    permission_classes = [permissions.IsAuthenticated]
 
 
 class RepositoryExampleEntityViewSet(
@@ -240,7 +221,7 @@ class RepositoryExampleEntityViewSet(
     serializer_class = RepositoryExampleEntitySerializer
     permission_classes = [
         permissions.IsAuthenticated,
-        IsRepositoryExampleOwner,
+        RepositoryExampleEntityPermission,
     ]
 
 
@@ -249,10 +230,7 @@ class NewRepositoryTranslatedExampleViewSet(
         GenericViewSet):
     queryset = RepositoryTranslatedExample.objects
     serializer_class = RepositoryTranslatedExampleSerializer
-    permission_classes = [
-        permissions.IsAuthenticated,
-        IsOriginalRepositoryExampleOwner,
-    ]
+    permission_classes = [permissions.IsAuthenticated]
 
 
 class RepositoryTranslatedExampleViewSet(
@@ -264,7 +242,7 @@ class RepositoryTranslatedExampleViewSet(
     serializer_class = RepositoryTranslatedExampleSerializer
     permission_classes = [
         permissions.IsAuthenticated,
-        IsOriginalRepositoryExampleOwner,
+        RepositoryTranslatedExamplePermission,
     ]
 
 
@@ -273,10 +251,7 @@ class NewRepositoryTranslatedExampleEntityViewSet(
         GenericViewSet):
     queryset = RepositoryTranslatedExampleEntity.objects
     serializer_class = RepositoryTranslatedExampleEntitySeralizer
-    permission_classes = [
-        permissions.IsAuthenticated,
-        IsTranslatedExampleOriginalRepositoryExampleOwner,
-    ]
+    permission_classes = [permissions.IsAuthenticated]
 
 
 class RepositoryTranslatedExampleEntityViewSet(
@@ -287,7 +262,7 @@ class RepositoryTranslatedExampleEntityViewSet(
     serializer_class = RepositoryTranslatedExampleEntitySeralizer
     permission_classes = [
         permissions.IsAuthenticated,
-        IsTranslatedExampleOriginalRepositoryExampleOwner,
+        RepositoryTranslatedExampleEntityPermission,
     ]
 
 
@@ -299,10 +274,4 @@ class RepositoryExamplesViewSet(
     filter_class = ExamplesFilter
     permission_classes = [
         permissions.IsAuthenticated,
-        IsRepositoryUpdateOwner,
     ]
-
-    def get_queryset(self):
-        repository_uuid = self.request.query_params.get('repository_uuid')
-        repository = get_repository_from_uuid(repository_uuid)
-        return self.queryset.filter(repository_update__repository=repository)

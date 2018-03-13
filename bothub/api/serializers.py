@@ -1,12 +1,12 @@
 from rest_framework import serializers
 from rest_framework.exceptions import NotFound
 from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import PermissionDenied
 from django.utils.translation import gettext as _
 from django.core.exceptions import ValidationError as DjangoValidationError
 
 from bothub.common.models import RepositoryCategory
 from bothub.common.models import Repository
-from bothub.common.models import RepositoryUpdate
 from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryExampleEntity
 from bothub.common.models import RepositoryTranslatedExample
@@ -32,10 +32,43 @@ class CurrentUpdateDefault(object):
         except DjangoValidationError:
             raise ValidationError(_('Invalid repository_uuid'))
 
+        user_authorization = repository.get_user_authorization(request.user)
+        if not user_authorization.can_contribute:
+            raise PermissionDenied(
+                _('You can\'t contribute in this repository'))
+
         self.repository_update = repository.current_update()
 
     def __call__(self):
         return self.repository_update
+
+
+# Validators
+
+class CanContributeInRepositoryExampleValidator(object):
+    def __call__(self, value):
+        repository = value.repository_update.repository
+        user_authorization = repository.get_user_authorization(
+            self.request.user)
+        if not user_authorization.can_contribute:
+            raise PermissionDenied(
+                _('You can\'t contribute in this repository'))
+
+    def set_context(self, serializer):
+        self.request = serializer.context.get('request')
+
+
+class CanContributeInRepositoryTranslatedExampleValidator(object):
+    def __call__(self, value):
+        repository = value.original_example.repository_update.repository
+        user_authorization = repository.get_user_authorization(
+            self.request.user)
+        if not user_authorization.can_contribute:
+            raise PermissionDenied(
+                _('You can\'t contribute in this repository'))
+
+    def set_context(self, serializer):
+        self.request = serializer.context.get('request')
 
 
 # Serializers
@@ -59,6 +92,7 @@ class RepositorySerializer(serializers.ModelSerializer):
             'slug',
             'language',
             'categories',
+            'categories_list',
             'description',
             'is_private',
             'created_at',
@@ -67,20 +101,10 @@ class RepositorySerializer(serializers.ModelSerializer):
     owner = serializers.PrimaryKeyRelatedField(
         read_only=True,
         default=serializers.CurrentUserDefault())
-    categories = RepositoryCategorySerializer(
-        many=True,
-        read_only=True)
+    categories_list = serializers.SerializerMethodField()
 
-
-class CurrentRepositoryUpdateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = RepositoryUpdate
-        fields = [
-            'id',
-            'repository',
-            'language',
-            'created_at',
-        ]
+    def get_categories_list(self, obj):
+        return RepositoryCategorySerializer(obj.categories, many=True).data
 
 
 class RepositoryExampleEntitySerializer(serializers.ModelSerializer):
@@ -97,7 +121,10 @@ class RepositoryExampleEntitySerializer(serializers.ModelSerializer):
         ]
 
     repository_example = serializers.PrimaryKeyRelatedField(
-        queryset=RepositoryExample.objects)
+        queryset=RepositoryExample.objects,
+        validators=[
+            CanContributeInRepositoryExampleValidator(),
+        ])
     value = serializers.SerializerMethodField()
 
     def get_value(self, obj):
@@ -118,7 +145,10 @@ class RepositoryTranslatedExampleEntitySeralizer(serializers.ModelSerializer):
         ]
 
     repository_translated_example = serializers.PrimaryKeyRelatedField(
-        queryset=RepositoryTranslatedExample.objects)
+        queryset=RepositoryTranslatedExample.objects,
+        validators=[
+            CanContributeInRepositoryTranslatedExampleValidator(),
+        ])
     value = serializers.SerializerMethodField()
 
     def get_value(self, obj):
@@ -138,7 +168,10 @@ class RepositoryTranslatedExampleSerializer(serializers.ModelSerializer):
         ]
 
     original_example = serializers.PrimaryKeyRelatedField(
-        queryset=RepositoryExample.objects)
+        queryset=RepositoryExample.objects,
+        validators=[
+            CanContributeInRepositoryExampleValidator(),
+        ])
     has_valid_entities = serializers.SerializerMethodField()
     entities = RepositoryTranslatedExampleEntitySeralizer(
         many=True,
