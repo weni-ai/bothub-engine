@@ -47,7 +47,7 @@ class RepositoryExamplePermission(permissions.BasePermission):
             .get_user_authorization(request.user)
         if request.method in READ_METHODS:
             return authorization.can_read
-        return authorization.is_admin
+        return authorization.can_contribute
 
 
 class RepositoryExampleEntityPermission(permissions.BasePermission):
@@ -56,7 +56,7 @@ class RepositoryExampleEntityPermission(permissions.BasePermission):
             .get_user_authorization(request.user)
         if request.method in READ_METHODS:
             return authorization.can_read
-        return authorization.is_admin
+        return authorization.can_contribute
 
 
 class RepositoryTranslatedExamplePermission(permissions.BasePermission):
@@ -65,7 +65,7 @@ class RepositoryTranslatedExamplePermission(permissions.BasePermission):
         authorization = repository.get_user_authorization(request.user)
         if request.method in READ_METHODS:
             return authorization.can_read
-        return authorization.is_admin
+        return authorization.can_contribute
 
 
 class RepositoryTranslatedExampleEntityPermission(permissions.BasePermission):
@@ -75,7 +75,7 @@ class RepositoryTranslatedExampleEntityPermission(permissions.BasePermission):
         authorization = repository.get_user_authorization(request.user)
         if request.method in READ_METHODS:
             return authorization.can_read
-        return authorization.is_admin
+        return authorization.can_contribute
 
 
 # Filters
