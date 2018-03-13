@@ -5,6 +5,7 @@ from rest_framework.exceptions import PermissionDenied
 from django.utils.translation import gettext as _
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.contrib.auth.password_validation import validate_password
+from django.contrib.auth.hashers import make_password
 
 from bothub.common.models import RepositoryCategory
 from bothub.common.models import Repository
@@ -242,6 +243,9 @@ class RegisterUserSerializer(serializers.ModelSerializer):
         validators=[
             validate_password,
         ])
+
+    def validate_password(self, value):
+        return make_password(value)
 
 
 class UserSerializer(serializers.ModelSerializer):
