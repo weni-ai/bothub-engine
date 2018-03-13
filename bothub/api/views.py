@@ -82,6 +82,13 @@ class RepositoryTranslatedExampleEntityPermission(permissions.BasePermission):
         return authorization.can_contribute
 
 
+class UserPermission(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        return request.user == obj
+
+
 # Filters
 
 class ExamplesFilter(filters.FilterSet):
@@ -290,9 +297,11 @@ class RegisterUserViewSet(
 
 class UserViewSet(
         mixins.RetrieveModelMixin,
+        mixins.UpdateModelMixin,
         GenericViewSet):
     queryset = User.objects
     serializer_class = UserSerializer
     permission_classes = [
         permissions.IsAuthenticated,
+        UserPermission,
     ]

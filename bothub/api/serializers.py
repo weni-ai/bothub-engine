@@ -251,11 +251,4 @@ class UserSerializer(serializers.ModelSerializer):
             'email',
             'name',
             'locale',
-            'password',
         ]
-
-    password = serializers.CharField(
-        write_only=True,
-        validators=[
-            validate_password,
-        ])
