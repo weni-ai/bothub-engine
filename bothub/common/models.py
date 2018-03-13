@@ -1,10 +1,17 @@
 import uuid
+import base64
 
 from django.db import models
 from django.utils.translation import gettext as _
+from django.utils import timezone
 
 from bothub.authentication.models import User
+
 from . import languages
+from .exceptions import RepositoryUpdateAlreadyStartedTraining
+from .exceptions import RepositoryUpdateAlreadyTrained
+from .exceptions import TrainingNotAllowed
+from .exceptions import DoesNotHaveTranslation
 
 
 class RepositoryCategory(models.Model):
@@ -169,6 +176,7 @@ class RepositoryUpdate(models.Model):
         if self.training_started_at:
             t_started_at = self.training_started_at
             examples = examples.exclude(
+                models.Q(repository_update__created_at__gt=t_started_at) |
                 models.Q(deleted_in=self) |
                 models.Q(deleted_in__training_started_at__lt=t_started_at))
         else:
@@ -187,9 +195,38 @@ class RepositoryUpdate(models.Model):
                         self.examples)))
         }
 
+    def start_training(self, by):
+        if self.trained_at:
+            raise RepositoryUpdateAlreadyTrained()
+        if self.training_started_at:
+            raise RepositoryUpdateAlreadyStartedTraining()
 
-class DoesNotHaveTranslation(Exception):
-    pass
+        authorization = self.repository.get_user_authorization(by)
+        if not authorization.can_write:
+            raise TrainingNotAllowed()
+
+        self.by = by
+        self.training_started_at = timezone.now()
+        self.save(
+            update_fields=[
+                'by',
+                'training_started_at',
+            ])
+
+    def save_training(self, bot_data):
+        if self.trained_at:
+            raise RepositoryUpdateAlreadyTrained()
+
+        self.trained_at = timezone.now()
+        self.bot_data = base64.b64encode(bot_data).decode('utf8')
+        self.save(
+            update_fields=[
+                'trained_at',
+                'bot_data',
+            ])
+
+    def get_bot_data(self):
+        return base64.b64decode(self.bot_data)
 
 
 class RepositoryExample(models.Model):

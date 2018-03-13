@@ -10,6 +10,9 @@ from .models import RepositoryTranslatedExampleEntity
 from .models import RepositoryAuthorization
 from .models import DoesNotHaveTranslation
 from . import languages
+from .exceptions import RepositoryUpdateAlreadyStartedTraining
+from .exceptions import RepositoryUpdateAlreadyTrained
+from .exceptions import TrainingNotAllowed
 
 
 class RepositoryUpdateTestCase(TestCase):
@@ -426,3 +429,92 @@ class RepositoryAuthorizationTestCase(TestCase):
         private_authorization_user = self.private_repository \
             .get_user_authorization(self.user)
         self.assertFalse(private_authorization_user.is_admin)
+
+
+class RepositoryUpdateTrainingTestCase(TestCase):
+    def setUp(self):
+        self.owner = User.objects.create_user('owner@user.com', 'user')
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name='Test',
+            slug='test',
+            language=languages.LANGUAGE_EN)
+
+    def test_train(self):
+        update = self.repository.current_update()
+        update.start_training(self.owner)
+
+        bot_data = b'bot_data__()\\\\//?(*)'
+
+        update.save_training(bot_data)
+        self.assertEqual(
+            update.get_bot_data(),
+            bot_data)
+
+    def test_already_started_trained(self):
+        update = self.repository.current_update()
+        update.start_training(self.owner)
+        with self.assertRaises(RepositoryUpdateAlreadyStartedTraining):
+            update.start_training(self.owner)
+
+    def test_already_trained(self):
+        update = self.repository.current_update()
+        update.start_training(self.owner)
+        update.save_training(b'')
+
+        with self.assertRaises(RepositoryUpdateAlreadyTrained):
+            update.start_training(self.owner)
+
+        with self.assertRaises(RepositoryUpdateAlreadyTrained):
+            update.save_training(self.owner)
+
+    def test_training_not_allowed(self):
+        user = User.objects.create_user('fake@user.com', 'fake')
+
+        update = self.repository.current_update()
+        with self.assertRaises(TrainingNotAllowed):
+            update.start_training(user)
+
+
+class RepositoryUpdateExamplesTestCase(TestCase):
+    def setUp(self):
+        self.owner = User.objects.create_user('owner@user.com', 'user')
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name='Test',
+            slug='test',
+            language=languages.LANGUAGE_EN)
+        RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(),
+            text='hi',
+            intent='greet')
+
+        self.update = self.repository.current_update()
+        self.update.start_training(self.owner)
+        self.update.save_training(b'')
+
+    def test_okay(self):
+        new_update_1 = self.repository.current_update()
+        RepositoryExample.objects.create(
+            repository_update=new_update_1,
+            text='hello',
+            intent='greet')
+        new_update_1.start_training(self.owner)
+
+        new_update_2 = self.repository.current_update()
+        RepositoryExample.objects.create(
+            repository_update=new_update_2,
+            text='good morning',
+            intent='greet')
+
+        self.assertEqual(
+            self.update.examples.count(),
+            1)
+        self.assertEqual(
+            new_update_1.examples.count(),
+            2)
+        self.assertEqual(
+            new_update_2.examples.count(),
+            3)
