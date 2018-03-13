@@ -7,7 +7,7 @@ install_requires = list(
 
 setup(
     name='bothub-app',
-    version='0.1.1',
+    version='1.0.0',
     description='bothub app',
     packages=find_packages(),
     install_requires=install_requires,
