@@ -14,6 +14,7 @@ from .views import RepositoryTranslatedExampleEntityViewSet
 from .views import RepositoryExamplesViewSet
 from .views import RegisterUserViewSet
 from .views import UserViewSet
+from .views import LoginViewSet
 
 
 router = routers.SimpleRouter()
@@ -33,3 +34,4 @@ router.register('translated-entity',
 router.register('examples', RepositoryExamplesViewSet)
 router.register('register', RegisterUserViewSet)
 router.register('profile', UserViewSet)
+router.register('login', LoginViewSet)
