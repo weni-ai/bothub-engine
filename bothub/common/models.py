@@ -317,13 +317,16 @@ class RepositoryTranslatedExample(models.Model):
         RepositoryExample,
         models.CASCADE,
         related_name='translations',
-        editable=False)
+        editable=False,
+        help_text=_('Example object'))
     language = models.CharField(
         _('language'),
         choices=languages.LANGUAGE_CHOICES,
-        max_length=2)
+        max_length=2,
+        help_text=_('Translation language'))
     text = models.TextField(
-        _('text'))
+        _('text'),
+        help_text=_('Translation text'))
 
     @classmethod
     def create_entitites_count_dict(cls, entities):

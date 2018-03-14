@@ -175,7 +175,8 @@ class RepositoryTranslatedExampleSerializer(serializers.ModelSerializer):
         queryset=RepositoryExample.objects,
         validators=[
             CanContributeInRepositoryExampleValidator(),
-        ])
+        ],
+        help_text=_('Example\'s ID'))
     has_valid_entities = serializers.SerializerMethodField()
     entities = RepositoryTranslatedExampleEntitySeralizer(
         many=True,
