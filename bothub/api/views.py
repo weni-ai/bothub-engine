@@ -11,17 +11,21 @@ from django.db.models import Count
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django_filters import rest_framework as filters
 
+from bothub.common.models import Repository
+from bothub.common.models import RepositoryExample
+from bothub.common.models import RepositoryExampleEntity
+from bothub.common.models import RepositoryTranslatedExample
+from bothub.common.models import RepositoryTranslatedExampleEntity
+from bothub.authentication.models import User
+
 from .serializers import RepositorySerializer
 from .serializers import RepositoryExampleSerializer
 from .serializers import RepositoryExampleEntitySerializer
 from .serializers import RepositoryAuthorizationSerializer
 from .serializers import RepositoryTranslatedExampleSerializer
 from .serializers import RepositoryTranslatedExampleEntitySeralizer
-from bothub.common.models import Repository
-from bothub.common.models import RepositoryExample
-from bothub.common.models import RepositoryExampleEntity
-from bothub.common.models import RepositoryTranslatedExample
-from bothub.common.models import RepositoryTranslatedExampleEntity
+from .serializers import RegisterUserSerializer
+from .serializers import UserSerializer
 
 
 # Permisions
@@ -76,6 +80,13 @@ class RepositoryTranslatedExampleEntityPermission(permissions.BasePermission):
         if request.method in READ_METHODS:
             return authorization.can_read
         return authorization.can_contribute
+
+
+class UserPermission(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        return request.user == obj
 
 
 # Filters
@@ -274,4 +285,23 @@ class RepositoryExamplesViewSet(
     filter_class = ExamplesFilter
     permission_classes = [
         permissions.IsAuthenticated,
+    ]
+
+
+class RegisterUserViewSet(
+        mixins.CreateModelMixin,
+        GenericViewSet):
+    queryset = User.objects
+    serializer_class = RegisterUserSerializer
+
+
+class UserViewSet(
+        mixins.RetrieveModelMixin,
+        mixins.UpdateModelMixin,
+        GenericViewSet):
+    queryset = User.objects
+    serializer_class = UserSerializer
+    permission_classes = [
+        permissions.IsAuthenticated,
+        UserPermission,
     ]
