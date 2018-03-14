@@ -102,13 +102,16 @@ class ExamplesFilter(filters.FilterSet):
     repository_uuid = filters.CharFilter(
         name='repository_uuid',
         method='filter_repository_uuid',
-        required=True)
+        required=True,
+        help_text=_('Repository\'s UUID'))
     language = filters.CharFilter(
         name='language',
-        method='filter_language')
+        method='filter_language',
+        help_text='Filter by language, default is repository base language')
     has_translation = filters.BooleanFilter(
         name='has_translation',
-        method='filter_has_translation')
+        method='filter_has_translation',
+        help_text=_('Filter for examples with or without translation'))
 
     def filter_repository_uuid(self, queryset, name, value):
         request = self.request
@@ -172,7 +175,7 @@ class RepositoryViewSet(
         mixins.DestroyModelMixin,
         GenericViewSet):
     """
-    Manager your repository.
+    Manager repository.
 
     retrieve:
     Get repository data.
@@ -223,6 +226,9 @@ class RepositoryViewSet(
 class NewRepositoryExampleViewSet(
         mixins.CreateModelMixin,
         GenericViewSet):
+    """
+    Create new repository example.
+    """
     queryset = RepositoryExample.objects
     serializer_class = RepositoryExampleSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -232,6 +238,15 @@ class RepositoryExampleViewSet(
         mixins.RetrieveModelMixin,
         mixins.DestroyModelMixin,
         GenericViewSet):
+    """
+    Manager repository example.
+
+    retrieve:
+    Get repository example data.
+
+    delete:
+    Delete your repository example.
+    """
     queryset = RepositoryExample.objects
     serializer_class = RepositoryExampleSerializer
     permission_classes = [

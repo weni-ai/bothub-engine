@@ -256,11 +256,13 @@ class RepositoryExample(models.Model):
         blank=True,
         null=True)
     text = models.TextField(
-        _('text'))
+        _('text'),
+        help_text=_('Example text'))
     intent = models.CharField(
         _('intent'),
         max_length=64,
-        blank=True)
+        blank=True,
+        help_text=_('Example intent reference'))
     created_at = models.DateTimeField(
         _('created at'),
         auto_now_add=True)
