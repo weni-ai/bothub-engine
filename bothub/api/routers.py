@@ -25,10 +25,10 @@ router.register('example', RepositoryExampleViewSet)
 router.register('entity/new', NewRepositoryExampleEntityViewSet)
 router.register('entity', RepositoryExampleEntityViewSet)
 router.register('translate-example', NewRepositoryTranslatedExampleViewSet)
-router.register('translated', RepositoryTranslatedExampleViewSet)
-router.register('translated-entity/new',
+router.register('translation', RepositoryTranslatedExampleViewSet)
+router.register('translation-entity/new',
                 NewRepositoryTranslatedExampleEntityViewSet)
-router.register('translated-entity',
+router.register('translation-entity',
                 RepositoryTranslatedExampleEntityViewSet)
 router.register('examples', RepositoryExamplesViewSet)
 router.register('register', RegisterUserViewSet)

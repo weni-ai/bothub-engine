@@ -135,7 +135,7 @@ class RepositoryTranslatedExampleRetrieveTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
         }
         request = self.factory.get(
-            '/api/translated/{}/'.format(translated.id),
+            '/api/translation/{}/'.format(translated.id),
             **authorization_header)
         response = RepositoryTranslatedExampleViewSet.as_view(
             {'get': 'retrieve'})(request, pk=translated.id)
@@ -200,7 +200,7 @@ class RepositoryTranslatedExampleDestroyTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
         }
         request = self.factory.delete(
-            '/api/translated/{}/'.format(translated.id),
+            '/api/translation/{}/'.format(translated.id),
             **authorization_header)
         response = RepositoryTranslatedExampleViewSet.as_view(
             {'delete': 'destroy'})(request, pk=translated.id)
@@ -340,7 +340,7 @@ class RepositoryTranslatedExampleEntityRetrieveTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
         }
         request = self.factory.get(
-            '/api/translated-entity/{}/'.format(translated_entity.id),
+            '/api/translation-entity/{}/'.format(translated_entity.id),
             **authorization_header)
         response = RepositoryTranslatedExampleEntityViewSet.as_view(
             {'get': 'retrieve'})(request, pk=translated_entity.id)
@@ -411,7 +411,7 @@ class RepositoryTranslatedExampleEntityDestroyTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
         }
         request = self.factory.delete(
-            '/api/translated-entity/{}/'.format(translated_entity.id),
+            '/api/translation-entity/{}/'.format(translated_entity.id),
             **authorization_header)
         response = RepositoryTranslatedExampleEntityViewSet.as_view(
             {'delete': 'destroy'})(request, pk=translated_entity.id)
