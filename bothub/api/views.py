@@ -102,13 +102,16 @@ class ExamplesFilter(filters.FilterSet):
     repository_uuid = filters.CharFilter(
         name='repository_uuid',
         method='filter_repository_uuid',
-        required=True)
+        required=True,
+        help_text=_('Repository\'s UUID'))
     language = filters.CharFilter(
         name='language',
-        method='filter_language')
+        method='filter_language',
+        help_text='Filter by language, default is repository base language')
     has_translation = filters.BooleanFilter(
         name='has_translation',
-        method='filter_has_translation')
+        method='filter_has_translation',
+        help_text=_('Filter for examples with or without translation'))
 
     def filter_repository_uuid(self, queryset, name, value):
         request = self.request
@@ -144,6 +147,9 @@ class ExamplesFilter(filters.FilterSet):
 class NewRepositoryViewSet(
         mixins.CreateModelMixin,
         GenericViewSet):
+    """
+    Create a new Repository, add examples and train a bot.
+    """
     queryset = Repository.objects
     serializer_class = RepositorySerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -152,6 +158,9 @@ class NewRepositoryViewSet(
 class MyRepositoriesViewSet(
         mixins.ListModelMixin,
         GenericViewSet):
+    """
+    List all user's repositories
+    """
     queryset = Repository.objects
     serializer_class = RepositorySerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -165,6 +174,21 @@ class RepositoryViewSet(
         mixins.UpdateModelMixin,
         mixins.DestroyModelMixin,
         GenericViewSet):
+    """
+    Manager repository.
+
+    retrieve:
+    Get repository data.
+
+    update:
+    Update your repository.
+
+    partial_update:
+    Update, partially, your repository.
+
+    delete:
+    Delete your repository.
+    """
     queryset = Repository.objects
     serializer_class = RepositorySerializer
     permission_classes = [
@@ -176,6 +200,9 @@ class RepositoryViewSet(
         methods=['GET'],
         url_name='repository-languages-status')
     def languagesstatus(self, request, **kwargs):
+        """
+        Get current language status.
+        """
         repository = self.get_object()
         return Response({
             'languages_status': repository.languages_status,
@@ -185,6 +212,11 @@ class RepositoryViewSet(
         methods=['GET'],
         url_name='repository-authorization')
     def authorization(self, request, **kwargs):
+        """
+        Get authorization to use in Bothub Natural Language Processing service.
+        In Bothub NLP you can train the repository's bot and get interpreted
+        messages.
+        """
         repository = self.get_object()
         user_authorization = repository.get_user_authorization(request.user)
         serializer = RepositoryAuthorizationSerializer(user_authorization)
@@ -194,6 +226,9 @@ class RepositoryViewSet(
 class NewRepositoryExampleViewSet(
         mixins.CreateModelMixin,
         GenericViewSet):
+    """
+    Create new repository example.
+    """
     queryset = RepositoryExample.objects
     serializer_class = RepositoryExampleSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -203,6 +238,15 @@ class RepositoryExampleViewSet(
         mixins.RetrieveModelMixin,
         mixins.DestroyModelMixin,
         GenericViewSet):
+    """
+    Manager repository example.
+
+    retrieve:
+    Get repository example data.
+
+    delete:
+    Delete repository example.
+    """
     queryset = RepositoryExample.objects
     serializer_class = RepositoryExampleSerializer
     permission_classes = [
@@ -219,6 +263,9 @@ class RepositoryExampleViewSet(
 class NewRepositoryExampleEntityViewSet(
         mixins.CreateModelMixin,
         GenericViewSet):
+    """
+    Create new example entity.
+    """
     queryset = RepositoryExampleEntity.objects
     serializer_class = RepositoryExampleEntitySerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -228,6 +275,15 @@ class RepositoryExampleEntityViewSet(
         mixins.RetrieveModelMixin,
         mixins.DestroyModelMixin,
         GenericViewSet):
+    """
+    Manager example entity.
+
+    retrieve:
+    Get example entity data.
+
+    delete:
+    Delete example entity.
+    """
     queryset = RepositoryExampleEntity.objects
     serializer_class = RepositoryExampleEntitySerializer
     permission_classes = [
@@ -239,6 +295,9 @@ class RepositoryExampleEntityViewSet(
 class NewRepositoryTranslatedExampleViewSet(
         mixins.CreateModelMixin,
         GenericViewSet):
+    """
+    Translate example
+    """
     queryset = RepositoryTranslatedExample.objects
     serializer_class = RepositoryTranslatedExampleSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -249,6 +308,21 @@ class RepositoryTranslatedExampleViewSet(
         mixins.UpdateModelMixin,
         mixins.DestroyModelMixin,
         GenericViewSet):
+    """
+    Manager example translation.
+
+    retrieve:
+    Get example translation data.
+
+    update:
+    Update example translation.
+
+    partial_update:
+    Update, partially, example translation.
+
+    delete:
+    Delete example translation.
+    """
     queryset = RepositoryTranslatedExample.objects
     serializer_class = RepositoryTranslatedExampleSerializer
     permission_classes = [
@@ -260,6 +334,9 @@ class RepositoryTranslatedExampleViewSet(
 class NewRepositoryTranslatedExampleEntityViewSet(
         mixins.CreateModelMixin,
         GenericViewSet):
+    """
+    Add entity to example translation
+    """
     queryset = RepositoryTranslatedExampleEntity.objects
     serializer_class = RepositoryTranslatedExampleEntitySeralizer
     permission_classes = [permissions.IsAuthenticated]
@@ -269,6 +346,15 @@ class RepositoryTranslatedExampleEntityViewSet(
         mixins.RetrieveModelMixin,
         mixins.DestroyModelMixin,
         GenericViewSet):
+    """
+    Manage translation entity
+
+    retrieve:
+    Get translation entity data.
+
+    delete:
+    Delete translation entity.
+    """
     queryset = RepositoryTranslatedExampleEntity.objects
     serializer_class = RepositoryTranslatedExampleEntitySeralizer
     permission_classes = [
@@ -291,6 +377,9 @@ class RepositoryExamplesViewSet(
 class RegisterUserViewSet(
         mixins.CreateModelMixin,
         GenericViewSet):
+    """
+    Register new user
+    """
     queryset = User.objects
     serializer_class = RegisterUserSerializer
 
@@ -299,6 +388,18 @@ class UserViewSet(
         mixins.RetrieveModelMixin,
         mixins.UpdateModelMixin,
         GenericViewSet):
+    """
+    Manager user's profile
+
+    retrieve:
+    Get user's profile
+
+    update:
+    Update full user's profile
+
+    partial_update:
+    Update user's profile fields
+    """
     queryset = User.objects
     serializer_class = UserSerializer
     permission_classes = [

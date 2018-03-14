@@ -127,7 +127,8 @@ class RepositoryExampleEntitySerializer(serializers.ModelSerializer):
         queryset=RepositoryExample.objects,
         validators=[
             CanContributeInRepositoryExampleValidator(),
-        ])
+        ],
+        help_text=_('Example\'s ID'))
     value = serializers.SerializerMethodField()
 
     def get_value(self, obj):
@@ -151,7 +152,8 @@ class RepositoryTranslatedExampleEntitySeralizer(serializers.ModelSerializer):
         queryset=RepositoryTranslatedExample.objects,
         validators=[
             CanContributeInRepositoryTranslatedExampleValidator(),
-        ])
+        ],
+        help_text='Example translation ID')
     value = serializers.SerializerMethodField()
 
     def get_value(self, obj):
@@ -174,7 +176,8 @@ class RepositoryTranslatedExampleSerializer(serializers.ModelSerializer):
         queryset=RepositoryExample.objects,
         validators=[
             CanContributeInRepositoryExampleValidator(),
-        ])
+        ],
+        help_text=_('Example\'s ID'))
     has_valid_entities = serializers.SerializerMethodField()
     entities = RepositoryTranslatedExampleEntitySeralizer(
         many=True,
