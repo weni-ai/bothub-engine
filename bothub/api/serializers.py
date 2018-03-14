@@ -127,7 +127,8 @@ class RepositoryExampleEntitySerializer(serializers.ModelSerializer):
         queryset=RepositoryExample.objects,
         validators=[
             CanContributeInRepositoryExampleValidator(),
-        ])
+        ],
+        help_text=_('Example\'s ID'))
     value = serializers.SerializerMethodField()
 
     def get_value(self, obj):

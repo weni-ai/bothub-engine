@@ -245,7 +245,7 @@ class RepositoryExampleViewSet(
     Get repository example data.
 
     delete:
-    Delete your repository example.
+    Delete repository example.
     """
     queryset = RepositoryExample.objects
     serializer_class = RepositoryExampleSerializer
@@ -263,6 +263,9 @@ class RepositoryExampleViewSet(
 class NewRepositoryExampleEntityViewSet(
         mixins.CreateModelMixin,
         GenericViewSet):
+    """
+    Create new example entity.
+    """
     queryset = RepositoryExampleEntity.objects
     serializer_class = RepositoryExampleEntitySerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -272,6 +275,15 @@ class RepositoryExampleEntityViewSet(
         mixins.RetrieveModelMixin,
         mixins.DestroyModelMixin,
         GenericViewSet):
+    """
+    Manager example entity.
+
+    retrieve:
+    Get example entity data.
+
+    delete:
+    Delete example entity.
+    """
     queryset = RepositoryExampleEntity.objects
     serializer_class = RepositoryExampleEntitySerializer
     permission_classes = [

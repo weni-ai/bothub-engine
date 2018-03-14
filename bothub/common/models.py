@@ -359,12 +359,15 @@ class EntityBase(models.Model):
         abstract = True
 
     start = models.PositiveIntegerField(
-        _('start'))
+        _('start'),
+        help_text=_('Start index of entity value in example text'))
     end = models.PositiveIntegerField(
-        _('end'))
+        _('end'),
+        help_text=_('End index of entity value in example text'))
     entity = models.CharField(
         _('entity'),
-        max_length=64)
+        max_length=64,
+        help_text=_('Entity name'))
     created_at = models.DateTimeField(
         _('created at'),
         auto_now_add=True)
@@ -391,7 +394,8 @@ class RepositoryExampleEntity(EntityBase):
         RepositoryExample,
         models.CASCADE,
         related_name='entities',
-        editable=False)
+        editable=False,
+        help_text=_('Example object'))
 
     def get_example(self):
         return self.repository_example
@@ -402,7 +406,8 @@ class RepositoryTranslatedExampleEntity(EntityBase):
         RepositoryTranslatedExample,
         models.CASCADE,
         related_name='entities',
-        editable=False)
+        editable=False,
+        help_text=_('Translated example object'))
 
     def get_example(self):
         return self.repository_translated_example
