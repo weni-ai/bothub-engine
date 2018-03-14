@@ -152,7 +152,8 @@ class RepositoryTranslatedExampleEntitySeralizer(serializers.ModelSerializer):
         queryset=RepositoryTranslatedExample.objects,
         validators=[
             CanContributeInRepositoryTranslatedExampleValidator(),
-        ])
+        ],
+        help_text='Example translation ID')
     value = serializers.SerializerMethodField()
 
     def get_value(self, obj):

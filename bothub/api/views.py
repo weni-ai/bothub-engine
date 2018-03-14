@@ -334,6 +334,9 @@ class RepositoryTranslatedExampleViewSet(
 class NewRepositoryTranslatedExampleEntityViewSet(
         mixins.CreateModelMixin,
         GenericViewSet):
+    """
+    Add entity to example translation
+    """
     queryset = RepositoryTranslatedExampleEntity.objects
     serializer_class = RepositoryTranslatedExampleEntitySeralizer
     permission_classes = [permissions.IsAuthenticated]
@@ -343,6 +346,15 @@ class RepositoryTranslatedExampleEntityViewSet(
         mixins.RetrieveModelMixin,
         mixins.DestroyModelMixin,
         GenericViewSet):
+    """
+    Manage translation entity
+
+    retrieve:
+    Get translation entity data.
+
+    delete:
+    Delete translation entity.
+    """
     queryset = RepositoryTranslatedExampleEntity.objects
     serializer_class = RepositoryTranslatedExampleEntitySeralizer
     permission_classes = [
