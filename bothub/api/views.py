@@ -144,6 +144,9 @@ class ExamplesFilter(filters.FilterSet):
 class NewRepositoryViewSet(
         mixins.CreateModelMixin,
         GenericViewSet):
+    """
+    Create a new Repository, add examples and train a bot.
+    """
     queryset = Repository.objects
     serializer_class = RepositorySerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -152,6 +155,9 @@ class NewRepositoryViewSet(
 class MyRepositoriesViewSet(
         mixins.ListModelMixin,
         GenericViewSet):
+    """
+    List all user's repositories
+    """
     queryset = Repository.objects
     serializer_class = RepositorySerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -165,6 +171,21 @@ class RepositoryViewSet(
         mixins.UpdateModelMixin,
         mixins.DestroyModelMixin,
         GenericViewSet):
+    """
+    Manager your repository.
+
+    retrieve:
+    Get repository data.
+
+    update:
+    Update your repository.
+
+    partial_update:
+    Update, partially, your repository.
+
+    delete:
+    Delete your repository.
+    """
     queryset = Repository.objects
     serializer_class = RepositorySerializer
     permission_classes = [
@@ -176,6 +197,9 @@ class RepositoryViewSet(
         methods=['GET'],
         url_name='repository-languages-status')
     def languagesstatus(self, request, **kwargs):
+        """
+        Get current language status.
+        """
         repository = self.get_object()
         return Response({
             'languages_status': repository.languages_status,
@@ -185,6 +209,11 @@ class RepositoryViewSet(
         methods=['GET'],
         url_name='repository-authorization')
     def authorization(self, request, **kwargs):
+        """
+        Get authorization to use in Bothub Natural Language Processing service.
+        In Bothub NLP you can train the repository's bot and get interpreted
+        messages.
+        """
         repository = self.get_object()
         user_authorization = repository.get_user_authorization(request.user)
         serializer = RepositoryAuthorizationSerializer(user_authorization)

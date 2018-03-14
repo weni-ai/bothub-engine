@@ -39,23 +39,33 @@ class Repository(models.Model):
         models.CASCADE)
     name = models.CharField(
         _('name'),
-        max_length=64)
+        max_length=64,
+        help_text=_('Repository display name'))
     slug = models.SlugField(
         _('slug'),
         unique=True,
-        max_length=32)
+        max_length=32,
+        help_text=_('Easy way to found and share repositories'))
     language = models.CharField(
         _('language'),
         choices=languages.LANGUAGE_CHOICES,
-        max_length=2)
+        max_length=2,
+        help_text=_('Repository\'s examples language. The examples can be ' +
+                    'translated to other languages.'))
     categories = models.ManyToManyField(
-        RepositoryCategory)
+        RepositoryCategory,
+        help_text=_('Categories for approaching repositories with the same ' +
+                    'purpose'))
     description = models.TextField(
         _('description'),
-        blank=True)
+        blank=True,
+        help_text=_('Tell what your bot do!'))
     is_private = models.BooleanField(
         _('private'),
-        default=False)
+        default=False,
+        help_text=_('Your repository can be private, only you can see and' +
+                    ' use, or can be public and all community can see and ' +
+                    'use.'))
     created_at = models.DateTimeField(
         _('created at'),
         auto_now_add=True)
