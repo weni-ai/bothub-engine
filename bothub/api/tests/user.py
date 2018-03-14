@@ -9,6 +9,7 @@ from bothub.authentication.models import User
 
 from ..views import RegisterUserViewSet
 from ..views import UserViewSet
+from ..views import LoginViewSet
 
 from .utils import create_user_and_token
 
@@ -130,3 +131,49 @@ class UserUpdateTestCase(TestCase):
         self.assertEqual(
             response.status_code,
             status.HTTP_403_FORBIDDEN)
+
+
+class LoginTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.password = 'abcgq!!123'
+        self.email = 'user@user.com'
+
+        user = User.objects.create(
+            email=self.email,
+            nick='user',
+            name='User')
+        user.set_password(self.password)
+        user.save(update_fields=['password'])
+
+    def request(self, data):
+        request = self.factory.post(
+            '/api/login/',
+            data)
+        response = LoginViewSet.as_view(
+            {'post': 'create'})(request)
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data,)
+
+    def test_okay(self):
+        response, content_data = self.request({
+            'username': self.email,
+            'password': self.password,
+        })
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_201_CREATED)
+        self.assertIn(
+            'token',
+            content_data.keys())
+
+    def test_wrong_password(self):
+        response, content_data = self.request({
+            'username': self.email,
+            'password': 'wrong',
+        })
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST)

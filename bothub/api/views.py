@@ -6,6 +6,9 @@ from rest_framework.response import Response
 from rest_framework.exceptions import APIException
 from rest_framework.exceptions import NotFound
 from rest_framework.exceptions import PermissionDenied
+from rest_framework.authtoken.serializers import AuthTokenSerializer
+from rest_framework.authtoken.models import Token
+from rest_framework import status
 from django.utils.translation import gettext as _
 from django.db.models import Count
 from django.core.exceptions import ValidationError as DjangoValidationError
@@ -406,3 +409,21 @@ class UserViewSet(
         permissions.IsAuthenticated,
         UserPermission,
     ]
+
+
+class LoginViewSet(GenericViewSet):
+    queryset = User.objects
+    serializer_class = AuthTokenSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.serializer_class(
+            data=request.data,
+            context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data['user']
+        token, created = Token.objects.get_or_create(user=user)
+        return Response(
+            {
+                'token': token.key,
+            },
+            status.HTTP_201_CREATED if created else status.HTTP_200_OK)
