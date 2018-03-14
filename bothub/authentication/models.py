@@ -53,17 +53,22 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     email = models.EmailField(
         _('email'),
-        unique=True)
+        unique=True,
+        help_text=_('User\'s e-mail.'))
     name = models.CharField(
         _('name'),
-        max_length=32)
+        max_length=32,
+        help_text=_('User\'s name.'))
     nick = models.CharField(
         _('nick'),
         max_length=16,
-        validators=[validate_user_nick])
+        validators=[validate_user_nick],
+        help_text=_('User\'s nick, using letters, numbers, underscores and ' +
+                    'hyphens without spaces.'))
     locale = models.CharField(
         _('locale'),
-        max_length=48)
+        max_length=48,
+        help_text=_('User\'s locale.'))
     is_staff = models.BooleanField(
         _('staff status'),
         default=False)

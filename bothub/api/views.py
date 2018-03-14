@@ -377,6 +377,9 @@ class RepositoryExamplesViewSet(
 class RegisterUserViewSet(
         mixins.CreateModelMixin,
         GenericViewSet):
+    """
+    Register new user
+    """
     queryset = User.objects
     serializer_class = RegisterUserSerializer
 
@@ -385,6 +388,18 @@ class UserViewSet(
         mixins.RetrieveModelMixin,
         mixins.UpdateModelMixin,
         GenericViewSet):
+    """
+    Manager user's profile
+
+    retrieve:
+    Get user's profile
+
+    update:
+    Update full user's profile
+
+    partial_update:
+    Update user's profile fields
+    """
     queryset = User.objects
     serializer_class = UserSerializer
     permission_classes = [
