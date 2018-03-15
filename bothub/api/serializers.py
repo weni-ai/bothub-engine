@@ -1,9 +1,6 @@
 from rest_framework import serializers
-from rest_framework.exceptions import NotFound
-from rest_framework.exceptions import ValidationError
 from rest_framework.exceptions import PermissionDenied
 from django.utils.translation import gettext as _
-from django.core.exceptions import ValidationError as DjangoValidationError
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.hashers import make_password
 
@@ -15,35 +12,6 @@ from bothub.common.models import RepositoryTranslatedExample
 from bothub.common.models import RepositoryTranslatedExampleEntity
 from bothub.common.models import RepositoryAuthorization
 from bothub.authentication.models import User
-
-
-# Defaults
-
-class CurrentUpdateDefault(object):
-    def set_context(self, serializer_field):
-        request = serializer_field.context['request']
-        repository_uuid = request.POST.get('repository_uuid')
-
-        if not repository_uuid:
-            raise ValidationError(_('repository_uuid is required'))
-
-        try:
-            repository = Repository.objects.get(uuid=repository_uuid)
-        except Repository.DoesNotExist:
-            raise NotFound(
-                _('Repository {} does not exist').format(repository_uuid))
-        except DjangoValidationError:
-            raise ValidationError(_('Invalid repository_uuid'))
-
-        user_authorization = repository.get_user_authorization(request.user)
-        if not user_authorization.can_contribute:
-            raise PermissionDenied(
-                _('You can\'t contribute in this repository'))
-
-        self.repository_update = repository.current_update()
-
-    def __call__(self):
-        return self.repository_update
 
 
 # Validators
@@ -127,7 +95,8 @@ class RepositoryExampleEntitySerializer(serializers.ModelSerializer):
         queryset=RepositoryExample.objects,
         validators=[
             CanContributeInRepositoryExampleValidator(),
-        ])
+        ],
+        help_text=_('Example\'s ID'))
     value = serializers.SerializerMethodField()
 
     def get_value(self, obj):
@@ -151,7 +120,8 @@ class RepositoryTranslatedExampleEntitySeralizer(serializers.ModelSerializer):
         queryset=RepositoryTranslatedExample.objects,
         validators=[
             CanContributeInRepositoryTranslatedExampleValidator(),
-        ])
+        ],
+        help_text='Example translation ID')
     value = serializers.SerializerMethodField()
 
     def get_value(self, obj):
@@ -174,7 +144,8 @@ class RepositoryTranslatedExampleSerializer(serializers.ModelSerializer):
         queryset=RepositoryExample.objects,
         validators=[
             CanContributeInRepositoryExampleValidator(),
-        ])
+        ],
+        help_text=_('Example\'s ID'))
     has_valid_entities = serializers.SerializerMethodField()
     entities = RepositoryTranslatedExampleEntitySeralizer(
         many=True,
@@ -189,6 +160,7 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
         model = RepositoryExample
         fields = [
             'id',
+            'repository',
             'repository_update',
             'deleted_in',
             'text',
@@ -199,12 +171,14 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
             'translations',
         ]
         read_only_fields = [
+            'repository_update',
             'deleted_in',
         ]
 
-    repository_update = serializers.PrimaryKeyRelatedField(
-        read_only=True,
-        default=CurrentUpdateDefault())
+    repository = serializers.PrimaryKeyRelatedField(
+        write_only=True,
+        queryset=Repository.objects,
+        source='repository_update')
     entities = RepositoryExampleEntitySerializer(
         many=True,
         read_only=True)
@@ -215,6 +189,13 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
 
     def get_language(self, obj):
         return obj.language
+
+    def validate_repository(self, repository):
+        request = self.context.get('request')
+        authorization = repository.get_user_authorization(request.user)
+        if not authorization.can_contribute:
+            raise PermissionDenied()
+        return repository.current_update()
 
 
 class RepositoryAuthorizationSerializer(serializers.ModelSerializer):
