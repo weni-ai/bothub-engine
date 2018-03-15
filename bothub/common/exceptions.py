@@ -1,14 +1,17 @@
-class RepositoryUpdateAlreadyStartedTraining(Exception):
+class BotHubException(Exception):
+    pass
+
+class RepositoryUpdateAlreadyStartedTraining(BotHubException):
     pass
 
 
-class RepositoryUpdateAlreadyTrained(Exception):
+class RepositoryUpdateAlreadyTrained(BotHubException):
     pass
 
 
-class TrainingNotAllowed(Exception):
+class TrainingNotAllowed(BotHubException):
     pass
 
 
-class DoesNotHaveTranslation(Exception):
+class DoesNotHaveTranslation(BotHubException):
     pass
