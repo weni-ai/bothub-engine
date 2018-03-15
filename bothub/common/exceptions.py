@@ -1,6 +1,7 @@
 class BotHubException(Exception):
     pass
 
+
 class RepositoryUpdateAlreadyStartedTraining(BotHubException):
     pass
 
