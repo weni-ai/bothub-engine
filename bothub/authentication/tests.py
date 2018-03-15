@@ -14,7 +14,7 @@ class AuthenticationTestCase(TestCase):
         with self.assertRaises(ValueError):
             User.objects._create_user('', 'fake')
 
-    def test_new_user_fail_without_nick(self):
+    def test_new_user_fail_without_nickname(self):
         with self.assertRaises(ValueError):
             User.objects._create_user('fake@user.com', '')
 

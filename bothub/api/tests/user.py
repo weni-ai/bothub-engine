@@ -34,7 +34,7 @@ class RegisterUserTestCase(TestCase):
         response, content_data = self.request({
             'email': email,
             'name': 'Fake',
-            'nick': 'fake',
+            'nickname': 'fake',
             'password': password,
         })
         self.assertEqual(
@@ -47,7 +47,7 @@ class RegisterUserTestCase(TestCase):
         response, content_data = self.request({
             'email': 'fake@user.com',
             'name': 'Fake',
-            'nick': 'fake',
+            'nickname': 'fake',
             'password': 'abc',
         })
         self.assertEqual(
@@ -142,7 +142,7 @@ class LoginTestCase(TestCase):
 
         user = User.objects.create(
             email=self.email,
-            nick='user',
+            nickname='user',
             name='User')
         user.set_password(self.password)
         user.save(update_fields=['password'])
