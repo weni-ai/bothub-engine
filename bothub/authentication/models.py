@@ -6,41 +6,41 @@ from django.contrib.auth.models import PermissionsMixin
 from django.core.validators import RegexValidator, _lazy_re_compile
 
 
-user_nick_re = _lazy_re_compile(r'^[-a-zA-Z0-9_]+\Z')
-validate_user_nick = RegexValidator(
-    user_nick_re,
-    _('Enter a valid \'nick\' consisting of letters, numbers, underscores ' +
-        'or hyphens.'),
+user_nickname_re = _lazy_re_compile(r'^[-a-zA-Z0-9_]+\Z')
+validate_user_nickname = RegexValidator(
+    user_nickname_re,
+    _('Enter a valid \'nickname\' consisting of letters, numbers, ' +
+        'underscores or hyphens.'),
     'invalid'
 )
 
 
 class UserManager(BaseUserManager):
-    def _create_user(self, email, nick, password=None, **extra_fields):
+    def _create_user(self, email, nickname, password=None, **extra_fields):
         if not email:
             raise ValueError('The given email must be set')
-        if not nick:
+        if not nickname:
             raise ValueError('The given nick must be set')
 
         email = self.normalize_email(email)
-        user = self.model(email=email, nick=nick, **extra_fields)
+        user = self.model(email=email, nickname=nickname, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
         return user
 
-    def create_user(self, email, nick, password=None, **extra_fields):
+    def create_user(self, email, nickname, password=None, **extra_fields):
         extra_fields.setdefault('is_superuser', False)
 
-        return self._create_user(email, nick, password, **extra_fields)
+        return self._create_user(email, nickname, password, **extra_fields)
 
-    def create_superuser(self, email, nick, password=None, **extra_fields):
+    def create_superuser(self, email, nickname, password=None, **extra_fields):
         extra_fields.setdefault('is_superuser', True)
         extra_fields.setdefault('is_staff', True)
 
         if extra_fields.get('is_superuser') is not True:
             raise ValueError('Superuser must have is_superuser=True.')
 
-        return self._create_user(email, nick, password, **extra_fields)
+        return self._create_user(email, nickname, password, **extra_fields)
 
 
 class User(AbstractBaseUser, PermissionsMixin):
@@ -49,7 +49,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         verbose_name_plural = _('users')
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['nick']
+    REQUIRED_FIELDS = ['nickname']
 
     email = models.EmailField(
         _('email'),
@@ -59,12 +59,12 @@ class User(AbstractBaseUser, PermissionsMixin):
         _('name'),
         max_length=32,
         help_text=_('User\'s name.'))
-    nick = models.CharField(
-        _('nick'),
+    nickname = models.CharField(
+        _('nickname'),
         max_length=16,
-        validators=[validate_user_nick],
-        help_text=_('User\'s nick, using letters, numbers, underscores and ' +
-                    'hyphens without spaces.'))
+        validators=[validate_user_nickname],
+        help_text=_('User\'s nickname, using letters, numbers, underscores ' +
+                    'and hyphens without spaces.'))
     locale = models.CharField(
         _('locale'),
         max_length=48,
