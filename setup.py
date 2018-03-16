@@ -6,10 +6,10 @@ install_requires = list(
     filter(lambda x: len(x) > 0, install_requires.split('\n')))
 
 setup(
-    name='bothub-app',
-    version='1.0.0',
-    description='bothub app',
+    name='bothub',
+    version='1.1.0',
+    description='bothub',
     packages=find_packages(),
     install_requires=install_requires,
-    python_requires='>=3.5',
+    python_requires='>=3.6',
 )
