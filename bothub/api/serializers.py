@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import ValidationError
 from django.utils.translation import gettext as _
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.hashers import make_password
@@ -237,3 +238,19 @@ class UserSerializer(serializers.ModelSerializer):
             'name',
             'locale',
         ]
+
+
+class ChangePasswordSerializer(serializers.Serializer):
+    current_password = serializers.CharField(
+        required=True)
+    password = serializers.CharField(
+        required=True,
+        validators=[
+            validate_password,
+        ])
+
+    def validate_current_password(self, value):
+        request = self.context.get('request')
+        if not request.user.check_password(value):
+            raise ValidationError(_('Wrong password'))
+        return value

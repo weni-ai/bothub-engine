@@ -10,6 +10,7 @@ from bothub.authentication.models import User
 from ..views import RegisterUserViewSet
 from ..views import UserViewSet
 from ..views import LoginViewSet
+from ..views import ChangePasswordViewSet
 
 from .utils import create_user_and_token
 
@@ -177,3 +178,52 @@ class LoginTestCase(TestCase):
         self.assertEqual(
             response.status_code,
             status.HTTP_400_BAD_REQUEST)
+
+
+class ChangePasswordTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.user, self.user_token = create_user_and_token()
+        self.password = '12555q!66'
+        self.user.set_password(self.password)
+        self.user.save(update_fields=['password'])
+
+    def request(self, data, token):
+        authorization_header = {
+            'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
+        }
+        request = self.factory.post(
+            '/api/',
+            data,
+            **authorization_header)
+        response = ChangePasswordViewSet.as_view(
+            {'post': 'update'})(request)
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data,)
+
+    def test_okay(self):
+        new_password = 'kkl8&!qq'
+        response, content_data = self.request(
+            {
+                'current_password': self.password,
+                'password': new_password,
+            },
+            self.user_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK)
+
+    def test_wrong_password(self):
+        response, content_data = self.request(
+            {
+                'current_password': 'wrong_password',
+                'password': 'new_password',
+            },
+            self.user_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST)
+        self.assertIn(
+            'current_password',
+            content_data.keys())
