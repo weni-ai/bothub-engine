@@ -39,23 +39,33 @@ class Repository(models.Model):
         models.CASCADE)
     name = models.CharField(
         _('name'),
-        max_length=64)
+        max_length=64,
+        help_text=_('Repository display name'))
     slug = models.SlugField(
         _('slug'),
         unique=True,
-        max_length=32)
+        max_length=32,
+        help_text=_('Easy way to found and share repositories'))
     language = models.CharField(
         _('language'),
         choices=languages.LANGUAGE_CHOICES,
-        max_length=2)
+        max_length=2,
+        help_text=_('Repository\'s examples language. The examples can be ' +
+                    'translated to other languages.'))
     categories = models.ManyToManyField(
-        RepositoryCategory)
+        RepositoryCategory,
+        help_text=_('Categories for approaching repositories with the same ' +
+                    'purpose'))
     description = models.TextField(
         _('description'),
-        blank=True)
+        blank=True,
+        help_text=_('Tell what your bot do!'))
     is_private = models.BooleanField(
         _('private'),
-        default=False)
+        default=False,
+        help_text=_('Your repository can be private, only you can see and' +
+                    ' use, or can be public and all community can see and ' +
+                    'use.'))
     created_at = models.DateTimeField(
         _('created at'),
         auto_now_add=True)
@@ -246,11 +256,13 @@ class RepositoryExample(models.Model):
         blank=True,
         null=True)
     text = models.TextField(
-        _('text'))
+        _('text'),
+        help_text=_('Example text'))
     intent = models.CharField(
         _('intent'),
         max_length=64,
-        blank=True)
+        blank=True,
+        help_text=_('Example intent reference'))
     created_at = models.DateTimeField(
         _('created at'),
         auto_now_add=True)
@@ -305,13 +317,16 @@ class RepositoryTranslatedExample(models.Model):
         RepositoryExample,
         models.CASCADE,
         related_name='translations',
-        editable=False)
+        editable=False,
+        help_text=_('Example object'))
     language = models.CharField(
         _('language'),
         choices=languages.LANGUAGE_CHOICES,
-        max_length=2)
+        max_length=2,
+        help_text=_('Translation language'))
     text = models.TextField(
-        _('text'))
+        _('text'),
+        help_text=_('Translation text'))
 
     @classmethod
     def create_entitites_count_dict(cls, entities):
@@ -347,12 +362,15 @@ class EntityBase(models.Model):
         abstract = True
 
     start = models.PositiveIntegerField(
-        _('start'))
+        _('start'),
+        help_text=_('Start index of entity value in example text'))
     end = models.PositiveIntegerField(
-        _('end'))
+        _('end'),
+        help_text=_('End index of entity value in example text'))
     entity = models.CharField(
         _('entity'),
-        max_length=64)
+        max_length=64,
+        help_text=_('Entity name'))
     created_at = models.DateTimeField(
         _('created at'),
         auto_now_add=True)
@@ -379,7 +397,8 @@ class RepositoryExampleEntity(EntityBase):
         RepositoryExample,
         models.CASCADE,
         related_name='entities',
-        editable=False)
+        editable=False,
+        help_text=_('Example object'))
 
     def get_example(self):
         return self.repository_example
@@ -390,7 +409,8 @@ class RepositoryTranslatedExampleEntity(EntityBase):
         RepositoryTranslatedExample,
         models.CASCADE,
         related_name='entities',
-        editable=False)
+        editable=False,
+        help_text=_('Translated example object'))
 
     def get_example(self):
         return self.repository_translated_example

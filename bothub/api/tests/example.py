@@ -45,11 +45,10 @@ class NewRepositoryExampleTestCase(TestCase):
     def test_okay(self):
         text = 'hi'
         intent = 'greet'
-        current_update = self.repository.current_update()
         response, content_data = self.request(
             self.owner_token,
             {
-                'repository_uuid': self.repository.uuid,
+                'repository': self.repository.uuid,
                 'text': text,
                 'intent': intent,
             })
@@ -62,15 +61,12 @@ class NewRepositoryExampleTestCase(TestCase):
         self.assertEqual(
             content_data.get('intent'),
             intent)
-        self.assertEqual(
-            content_data.get('repository_update'),
-            current_update.id)
 
     def test_forbidden(self):
         response, content_data = self.request(
             self.user_token,
             {
-                'repository_uuid': self.repository.uuid,
+                'repository': self.repository.uuid,
                 'text': 'hi',
                 'intent': 'greet',
             })
@@ -93,19 +89,22 @@ class NewRepositoryExampleTestCase(TestCase):
         response, content_data = self.request(
             self.owner_token,
             {
-                'repository_uuid': uuid.uuid4(),
+                'repository': uuid.uuid4(),
                 'text': 'hi',
                 'intent': 'greet',
             })
         self.assertEqual(
             response.status_code,
-            status.HTTP_404_NOT_FOUND)
+            status.HTTP_400_BAD_REQUEST)
+        self.assertIn(
+            'repository',
+            content_data.keys())
 
     def test_invalid_repository_uuid(self):
         response, content_data = self.request(
             self.owner_token,
             {
-                'repository_uuid': 'invalid',
+                'repository': 'invalid',
                 'text': 'hi',
                 'intent': 'greet',
             })

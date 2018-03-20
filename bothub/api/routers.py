@@ -12,6 +12,10 @@ from .views import RepositoryTranslatedExampleViewSet
 from .views import NewRepositoryTranslatedExampleEntityViewSet
 from .views import RepositoryTranslatedExampleEntityViewSet
 from .views import RepositoryExamplesViewSet
+from .views import RegisterUserViewSet
+from .views import UserViewSet
+from .views import LoginViewSet
+from .views import ChangePasswordViewSet
 
 
 router = routers.SimpleRouter()
@@ -23,9 +27,13 @@ router.register('example', RepositoryExampleViewSet)
 router.register('entity/new', NewRepositoryExampleEntityViewSet)
 router.register('entity', RepositoryExampleEntityViewSet)
 router.register('translate-example', NewRepositoryTranslatedExampleViewSet)
-router.register('translated', RepositoryTranslatedExampleViewSet)
-router.register('translated-entity/new',
+router.register('translation', RepositoryTranslatedExampleViewSet)
+router.register('translation-entity/new',
                 NewRepositoryTranslatedExampleEntityViewSet)
-router.register('translated-entity',
+router.register('translation-entity',
                 RepositoryTranslatedExampleEntityViewSet)
 router.register('examples', RepositoryExamplesViewSet)
+router.register('register', RegisterUserViewSet)
+router.register('profile', UserViewSet)
+router.register('login', LoginViewSet)
+router.register('change-password', ChangePasswordViewSet)
