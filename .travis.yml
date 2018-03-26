@@ -11,7 +11,7 @@ env:
   global:
     - SECRET_KEY=SK
     - COMMIT=${TRAVIS_COMMIT::8}
-    - DOCKER_HUB_REPO=ilha/bothub:latest
+    - DOCKER_HUB_REPO=ilha/bothub
 script:
   - flake8
   - coverage run manage.py test
@@ -19,7 +19,7 @@ script:
 after_success:
   - coveralls
   - export TAG=`if ["$TRAVIS_BRANCH" == "master"]; then echo "latest"; else echo $TRAVIS_BRANCH ; fi`
-  - docker login -e $DOCKER_HUB_EMAIL -u $DOCKER_HUB_USER -p $DOCKER_HUB_PASS
-  - docker-compose -f docker/docker-compose.yml -t $DOCKER_HUB_REPO:$COMMIT build
+  - docker login -u $DOCKER_HUB_USER -p $DOCKER_HUB_PASS
+  - docker-compose -f docker/docker-compose.yml build
   - docker tag $DOCKER_HUB_REPO:$COMMIT $DOCKER_HUB_REPO:$TAG
   - docker push $DOCKER_HUB_REPO

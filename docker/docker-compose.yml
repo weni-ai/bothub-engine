@@ -2,7 +2,7 @@ version: '3.3'
 
 services:
   bothub:
-    image: ilha/bothub:latest
+    image: $DOCKER_HUB_REPO:$COMMIT
     build:
       context: ..
       dockerfile: docker/Dockerfile
