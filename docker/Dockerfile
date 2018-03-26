@@ -5,7 +5,6 @@ WORKDIR $WORKDIR
 
 RUN apk update && apk upgrade
 RUN apk add alpine-sdk postgresql-dev
-RUN pip install gunicorn
 
 COPY . .
 RUN pip install --exists-action w -r requirements.txt
