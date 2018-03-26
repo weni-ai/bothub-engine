@@ -8,7 +8,6 @@ RUN apk add alpine-sdk postgresql-dev
 RUN pip install gunicorn
 
 COPY . .
-COPY ./requirements.txt .
 RUN pip install --exists-action w -r requirements.txt
 RUN pip install gunicorn
 
