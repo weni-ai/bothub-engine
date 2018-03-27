@@ -2,7 +2,7 @@ version: '3.3'
 
 services:
   bothub:
-    image: $DOCKER_HUB_REPO:$COMMIT
+    image: $DOCKER_HUB_REPO:$TAG
     build:
       context: ..
       dockerfile: docker/Dockerfile
