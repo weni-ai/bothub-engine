@@ -158,7 +158,7 @@ ADMINS = config(
         (
             s.strip().split('|')[0],
             s.strip().split('|')[1],
-        ) for s in v.split(',')])
+        ) for s in v.split(',')] if v else [])
 EMAIL_SUBJECT_PREFIX = '[bothub] '
 DEFAULT_FROM_EMAIL = config(
     'DEFAULT_FROM_EMAIL',
