@@ -20,4 +20,4 @@ after_success:
   - export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo $TRAVIS_BRANCH ; fi`
   - docker login -u $DOCKER_HUB_USER -p $DOCKER_HUB_PASS
   - docker-compose -f docker/docker-compose.yml build
-  - docker push $DOCKER_HUB_REPO
+  - docker push $DOCKER_HUB_REPO:$TAG
