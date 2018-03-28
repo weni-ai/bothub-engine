@@ -11,6 +11,7 @@ from ..views import RegisterUserViewSet
 from ..views import UserViewSet
 from ..views import LoginViewSet
 from ..views import ChangePasswordViewSet
+from ..views import RequestResetPassword
 
 from .utils import create_user_and_token
 
@@ -226,4 +227,43 @@ class ChangePasswordTestCase(TestCase):
             status.HTTP_400_BAD_REQUEST)
         self.assertIn(
             'current_password',
+            content_data.keys())
+
+
+class RequestResetPasswordTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.email = 'user@user.com'
+
+        User.objects.create(
+            email=self.email,
+            nickname='user',
+            name='User')
+
+    def request(self, data):
+        request = self.factory.post(
+            '/api/forgot-password/',
+            data)
+        response = RequestResetPassword.as_view(
+            {'post': 'create'})(request)
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data,)
+
+    def test_okay(self):
+        response, content_data = self.request({
+            'email': self.email,
+        })
+        print(response.status_code, content_data)
+
+    def test_email_not_found(self):
+        response, content_data = self.request({
+            'email': 'nouser@fake.com',
+        })
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST)
+        self.assertIn(
+            'email',
             content_data.keys())

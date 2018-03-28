@@ -174,3 +174,10 @@ if not DEBUG and envvar_EMAIL_HOST:
     EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=False)
 else:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+
+# webapp
+
+BOTHUB_WEBAPP_BASE_URL = config(
+    'BOTHUB_WEBAPP_BASE_URL',
+    default='http://localhost:3000/')

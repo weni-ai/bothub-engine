@@ -30,6 +30,7 @@ from .serializers import RepositoryTranslatedExampleEntitySeralizer
 from .serializers import RegisterUserSerializer
 from .serializers import UserSerializer
 from .serializers import ChangePasswordSerializer
+from .serializers import RequestResetPasswordSerializer
 
 
 # Permisions
@@ -451,6 +452,27 @@ class ChangePasswordViewSet(GenericViewSet):
             self.object.set_password(serializer.data.get('password'))
             self.object.save()
             return Response({}, status=status.HTTP_200_OK)
+        return Response(
+            serializer.errors,
+            status=status.HTTP_400_BAD_REQUEST)
+
+
+class RequestResetPassword(GenericViewSet):
+    """
+    Request reset password
+    """
+    serializer_class = RequestResetPasswordSerializer
+    queryset = User.objects
+
+    def get_object(self):
+        return self.queryset.get(email=self.request.data.get('email'))
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            self.object = self.get_object()
+            self.object.send_reset_password_email()
+            return Response({})
         return Response(
             serializer.errors,
             status=status.HTTP_400_BAD_REQUEST)
