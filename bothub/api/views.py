@@ -487,7 +487,6 @@ class ResetPassword(GenericViewSet):
     queryset = User.objects
     lookup_field = 'nickname'
 
-
     def update(self, request, *args, **kwargs):
         self.object = self.get_object()
         serializer = self.get_serializer(data=request.data)

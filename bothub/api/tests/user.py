@@ -288,7 +288,7 @@ class ResetPasswordTestCase(TestCase):
             {'post': 'update'})(request, nickname=nickname)
         response.render()
         content_data = json.loads(response.content)
-        return (response, content_data,) 
+        return (response, content_data,)
 
     def test_okay(self):
         new_password = 'valid12!'
