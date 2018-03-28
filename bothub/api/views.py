@@ -31,6 +31,7 @@ from .serializers import RegisterUserSerializer
 from .serializers import UserSerializer
 from .serializers import ChangePasswordSerializer
 from .serializers import RequestResetPasswordSerializer
+from .serializers import ResetPasswordSerializer
 
 
 # Permisions
@@ -472,6 +473,27 @@ class RequestResetPassword(GenericViewSet):
         if serializer.is_valid():
             self.object = self.get_object()
             self.object.send_reset_password_email()
+            return Response({})
+        return Response(
+            serializer.errors,
+            status=status.HTTP_400_BAD_REQUEST)
+
+
+class ResetPassword(GenericViewSet):
+    """
+    Reset password
+    """
+    serializer_class = ResetPasswordSerializer
+    queryset = User.objects
+    lookup_field = 'nickname'
+
+
+    def update(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            self.object.set_password(serializer.data.get('password'))
+            self.object.save()
             return Response({})
         return Response(
             serializer.errors,

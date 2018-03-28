@@ -17,6 +17,7 @@ from .views import UserViewSet
 from .views import LoginViewSet
 from .views import ChangePasswordViewSet
 from .views import RequestResetPassword
+from .views import ResetPassword
 
 
 router = routers.SimpleRouter()
@@ -39,3 +40,4 @@ router.register('profile', UserViewSet)
 router.register('login', LoginViewSet)
 router.register('change-password', ChangePasswordViewSet)
 router.register('forgot-password', RequestResetPassword)
+router.register('reset-password', ResetPassword)
