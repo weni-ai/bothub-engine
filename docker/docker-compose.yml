@@ -1,0 +1,17 @@
+version: '3.3'
+
+services:
+  bothub:
+    image: $DOCKER_HUB_REPO:$TAG
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    ports:
+      - 8000:8000
+    environment:
+      - SECRET_KEY
+      - DEBUG
+      - ALLOWED_HOSTS
+      - DEFAULT_DATABASE
+      - LANGUAGE_CODE
+      - TIME_ZONE

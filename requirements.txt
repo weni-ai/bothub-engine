@@ -18,3 +18,4 @@ pytz==2018.3
 requests==2.18.4
 uritemplate==3.0.0
 urllib3==1.22
+whitenoise==3.3.1
