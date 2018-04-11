@@ -254,3 +254,30 @@ class ChangePasswordSerializer(serializers.Serializer):
         if not request.user.check_password(value):
             raise ValidationError(_('Wrong password'))
         return value
+
+
+class RequestResetPasswordSerializer(serializers.Serializer):
+    email = serializers.EmailField(
+        required=True)
+
+    def validate_email(self, value):
+        try:
+            User.objects.get(email=value)
+            return value
+        except User.DoesNotExist:
+            raise ValidationError(_('No user registered with this email'))
+
+
+class ResetPasswordSerializer(serializers.Serializer):
+    token = serializers.CharField()
+    password = serializers.CharField(
+        required=True,
+        validators=[
+            validate_password,
+        ])
+
+    def validate_token(self, value):
+        user = self.context.get('view').get_object()
+        if not user.check_password_reset_token(value):
+            raise ValidationError(_('Invalid token for this user'))
+        return value

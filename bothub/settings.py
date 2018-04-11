@@ -40,6 +40,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -123,6 +124,10 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 
 # rest framework
 
@@ -174,3 +179,10 @@ if not DEBUG and envvar_EMAIL_HOST:
     EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=False)
 else:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+
+# webapp
+
+BOTHUB_WEBAPP_BASE_URL = config(
+    'BOTHUB_WEBAPP_BASE_URL',
+    default='http://localhost:3000/')
