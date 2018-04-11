@@ -62,33 +62,6 @@ class RegisterUserTestCase(TestCase):
             content_data.keys())
 
 
-class UserRetrieveTestCase(TestCase):
-    def setUp(self):
-        self.factory = RequestFactory()
-        self.user, self.user_token = create_user_and_token()
-
-    def request(self, user, token):
-        authorization_header = {
-            'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
-        }
-        request = self.factory.get(
-            '/api/profile/{}/'.format(user.pk),
-            **authorization_header)
-        response = UserViewSet.as_view(
-            {'get': 'retrieve'})(request, pk=user.pk)
-        response.render()
-        content_data = json.loads(response.content)
-        return (response, content_data,)
-
-    def test_okay(self):
-        response, content_data = self.request(
-            self.user,
-            self.user_token)
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_200_OK)
-
-
 class UserUpdateTestCase(TestCase):
     def setUp(self):
         self.factory = RequestFactory()

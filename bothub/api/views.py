@@ -91,8 +91,6 @@ class RepositoryTranslatedExampleEntityPermission(permissions.BasePermission):
 
 class UserPermission(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
-        if request.method in permissions.SAFE_METHODS:
-            return True
         return request.user == obj
 
 
@@ -392,14 +390,10 @@ class RegisterUserViewSet(
 
 
 class UserViewSet(
-        mixins.RetrieveModelMixin,
         mixins.UpdateModelMixin,
         GenericViewSet):
     """
     Manager user's profile
-
-    retrieve:
-    Get user's profile
 
     update:
     Update full user's profile
@@ -408,7 +402,7 @@ class UserViewSet(
     Update user's profile fields
     """
     queryset = User.objects
-    serializer_class = UserSerializer
+    serializer_class = EditUserSerializer
     permission_classes = [
         permissions.IsAuthenticated,
         UserPermission,
