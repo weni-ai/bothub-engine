@@ -13,6 +13,7 @@ from ..views import LoginViewSet
 from ..views import ChangePasswordViewSet
 from ..views import RequestResetPassword
 from ..views import ResetPassword
+from ..views import MyUserProfile
 
 from .utils import create_user_and_token
 
@@ -256,7 +257,6 @@ class RequestResetPasswordTestCase(TestCase):
         response, content_data = self.request({
             'email': self.email,
         })
-        print(response.status_code, content_data)
 
     def test_email_not_found(self):
         response, content_data = self.request({
@@ -317,3 +317,31 @@ class ResetPasswordTestCase(TestCase):
         self.assertIn(
             'token',
             content_data.keys())
+
+
+class MyUserProfileTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.user, self.user_token = create_user_and_token()
+
+    def request(self, token):
+        authorization_header = {
+            'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
+        }
+        request = self.factory.get(
+            '/api/my-profile/',
+            **authorization_header)
+        response = MyUserProfile.as_view(
+            {'get': 'list'})(request)
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data,)
+
+    def test_okay(self):
+        response, content_data = self.request(self.user_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK)
+        self.assertEqual(
+            content_data.get('nickname'),
+            self.user.nickname)
