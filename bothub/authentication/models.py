@@ -4,6 +4,10 @@ from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin
 from django.core.validators import RegexValidator, _lazy_re_compile
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.conf import settings
 
 
 user_nickname_re = _lazy_re_compile(r'^[-a-zA-Z0-9_]+\Z')
@@ -80,3 +84,33 @@ class User(AbstractBaseUser, PermissionsMixin):
         auto_now_add=True)
 
     objects = UserManager()
+
+    @property
+    def token_generator(self):
+        return PasswordResetTokenGenerator()
+
+    def make_password_reset_token(self):
+        return self.token_generator.make_token(self)
+
+    def send_reset_password_email(self):
+        token = self.make_password_reset_token()
+        reset_url = '{}reset-password/{}/{}/'.format(
+            settings.BOTHUB_WEBAPP_BASE_URL,
+            self.nickname,
+            token)
+        context = {
+            'reset_url': reset_url,
+        }
+        send_mail(
+            _('Reset your bothub password'),
+            render_to_string(
+                'authentication/emails/reset_password.txt',
+                context),
+            None,
+            [self.email],
+            html_message=render_to_string(
+                'authentication/emails/reset_password.html',
+                context),)
+
+    def check_password_reset_token(self, token):
+        return self.token_generator.check_token(self, token)
