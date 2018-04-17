@@ -28,6 +28,7 @@ from .serializers import RepositoryAuthorizationSerializer
 from .serializers import RepositoryTranslatedExampleSerializer
 from .serializers import RepositoryTranslatedExampleEntitySeralizer
 from .serializers import RegisterUserSerializer
+from .serializers import EditUserSerializer
 from .serializers import UserSerializer
 from .serializers import ChangePasswordSerializer
 from .serializers import RequestResetPasswordSerializer
@@ -90,8 +91,6 @@ class RepositoryTranslatedExampleEntityPermission(permissions.BasePermission):
 
 class UserPermission(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
-        if request.method in permissions.SAFE_METHODS:
-            return True
         return request.user == obj
 
 
@@ -391,14 +390,10 @@ class RegisterUserViewSet(
 
 
 class UserViewSet(
-        mixins.RetrieveModelMixin,
         mixins.UpdateModelMixin,
         GenericViewSet):
     """
     Manager user's profile
-
-    retrieve:
-    Get user's profile
 
     update:
     Update full user's profile
@@ -407,7 +402,7 @@ class UserViewSet(
     Update user's profile fields
     """
     queryset = User.objects
-    serializer_class = UserSerializer
+    serializer_class = EditUserSerializer
     permission_classes = [
         permissions.IsAuthenticated,
         UserPermission,
@@ -497,3 +492,32 @@ class ResetPassword(GenericViewSet):
         return Response(
             serializer.errors,
             status=status.HTTP_400_BAD_REQUEST)
+
+
+class MyUserProfile(GenericViewSet):
+    """
+    Get current user profile
+    """
+    serializer_class = UserSerializer
+    queryset = User.objects
+    pagination_class = None
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self, *args, **kwargs):
+        request = self.request
+        return request.user
+
+    def list(self, request, *args, **kwargs):
+        serializer = self.get_serializer(self.get_queryset())
+        return Response(serializer.data)
+
+
+class UserProfile(
+        mixins.RetrieveModelMixin,
+        GenericViewSet):
+    """
+    Get user profile
+    """
+    serializer_class = UserSerializer
+    queryset = User.objects
+    lookup_field = 'nickname'
