@@ -22,6 +22,9 @@ class RepositoryCategory(models.Model):
     name = models.CharField(
         _('name'),
         max_length=32)
+    
+    def __str__(self):
+        return self.name
 
 
 class Repository(models.Model):
