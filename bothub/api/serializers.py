@@ -60,6 +60,7 @@ class NewRepositorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Repository
         fields = [
+            'uuid',
             'owner',
             'name',
             'slug',
@@ -69,9 +70,12 @@ class NewRepositorySerializer(serializers.ModelSerializer):
             'is_private',
         ]
 
+    uuid = serializers.ReadOnlyField(
+        style={'show':False})
     owner = serializers.PrimaryKeyRelatedField(
         read_only=True,
-        default=serializers.CurrentUserDefault())
+        default=serializers.CurrentUserDefault(),
+        style={'show':False})
     categories = ModelMultipleChoiceField(
         child_relation=serializers.PrimaryKeyRelatedField(
             queryset=RepositoryCategory.objects.all()),
