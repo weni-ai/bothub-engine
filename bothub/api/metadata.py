@@ -15,6 +15,8 @@ class Metadata(SimpleMetadata):
                 }
                 for choice_value, choice_name in field.choices.items()
             ]
+        if hasattr(field, 'style'):
+            field_info['style'] = field.style
         return field_info
 
 Metadata.label_lookup[ModelMultipleChoiceField] = 'multiple choice'
