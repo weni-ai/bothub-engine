@@ -14,6 +14,8 @@ from bothub.common.models import RepositoryTranslatedExampleEntity
 from bothub.common.models import RepositoryAuthorization
 from bothub.authentication.models import User
 
+from .fields import ModelMultipleChoiceField
+
 
 # Validators
 
@@ -52,6 +54,28 @@ class RepositoryCategorySerializer(serializers.ModelSerializer):
             'id',
             'name',
         ]
+
+
+class NewRepositorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Repository
+        fields = [
+            'owner',
+            'name',
+            'slug',
+            'language',
+            'categories',
+            'description',
+            'is_private',
+        ]
+
+    owner = serializers.PrimaryKeyRelatedField(
+        read_only=True,
+        default=serializers.CurrentUserDefault())
+    categories = ModelMultipleChoiceField(
+        child_relation=serializers.PrimaryKeyRelatedField(
+            queryset=RepositoryCategory.objects.all()),
+        allow_empty=False)
 
 
 class RepositorySerializer(serializers.ModelSerializer):
