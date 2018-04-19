@@ -32,6 +32,10 @@ class Repository(models.Model):
         verbose_name = _('repository')
         verbose_name_plural = _('repositories')
 
+    CATEGORIES_HELP_TEXT = _('Categories for approaching repositories with ' +
+                             'the same purpose')
+    DESCRIPTION_HELP_TEXT = _('Tell what your bot do!')
+
     uuid = models.UUIDField(
         _('UUID'),
         primary_key=True,
@@ -57,12 +61,11 @@ class Repository(models.Model):
                     'translated to other languages.'))
     categories = models.ManyToManyField(
         RepositoryCategory,
-        help_text=_('Categories for approaching repositories with the same ' +
-                    'purpose'))
+        help_text=CATEGORIES_HELP_TEXT)
     description = models.TextField(
         _('description'),
         blank=True,
-        help_text=_('Tell what your bot do!'))
+        help_text=DESCRIPTION_HELP_TEXT)
     is_private = models.BooleanField(
         _('private'),
         default=False,

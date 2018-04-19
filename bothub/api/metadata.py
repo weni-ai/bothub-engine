@@ -2,6 +2,7 @@ from django.utils.encoding import force_text
 from rest_framework.metadata import SimpleMetadata
 
 from .fields import ModelMultipleChoiceField
+from .fields import TextField
 
 
 class Metadata(SimpleMetadata):
@@ -21,3 +22,4 @@ class Metadata(SimpleMetadata):
 
 
 Metadata.label_lookup[ModelMultipleChoiceField] = 'multiple choice'
+Metadata.label_lookup[TextField] = 'text'

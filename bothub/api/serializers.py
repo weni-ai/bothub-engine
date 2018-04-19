@@ -15,6 +15,7 @@ from bothub.common.models import RepositoryAuthorization
 from bothub.authentication.models import User
 
 from .fields import ModelMultipleChoiceField
+from .fields import TextField
 
 
 # Validators
@@ -79,7 +80,10 @@ class NewRepositorySerializer(serializers.ModelSerializer):
     categories = ModelMultipleChoiceField(
         child_relation=serializers.PrimaryKeyRelatedField(
             queryset=RepositoryCategory.objects.all()),
-        allow_empty=False)
+        allow_empty=False,
+        help_text=Repository.CATEGORIES_HELP_TEXT)
+    description = TextField(
+        help_text=Repository.DESCRIPTION_HELP_TEXT)
 
 
 class RepositorySerializer(serializers.ModelSerializer):
