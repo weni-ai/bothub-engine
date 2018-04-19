@@ -8,5 +8,6 @@ class ModelMultipleChoiceField(serializers.ManyRelatedField):
 class TextField(serializers.CharField):
     pass
 
+
 class PasswordField(serializers.CharField):
     pass
