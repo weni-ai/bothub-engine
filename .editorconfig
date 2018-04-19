@@ -23,3 +23,6 @@ indent_style = tab
 
 [Makefile-help.txt]
 insert_final_newline = true
+
+[README.md]
+insert_final_newline = true
