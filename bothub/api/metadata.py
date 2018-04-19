@@ -3,6 +3,7 @@ from rest_framework.metadata import SimpleMetadata
 
 from .fields import ModelMultipleChoiceField
 from .fields import TextField
+from .fields import PasswordField
 
 
 class Metadata(SimpleMetadata):
@@ -23,3 +24,4 @@ class Metadata(SimpleMetadata):
 
 Metadata.label_lookup[ModelMultipleChoiceField] = 'multiple choice'
 Metadata.label_lookup[TextField] = 'text'
+Metadata.label_lookup[PasswordField] = 'password'
