@@ -22,6 +22,7 @@ from bothub.common.models import RepositoryTranslatedExampleEntity
 from bothub.authentication.models import User
 
 from .serializers import RepositorySerializer
+from .serializers import NewRepositorySerializer
 from .serializers import RepositoryExampleSerializer
 from .serializers import RepositoryExampleEntitySerializer
 from .serializers import RepositoryAuthorizationSerializer
@@ -156,7 +157,7 @@ class NewRepositoryViewSet(
     Create a new Repository, add examples and train a bot.
     """
     queryset = Repository.objects
-    serializer_class = RepositorySerializer
+    serializer_class = NewRepositorySerializer
     permission_classes = [permissions.IsAuthenticated]
 
 
