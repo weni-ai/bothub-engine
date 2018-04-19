@@ -16,6 +16,7 @@ from bothub.authentication.models import User
 
 from .fields import ModelMultipleChoiceField
 from .fields import TextField
+from .fields import PasswordField
 
 
 # Validators
@@ -83,6 +84,7 @@ class NewRepositorySerializer(serializers.ModelSerializer):
         allow_empty=False,
         help_text=Repository.CATEGORIES_HELP_TEXT)
     description = TextField(
+        required=False,
         help_text=Repository.DESCRIPTION_HELP_TEXT)
 
 
@@ -252,7 +254,7 @@ class RegisterUserSerializer(serializers.ModelSerializer):
             'password',
         ]
 
-    password = serializers.CharField(
+    password = PasswordField(
         write_only=True,
         validators=[
             validate_password,
