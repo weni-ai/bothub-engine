@@ -71,11 +71,11 @@ class NewRepositorySerializer(serializers.ModelSerializer):
         ]
 
     uuid = serializers.ReadOnlyField(
-        style={'show':False})
+        style={'show': False})
     owner = serializers.PrimaryKeyRelatedField(
         read_only=True,
         default=serializers.CurrentUserDefault(),
-        style={'show':False})
+        style={'show': False})
     categories = ModelMultipleChoiceField(
         child_relation=serializers.PrimaryKeyRelatedField(
             queryset=RepositoryCategory.objects.all()),

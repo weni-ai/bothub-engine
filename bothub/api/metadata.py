@@ -4,7 +4,7 @@ from rest_framework.metadata import SimpleMetadata
 from .fields import ModelMultipleChoiceField
 
 
-class Metadata(SimpleMetadata):    
+class Metadata(SimpleMetadata):
     def get_field_info(self, field):
         field_info = super().get_field_info(field)
         if isinstance(field, ModelMultipleChoiceField):
@@ -18,5 +18,6 @@ class Metadata(SimpleMetadata):
         if hasattr(field, 'style'):
             field_info['style'] = field.style
         return field_info
+
 
 Metadata.label_lookup[ModelMultipleChoiceField] = 'multiple choice'
