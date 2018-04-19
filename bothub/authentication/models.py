@@ -58,7 +58,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(
         _('email'),
         unique=True,
-        help_text=_('User\'s e-mail.'))
+        help_text=_('User\'s email.'))
     name = models.CharField(
         _('name'),
         max_length=32,
