@@ -1,0 +1,14 @@
+---
+Just use make commands to development environment,
+     use Docker container to production environment.
+---
+
+Commands:
+    make install_requirements - Install project requirements, just pip packages
+    make update_requirements - Update requirements.txt file
+    make lint - Show lint warnings and errors
+    make test - Run unit tests and show coverage report
+    make runserver - Run development server
+    make migrate - Update DB shema, apply migrations
+    make migrations - Create migrations based on the changes you have made to project models
+
