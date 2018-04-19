@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.exceptions import ValidationError
+from rest_framework.authtoken.serializers import AuthTokenSerializer
 from django.utils.translation import gettext as _
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.hashers import make_password
@@ -326,3 +327,10 @@ class ResetPasswordSerializer(serializers.Serializer):
         if not user.check_password_reset_token(value):
             raise ValidationError(_('Invalid token for this user'))
         return value
+
+
+class LoginSerializer(AuthTokenSerializer):
+    username = serializers.EmailField(label=_("Email"))
+    password = PasswordField(
+        label=_("Password")
+    )
