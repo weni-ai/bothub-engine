@@ -303,6 +303,7 @@ class ChangePasswordSerializer(serializers.Serializer):
 
 class RequestResetPasswordSerializer(serializers.Serializer):
     email = serializers.EmailField(
+        label=_('Email'),
         required=True)
 
     def validate_email(self, value):
@@ -314,8 +315,9 @@ class RequestResetPasswordSerializer(serializers.Serializer):
 
 
 class ResetPasswordSerializer(serializers.Serializer):
-    token = serializers.CharField()
-    password = serializers.CharField(
+    token = serializers.HiddenField(
+        default='')
+    password = PasswordField(
         required=True,
         validators=[
             validate_password,
