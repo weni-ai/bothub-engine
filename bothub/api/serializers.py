@@ -85,7 +85,7 @@ class NewRepositorySerializer(serializers.ModelSerializer):
         allow_empty=False,
         help_text=Repository.CATEGORIES_HELP_TEXT)
     description = TextField(
-        required=False,
+        allow_blank=True,
         help_text=Repository.DESCRIPTION_HELP_TEXT)
 
 
