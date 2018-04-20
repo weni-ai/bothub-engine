@@ -186,4 +186,4 @@ else:
 
 BOTHUB_WEBAPP_BASE_URL = config(
     'BOTHUB_WEBAPP_BASE_URL',
-    default='http://localhost:3000/')
+    default='http://localhost:8080/')
