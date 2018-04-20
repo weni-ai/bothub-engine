@@ -47,6 +47,7 @@ class NewRepositoryTestCase(TestCase):
             'slug': 'test',
             'language': languages.LANGUAGE_EN,
             'categories': [self.category.id],
+            'description': '',
         })
         self.assertEqual(
             response.status_code,
