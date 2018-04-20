@@ -6,7 +6,6 @@ from rest_framework.response import Response
 from rest_framework.exceptions import APIException
 from rest_framework.exceptions import NotFound
 from rest_framework.exceptions import PermissionDenied
-from rest_framework.authtoken.serializers import AuthTokenSerializer
 from rest_framework.authtoken.models import Token
 from rest_framework import status
 from django.utils.translation import gettext as _
@@ -34,6 +33,7 @@ from .serializers import UserSerializer
 from .serializers import ChangePasswordSerializer
 from .serializers import RequestResetPasswordSerializer
 from .serializers import ResetPasswordSerializer
+from .serializers import LoginSerializer
 
 
 # Permisions
@@ -412,7 +412,7 @@ class UserViewSet(
 
 class LoginViewSet(GenericViewSet):
     queryset = User.objects
-    serializer_class = AuthTokenSerializer
+    serializer_class = LoginSerializer
 
     def create(self, request, *args, **kwargs):
         serializer = self.serializer_class(
