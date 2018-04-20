@@ -315,9 +315,10 @@ class RequestResetPasswordSerializer(serializers.Serializer):
 
 
 class ResetPasswordSerializer(serializers.Serializer):
-    token = serializers.HiddenField(
-        default='')
+    token = serializers.CharField(
+        label=_('Token'))
     password = PasswordField(
+        label=_('Password'),
         required=True,
         validators=[
             validate_password,
