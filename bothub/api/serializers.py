@@ -95,6 +95,7 @@ class RepositorySerializer(serializers.ModelSerializer):
         fields = [
             'uuid',
             'owner',
+            'owner__nickname',
             'name',
             'slug',
             'language',
@@ -108,6 +109,10 @@ class RepositorySerializer(serializers.ModelSerializer):
     owner = serializers.PrimaryKeyRelatedField(
         read_only=True,
         default=serializers.CurrentUserDefault())
+    owner__nickname = serializers.SlugRelatedField(
+        source='owner',
+        slug_field='nickname',
+        read_only=True)
     categories_list = serializers.SerializerMethodField()
 
     def get_categories_list(self, obj):
