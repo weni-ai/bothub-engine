@@ -99,6 +99,7 @@ class RepositorySerializer(serializers.ModelSerializer):
             'name',
             'slug',
             'language',
+            'available_languages',
             'categories',
             'categories_list',
             'description',
