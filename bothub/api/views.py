@@ -527,8 +527,8 @@ class UserProfile(
 
 
 class Categories(
-    mixins.ListModelMixin,
-    GenericViewSet):
+        mixins.ListModelMixin,
+        GenericViewSet):
     serializer_class = RepositoryCategorySerializer
     queryset = RepositoryCategory.objects.all()
     pagination_class = None
