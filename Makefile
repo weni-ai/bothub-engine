@@ -53,3 +53,8 @@ makemigrations:
 shell:
 	make check_ready_for_development
 	$(ENV_DIR)bin/python ./manage.py shell
+
+fill_db_using_fake_data:
+	make check_ready_for_development
+	make migrate
+	$(ENV_DIR)bin/python ./manage.py fill_db_using_fake_data

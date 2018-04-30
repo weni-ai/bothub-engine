@@ -8,6 +8,18 @@ Use make commands in development envoriment.
 
 Run ```make help``` to show all available make commands.
 
+### Fill database using fake data
+
+Run ```make fill_db_using_fake_data``` to fill database using fake data. This can help you to test [Bothub Webapp](https://github.com/push-flow/bothub-webapp).
+
+#### Fake users infos:
+
+| nickname | email | password | is superuser |
+|---|---|---|---|
+| admin | admin@bothub.it | admin | yes |
+| douglas | douglas@bothub.it | douglas | no |
+| user | user@bothub.it | user | no |
+
 ## Production
 
 Docker images available in [Bothub's Docker Hub repository](https://hub.docker.com/r/ilha/bothub/).
