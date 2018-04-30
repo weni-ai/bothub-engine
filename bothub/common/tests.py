@@ -264,7 +264,8 @@ class RepositoryTestCase(TestCase):
         self.repository = Repository.objects.create(
             owner=self.owner,
             name='Test',
-            slug='test')
+            slug='test',
+            language=languages.LANGUAGE_EN)
         self.private_repository = Repository.objects.create(
             owner=self.owner,
             name='Test',

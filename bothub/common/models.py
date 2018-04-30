@@ -87,8 +87,10 @@ class Repository(models.Model):
                 translations_count__gt=0).values_list(
                     'translations__language',
                     flat=True)
-        return list(
-            set(list(examples_languages) + list(translations_languages)))
+        return list(set(
+            [self.language] +
+            list(examples_languages) +
+            list(translations_languages)))
 
     @property
     def languages_status(self):
