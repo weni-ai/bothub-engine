@@ -77,6 +77,20 @@ class Repository(models.Model):
         auto_now_add=True)
 
     @property
+    def available_languages(self):
+        examples = self.examples()
+        examples_languages = examples.values_list(
+            'repository_update__language',
+            flat=True)
+        translations_languages = examples.annotate(
+            translations_count=models.Count('translations')).filter(
+                translations_count__gt=0).values_list(
+                    'translations__language',
+                    flat=True)
+        return list(
+            set(list(examples_languages) + list(translations_languages)))
+
+    @property
     def languages_status(self):
         return dict(
             map(

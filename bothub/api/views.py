@@ -18,6 +18,7 @@ from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryExampleEntity
 from bothub.common.models import RepositoryTranslatedExample
 from bothub.common.models import RepositoryTranslatedExampleEntity
+from bothub.common.models import RepositoryCategory
 from bothub.authentication.models import User
 
 from .serializers import RepositorySerializer
@@ -34,6 +35,7 @@ from .serializers import ChangePasswordSerializer
 from .serializers import RequestResetPasswordSerializer
 from .serializers import ResetPasswordSerializer
 from .serializers import LoginSerializer
+from .serializers import RepositoryCategorySerializer
 
 
 # Permisions
@@ -522,3 +524,14 @@ class UserProfile(
     serializer_class = UserSerializer
     queryset = User.objects
     lookup_field = 'nickname'
+
+
+class Categories(
+        mixins.ListModelMixin,
+        GenericViewSet):
+    """
+    List all categories.
+    """
+    serializer_class = RepositoryCategorySerializer
+    queryset = RepositoryCategory.objects.all()
+    pagination_class = None

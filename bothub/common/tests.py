@@ -271,6 +271,26 @@ class RepositoryTestCase(TestCase):
             slug='private',
             is_private=True)
 
+        example_1 = RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(
+                languages.LANGUAGE_EN),
+            text='hi',
+            intent='greet')
+        RepositoryTranslatedExample.objects.create(
+            original_example=example_1,
+            language=languages.LANGUAGE_PT,
+            text='oi')
+        RepositoryTranslatedExample.objects.create(
+            original_example=example_1,
+            language=languages.LANGUAGE_ES,
+            text='hola')
+
+        RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(
+                languages.LANGUAGE_PT),
+            text='olá',
+            intent='greet')
+
     def test_languages_status(self):
         languages_status = self.repository.languages_status
         self.assertListEqual(
@@ -290,6 +310,13 @@ class RepositoryTestCase(TestCase):
     def test_last_trained_update(self):
         self.assertFalse(self.repository.last_trained_update())
         # TODO: Update last_trained_update test
+
+    def test_available_languages(self):
+        available_languages = self.repository.available_languages
+        self.assertIn(languages.LANGUAGE_EN, available_languages)
+        self.assertIn(languages.LANGUAGE_PT, available_languages)
+        self.assertIn(languages.LANGUAGE_ES, available_languages)
+        self.assertEqual(len(available_languages), 3)
 
 
 class RepositoryExampleTestCase(TestCase):
