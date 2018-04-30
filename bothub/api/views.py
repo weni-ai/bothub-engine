@@ -535,3 +535,13 @@ class Categories(
     serializer_class = RepositoryCategorySerializer
     queryset = RepositoryCategory.objects.all()
     pagination_class = None
+
+
+class RepositoriesViewSet(
+        mixins.ListModelMixin,
+        GenericViewSet):
+    """
+    List all public repositories.
+    """
+    serializer_class = RepositorySerializer
+    queryset = Repository.objects.filter(is_private=False)

@@ -21,6 +21,7 @@ from .views import ResetPassword
 from .views import MyUserProfile
 from .views import UserProfile
 from .views import Categories
+from .views import RepositoriesViewSet
 
 
 router = routers.SimpleRouter()
@@ -47,3 +48,4 @@ router.register('reset-password', ResetPassword)
 router.register('my-profile', MyUserProfile)
 router.register('user-profile', UserProfile)
 router.register('categories', Categories)
+router.register('repositories', RepositoriesViewSet)
