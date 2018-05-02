@@ -11,4 +11,6 @@ Commands:
     make runserver - Run development server
     make migrate - Update DB shema, apply migrations
     make migrations - Create migrations based on the changes you have made to project models
+    make shell - Run Python shell with Django and project environment
+    make fill_db_using_fake_data - Fill default database using fake data
 
