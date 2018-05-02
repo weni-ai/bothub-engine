@@ -150,6 +150,14 @@ class ExamplesFilter(filters.FilterSet):
                 translation_count=0)
 
 
+class RepositoriesFilter(filters.FilterSet):
+    class Meta:
+        model = Repository
+        fields = [
+            'categories',
+        ]
+
+
 # ViewSets
 
 class NewRepositoryViewSet(
@@ -545,3 +553,4 @@ class RepositoriesViewSet(
     """
     serializer_class = RepositorySerializer
     queryset = Repository.objects.filter(is_private=False)
+    filter_class = RepositoriesFilter
