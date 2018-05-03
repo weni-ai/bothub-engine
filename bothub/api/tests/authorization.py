@@ -37,10 +37,10 @@ class AuthorizationTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
         }
         request = self.factory.get(
-            '/api/repository/{}/'.format(repository.uuid),
+            '/api/repository/{}/'.format(repository.slug),
             **authorization_header)
         response = RepositoryViewSet.as_view(
-            {'get': 'authorization'})(request, pk=repository.uuid)
+            {'get': 'authorization'})(request, slug=repository.slug)
         response.render()
         content_data = json.loads(response.content)
         return (response, content_data,)

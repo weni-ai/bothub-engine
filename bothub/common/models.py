@@ -158,6 +158,8 @@ class Repository(models.Model):
             by__isnull=False).first()
 
     def get_user_authorization(self, user):
+        if user.is_anonymous:
+            return RepositoryAuthorization(repository=self)
         get, created = RepositoryAuthorization.objects.get_or_create(
             user=user,
             repository=self)
@@ -465,7 +467,12 @@ class RepositoryAuthorization(models.Model):
 
     @property
     def level(self):
-        if self.repository.owner == self.user:
+        try:
+            user = self.user
+        except User.DoesNotExist:
+            user = None
+
+        if user and self.repository.owner == user:
             return RepositoryAuthorization.LEVEL_ADMIN
         if self.repository.is_private:
             return RepositoryAuthorization.LEVEL_NOTHING

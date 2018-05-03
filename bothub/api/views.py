@@ -206,9 +206,9 @@ class RepositoryViewSet(
     Delete your repository.
     """
     queryset = Repository.objects
+    lookup_field = 'slug'
     serializer_class = RepositorySerializer
     permission_classes = [
-        permissions.IsAuthenticated,
         RepositoryPermission,
     ]
 

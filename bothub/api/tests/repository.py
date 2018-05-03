@@ -154,10 +154,10 @@ class RetrieveRepositoryTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
         }
         request = self.factory.get(
-            '/api/repository/{}/'.format(repository.uuid),
+            '/api/repository/{}/'.format(repository.slug),
             **authorization_header)
         response = RepositoryViewSet.as_view(
-            {'get': 'retrieve'})(request, pk=repository.uuid)
+            {'get': 'retrieve'})(request, slug=repository.slug)
         response.render()
         content_data = json.loads(response.content)
         return (response, content_data,)
@@ -207,7 +207,7 @@ class RetrieveRepositoryTestCase(TestCase):
         response = RepositoryViewSet.as_view(
             {'get': 'languagesstatus'})(
                 request,
-                pk=self.repository.uuid)
+                slug=self.repository.slug)
         self.assertEqual(
             response.status_code,
             status.HTTP_200_OK)
@@ -235,12 +235,12 @@ class UpdateRepositoryTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
         }
         request = self.factory.patch(
-            '/api/repository/{}/'.format(repository.uuid),
+            '/api/repository/{}/'.format(repository.slug),
             self.factory._encode_data(data, MULTIPART_CONTENT),
             MULTIPART_CONTENT,
             **authorization_header)
         response = RepositoryViewSet.as_view(
-            {'patch': 'update'})(request, pk=repository.uuid, partial=partial)
+            {'patch': 'update'})(request, slug=repository.slug, partial=partial)
         response.render()
         content_data = json.loads(response.content)
         return (response, content_data,)
@@ -277,10 +277,6 @@ class UpdateRepositoryTestCase(TestCase):
                 'New Name',
                 True),
             (
-                'slug',
-                'test-slug',
-                True),
-            (
                 'language',
                 languages.LANGUAGE_PT,
                 True),
@@ -303,6 +299,10 @@ class UpdateRepositoryTestCase(TestCase):
                 'uuid',
                 uuid.uuid4(),
                 False),
+            (
+                'slug',
+                'test-slug',
+                True),
         ]
         for (field, value, equal,) in mockups:
             response, content_data = self.request(
@@ -344,10 +344,10 @@ class DestroyRepositoryTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
         }
         request = self.factory.delete(
-            '/api/repository/{}/'.format(repository.uuid),
+            '/api/repository/{}/'.format(repository.slug),
             **authorization_header)
         response = RepositoryViewSet.as_view(
-            {'delete': 'destroy'})(request, pk=repository.uuid)
+            {'delete': 'destroy'})(request, slug=repository.slug)
         response.render()
         return response
 
