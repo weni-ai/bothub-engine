@@ -31,6 +31,7 @@ class Repository(models.Model):
     class Meta:
         verbose_name = _('repository')
         verbose_name_plural = _('repositories')
+        unique_together = ['owner', 'slug']
 
     CATEGORIES_HELP_TEXT = _('Categories for approaching repositories with ' +
                              'the same purpose')
@@ -50,7 +51,6 @@ class Repository(models.Model):
         help_text=_('Repository display name'))
     slug = models.SlugField(
         _('slug'),
-        unique=True,
         max_length=32,
         help_text=_('Easy way to found and share repositories'))
     language = models.CharField(

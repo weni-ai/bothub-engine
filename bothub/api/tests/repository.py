@@ -122,11 +122,12 @@ class NewRepositoryTestCase(TestCase):
             'slug': same_slug,
             'language': languages.LANGUAGE_EN,
             'categories': [self.category.id],
+            'description': '',
         })
         self.assertEqual(
             response.status_code,
             status.HTTP_400_BAD_REQUEST)
-        self.assertIn('slug', content_data.keys())
+        self.assertIn('non_field_errors', content_data.keys())
 
 
 class RetrieveRepositoryTestCase(TestCase):
