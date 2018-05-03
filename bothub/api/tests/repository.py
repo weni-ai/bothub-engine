@@ -155,10 +155,15 @@ class RetrieveRepositoryTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
         }
         request = self.factory.get(
-            '/api/repository/{}/'.format(repository.slug),
+            '/api/repository/{}/{}/'.format(
+                repository.owner.nickname,
+                repository.slug),
             **authorization_header)
         response = RepositoryViewSet.as_view(
-            {'get': 'retrieve'})(request, slug=repository.slug)
+            {'get': 'retrieve'})(
+                request,
+                owner__nickname=repository.owner.nickname,
+                slug=repository.slug)
         response.render()
         content_data = json.loads(response.content)
         return (response, content_data,)
@@ -202,12 +207,14 @@ class RetrieveRepositoryTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(self.user_token.key),
         }
         request = self.factory.get(
-            '/api/repository/{}/languagesstatus/'.format(
+            '/api/repository/{}/{}/languagesstatus/'.format(
+                self.repository.owner.nickname,
                 self.repository.uuid),
             **authorization_header)
         response = RepositoryViewSet.as_view(
             {'get': 'languagesstatus'})(
                 request,
+                owner__nickname=self.repository.owner.nickname,
                 slug=self.repository.slug)
         self.assertEqual(
             response.status_code,
@@ -236,12 +243,18 @@ class UpdateRepositoryTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
         }
         request = self.factory.patch(
-            '/api/repository/{}/'.format(repository.slug),
+            '/api/repository/{}/{}/'.format(
+                repository.owner.nickname,
+                repository.slug),
             self.factory._encode_data(data, MULTIPART_CONTENT),
             MULTIPART_CONTENT,
             **authorization_header)
         response = RepositoryViewSet.as_view(
-            {'patch': 'update'})(request, slug=repository.slug, partial=partial)
+            {'patch': 'update'})(
+                request,
+                owner__nickname=repository.owner.nickname,
+                slug=repository.slug,
+                partial=partial)
         response.render()
         content_data = json.loads(response.content)
         return (response, content_data,)
@@ -345,10 +358,15 @@ class DestroyRepositoryTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
         }
         request = self.factory.delete(
-            '/api/repository/{}/'.format(repository.slug),
+            '/api/repository/{}/{}/'.format(
+                repository.owner.nickname,
+                repository.slug),
             **authorization_header)
         response = RepositoryViewSet.as_view(
-            {'delete': 'destroy'})(request, slug=repository.slug)
+            {'delete': 'destroy'})(
+                request,
+                owner__nickname=repository.owner.nickname,
+                slug=repository.slug)
         response.render()
         return response
 

@@ -12,6 +12,7 @@ from django.utils.translation import gettext as _
 from django.db.models import Count
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django_filters import rest_framework as filters
+from django.shortcuts import get_object_or_404
 
 from bothub.common.models import Repository
 from bothub.common.models import RepositoryExample
@@ -50,9 +51,11 @@ class RepositoryPermission(permissions.BasePermission):
         authorization = obj.get_user_authorization(request.user)
         if request.method in READ_METHODS:
             return authorization.can_read
-        if request.method in WRITE_METHODS:
-            return authorization.can_write
-        return authorization.is_admin
+        if request.user.is_authenticated:
+            if request.method in WRITE_METHODS:
+                return authorization.can_write
+            return authorization.is_admin
+        return False
 
 
 class RepositoryExamplePermission(permissions.BasePermission):
@@ -158,6 +161,26 @@ class RepositoriesFilter(filters.FilterSet):
         ]
 
 
+# Mixins
+
+class MultipleFieldLookupMixin(object):
+    """
+    Apply this mixin to any view or viewset to get multiple field filtering
+    based on a `lookup_fields` attribute, instead of the default single field filtering.
+    """
+
+    def get_object(self):
+        queryset = self.get_queryset()
+        queryset = self.filter_queryset(queryset)
+        filter = {}
+        for field in self.lookup_fields:
+            if self.kwargs[field]:
+                filter[field] = self.kwargs[field]
+        obj = get_object_or_404(queryset, **filter)
+        self.check_object_permissions(self.request, obj)
+        return obj
+
+
 # ViewSets
 
 class NewRepositoryViewSet(
@@ -186,6 +209,7 @@ class MyRepositoriesViewSet(
 
 
 class RepositoryViewSet(
+        MultipleFieldLookupMixin,
         mixins.RetrieveModelMixin,
         mixins.UpdateModelMixin,
         mixins.DestroyModelMixin,
@@ -207,6 +231,7 @@ class RepositoryViewSet(
     """
     queryset = Repository.objects
     lookup_field = 'slug'
+    lookup_fields = ['owner__nickname', 'slug']
     serializer_class = RepositorySerializer
     permission_classes = [
         RepositoryPermission,
