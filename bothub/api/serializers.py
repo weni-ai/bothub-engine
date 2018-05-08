@@ -22,6 +22,18 @@ from .fields import PasswordField
 
 # Validators
 
+class CanContributeInRepositoryValidator(object):
+    def __call__(self, value):
+        user_authorization = value.get_user_authorization(
+            self.request.user)
+        if not user_authorization.can_contribute:
+            raise PermissionDenied(
+                _('You can\'t contribute in this repository'))
+
+    def set_context(self, serializer):
+        self.request = serializer.context.get('request')
+
+
 class CanContributeInRepositoryExampleValidator(object):
     def __call__(self, value):
         repository = value.repository_update.repository
@@ -220,6 +232,9 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
     repository = serializers.PrimaryKeyRelatedField(
         write_only=True,
         queryset=Repository.objects,
+        validators=[
+            CanContributeInRepositoryValidator(),
+        ],
         source='repository_update')
     entities = RepositoryExampleEntitySerializer(
         many=True,
@@ -233,10 +248,6 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
         return obj.language
 
     def validate_repository(self, repository):
-        request = self.context.get('request')
-        authorization = repository.get_user_authorization(request.user)
-        if not authorization.can_contribute:
-            raise PermissionDenied()
         return repository.current_update()
 
 
