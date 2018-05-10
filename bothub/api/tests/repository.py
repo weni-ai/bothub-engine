@@ -122,11 +122,12 @@ class NewRepositoryTestCase(TestCase):
             'slug': same_slug,
             'language': languages.LANGUAGE_EN,
             'categories': [self.category.id],
+            'description': '',
         })
         self.assertEqual(
             response.status_code,
             status.HTTP_400_BAD_REQUEST)
-        self.assertIn('slug', content_data.keys())
+        self.assertIn('non_field_errors', content_data.keys())
 
 
 class RetrieveRepositoryTestCase(TestCase):
@@ -154,10 +155,15 @@ class RetrieveRepositoryTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
         }
         request = self.factory.get(
-            '/api/repository/{}/'.format(repository.uuid),
+            '/api/repository/{}/{}/'.format(
+                repository.owner.nickname,
+                repository.slug),
             **authorization_header)
         response = RepositoryViewSet.as_view(
-            {'get': 'retrieve'})(request, pk=repository.uuid)
+            {'get': 'retrieve'})(
+                request,
+                owner__nickname=repository.owner.nickname,
+                slug=repository.slug)
         response.render()
         content_data = json.loads(response.content)
         return (response, content_data,)
@@ -201,13 +207,15 @@ class RetrieveRepositoryTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(self.user_token.key),
         }
         request = self.factory.get(
-            '/api/repository/{}/languagesstatus/'.format(
+            '/api/repository/{}/{}/languagesstatus/'.format(
+                self.repository.owner.nickname,
                 self.repository.uuid),
             **authorization_header)
         response = RepositoryViewSet.as_view(
             {'get': 'languagesstatus'})(
                 request,
-                pk=self.repository.uuid)
+                owner__nickname=self.repository.owner.nickname,
+                slug=self.repository.slug)
         self.assertEqual(
             response.status_code,
             status.HTTP_200_OK)
@@ -235,12 +243,18 @@ class UpdateRepositoryTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
         }
         request = self.factory.patch(
-            '/api/repository/{}/'.format(repository.uuid),
+            '/api/repository/{}/{}/'.format(
+                repository.owner.nickname,
+                repository.slug),
             self.factory._encode_data(data, MULTIPART_CONTENT),
             MULTIPART_CONTENT,
             **authorization_header)
         response = RepositoryViewSet.as_view(
-            {'patch': 'update'})(request, pk=repository.uuid, partial=partial)
+            {'patch': 'update'})(
+                request,
+                owner__nickname=repository.owner.nickname,
+                slug=repository.slug,
+                partial=partial)
         response.render()
         content_data = json.loads(response.content)
         return (response, content_data,)
@@ -277,10 +291,6 @@ class UpdateRepositoryTestCase(TestCase):
                 'New Name',
                 True),
             (
-                'slug',
-                'test-slug',
-                True),
-            (
                 'language',
                 languages.LANGUAGE_PT,
                 True),
@@ -303,6 +313,10 @@ class UpdateRepositoryTestCase(TestCase):
                 'uuid',
                 uuid.uuid4(),
                 False),
+            (
+                'slug',
+                'test-slug',
+                True),
         ]
         for (field, value, equal,) in mockups:
             response, content_data = self.request(
@@ -344,10 +358,15 @@ class DestroyRepositoryTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
         }
         request = self.factory.delete(
-            '/api/repository/{}/'.format(repository.uuid),
+            '/api/repository/{}/{}/'.format(
+                repository.owner.nickname,
+                repository.slug),
             **authorization_header)
         response = RepositoryViewSet.as_view(
-            {'delete': 'destroy'})(request, pk=repository.uuid)
+            {'delete': 'destroy'})(
+                request,
+                owner__nickname=repository.owner.nickname,
+                slug=repository.slug)
         response.render()
         return response
 

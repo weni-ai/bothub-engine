@@ -24,7 +24,20 @@ from .views import Categories
 from .views import RepositoriesViewSet
 
 
-router = routers.SimpleRouter()
+class Router(routers.SimpleRouter):
+    def get_lookup_regex(self, viewset, lookup_prefix=''):
+        lookup_fields = getattr(viewset, 'lookup_fields', None)
+        if lookup_fields:
+            base_regex = '(?P<{lookup_prefix}{lookup_url_kwarg}>[^/.]+)'
+            return '/'.join(map(
+                lambda x: base_regex.format(
+                    lookup_prefix=lookup_prefix,
+                    lookup_url_kwarg=x),
+                lookup_fields))
+        return super().get_lookup_regex(viewset, lookup_prefix)
+
+
+router = Router()
 router.register('repository/new', NewRepositoryViewSet)
 router.register('my-repositories', MyRepositoriesViewSet)
 router.register('repository', RepositoryViewSet)

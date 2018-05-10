@@ -31,6 +31,7 @@ class Repository(models.Model):
     class Meta:
         verbose_name = _('repository')
         verbose_name_plural = _('repositories')
+        unique_together = ['owner', 'slug']
 
     CATEGORIES_HELP_TEXT = _('Categories for approaching repositories with ' +
                              'the same purpose')
@@ -50,7 +51,6 @@ class Repository(models.Model):
         help_text=_('Repository display name'))
     slug = models.SlugField(
         _('slug'),
-        unique=True,
         max_length=32,
         help_text=_('Easy way to found and share repositories'))
     language = models.CharField(
@@ -158,6 +158,8 @@ class Repository(models.Model):
             by__isnull=False).first()
 
     def get_user_authorization(self, user):
+        if user.is_anonymous:
+            return RepositoryAuthorization(repository=self)
         get, created = RepositoryAuthorization.objects.get_or_create(
             user=user,
             repository=self)
@@ -465,7 +467,12 @@ class RepositoryAuthorization(models.Model):
 
     @property
     def level(self):
-        if self.repository.owner == self.user:
+        try:
+            user = self.user
+        except User.DoesNotExist:
+            user = None
+
+        if user and self.repository.owner == user:
             return RepositoryAuthorization.LEVEL_ADMIN
         if self.repository.is_private:
             return RepositoryAuthorization.LEVEL_NOTHING
