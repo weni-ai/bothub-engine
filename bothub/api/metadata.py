@@ -5,6 +5,8 @@ from rest_framework import serializers
 from .fields import ModelMultipleChoiceField
 from .fields import TextField
 from .fields import PasswordField
+from .fields import EntityText
+from .serializers import NewRepositoryExampleEntitySerializer
 
 
 class Metadata(SimpleMetadata):
@@ -27,3 +29,5 @@ Metadata.label_lookup[ModelMultipleChoiceField] = 'multiple choice'
 Metadata.label_lookup[TextField] = 'text'
 Metadata.label_lookup[PasswordField] = 'password'
 Metadata.label_lookup[serializers.HiddenField] = 'hidden'
+Metadata.label_lookup[NewRepositoryExampleEntitySerializer] = 'entity'
+Metadata.label_lookup[EntityText] = 'entity text'

@@ -16,7 +16,6 @@ from django.shortcuts import get_object_or_404
 
 from bothub.common.models import Repository
 from bothub.common.models import RepositoryExample
-from bothub.common.models import RepositoryExampleEntity
 from bothub.common.models import RepositoryTranslatedExample
 from bothub.common.models import RepositoryTranslatedExampleEntity
 from bothub.common.models import RepositoryCategory
@@ -25,7 +24,6 @@ from bothub.authentication.models import User
 from .serializers import RepositorySerializer
 from .serializers import NewRepositorySerializer
 from .serializers import RepositoryExampleSerializer
-from .serializers import RepositoryExampleEntitySerializer
 from .serializers import RepositoryAuthorizationSerializer
 from .serializers import RepositoryTranslatedExampleSerializer
 from .serializers import RepositoryTranslatedExampleEntitySeralizer
@@ -37,6 +35,7 @@ from .serializers import RequestResetPasswordSerializer
 from .serializers import ResetPasswordSerializer
 from .serializers import LoginSerializer
 from .serializers import RepositoryCategorySerializer
+from .serializers import NewRepositoryExampleSerializer
 
 
 # Permisions
@@ -272,7 +271,7 @@ class NewRepositoryExampleViewSet(
     Create new repository example.
     """
     queryset = RepositoryExample.objects
-    serializer_class = RepositoryExampleSerializer
+    serializer_class = NewRepositoryExampleSerializer
     permission_classes = [permissions.IsAuthenticated]
 
 
@@ -300,38 +299,6 @@ class RepositoryExampleViewSet(
         if obj.deleted_in:
             raise APIException(_('Example already deleted'))
         obj.delete()
-
-
-class NewRepositoryExampleEntityViewSet(
-        mixins.CreateModelMixin,
-        GenericViewSet):
-    """
-    Create new example entity.
-    """
-    queryset = RepositoryExampleEntity.objects
-    serializer_class = RepositoryExampleEntitySerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-
-class RepositoryExampleEntityViewSet(
-        mixins.RetrieveModelMixin,
-        mixins.DestroyModelMixin,
-        GenericViewSet):
-    """
-    Manager example entity.
-
-    retrieve:
-    Get example entity data.
-
-    delete:
-    Delete example entity.
-    """
-    queryset = RepositoryExampleEntity.objects
-    serializer_class = RepositoryExampleEntitySerializer
-    permission_classes = [
-        permissions.IsAuthenticated,
-        RepositoryExampleEntityPermission,
-    ]
 
 
 class NewRepositoryTranslatedExampleViewSet(

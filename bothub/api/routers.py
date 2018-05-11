@@ -5,8 +5,6 @@ from .views import MyRepositoriesViewSet
 from .views import RepositoryViewSet
 from .views import NewRepositoryExampleViewSet
 from .views import RepositoryExampleViewSet
-from .views import NewRepositoryExampleEntityViewSet
-from .views import RepositoryExampleEntityViewSet
 from .views import NewRepositoryTranslatedExampleViewSet
 from .views import RepositoryTranslatedExampleViewSet
 from .views import NewRepositoryTranslatedExampleEntityViewSet
@@ -43,8 +41,6 @@ router.register('my-repositories', MyRepositoriesViewSet)
 router.register('repository', RepositoryViewSet)
 router.register('example/new', NewRepositoryExampleViewSet)
 router.register('example', RepositoryExampleViewSet)
-router.register('entity/new', NewRepositoryExampleEntityViewSet)
-router.register('entity', RepositoryExampleEntityViewSet)
 router.register('translate-example', NewRepositoryTranslatedExampleViewSet)
 router.register('translation', RepositoryTranslatedExampleViewSet)
 router.register('translation-entity/new',
