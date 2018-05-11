@@ -37,6 +37,7 @@ from .serializers import RequestResetPasswordSerializer
 from .serializers import ResetPasswordSerializer
 from .serializers import LoginSerializer
 from .serializers import RepositoryCategorySerializer
+from .serializers import NewRepositoryExampleSerializer
 
 
 # Permisions
@@ -272,7 +273,7 @@ class NewRepositoryExampleViewSet(
     Create new repository example.
     """
     queryset = RepositoryExample.objects
-    serializer_class = RepositoryExampleSerializer
+    serializer_class = NewRepositoryExampleSerializer
     permission_classes = [permissions.IsAuthenticated]
 
 

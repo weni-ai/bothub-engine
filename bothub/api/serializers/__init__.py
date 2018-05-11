@@ -11,6 +11,8 @@ from .category import (  # noqa: F401
 from .example import (  # noqa: F401
     RepositoryExampleEntitySerializer,
     RepositoryExampleSerializer,
+    NewRepositoryExampleSerializer,
+    NewRepositoryExampleEntitySerializer,
 )
 from .translate import (  # noqa: F401
     RepositoryTranslatedExampleEntitySeralizer,
