@@ -267,6 +267,7 @@ class RepositoryExample(models.Model):
     class Meta:
         verbose_name = _('repository example')
         verbose_name_plural = _('repository examples')
+        ordering = ['-created_at']
 
     repository_update = models.ForeignKey(
         RepositoryUpdate,
