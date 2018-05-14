@@ -55,6 +55,7 @@ class RepositorySerializer(serializers.ModelSerializer):
             'categories_list',
             'description',
             'is_private',
+            'examples__count',
             'authorization',
             'created_at',
         ]
@@ -68,6 +69,7 @@ class RepositorySerializer(serializers.ModelSerializer):
         read_only=True)
     categories_list = serializers.SerializerMethodField()
     authorization = serializers.SerializerMethodField()
+    examples__count = serializers.SerializerMethodField()
 
     def get_categories_list(self, obj):
         return RepositoryCategorySerializer(obj.categories, many=True).data
@@ -78,6 +80,9 @@ class RepositorySerializer(serializers.ModelSerializer):
             return None
         return RepositoryAuthorizationSerializer(
             obj.get_user_authorization(request.user)).data
+
+    def get_examples__count(self, obj):
+        return obj.examples().count()
 
 
 class RepositoryAuthorizationSerializer(serializers.ModelSerializer):
