@@ -112,6 +112,25 @@ class NewRepositoryExampleTestCase(TestCase):
             response.status_code,
             status.HTTP_400_BAD_REQUEST)
 
+    def test_with_entities(self):
+        response, content_data = self.request(
+            self.owner_token,
+            {
+                'repository': self.repository.uuid,
+                'text': 'my name is douglas',
+                'intent': 'greet',
+                'entities': [
+                    {
+                        'start': 11,
+                        'end': 18,
+                        'entity': 'name',
+                    },
+                ],
+            })
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_201_CREATED)
+
 
 class RepositoryExampleRetrieveTestCase(TestCase):
     def setUp(self):
