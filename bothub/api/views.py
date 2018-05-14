@@ -379,7 +379,7 @@ class RepositoryExamplesViewSet(
     serializer_class = RepositoryExampleSerializer
     filter_class = ExamplesFilter
     permission_classes = [
-        permissions.IsAuthenticated,
+        RepositoryExamplePermission,
     ]
 
 
