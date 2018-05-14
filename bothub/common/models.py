@@ -102,8 +102,10 @@ class Repository(models.Model):
                 languages.SUPPORTED_LANGUAGES,
             ))
 
-    def examples(self, language=None, deleted=True):
-        query = RepositoryExample.objects.filter(
+    def examples(self, language=None, deleted=True, queryset=None):
+        if queryset is None:
+            queryset = RepositoryExample.objects
+        query = queryset.filter(
             repository_update__repository=self)
         if language:
             query = query.filter(

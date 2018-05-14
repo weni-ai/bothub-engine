@@ -130,8 +130,7 @@ class ExamplesFilter(filters.FilterSet):
             authorization = repository.get_user_authorization(request.user)
             if not authorization.can_read:
                 raise PermissionDenied()
-            return queryset.filter(
-                repository_update__repository=repository)
+            return repository.examples(queryset=queryset)
         except Repository.DoesNotExist:
             raise NotFound(
                 _('Repository {} does not exist').format(value))
