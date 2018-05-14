@@ -35,7 +35,8 @@ class NewRepositoryExampleTestCase(TestCase):
         }
         request = self.factory.post(
             '/api/example/new/',
-            data,
+            json.dumps(data),
+            content_type='application/json',
             **authorization_header)
         response = NewRepositoryExampleViewSet.as_view(
             {'post': 'create'})(request)
@@ -49,9 +50,10 @@ class NewRepositoryExampleTestCase(TestCase):
         response, content_data = self.request(
             self.owner_token,
             {
-                'repository': self.repository.uuid,
+                'repository': str(self.repository.uuid),
                 'text': text,
                 'intent': intent,
+                'entities': [],
             })
         self.assertEqual(
             response.status_code,
@@ -67,9 +69,10 @@ class NewRepositoryExampleTestCase(TestCase):
         response, content_data = self.request(
             self.user_token,
             {
-                'repository': self.repository.uuid,
+                'repository': str(self.repository.uuid),
                 'text': 'hi',
                 'intent': 'greet',
+                'entities': [],
             })
         self.assertEqual(
             response.status_code,
@@ -81,6 +84,7 @@ class NewRepositoryExampleTestCase(TestCase):
             {
                 'text': 'hi',
                 'intent': 'greet',
+                'entities': [],
             })
         self.assertEqual(
             response.status_code,
@@ -90,9 +94,10 @@ class NewRepositoryExampleTestCase(TestCase):
         response, content_data = self.request(
             self.owner_token,
             {
-                'repository': uuid.uuid4(),
+                'repository': str(uuid.uuid4()),
                 'text': 'hi',
                 'intent': 'greet',
+                'entities': [],
             })
         self.assertEqual(
             response.status_code,
@@ -108,6 +113,7 @@ class NewRepositoryExampleTestCase(TestCase):
                 'repository': 'invalid',
                 'text': 'hi',
                 'intent': 'greet',
+                'entities': [],
             })
         self.assertEqual(
             response.status_code,
@@ -117,7 +123,7 @@ class NewRepositoryExampleTestCase(TestCase):
         response, content_data = self.request(
             self.owner_token,
             {
-                'repository': self.repository.uuid,
+                'repository': str(self.repository.uuid),
                 'text': 'my name is douglas',
                 'intent': 'greet',
                 'entities': [
@@ -131,6 +137,9 @@ class NewRepositoryExampleTestCase(TestCase):
         self.assertEqual(
             response.status_code,
             status.HTTP_201_CREATED)
+        self.assertEqual(
+            len(content_data.get('entities')),
+            1)
 
 
 class RepositoryExampleRetrieveTestCase(TestCase):
