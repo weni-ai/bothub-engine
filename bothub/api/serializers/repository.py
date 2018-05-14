@@ -55,6 +55,7 @@ class RepositorySerializer(serializers.ModelSerializer):
             'categories_list',
             'description',
             'is_private',
+            'authorization',
             'created_at',
         ]
 
@@ -66,9 +67,17 @@ class RepositorySerializer(serializers.ModelSerializer):
         slug_field='nickname',
         read_only=True)
     categories_list = serializers.SerializerMethodField()
+    authorization = serializers.SerializerMethodField()
 
     def get_categories_list(self, obj):
         return RepositoryCategorySerializer(obj.categories, many=True).data
+
+    def get_authorization(self, obj):
+        request = self.context.get('request')
+        if not request:
+            return None
+        return RepositoryAuthorizationSerializer(
+            obj.get_user_authorization(request.user)).data
 
 
 class RepositoryAuthorizationSerializer(serializers.ModelSerializer):
@@ -78,5 +87,10 @@ class RepositoryAuthorizationSerializer(serializers.ModelSerializer):
             'uuid',
             'user',
             'repository',
+            'level',
+            'can_read',
+            'can_contribute',
+            'can_write',
+            'is_admin',
             'created_at',
         ]
