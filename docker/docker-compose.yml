@@ -25,3 +25,4 @@ services:
       - EMAIL_USE_SSL
       - EMAIL_USE_TLS
       - BOTHUB_WEBAPP_BASE_URL
+      - API_BASE_URL
