@@ -66,15 +66,6 @@ class RepositoryExamplePermission(permissions.BasePermission):
         return authorization.can_contribute
 
 
-class RepositoryExampleEntityPermission(permissions.BasePermission):
-    def has_object_permission(self, request, view, obj):
-        authorization = obj.repository_example.repository_update.repository \
-            .get_user_authorization(request.user)
-        if request.method in READ_METHODS:
-            return authorization.can_read
-        return authorization.can_contribute
-
-
 class RepositoryTranslatedExamplePermission(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         repository = obj.original_example.repository_update.repository
@@ -130,8 +121,7 @@ class ExamplesFilter(filters.FilterSet):
             authorization = repository.get_user_authorization(request.user)
             if not authorization.can_read:
                 raise PermissionDenied()
-            return queryset.filter(
-                repository_update__repository=repository)
+            return repository.examples(queryset=queryset)
         except Repository.DoesNotExist:
             raise NotFound(
                 _('Repository {} does not exist').format(value))

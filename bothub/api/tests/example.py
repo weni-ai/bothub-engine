@@ -8,6 +8,7 @@ from rest_framework import status
 from bothub.common import languages
 from bothub.common.models import Repository
 from bothub.common.models import RepositoryExample
+from bothub.common.models import RepositoryExampleEntity
 
 from ..views import NewRepositoryExampleViewSet
 from ..views import RepositoryExampleViewSet
@@ -34,7 +35,8 @@ class NewRepositoryExampleTestCase(TestCase):
         }
         request = self.factory.post(
             '/api/example/new/',
-            data,
+            json.dumps(data),
+            content_type='application/json',
             **authorization_header)
         response = NewRepositoryExampleViewSet.as_view(
             {'post': 'create'})(request)
@@ -48,9 +50,10 @@ class NewRepositoryExampleTestCase(TestCase):
         response, content_data = self.request(
             self.owner_token,
             {
-                'repository': self.repository.uuid,
+                'repository': str(self.repository.uuid),
                 'text': text,
                 'intent': intent,
+                'entities': [],
             })
         self.assertEqual(
             response.status_code,
@@ -66,9 +69,10 @@ class NewRepositoryExampleTestCase(TestCase):
         response, content_data = self.request(
             self.user_token,
             {
-                'repository': self.repository.uuid,
+                'repository': str(self.repository.uuid),
                 'text': 'hi',
                 'intent': 'greet',
+                'entities': [],
             })
         self.assertEqual(
             response.status_code,
@@ -80,6 +84,7 @@ class NewRepositoryExampleTestCase(TestCase):
             {
                 'text': 'hi',
                 'intent': 'greet',
+                'entities': [],
             })
         self.assertEqual(
             response.status_code,
@@ -89,9 +94,10 @@ class NewRepositoryExampleTestCase(TestCase):
         response, content_data = self.request(
             self.owner_token,
             {
-                'repository': uuid.uuid4(),
+                'repository': str(uuid.uuid4()),
                 'text': 'hi',
                 'intent': 'greet',
+                'entities': [],
             })
         self.assertEqual(
             response.status_code,
@@ -107,10 +113,33 @@ class NewRepositoryExampleTestCase(TestCase):
                 'repository': 'invalid',
                 'text': 'hi',
                 'intent': 'greet',
+                'entities': [],
             })
         self.assertEqual(
             response.status_code,
             status.HTTP_400_BAD_REQUEST)
+
+    def test_with_entities(self):
+        response, content_data = self.request(
+            self.owner_token,
+            {
+                'repository': str(self.repository.uuid),
+                'text': 'my name is douglas',
+                'intent': 'greet',
+                'entities': [
+                    {
+                        'start': 11,
+                        'end': 18,
+                        'entity': 'name',
+                    },
+                ],
+            })
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_201_CREATED)
+        self.assertEqual(
+            len(content_data.get('entities')),
+            1)
 
 
 class RepositoryExampleRetrieveTestCase(TestCase):
@@ -127,7 +156,12 @@ class RepositoryExampleRetrieveTestCase(TestCase):
             language=languages.LANGUAGE_EN)
         self.example = RepositoryExample.objects.create(
             repository_update=self.repository.current_update(),
-            text='hi')
+            text='my name is douglas')
+        RepositoryExampleEntity.objects.create(
+            repository_example=self.example,
+            start=11,
+            end=18,
+            entity='name')
 
         self.private_repository = Repository.objects.create(
             owner=self.owner,
@@ -181,6 +215,17 @@ class RepositoryExampleRetrieveTestCase(TestCase):
         self.assertEqual(
             content_data.get('id'),
             self.example.id)
+
+    def test_list_entities(self):
+        response, content_data = self.request(
+            self.example,
+            self.owner_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK)
+        self.assertEqual(
+            len(content_data.get('entities')),
+            1)
 
 
 class RepositoryExampleDestroyTestCase(TestCase):

@@ -33,6 +33,10 @@ class ExamplesTestCase(TestCase):
             original_example=self.example,
             text='oi',
             language=languages.LANGUAGE_PT)
+        self.deleted = RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(),
+            text='hey')
+        self.deleted.delete()
 
         self.private_repository = Repository.objects.create(
             owner=self.owner,
@@ -161,3 +165,15 @@ class ExamplesTestCase(TestCase):
         self.assertEqual(
             response.status_code,
             status.HTTP_403_FORBIDDEN)
+
+    def test_dont_list_deleted(self):
+        response, content_data = self.request(
+            {
+                'repository_uuid': self.repository.uuid,
+            },
+            self.owner_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK)
+        for repository in content_data.get('results'):
+            self.failIf(self.deleted.id == repository.get('id'))
