@@ -1,9 +1,11 @@
 import uuid
 import base64
+import requests
 
 from django.db import models
 from django.utils.translation import gettext as _
 from django.utils import timezone
+from django.conf import settings
 
 from bothub.authentication.models import User
 
@@ -75,6 +77,17 @@ class Repository(models.Model):
     created_at = models.DateTimeField(
         _('created at'),
         auto_now_add=True)
+
+    nlp_train_url = '{}v1/train'.format(settings.BOTHUB_NLP_BASE_URL)
+
+    @classmethod
+    def request_nlp_train(cls, user_authorization):
+        r = requests.post(  # pragma: no cover
+            cls.nlp_train_url,
+            data={},
+            headers={'Authorization': 'Bearer {}'.format(
+                user_authorization.uuid)})
+        return r  # pragma: no cover
 
     @property
     def available_languages(self):
@@ -165,7 +178,6 @@ class Repository(models.Model):
         get, created = RepositoryAuthorization.objects.get_or_create(
             user=user,
             repository=self)
-
         return get
 
 

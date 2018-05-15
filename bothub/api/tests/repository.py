@@ -475,3 +475,37 @@ class RepositoriesTestCase(TestCase):
         self.assertEqual(
             uuid.UUID(content_data.get('results')[0].get('uuid')),
             self.repository.uuid)
+
+
+class TrainRepositoryTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.owner, self.owner_token = create_user_and_token('owner')
+        self.user, self.user_token = create_user_and_token()
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name='Testing',
+            slug='test',
+            language=languages.LANGUAGE_EN)
+
+    def request(self, repository, token):
+        authorization_header = {
+            'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
+        }
+        request = self.factory.get(
+            '/api/repository/{}/{}/train'.format(
+                repository.owner.nickname,
+                repository.slug),
+            **authorization_header)
+        response = RepositoryViewSet.as_view({'get': 'train'})(request)
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data,)
+
+    def test_permission_denied(self):
+        response, content_data = self.request(self.repository, self.user_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_403_FORBIDDEN)
