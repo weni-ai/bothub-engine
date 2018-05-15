@@ -115,6 +115,20 @@ class Repository(models.Model):
                 languages.SUPPORTED_LANGUAGES,
             ))
 
+    @property
+    def ready_for_train(self):
+        updates = self.updates.filter(training_started_at=None)
+
+        if RepositoryExample.objects.filter(
+                repository_update__in=updates).exists():
+            return True
+
+        if RepositoryTranslatedExample.objects.filter(
+                repository_update__in=updates).exists():
+            return True
+
+        return False
+
     def examples(self, language=None, deleted=True, queryset=None):
         if queryset is None:
             queryset = RepositoryExample.objects
@@ -346,12 +360,28 @@ class RepositoryExample(models.Model):
         self.save(update_fields=['deleted_in'])
 
 
+class RepositoryTranslatedExampleManager(models.Manager):
+    def create(self, *args, original_example=None, language=None, **kwargs):
+        repository = original_example.repository_update.repository
+        return super().create(
+            *args,
+            repository_update=repository.current_update(language),
+            original_example=original_example,
+            language=language,
+            **kwargs)
+
+
 class RepositoryTranslatedExample(models.Model):
     class Meta:
         verbose_name = _('repository translated example')
         verbose_name_plural = _('repository translated examples')
         unique_together = ['original_example', 'language']
 
+    repository_update = models.ForeignKey(
+        RepositoryUpdate,
+        models.CASCADE,
+        related_name='translated_added',
+        editable=False)
     original_example = models.ForeignKey(
         RepositoryExample,
         models.CASCADE,
@@ -366,6 +396,8 @@ class RepositoryTranslatedExample(models.Model):
     text = models.TextField(
         _('text'),
         help_text=_('Translation text'))
+
+    objects = RepositoryTranslatedExampleManager()
 
     @classmethod
     def create_entitites_count_dict(cls, entities):

@@ -546,3 +546,34 @@ class RepositoryUpdateExamplesTestCase(TestCase):
         self.assertEqual(
             new_update_2.examples.count(),
             3)
+
+
+class RepositoryReadyForTrain(TestCase):
+    def setUp(self):
+        self.owner = User.objects.create_user('owner@user.com', 'user')
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name='Test',
+            slug='test',
+            language=languages.LANGUAGE_EN)
+        self.example = RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(),
+            text='hi',
+            intent='greet')
+
+    def test_be_true(self):
+        self.assertTrue(self.repository.ready_for_train)
+
+    def test_be_false(self):
+        self.repository.current_update().start_training(self.owner)
+        self.assertFalse(self.repository.ready_for_train)
+
+    def test_be_true_when_new_translate(self):
+        self.repository.current_update().start_training(self.owner)
+        RepositoryTranslatedExample.objects.create(
+            original_example=self.example,
+            language=languages.LANGUAGE_PT,
+            text='oi')
+        self.repository.current_update()
+        self.assertTrue(self.repository.ready_for_train)
