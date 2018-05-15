@@ -6,30 +6,36 @@ from rest_framework.response import Response
 from rest_framework.exceptions import APIException
 from rest_framework.exceptions import NotFound
 from rest_framework.exceptions import PermissionDenied
-from rest_framework.authtoken.serializers import AuthTokenSerializer
 from rest_framework.authtoken.models import Token
 from rest_framework import status
 from django.utils.translation import gettext as _
 from django.db.models import Count
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django_filters import rest_framework as filters
+from django.shortcuts import get_object_or_404
 
 from bothub.common.models import Repository
 from bothub.common.models import RepositoryExample
-from bothub.common.models import RepositoryExampleEntity
 from bothub.common.models import RepositoryTranslatedExample
 from bothub.common.models import RepositoryTranslatedExampleEntity
+from bothub.common.models import RepositoryCategory
 from bothub.authentication.models import User
 
 from .serializers import RepositorySerializer
+from .serializers import NewRepositorySerializer
 from .serializers import RepositoryExampleSerializer
-from .serializers import RepositoryExampleEntitySerializer
 from .serializers import RepositoryAuthorizationSerializer
 from .serializers import RepositoryTranslatedExampleSerializer
 from .serializers import RepositoryTranslatedExampleEntitySeralizer
 from .serializers import RegisterUserSerializer
+from .serializers import EditUserSerializer
 from .serializers import UserSerializer
 from .serializers import ChangePasswordSerializer
+from .serializers import RequestResetPasswordSerializer
+from .serializers import ResetPasswordSerializer
+from .serializers import LoginSerializer
+from .serializers import RepositoryCategorySerializer
+from .serializers import NewRepositoryExampleSerializer
 
 
 # Permisions
@@ -44,23 +50,16 @@ class RepositoryPermission(permissions.BasePermission):
         authorization = obj.get_user_authorization(request.user)
         if request.method in READ_METHODS:
             return authorization.can_read
-        if request.method in WRITE_METHODS:
-            return authorization.can_write
-        return authorization.is_admin
+        if request.user.is_authenticated:
+            if request.method in WRITE_METHODS:
+                return authorization.can_write
+            return authorization.is_admin
+        return False
 
 
 class RepositoryExamplePermission(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         authorization = obj.repository_update.repository \
-            .get_user_authorization(request.user)
-        if request.method in READ_METHODS:
-            return authorization.can_read
-        return authorization.can_contribute
-
-
-class RepositoryExampleEntityPermission(permissions.BasePermission):
-    def has_object_permission(self, request, view, obj):
-        authorization = obj.repository_example.repository_update.repository \
             .get_user_authorization(request.user)
         if request.method in READ_METHODS:
             return authorization.can_read
@@ -88,8 +87,6 @@ class RepositoryTranslatedExampleEntityPermission(permissions.BasePermission):
 
 class UserPermission(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
-        if request.method in permissions.SAFE_METHODS:
-            return True
         return request.user == obj
 
 
@@ -124,8 +121,7 @@ class ExamplesFilter(filters.FilterSet):
             authorization = repository.get_user_authorization(request.user)
             if not authorization.can_read:
                 raise PermissionDenied()
-            return queryset.filter(
-                repository_update__repository=repository)
+            return repository.examples(queryset=queryset)
         except Repository.DoesNotExist:
             raise NotFound(
                 _('Repository {} does not exist').format(value))
@@ -146,6 +142,35 @@ class ExamplesFilter(filters.FilterSet):
                 translation_count=0)
 
 
+class RepositoriesFilter(filters.FilterSet):
+    class Meta:
+        model = Repository
+        fields = [
+            'categories',
+        ]
+
+
+# Mixins
+
+class MultipleFieldLookupMixin(object):
+    """
+    Apply this mixin to any view or viewset to get multiple field filtering
+    based on a `lookup_fields` attribute, instead of the default single field
+    filtering.
+    """
+
+    def get_object(self):
+        queryset = self.get_queryset()
+        queryset = self.filter_queryset(queryset)
+        filter = {}
+        for field in self.lookup_fields:
+            if self.kwargs.get(field):
+                filter[field] = self.kwargs[field]
+        obj = get_object_or_404(queryset, **filter)
+        self.check_object_permissions(self.request, obj)
+        return obj
+
+
 # ViewSets
 
 class NewRepositoryViewSet(
@@ -155,7 +180,7 @@ class NewRepositoryViewSet(
     Create a new Repository, add examples and train a bot.
     """
     queryset = Repository.objects
-    serializer_class = RepositorySerializer
+    serializer_class = NewRepositorySerializer
     permission_classes = [permissions.IsAuthenticated]
 
 
@@ -174,6 +199,7 @@ class MyRepositoriesViewSet(
 
 
 class RepositoryViewSet(
+        MultipleFieldLookupMixin,
         mixins.RetrieveModelMixin,
         mixins.UpdateModelMixin,
         mixins.DestroyModelMixin,
@@ -194,9 +220,10 @@ class RepositoryViewSet(
     Delete your repository.
     """
     queryset = Repository.objects
+    lookup_field = 'slug'
+    lookup_fields = ['owner__nickname', 'slug']
     serializer_class = RepositorySerializer
     permission_classes = [
-        permissions.IsAuthenticated,
         RepositoryPermission,
     ]
 
@@ -234,7 +261,7 @@ class NewRepositoryExampleViewSet(
     Create new repository example.
     """
     queryset = RepositoryExample.objects
-    serializer_class = RepositoryExampleSerializer
+    serializer_class = NewRepositoryExampleSerializer
     permission_classes = [permissions.IsAuthenticated]
 
 
@@ -262,38 +289,6 @@ class RepositoryExampleViewSet(
         if obj.deleted_in:
             raise APIException(_('Example already deleted'))
         obj.delete()
-
-
-class NewRepositoryExampleEntityViewSet(
-        mixins.CreateModelMixin,
-        GenericViewSet):
-    """
-    Create new example entity.
-    """
-    queryset = RepositoryExampleEntity.objects
-    serializer_class = RepositoryExampleEntitySerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-
-class RepositoryExampleEntityViewSet(
-        mixins.RetrieveModelMixin,
-        mixins.DestroyModelMixin,
-        GenericViewSet):
-    """
-    Manager example entity.
-
-    retrieve:
-    Get example entity data.
-
-    delete:
-    Delete example entity.
-    """
-    queryset = RepositoryExampleEntity.objects
-    serializer_class = RepositoryExampleEntitySerializer
-    permission_classes = [
-        permissions.IsAuthenticated,
-        RepositoryExampleEntityPermission,
-    ]
 
 
 class NewRepositoryTranslatedExampleViewSet(
@@ -374,7 +369,7 @@ class RepositoryExamplesViewSet(
     serializer_class = RepositoryExampleSerializer
     filter_class = ExamplesFilter
     permission_classes = [
-        permissions.IsAuthenticated,
+        RepositoryExamplePermission,
     ]
 
 
@@ -389,14 +384,10 @@ class RegisterUserViewSet(
 
 
 class UserViewSet(
-        mixins.RetrieveModelMixin,
         mixins.UpdateModelMixin,
         GenericViewSet):
     """
     Manager user's profile
-
-    retrieve:
-    Get user's profile
 
     update:
     Update full user's profile
@@ -405,7 +396,7 @@ class UserViewSet(
     Update user's profile fields
     """
     queryset = User.objects
-    serializer_class = UserSerializer
+    serializer_class = EditUserSerializer
     permission_classes = [
         permissions.IsAuthenticated,
         UserPermission,
@@ -414,7 +405,7 @@ class UserViewSet(
 
 class LoginViewSet(GenericViewSet):
     queryset = User.objects
-    serializer_class = AuthTokenSerializer
+    serializer_class = LoginSerializer
 
     def create(self, request, *args, **kwargs):
         serializer = self.serializer_class(
@@ -454,3 +445,95 @@ class ChangePasswordViewSet(GenericViewSet):
         return Response(
             serializer.errors,
             status=status.HTTP_400_BAD_REQUEST)
+
+
+class RequestResetPassword(GenericViewSet):
+    """
+    Request reset password
+    """
+    serializer_class = RequestResetPasswordSerializer
+    queryset = User.objects
+
+    def get_object(self):
+        return self.queryset.get(email=self.request.data.get('email'))
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            self.object = self.get_object()
+            self.object.send_reset_password_email()
+            return Response({})
+        return Response(
+            serializer.errors,
+            status=status.HTTP_400_BAD_REQUEST)
+
+
+class ResetPassword(GenericViewSet):
+    """
+    Reset password
+    """
+    serializer_class = ResetPasswordSerializer
+    queryset = User.objects
+    lookup_field = 'nickname'
+
+    def update(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            self.object.set_password(serializer.data.get('password'))
+            self.object.save()
+            return Response({})
+        return Response(
+            serializer.errors,
+            status=status.HTTP_400_BAD_REQUEST)
+
+
+class MyUserProfile(GenericViewSet):
+    """
+    Get current user profile
+    """
+    serializer_class = UserSerializer
+    queryset = User.objects
+    pagination_class = None
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self, *args, **kwargs):
+        request = self.request
+        return request.user
+
+    def list(self, request, *args, **kwargs):
+        serializer = self.get_serializer(self.get_queryset())
+        return Response(serializer.data)
+
+
+class UserProfile(
+        mixins.RetrieveModelMixin,
+        GenericViewSet):
+    """
+    Get user profile
+    """
+    serializer_class = UserSerializer
+    queryset = User.objects
+    lookup_field = 'nickname'
+
+
+class Categories(
+        mixins.ListModelMixin,
+        GenericViewSet):
+    """
+    List all categories.
+    """
+    serializer_class = RepositoryCategorySerializer
+    queryset = RepositoryCategory.objects.all()
+    pagination_class = None
+
+
+class RepositoriesViewSet(
+        mixins.ListModelMixin,
+        GenericViewSet):
+    """
+    List all public repositories.
+    """
+    serializer_class = RepositorySerializer
+    queryset = Repository.objects.filter(is_private=False)
+    filter_class = RepositoriesFilter

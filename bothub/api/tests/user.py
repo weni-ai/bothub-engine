@@ -11,6 +11,9 @@ from ..views import RegisterUserViewSet
 from ..views import UserViewSet
 from ..views import LoginViewSet
 from ..views import ChangePasswordViewSet
+from ..views import RequestResetPassword
+from ..views import ResetPassword
+from ..views import MyUserProfile
 
 from .utils import create_user_and_token
 
@@ -57,33 +60,6 @@ class RegisterUserTestCase(TestCase):
         self.assertIn(
             'password',
             content_data.keys())
-
-
-class UserRetrieveTestCase(TestCase):
-    def setUp(self):
-        self.factory = RequestFactory()
-        self.user, self.user_token = create_user_and_token()
-
-    def request(self, user, token):
-        authorization_header = {
-            'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
-        }
-        request = self.factory.get(
-            '/api/profile/{}/'.format(user.pk),
-            **authorization_header)
-        response = UserViewSet.as_view(
-            {'get': 'retrieve'})(request, pk=user.pk)
-        response.render()
-        content_data = json.loads(response.content)
-        return (response, content_data,)
-
-    def test_okay(self):
-        response, content_data = self.request(
-            self.user,
-            self.user_token)
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_200_OK)
 
 
 class UserUpdateTestCase(TestCase):
@@ -227,3 +203,118 @@ class ChangePasswordTestCase(TestCase):
         self.assertIn(
             'current_password',
             content_data.keys())
+
+
+class RequestResetPasswordTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.email = 'user@user.com'
+
+        User.objects.create(
+            email=self.email,
+            nickname='user',
+            name='User')
+
+    def request(self, data):
+        request = self.factory.post(
+            '/api/forgot-password/',
+            data)
+        response = RequestResetPassword.as_view(
+            {'post': 'create'})(request)
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data,)
+
+    def test_okay(self):
+        response, content_data = self.request({
+            'email': self.email,
+        })
+
+    def test_email_not_found(self):
+        response, content_data = self.request({
+            'email': 'nouser@fake.com',
+        })
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST)
+        self.assertIn(
+            'email',
+            content_data.keys())
+
+
+class ResetPasswordTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.user = User.objects.create(
+            email='user@user.com',
+            nickname='user',
+            name='User')
+        self.reset_password_token = self.user.make_password_reset_token()
+
+    def request(self, nickname, data):
+        request = self.factory.post(
+            '/api/reset-password/{}/'.format(nickname),
+            data)
+        response = ResetPassword.as_view(
+            {'post': 'update'})(request, nickname=nickname)
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data,)
+
+    def test_okay(self):
+        new_password = 'valid12!'
+        response, content_data = self.request(
+            self.user.nickname,
+            {
+                'token': self.reset_password_token,
+                'password': new_password,
+            })
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK)
+        self.user = User.objects.get(pk=self.user.pk)
+        self.assertTrue(self.user.check_password(new_password))
+
+    def test_invalid_token(self):
+        response, content_data = self.request(
+            self.user.nickname,
+            {
+                'token': '112233',
+                'password': 'valid12!',
+            })
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST)
+        self.assertIn(
+            'token',
+            content_data.keys())
+
+
+class MyUserProfileTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.user, self.user_token = create_user_and_token()
+
+    def request(self, token):
+        authorization_header = {
+            'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
+        }
+        request = self.factory.get(
+            '/api/my-profile/',
+            **authorization_header)
+        response = MyUserProfile.as_view(
+            {'get': 'list'})(request)
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data,)
+
+    def test_okay(self):
+        response, content_data = self.request(self.user_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK)
+        self.assertEqual(
+            content_data.get('nickname'),
+            self.user.nickname)

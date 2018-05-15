@@ -23,11 +23,19 @@ class RepositoryCategory(models.Model):
         _('name'),
         max_length=32)
 
+    def __str__(self):
+        return self.name
+
 
 class Repository(models.Model):
     class Meta:
         verbose_name = _('repository')
         verbose_name_plural = _('repositories')
+        unique_together = ['owner', 'slug']
+
+    CATEGORIES_HELP_TEXT = _('Categories for approaching repositories with ' +
+                             'the same purpose')
+    DESCRIPTION_HELP_TEXT = _('Tell what your bot do!')
 
     uuid = models.UUIDField(
         _('UUID'),
@@ -43,7 +51,6 @@ class Repository(models.Model):
         help_text=_('Repository display name'))
     slug = models.SlugField(
         _('slug'),
-        unique=True,
         max_length=32,
         help_text=_('Easy way to found and share repositories'))
     language = models.CharField(
@@ -54,12 +61,11 @@ class Repository(models.Model):
                     'translated to other languages.'))
     categories = models.ManyToManyField(
         RepositoryCategory,
-        help_text=_('Categories for approaching repositories with the same ' +
-                    'purpose'))
+        help_text=CATEGORIES_HELP_TEXT)
     description = models.TextField(
         _('description'),
         blank=True,
-        help_text=_('Tell what your bot do!'))
+        help_text=DESCRIPTION_HELP_TEXT)
     is_private = models.BooleanField(
         _('private'),
         default=False,
@@ -71,6 +77,22 @@ class Repository(models.Model):
         auto_now_add=True)
 
     @property
+    def available_languages(self):
+        examples = self.examples()
+        examples_languages = examples.values_list(
+            'repository_update__language',
+            flat=True)
+        translations_languages = examples.annotate(
+            translations_count=models.Count('translations')).filter(
+                translations_count__gt=0).values_list(
+                    'translations__language',
+                    flat=True)
+        return list(set(
+            [self.language] +
+            list(examples_languages) +
+            list(translations_languages)))
+
+    @property
     def languages_status(self):
         return dict(
             map(
@@ -80,8 +102,10 @@ class Repository(models.Model):
                 languages.SUPPORTED_LANGUAGES,
             ))
 
-    def examples(self, language=None, deleted=True):
-        query = RepositoryExample.objects.filter(
+    def examples(self, language=None, deleted=True, queryset=None):
+        if queryset is None:
+            queryset = RepositoryExample.objects
+        query = queryset.filter(
             repository_update__repository=self)
         if language:
             query = query.filter(
@@ -136,6 +160,8 @@ class Repository(models.Model):
             by__isnull=False).first()
 
     def get_user_authorization(self, user):
+        if user.is_anonymous:
+            return RepositoryAuthorization(repository=self)
         get, created = RepositoryAuthorization.objects.get_or_create(
             user=user,
             repository=self)
@@ -243,6 +269,7 @@ class RepositoryExample(models.Model):
     class Meta:
         verbose_name = _('repository example')
         verbose_name_plural = _('repository examples')
+        ordering = ['-created_at']
 
     repository_update = models.ForeignKey(
         RepositoryUpdate,
@@ -443,7 +470,12 @@ class RepositoryAuthorization(models.Model):
 
     @property
     def level(self):
-        if self.repository.owner == self.user:
+        try:
+            user = self.user
+        except User.DoesNotExist:
+            user = None
+
+        if user and self.repository.owner == user:
             return RepositoryAuthorization.LEVEL_ADMIN
         if self.repository.is_private:
             return RepositoryAuthorization.LEVEL_NOTHING
