@@ -35,7 +35,7 @@ check_ready_for_development:
 
 test:
 	make check_ready_for_development
-	./env/bin/coverage run manage.py test && ./env/bin/coverage report -m
+	$(ENV_DIR)bin/coverage run manage.py test && $(ENV_DIR)bin/coverage report -m
 
 runserver:
 	make check_ready_for_development
