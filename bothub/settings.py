@@ -185,3 +185,10 @@ else:
 BOTHUB_WEBAPP_BASE_URL = config(
     'BOTHUB_WEBAPP_BASE_URL',
     default='http://localhost:8080/')
+
+
+# NLP
+
+BOTHUB_NLP_BASE_URL = config(
+    'BOTHUB_NLP_BASE_URL',
+    default='http://127.0.1:8001/')
