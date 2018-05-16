@@ -270,9 +270,7 @@ class RepositoryViewSet(
             raise APIException(  # pragma: no cover
                 {'status_code': request.status_code},
                 code=request.status_code)
-        return Response({  # pragma: no cover
-            'response': request.json(),
-        })
+        return Response(request.json())  # pragma: no cover
 
 
 class NewRepositoryExampleViewSet(
