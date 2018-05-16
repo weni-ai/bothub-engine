@@ -582,3 +582,46 @@ class RepositoryReadyForTrain(TestCase):
         self.repository.current_update().start_training(self.owner)
         self.example.delete()
         self.assertTrue(self.repository.ready_for_train)
+
+
+class RepositoryUpdateReadyForTrain(TestCase):
+    def setUp(self):
+        self.owner = User.objects.create_user('owner@user.com', 'user')
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name='Test',
+            slug='test',
+            language=languages.LANGUAGE_EN)
+
+    def test_be_true(self):
+        RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(),
+            text='hi',
+            intent='greet')
+        self.assertTrue(self.repository.current_update().ready_for_train)
+
+    def test_be_false(self):
+        self.assertFalse(self.repository.current_update().ready_for_train)
+
+    def test_new_translate(self):
+        example = RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(),
+            text='hi',
+            intent='greet')
+        self.repository.current_update().start_training(self.owner)
+        RepositoryTranslatedExample.objects.create(
+            original_example=example,
+            language=languages.LANGUAGE_PT,
+            text='oi')
+        self.assertTrue(self.repository.current_update(
+            languages.LANGUAGE_PT).ready_for_train)
+
+    def test_when_deleted(self):
+        example = RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(),
+            text='hi',
+            intent='greet')
+        self.repository.current_update().start_training(self.owner)
+        example.delete()
+        self.assertTrue(self.repository.current_update().ready_for_train)

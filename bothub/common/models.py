@@ -262,6 +262,16 @@ class RepositoryUpdate(models.Model):
                         self.examples)))
         }
 
+    @property
+    def ready_for_train(self):
+        if self.added.exists():
+            return True
+        if self.translated_added.exists():
+            return True
+        if self.deleted.exists():
+            return True
+        return False
+
     def start_training(self, by):
         if self.trained_at:
             raise RepositoryUpdateAlreadyTrained()

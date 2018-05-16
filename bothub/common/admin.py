@@ -22,7 +22,19 @@ class RepositoryAdmin(admin.ModelAdmin):
 
 @admin.register(RepositoryUpdate)
 class RepositoryUpdateAdmin(admin.ModelAdmin):
-    pass
+    list_display_links = [
+        'id',
+        '__str__',
+    ]
+    list_display = [
+        'id',
+        '__str__',
+        'repository',
+        'language',
+        'training_started_at',
+        'trained_at',
+        'failed_at',
+    ]
 
 
 @admin.register(RepositoryExample)
