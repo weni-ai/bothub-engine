@@ -120,7 +120,8 @@ class Repository(models.Model):
         updates = self.updates.filter(training_started_at=None)
 
         if RepositoryExample.objects.filter(
-                repository_update__in=updates).exists():
+                models.Q(repository_update__in=updates) |
+                models.Q(deleted_in__in=updates)).exists():
             return True
 
         if RepositoryTranslatedExample.objects.filter(

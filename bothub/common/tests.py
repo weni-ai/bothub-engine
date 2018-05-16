@@ -577,3 +577,8 @@ class RepositoryReadyForTrain(TestCase):
             text='oi')
         self.repository.current_update()
         self.assertTrue(self.repository.ready_for_train)
+
+    def test_be_true_when_deleted_example(self):
+        self.repository.current_update().start_training(self.owner)
+        self.example.delete()
+        self.assertTrue(self.repository.ready_for_train)
