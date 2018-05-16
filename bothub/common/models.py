@@ -1,9 +1,11 @@
 import uuid
 import base64
+import requests
 
 from django.db import models
 from django.utils.translation import gettext as _
 from django.utils import timezone
+from django.conf import settings
 
 from bothub.authentication.models import User
 
@@ -76,6 +78,17 @@ class Repository(models.Model):
         _('created at'),
         auto_now_add=True)
 
+    nlp_train_url = '{}v1/train'.format(settings.BOTHUB_NLP_BASE_URL)
+
+    @classmethod
+    def request_nlp_train(cls, user_authorization):
+        r = requests.post(  # pragma: no cover
+            cls.nlp_train_url,
+            data={},
+            headers={'Authorization': 'Bearer {}'.format(
+                user_authorization.uuid)})
+        return r  # pragma: no cover
+
     @property
     def available_languages(self):
         examples = self.examples()
@@ -101,6 +114,21 @@ class Repository(models.Model):
                     self.language_status(language)),
                 languages.SUPPORTED_LANGUAGES,
             ))
+
+    @property
+    def ready_for_train(self):
+        updates = self.updates.filter(training_started_at=None)
+
+        if RepositoryExample.objects.filter(
+                models.Q(repository_update__in=updates) |
+                models.Q(deleted_in__in=updates)).exists():
+            return True
+
+        if RepositoryTranslatedExample.objects.filter(
+                repository_update__in=updates).exists():
+            return True
+
+        return False
 
     def examples(self, language=None, deleted=True, queryset=None):
         if queryset is None:
@@ -165,7 +193,6 @@ class Repository(models.Model):
         get, created = RepositoryAuthorization.objects.get_or_create(
             user=user,
             repository=self)
-
         return get
 
 
@@ -203,6 +230,10 @@ class RepositoryUpdate(models.Model):
         _('trained at'),
         blank=True,
         null=True)
+    failed_at = models.DateTimeField(
+        _('failed at'),
+        blank=True,
+        null=True)
 
     @property
     def examples(self):
@@ -230,6 +261,16 @@ class RepositoryUpdate(models.Model):
                             self.language),
                         self.examples)))
         }
+
+    @property
+    def ready_for_train(self):
+        if self.added.exists():
+            return True
+        if self.translated_added.exists():
+            return True
+        if self.deleted.exists():
+            return True
+        return False
 
     def start_training(self, by):
         if self.trained_at:
@@ -263,6 +304,13 @@ class RepositoryUpdate(models.Model):
 
     def get_bot_data(self):
         return base64.b64decode(self.bot_data)
+
+    def train_fail(self):
+        self.failed_at = timezone.now()
+        self.save(
+            update_fields=[
+                'failed_at',
+            ])
 
 
 class RepositoryExample(models.Model):
@@ -334,12 +382,28 @@ class RepositoryExample(models.Model):
         self.save(update_fields=['deleted_in'])
 
 
+class RepositoryTranslatedExampleManager(models.Manager):
+    def create(self, *args, original_example=None, language=None, **kwargs):
+        repository = original_example.repository_update.repository
+        return super().create(
+            *args,
+            repository_update=repository.current_update(language),
+            original_example=original_example,
+            language=language,
+            **kwargs)
+
+
 class RepositoryTranslatedExample(models.Model):
     class Meta:
         verbose_name = _('repository translated example')
         verbose_name_plural = _('repository translated examples')
         unique_together = ['original_example', 'language']
 
+    repository_update = models.ForeignKey(
+        RepositoryUpdate,
+        models.CASCADE,
+        related_name='translated_added',
+        editable=False)
     original_example = models.ForeignKey(
         RepositoryExample,
         models.CASCADE,
@@ -354,6 +418,8 @@ class RepositoryTranslatedExample(models.Model):
     text = models.TextField(
         _('text'),
         help_text=_('Translation text'))
+
+    objects = RepositoryTranslatedExampleManager()
 
     @classmethod
     def create_entitites_count_dict(cls, entities):

@@ -57,6 +57,7 @@ class RepositorySerializer(serializers.ModelSerializer):
             'is_private',
             'examples__count',
             'authorization',
+            'ready_for_train',
             'created_at',
         ]
 
