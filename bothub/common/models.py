@@ -229,6 +229,10 @@ class RepositoryUpdate(models.Model):
         _('trained at'),
         blank=True,
         null=True)
+    failed_at = models.DateTimeField(
+        _('failed at'),
+        blank=True,
+        null=True)
 
     @property
     def examples(self):
@@ -291,14 +295,10 @@ class RepositoryUpdate(models.Model):
         return base64.b64decode(self.bot_data)
 
     def train_fail(self):
-        self.by = None
-        self.training_started_at = None
-        self.trained_at = None
+        self.failed_at = timezone.now()
         self.save(
             update_fields=[
-                'by',
-                'training_started_at',
-                'trained_at',
+                'failed_at',
             ])
 
 
