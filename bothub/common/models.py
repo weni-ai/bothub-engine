@@ -290,6 +290,17 @@ class RepositoryUpdate(models.Model):
     def get_bot_data(self):
         return base64.b64decode(self.bot_data)
 
+    def train_fail(self):
+        self.by = None
+        self.training_started_at = None
+        self.trained_at = None
+        self.save(
+            update_fields=[
+                'by',
+                'training_started_at',
+                'trained_at',
+            ])
+
 
 class RepositoryExample(models.Model):
     class Meta:
