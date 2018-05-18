@@ -79,7 +79,7 @@ class RepositorySerializer(serializers.ModelSerializer):
     def get_authorization(self, obj):
         request = self.context.get('request')
         if not request:
-            return None
+            return None  # pragma: no cover
         return RepositoryAuthorizationSerializer(
             obj.get_user_authorization(request.user)).data
 
