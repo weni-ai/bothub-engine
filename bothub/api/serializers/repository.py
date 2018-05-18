@@ -3,6 +3,7 @@ from rest_framework import serializers
 from bothub.common.models import Repository
 from bothub.common.models import RepositoryCategory
 from bothub.common.models import RepositoryAuthorization
+from bothub.common.languages import LANGUAGE_CHOICES
 
 from ..fields import ModelMultipleChoiceField
 from ..fields import TextField
@@ -100,3 +101,8 @@ class RepositoryAuthorizationSerializer(serializers.ModelSerializer):
             'is_admin',
             'created_at',
         ]
+
+
+class AnalyzeTextSerializer(serializers.Serializer):
+    language = serializers.ChoiceField(LANGUAGE_CHOICES, required=True)
+    text = serializers.CharField(allow_blank=False)

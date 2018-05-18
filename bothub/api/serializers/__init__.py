@@ -2,6 +2,7 @@ from .repository import (  # noqa: F401
     NewRepositorySerializer,
     RepositorySerializer,
     RepositoryAuthorizationSerializer,
+    AnalyzeTextSerializer,
 )
 
 from .category import (  # noqa: F401
