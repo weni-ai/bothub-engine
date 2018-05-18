@@ -11,6 +11,7 @@ omit =
     ./bothub/authentication/tests.py
     ./bothub/common/tests.py
     ./bothub/common/management/commands/fill_db_using_fake_data.py
+    ./bothub/common/migrations/*
 
 [report]
 fail_under = 90
