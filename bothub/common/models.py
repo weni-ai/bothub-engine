@@ -26,7 +26,7 @@ class RepositoryCategory(models.Model):
         max_length=32)
 
     def __str__(self):
-        return self.name
+        return self.name  # pragma: no cover
 
 
 class Repository(models.Model):
@@ -79,12 +79,25 @@ class Repository(models.Model):
         auto_now_add=True)
 
     nlp_train_url = '{}v1/train'.format(settings.BOTHUB_NLP_BASE_URL)
+    nlp_analyze_url = '{}v1/message'.format(settings.BOTHUB_NLP_BASE_URL)
 
     @classmethod
     def request_nlp_train(cls, user_authorization):
         r = requests.post(  # pragma: no cover
             cls.nlp_train_url,
             data={},
+            headers={'Authorization': 'Bearer {}'.format(
+                user_authorization.uuid)})
+        return r  # pragma: no cover
+
+    @classmethod
+    def request_nlp_analyze(cls, user_authorization, data):
+        r = requests.post(  # pragma: no cover
+            cls.nlp_analyze_url,
+            data={
+                'language': data.get('language'),
+                'msg': data.get('text'),
+            },
             headers={'Authorization': 'Bearer {}'.format(
                 user_authorization.uuid)})
         return r  # pragma: no cover
@@ -306,8 +319,8 @@ class RepositoryUpdate(models.Model):
         return base64.b64decode(self.bot_data)
 
     def train_fail(self):
-        self.failed_at = timezone.now()
-        self.save(
+        self.failed_at = timezone.now()  # pragma: no cover
+        self.save(  # pragma: no cover
             update_fields=[
                 'failed_at',
             ])
