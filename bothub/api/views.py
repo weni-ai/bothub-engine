@@ -36,6 +36,7 @@ from .serializers import ResetPasswordSerializer
 from .serializers import LoginSerializer
 from .serializers import RepositoryCategorySerializer
 from .serializers import NewRepositoryExampleSerializer
+from .serializers import AnalyzeTextSerializer
 
 
 # Permisions
@@ -54,7 +55,7 @@ class RepositoryPermission(permissions.BasePermission):
             if request.method in WRITE_METHODS:
                 return authorization.can_write
             return authorization.is_admin
-        return False
+        return False  # pragma: no cover
 
 
 class RepositoryExamplePermission(permissions.BasePermission):
@@ -269,6 +270,32 @@ class RepositoryViewSet(
         if request.status_code != status.HTTP_200_OK:  # pragma: no cover
             raise APIException(  # pragma: no cover
                 {'status_code': request.status_code},
+                code=request.status_code)
+        return Response(request.json())  # pragma: no cover
+
+    @detail_route(
+        methods=['POST'],
+        url_name='repository-analyze')
+    def analyze(self, request, **kwargs):
+        repository = self.get_object()
+        user_authorization = repository.get_user_authorization(request.user)
+        serializer = AnalyzeTextSerializer(
+            data=request.data)  # pragma: no cover
+        serializer.is_valid(raise_exception=True)  # pragma: no cover
+        request = Repository.request_nlp_analyze(
+            user_authorization,
+            serializer.data)  # pragma: no cover
+        if request.status_code != status.HTTP_200_OK:  # pragma: no cover
+            response = None  # pragma: no cover
+            try:
+                response = request.json()  # pragma: no cover
+            except Exception:
+                pass
+            raise APIException(  # pragma: no cover
+                {
+                    'status_code': request.status_code,
+                    'response': response,
+                },
                 code=request.status_code)
         return Response(request.json())  # pragma: no cover
 
