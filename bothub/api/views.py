@@ -184,6 +184,16 @@ class NewRepositoryViewSet(
     serializer_class = NewRepositorySerializer
     permission_classes = [permissions.IsAuthenticated]
 
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        instance = serializer.save()
+        headers = self.get_success_headers(serializer.data)
+        return Response(
+            RepositorySerializer(instance).data,
+            status=status.HTTP_201_CREATED,
+            headers=headers)
+
 
 class MyRepositoriesViewSet(
         mixins.ListModelMixin,
