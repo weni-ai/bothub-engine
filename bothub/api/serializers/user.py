@@ -30,16 +30,6 @@ class RegisterUserSerializer(serializers.ModelSerializer):
         return make_password(value)
 
 
-class EditUserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = [
-            'email',
-            'name',
-            'locale',
-        ]
-
-
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
