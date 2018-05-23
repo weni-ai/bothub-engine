@@ -457,12 +457,19 @@ class ChangePasswordViewSet(GenericViewSet):
     """
     serializer_class = ChangePasswordSerializer
     queryset = User.objects
+    lookup_field = None
     permission_classes = [
         permissions.IsAuthenticated,
     ]
 
-    def get_object(self, queryset=None):
-        return self.request.user
+    def get_object(self, *args, **kwargs):
+        request = self.request
+        user = request.user
+
+        # May raise a permission denied
+        self.check_object_permissions(self.request, user)
+
+        return user
 
     def update(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -472,6 +479,7 @@ class ChangePasswordViewSet(GenericViewSet):
             self.object.set_password(serializer.data.get('password'))
             self.object.save()
             return Response({}, status=status.HTTP_200_OK)
+
         return Response(
             serializer.errors,
             status=status.HTTP_400_BAD_REQUEST)
