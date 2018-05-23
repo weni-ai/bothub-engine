@@ -36,6 +36,7 @@ from .serializers import LoginSerializer
 from .serializers import RepositoryCategorySerializer
 from .serializers import NewRepositoryExampleSerializer
 from .serializers import AnalyzeTextSerializer
+from .serializers import EditRepositorySerializer
 
 
 # Permisions
@@ -228,6 +229,7 @@ class RepositoryViewSet(
     lookup_field = 'slug'
     lookup_fields = ['owner__nickname', 'slug']
     serializer_class = RepositorySerializer
+    edit_serializer_class = EditRepositorySerializer
     permission_classes = [
         RepositoryPermission,
     ]
@@ -302,6 +304,11 @@ class RepositoryViewSet(
                 },
                 code=request.status_code)
         return Response(request.json())  # pragma: no cover
+
+    def get_serializer_class(self):
+        if self.request.method in ['OPTIONS'] + WRITE_METHODS:
+            return self.edit_serializer_class
+        return self.serializer_class
 
 
 class NewRepositoryExampleViewSet(
