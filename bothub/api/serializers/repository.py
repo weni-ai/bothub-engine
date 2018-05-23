@@ -41,6 +41,10 @@ class NewRepositorySerializer(serializers.ModelSerializer):
         help_text=Repository.DESCRIPTION_HELP_TEXT)
 
 
+class EditRepositorySerializer(NewRepositorySerializer):
+    pass
+
+
 class RepositorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Repository
