@@ -72,7 +72,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     locale = models.CharField(
         _('locale'),
         max_length=48,
-        help_text=_('User\'s locale.'))
+        help_text=_('User\'s locale.'),
+        blank=True)
     is_staff = models.BooleanField(
         _('staff status'),
         default=False)

@@ -8,12 +8,11 @@ from rest_framework import status
 from bothub.authentication.models import User
 
 from ..views import RegisterUserViewSet
-from ..views import UserViewSet
 from ..views import LoginViewSet
 from ..views import ChangePasswordViewSet
 from ..views import RequestResetPassword
 from ..views import ResetPassword
-from ..views import MyUserProfile
+from ..views import MyUserProfileViewSet
 
 from .utils import create_user_and_token
 
@@ -72,11 +71,11 @@ class UserUpdateTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
         }
         request = self.factory.patch(
-            '/api/profile/{}/'.format(user.pk),
+            '/api/my-profile/',
             self.factory._encode_data(data, MULTIPART_CONTENT),
             MULTIPART_CONTENT,
             **authorization_header)
-        response = UserViewSet.as_view(
+        response = MyUserProfileViewSet.as_view(
             {'patch': 'update'})(request, pk=user.pk, partial=True)
         response.render()
         content_data = json.loads(response.content)
@@ -96,18 +95,6 @@ class UserUpdateTestCase(TestCase):
         self.assertEqual(
             content_data.get('locale'),
             new_locale)
-
-    def test_forbidden(self):
-        user, user_token = create_user_and_token('other')
-        response, content_data = self.request(
-            self.user,
-            {
-                'locale': 'new locale',
-            },
-            user_token)
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_403_FORBIDDEN)
 
 
 class LoginTestCase(TestCase):
@@ -304,8 +291,8 @@ class MyUserProfileTestCase(TestCase):
         request = self.factory.get(
             '/api/my-profile/',
             **authorization_header)
-        response = MyUserProfile.as_view(
-            {'get': 'list'})(request)
+        response = MyUserProfileViewSet.as_view(
+            {'get': 'retrieve'})(request)
         response.render()
         content_data = json.loads(response.content)
         return (response, content_data,)
