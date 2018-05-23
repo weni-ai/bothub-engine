@@ -3,6 +3,7 @@ from .repository import (  # noqa: F401
     RepositorySerializer,
     RepositoryAuthorizationSerializer,
     AnalyzeTextSerializer,
+    EditRepositorySerializer,
 )
 
 from .category import (  # noqa: F401
@@ -22,7 +23,6 @@ from .translate import (  # noqa: F401
 
 from .user import (  # noqa: F401
     RegisterUserSerializer,
-    EditUserSerializer,
     UserSerializer,
     ChangePasswordSerializer,
     RequestResetPasswordSerializer,

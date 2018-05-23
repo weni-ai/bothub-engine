@@ -28,7 +28,6 @@ from .serializers import RepositoryAuthorizationSerializer
 from .serializers import RepositoryTranslatedExampleSerializer
 from .serializers import RepositoryTranslatedExampleEntitySeralizer
 from .serializers import RegisterUserSerializer
-from .serializers import EditUserSerializer
 from .serializers import UserSerializer
 from .serializers import ChangePasswordSerializer
 from .serializers import RequestResetPasswordSerializer
@@ -37,6 +36,7 @@ from .serializers import LoginSerializer
 from .serializers import RepositoryCategorySerializer
 from .serializers import NewRepositoryExampleSerializer
 from .serializers import AnalyzeTextSerializer
+from .serializers import EditRepositorySerializer
 
 
 # Permisions
@@ -84,11 +84,6 @@ class RepositoryTranslatedExampleEntityPermission(permissions.BasePermission):
         if request.method in READ_METHODS:
             return authorization.can_read
         return authorization.can_contribute
-
-
-class UserPermission(permissions.BasePermission):
-    def has_object_permission(self, request, view, obj):
-        return request.user == obj
 
 
 # Filters
@@ -234,6 +229,7 @@ class RepositoryViewSet(
     lookup_field = 'slug'
     lookup_fields = ['owner__nickname', 'slug']
     serializer_class = RepositorySerializer
+    edit_serializer_class = EditRepositorySerializer
     permission_classes = [
         RepositoryPermission,
     ]
@@ -308,6 +304,11 @@ class RepositoryViewSet(
                 },
                 code=request.status_code)
         return Response(request.json())  # pragma: no cover
+
+    def get_serializer_class(self):
+        if self.request.method in ['OPTIONS'] + WRITE_METHODS:
+            return self.edit_serializer_class
+        return self.serializer_class
 
 
 class NewRepositoryExampleViewSet(
@@ -439,26 +440,6 @@ class RegisterUserViewSet(
     serializer_class = RegisterUserSerializer
 
 
-class UserViewSet(
-        mixins.UpdateModelMixin,
-        GenericViewSet):
-    """
-    Manager user's profile
-
-    update:
-    Update full user's profile
-
-    partial_update:
-    Update user's profile fields
-    """
-    queryset = User.objects
-    serializer_class = EditUserSerializer
-    permission_classes = [
-        permissions.IsAuthenticated,
-        UserPermission,
-    ]
-
-
 class LoginViewSet(GenericViewSet):
     queryset = User.objects
     serializer_class = LoginSerializer
@@ -483,12 +464,19 @@ class ChangePasswordViewSet(GenericViewSet):
     """
     serializer_class = ChangePasswordSerializer
     queryset = User.objects
+    lookup_field = None
     permission_classes = [
         permissions.IsAuthenticated,
     ]
 
-    def get_object(self, queryset=None):
-        return self.request.user
+    def get_object(self, *args, **kwargs):
+        request = self.request
+        user = request.user
+
+        # May raise a permission denied
+        self.check_object_permissions(self.request, user)
+
+        return user
 
     def update(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -498,6 +486,7 @@ class ChangePasswordViewSet(GenericViewSet):
             self.object.set_password(serializer.data.get('password'))
             self.object.save()
             return Response({}, status=status.HTTP_200_OK)
+
         return Response(
             serializer.errors,
             status=status.HTTP_400_BAD_REQUEST)
@@ -544,25 +533,40 @@ class ResetPassword(GenericViewSet):
             status=status.HTTP_400_BAD_REQUEST)
 
 
-class MyUserProfile(GenericViewSet):
+class MyUserProfileViewSet(
+        mixins.RetrieveModelMixin,
+        mixins.UpdateModelMixin,
+        GenericViewSet):
     """
+    Manager current user profile.
+
+    retrieve:
     Get current user profile
+
+    update:
+    Update current user profile.
+
+    partial_update:
+    Update, partially, current user profile.
     """
     serializer_class = UserSerializer
     queryset = User.objects
-    pagination_class = None
-    permission_classes = [permissions.IsAuthenticated]
+    lookup_field = None
+    permission_classes = [
+        permissions.IsAuthenticated,
+    ]
 
-    def get_queryset(self, *args, **kwargs):
+    def get_object(self, *args, **kwargs):
         request = self.request
-        return request.user
+        user = request.user
 
-    def list(self, request, *args, **kwargs):
-        serializer = self.get_serializer(self.get_queryset())
-        return Response(serializer.data)
+        # May raise a permission denied
+        self.check_object_permissions(self.request, user)
+
+        return user
 
 
-class UserProfile(
+class UserProfileViewSet(
         mixins.RetrieveModelMixin,
         GenericViewSet):
     """

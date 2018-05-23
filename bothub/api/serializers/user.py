@@ -30,16 +30,6 @@ class RegisterUserSerializer(serializers.ModelSerializer):
         return make_password(value)
 
 
-class EditUserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = [
-            'email',
-            'name',
-            'locale',
-        ]
-
-
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -52,9 +42,9 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class ChangePasswordSerializer(serializers.Serializer):
-    current_password = serializers.CharField(
+    current_password = PasswordField(
         required=True)
-    password = serializers.CharField(
+    password = PasswordField(
         required=True,
         validators=[
             validate_password,
