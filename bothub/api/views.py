@@ -13,6 +13,7 @@ from django.db.models import Count
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django_filters import rest_framework as filters
 from django.shortcuts import get_object_or_404
+from django.db.models import Q
 
 from bothub.common.models import Repository
 from bothub.common.models import RepositoryExample
@@ -109,6 +110,9 @@ class ExamplesFilter(filters.FilterSet):
         name='has_translation',
         method='filter_has_translation',
         help_text=_('Filter for examples with or without translation'))
+    order_by_translation = filters.CharFilter(
+        name='order_by_translation',
+        method='filter_order_by_translation')
 
     def filter_repository_uuid(self, queryset, name, value):
         request = self.request
@@ -136,6 +140,17 @@ class ExamplesFilter(filters.FilterSet):
         else:
             return annotated_queryset.filter(
                 translation_count=0)
+
+    def filter_order_by_translation(self, queryset, name, value):
+        inverted = value[0] == '-'
+        language = value[1:] if inverted else value
+        result_queryset = queryset.annotate(
+            translation_count=Count(
+                'translations',
+                filter=Q(translations__language=language)))
+        result_queryset = result_queryset.order_by(
+            '-translation_count' if inverted else 'translation_count')
+        return result_queryset
 
 
 class RepositoriesFilter(filters.FilterSet):
