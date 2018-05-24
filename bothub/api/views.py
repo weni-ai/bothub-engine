@@ -112,7 +112,8 @@ class ExamplesFilter(filters.FilterSet):
         help_text=_('Filter for examples with or without translation'))
     order_by_translation = filters.CharFilter(
         name='order_by_translation',
-        method='filter_order_by_translation')
+        method='filter_order_by_translation',
+        help_text=_('Order examples with translation by language'))
 
     def filter_repository_uuid(self, queryset, name, value):
         request = self.request
