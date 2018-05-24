@@ -306,8 +306,9 @@ class RepositoryViewSet(
         return Response(request.json())  # pragma: no cover
 
     def get_serializer_class(self):
-        if self.request.method in ['OPTIONS'] + WRITE_METHODS:
-            return self.edit_serializer_class
+        if self.request and self.request.method in \
+           ['OPTIONS'] + WRITE_METHODS or not self.request:
+                return self.edit_serializer_class
         return self.serializer_class
 
 
