@@ -8,10 +8,12 @@ from rest_framework.exceptions import NotFound
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.authtoken.models import Token
 from rest_framework import status
+from rest_framework.filters import OrderingFilter
 from django.utils.translation import gettext as _
 from django.db.models import Count
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django_filters import rest_framework as filters
+from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
 
@@ -453,6 +455,13 @@ class RepositoryExamplesViewSet(
     queryset = RepositoryExample.objects
     serializer_class = RepositoryExampleSerializer
     filter_class = ExamplesFilter
+    filter_backends = [
+        DjangoFilterBackend,
+        OrderingFilter,
+    ]
+    ordering_fields = [
+        'created_at',
+    ]
     permission_classes = [
         RepositoryExamplePermission,
     ]
