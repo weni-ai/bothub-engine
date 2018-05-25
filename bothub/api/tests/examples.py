@@ -247,3 +247,26 @@ class ExamplesTestCase(TestCase):
         self.assertGreaterEqual(
             0,
             len(results[3].get('translations')))
+
+    def test_has_not_translation_to(self):
+        example_1 = RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(),
+            text='how are you?')
+        example_2 = RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(),
+            text='how are you?')
+        response, content_data = self.request(
+            {
+                'repository_uuid': self.repository.uuid,
+                'has_not_translation_to': languages.LANGUAGE_PT,
+            },
+            self.owner_token)
+        self.assertEqual(
+            content_data.get('count'),
+            2)
+        self.assertEqual(
+            content_data.get('results')[1].get('id'),
+            example_1.id)
+        self.assertEqual(
+            content_data.get('results')[0].get('id'),
+            example_2.id)

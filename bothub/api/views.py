@@ -111,6 +111,9 @@ class ExamplesFilter(filters.FilterSet):
         name='has_translation',
         method='filter_has_translation',
         help_text=_('Filter for examples with or without translation'))
+    has_not_translation_to = filters.CharFilter(
+        name='has_not_translation_to',
+        method='filter_has_not_translation_to')
     order_by_translation = filters.CharFilter(
         name='order_by_translation',
         method='filter_order_by_translation',
@@ -142,6 +145,13 @@ class ExamplesFilter(filters.FilterSet):
         else:
             return annotated_queryset.filter(
                 translation_count=0)
+
+    def filter_has_not_translation_to(self, queryset, name, value):
+        annotated_queryset = queryset.annotate(
+            translation_count=Count(
+                'translations',
+                filter=Q(translations__language=value)))
+        return annotated_queryset.filter(translation_count=0)
 
     def filter_order_by_translation(self, queryset, name, value):
         inverted = value[0] == '-'
