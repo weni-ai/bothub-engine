@@ -50,4 +50,4 @@ class TranslatedExampleEntitiesValidator(object):
             list(map(lambda x: dict(x), attrs.get('entities'))),
             list(map(lambda x: x.to_dict, original_example.entities.all())))
         if not entities_valid:
-            raise ValidationError({ 'entities': _('Invalid entities') })
+            raise ValidationError({'entities': _('Invalid entities')})

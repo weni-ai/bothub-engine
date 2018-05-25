@@ -434,7 +434,8 @@ class RepositoryTranslatedExample(models.Model):
 
     objects = RepositoryTranslatedExampleManager()
 
-    entities_list_lambda_sort = lambda x: x.get('entity')
+    def entities_list_lambda_sort(item):
+        return item.get('entity')
 
     @classmethod
     def same_entities_validator(cls, a, b):
