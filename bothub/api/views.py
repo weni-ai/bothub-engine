@@ -38,6 +38,7 @@ from .serializers import RepositoryCategorySerializer
 from .serializers import NewRepositoryExampleSerializer
 from .serializers import AnalyzeTextSerializer
 from .serializers import EditRepositorySerializer
+from .serializers import NewRepositoryTranslatedExampleSerializer
 
 
 # Permisions
@@ -372,7 +373,7 @@ class NewRepositoryTranslatedExampleViewSet(
     Translate example
     """
     queryset = RepositoryTranslatedExample.objects
-    serializer_class = RepositoryTranslatedExampleSerializer
+    serializer_class = NewRepositoryTranslatedExampleSerializer
     permission_classes = [permissions.IsAuthenticated]
 
 
