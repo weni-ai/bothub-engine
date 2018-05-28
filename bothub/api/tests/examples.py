@@ -177,3 +177,73 @@ class ExamplesTestCase(TestCase):
             status.HTTP_200_OK)
         for repository in content_data.get('results'):
             self.failIf(self.deleted.id == repository.get('id'))
+
+    def test_order_by_translation(self):
+        RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(),
+            text='hello')
+        example = RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(),
+            text='how are you?')
+        RepositoryTranslatedExample.objects.create(
+            original_example=example,
+            text='com vai você?',
+            language=languages.LANGUAGE_PT)
+        RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(),
+            text='hey')
+
+        response, content_data = self.request(
+            {
+                'repository_uuid': self.repository.uuid,
+                'order_by_translation': languages.LANGUAGE_PT,
+            },
+            self.owner_token)
+        results = content_data.get('results')
+        self.assertGreaterEqual(
+            0,
+            len(results[0].get('translations')))
+        self.assertGreaterEqual(
+            0,
+            len(results[1].get('translations')))
+        self.assertGreaterEqual(
+            1,
+            len(results[2].get('translations')))
+        self.assertGreaterEqual(
+            1,
+            len(results[3].get('translations')))
+
+    def test_order_by_translation_inverted(self):
+        RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(),
+            text='hello')
+        example = RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(),
+            text='how are you?')
+        RepositoryTranslatedExample.objects.create(
+            original_example=example,
+            text='com vai você?',
+            language=languages.LANGUAGE_PT)
+        RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(),
+            text='hey')
+
+        response, content_data = self.request(
+            {
+                'repository_uuid': self.repository.uuid,
+                'order_by_translation': '-{}'.format(languages.LANGUAGE_PT),
+            },
+            self.owner_token)
+        results = content_data.get('results')
+        self.assertGreaterEqual(
+            1,
+            len(results[0].get('translations')))
+        self.assertGreaterEqual(
+            1,
+            len(results[1].get('translations')))
+        self.assertGreaterEqual(
+            0,
+            len(results[2].get('translations')))
+        self.assertGreaterEqual(
+            0,
+            len(results[3].get('translations')))
