@@ -9,6 +9,8 @@ from rest_framework import status
 from bothub.common import languages
 from bothub.common.models import RepositoryCategory
 from bothub.common.models import Repository
+from bothub.common.models import RepositoryExample
+from bothub.common.models import RepositoryExampleEntity
 
 from ..views import NewRepositoryViewSet
 from ..views import RepositoryViewSet
@@ -576,3 +578,87 @@ class AnalyzeRepositoryTestCase(TestCase):
             response.status_code,
             status.HTTP_400_BAD_REQUEST)
         self.assertIn('text', content_data.keys())
+
+
+class LanguagesStatusTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.owner, self.owner_token = create_user_and_token('owner')
+        self.user, self.user_token = create_user_and_token()
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name='Testing',
+            slug='test',
+            language=languages.LANGUAGE_EN)
+
+        self.example_1 = RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(
+                languages.LANGUAGE_EN),
+            text='hi',
+            intent='greet')
+        self.example_2 = RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(
+                languages.LANGUAGE_EN),
+            text='Here is London',
+            intent='place')
+        self.example_3 = RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(
+                languages.LANGUAGE_EN),
+            text='Here is Brazil',
+            intent='place')
+
+    def request(self, repository, token):
+        authorization_header = {
+            'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
+        }
+        request = self.factory.get(
+            '/api/repository/{}/{}/languagesstatus/'.format(
+                repository.owner.nickname,
+                repository.slug),
+            **authorization_header)
+        response = RepositoryViewSet.as_view({'get': 'languagesstatus'})(request)
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data,)
+
+    def test_okay(self):
+        response, content_data = self.request(self.repository, self.owner_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK)
+
+    def test_unique_entities(self):
+        RepositoryExampleEntity.objects.create(
+            repository_example=self.example_1,
+            start=0,
+            end=0,
+            entity='entity1')
+        RepositoryExampleEntity.objects.create(
+            repository_example=self.example_2,
+            start=0,
+            end=0,
+            entity='entity1')
+        RepositoryExampleEntity.objects.create(
+            repository_example=self.example_3,
+            start=0,
+            end=0,
+            entity='entity2')
+
+        counter = {}
+        response, content_data = self.request(self.repository, self.owner_token)
+        languages_status = content_data.get('languages_status')
+        for language in languages_status:
+            language_status = languages_status.get(language)
+            for entity in language_status.get('examples').get('entities'):
+                counter[entity] = counter.get(entity, 0) + 1
+                self.failIfEqual(counter.get(entity), 2)
+
+    def test_none_entities(self):
+        response, content_data = self.request(self.repository, self.owner_token)
+        languages_status = content_data.get('languages_status')
+        for language in languages_status:
+            language_status = languages_status.get(language)
+            for entity in language_status.get('examples').get('entities'):
+                self.failIfEqual(entity, None)
