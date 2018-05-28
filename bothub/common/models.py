@@ -174,9 +174,13 @@ class Repository(models.Model):
             'is_base_language': is_base_language,
             'examples': {
                 'count': examples_count,
-                'entities': list(examples.values_list(
-                    'entities__entity',
-                    flat=True).distinct()),
+                'entities': list(
+                    set(
+                        filter(
+                            lambda x: x,
+                            examples.values_list(
+                                'entities__entity',
+                                flat=True).distinct()))),
             },
             'base_translations': {
                 'count': base_translations_count,
