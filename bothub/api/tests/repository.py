@@ -618,13 +618,16 @@ class LanguagesStatusTestCase(TestCase):
                 repository.owner.nickname,
                 repository.slug),
             **authorization_header)
-        response = RepositoryViewSet.as_view({'get': 'languagesstatus'})(request)
+        response = RepositoryViewSet.as_view(
+            {'get': 'languagesstatus'})(request)
         response.render()
         content_data = json.loads(response.content)
         return (response, content_data,)
 
     def test_okay(self):
-        response, content_data = self.request(self.repository, self.owner_token)
+        response, content_data = self.request(
+            self.repository,
+            self.owner_token)
         self.assertEqual(
             response.status_code,
             status.HTTP_200_OK)
@@ -647,7 +650,9 @@ class LanguagesStatusTestCase(TestCase):
             entity='entity2')
 
         counter = {}
-        response, content_data = self.request(self.repository, self.owner_token)
+        response, content_data = self.request(
+            self.repository,
+            self.owner_token)
         languages_status = content_data.get('languages_status')
         for language in languages_status:
             language_status = languages_status.get(language)
@@ -656,7 +661,9 @@ class LanguagesStatusTestCase(TestCase):
                 self.failIfEqual(counter.get(entity), 2)
 
     def test_none_entities(self):
-        response, content_data = self.request(self.repository, self.owner_token)
+        response, content_data = self.request(
+            self.repository,
+            self.owner_token)
         languages_status = content_data.get('languages_status')
         for language in languages_status:
             language_status = languages_status.get(language)

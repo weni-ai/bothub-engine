@@ -179,8 +179,8 @@ class Repository(models.Model):
                         filter(
                             lambda x: x,
                             examples.values_list(
-                            'entities__entity',
-                            flat=True).distinct()))),
+                                'entities__entity',
+                                flat=True).distinct()))),
             },
             'base_translations': {
                 'count': base_translations_count,
