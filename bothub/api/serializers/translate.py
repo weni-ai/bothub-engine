@@ -8,6 +8,7 @@ from bothub.common.models import RepositoryExample
 
 from ..validators import CanContributeInRepositoryTranslatedExampleValidator
 from ..validators import CanContributeInRepositoryExampleValidator
+from ..validators import TranslatedExampleEntitiesValidator
 
 
 class RepositoryTranslatedExampleEntitySeralizer(serializers.ModelSerializer):
@@ -60,3 +61,55 @@ class RepositoryTranslatedExampleSerializer(serializers.ModelSerializer):
 
     def get_has_valid_entities(self, obj):
         return obj.has_valid_entities
+
+
+class NewRepositoryTranslatedExampleEntitySeralizer(
+        serializers.ModelSerializer):
+    class Meta:
+        model = RepositoryTranslatedExampleEntity
+        fields = [
+            'start',
+            'end',
+            'entity',
+        ]
+
+
+class NewRepositoryTranslatedExampleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RepositoryTranslatedExample
+        fields = [
+            'id',
+            'original_example',
+            'language',
+            'text',
+            'has_valid_entities',
+            'entities',
+        ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.validators.append(TranslatedExampleEntitiesValidator())
+
+    original_example = serializers.PrimaryKeyRelatedField(
+        queryset=RepositoryExample.objects,
+        validators=[
+            CanContributeInRepositoryExampleValidator(),
+        ],
+        help_text=_('Example\'s ID'))
+    has_valid_entities = serializers.SerializerMethodField()
+    entities = NewRepositoryTranslatedExampleEntitySeralizer(
+        many=True,
+        style={'text_field': 'text'})
+
+    def get_has_valid_entities(self, obj):
+        return obj.has_valid_entities
+
+    def create(self, validated_data):
+        entities_data = validated_data.pop('entities')
+
+        translated = self.Meta.model.objects.create(**validated_data)
+        for entity_data in entities_data:
+            RepositoryTranslatedExampleEntity.objects.create(
+                repository_translated_example=translated,
+                **entity_data)
+        return translated

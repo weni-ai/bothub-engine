@@ -8,11 +8,14 @@ from rest_framework.exceptions import NotFound
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.authtoken.models import Token
 from rest_framework import status
+from rest_framework.filters import OrderingFilter
 from django.utils.translation import gettext as _
 from django.db.models import Count
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django_filters import rest_framework as filters
+from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
+from django.db.models import Q
 
 from bothub.common.models import Repository
 from bothub.common.models import RepositoryExample
@@ -37,6 +40,7 @@ from .serializers import RepositoryCategorySerializer
 from .serializers import NewRepositoryExampleSerializer
 from .serializers import AnalyzeTextSerializer
 from .serializers import EditRepositorySerializer
+from .serializers import NewRepositoryTranslatedExampleSerializer
 
 
 # Permisions
@@ -109,6 +113,13 @@ class ExamplesFilter(filters.FilterSet):
         name='has_translation',
         method='filter_has_translation',
         help_text=_('Filter for examples with or without translation'))
+    has_not_translation_to = filters.CharFilter(
+        name='has_not_translation_to',
+        method='filter_has_not_translation_to')
+    order_by_translation = filters.CharFilter(
+        name='order_by_translation',
+        method='filter_order_by_translation',
+        help_text=_('Order examples with translation by language'))
 
     def filter_repository_uuid(self, queryset, name, value):
         request = self.request
@@ -136,6 +147,24 @@ class ExamplesFilter(filters.FilterSet):
         else:
             return annotated_queryset.filter(
                 translation_count=0)
+
+    def filter_has_not_translation_to(self, queryset, name, value):
+        annotated_queryset = queryset.annotate(
+            translation_count=Count(
+                'translations',
+                filter=Q(translations__language=value)))
+        return annotated_queryset.filter(translation_count=0)
+
+    def filter_order_by_translation(self, queryset, name, value):
+        inverted = value[0] == '-'
+        language = value[1:] if inverted else value
+        result_queryset = queryset.annotate(
+            translation_count=Count(
+                'translations',
+                filter=Q(translations__language=language)))
+        result_queryset = result_queryset.order_by(
+            '-translation_count' if inverted else 'translation_count')
+        return result_queryset
 
 
 class RepositoriesFilter(filters.FilterSet):
@@ -356,7 +385,7 @@ class NewRepositoryTranslatedExampleViewSet(
     Translate example
     """
     queryset = RepositoryTranslatedExample.objects
-    serializer_class = RepositoryTranslatedExampleSerializer
+    serializer_class = NewRepositoryTranslatedExampleSerializer
     permission_classes = [permissions.IsAuthenticated]
 
 
@@ -426,6 +455,13 @@ class RepositoryExamplesViewSet(
     queryset = RepositoryExample.objects
     serializer_class = RepositoryExampleSerializer
     filter_class = ExamplesFilter
+    filter_backends = [
+        DjangoFilterBackend,
+        OrderingFilter,
+    ]
+    ordering_fields = [
+        'created_at',
+    ]
     permission_classes = [
         RepositoryExamplePermission,
     ]
