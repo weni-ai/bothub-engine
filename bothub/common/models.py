@@ -434,31 +434,32 @@ class RepositoryTranslatedExample(models.Model):
 
     objects = RepositoryTranslatedExampleManager()
 
+    def entities_list_lambda_sort(item):
+        return item.get('entity')
+
     @classmethod
-    def create_entitites_count_dict(cls, entities):
-        return dict(
-            list(
-                map(
-                    lambda x: (x.get('entity'), x.get('many'),),
-                    entities.values('entity').annotate(
-                        many=models.Count('entity')))))
+    def same_entities_validator(cls, a, b):
+        a_len = len(a)
+        if a_len != len(b):
+            return False
+        a_sorted = sorted(
+            a,
+            key=cls.entities_list_lambda_sort)
+        b_sorted = sorted(
+            b,
+            key=cls.entities_list_lambda_sort)
+        for i in range(a_len):
+            if a_sorted[i].get('entity') != b_sorted[i].get('entity'):
+                return False
+        return True
 
     @property
     def has_valid_entities(self):
         original_entities = self.original_example.entities.all()
         my_entities = self.entities.all()
-        if original_entities.count() != my_entities.count():
-            return False
-        original_entities_dict = RepositoryTranslatedExample \
-            .create_entitites_count_dict(original_entities)
-        my_entities_dict = RepositoryTranslatedExample \
-            .create_entitites_count_dict(my_entities)
-        if len(set(original_entities_dict) ^ set(my_entities_dict)) > 0:
-            return False
-        for key in original_entities_dict:
-            if original_entities_dict.get(key) != my_entities_dict.get(key):
-                return False
-        return True
+        return RepositoryTranslatedExample.same_entities_validator(
+            list(map(lambda x: x.to_dict, original_entities)),
+            list(map(lambda x: x.to_dict, my_entities)))
 
 
 class EntityBase(models.Model):
@@ -491,6 +492,14 @@ class EntityBase(models.Model):
             'start': self.start,
             'end': self.end,
             'value': self.value,
+            'entity': self.entity,
+        }
+
+    @property
+    def to_dict(self):
+        return {
+            'start': self.start,
+            'end': self.end,
             'entity': self.entity,
         }
 

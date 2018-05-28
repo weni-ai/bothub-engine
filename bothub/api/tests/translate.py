@@ -9,6 +9,7 @@ from bothub.common.models import Repository
 from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryTranslatedExample
 from bothub.common.models import RepositoryTranslatedExampleEntity
+from bothub.common.models import RepositoryExampleEntity
 
 from ..views import NewRepositoryTranslatedExampleViewSet
 from ..views import RepositoryTranslatedExampleViewSet
@@ -39,7 +40,8 @@ class TranslateExampleTestCase(TestCase):
         }
         request = self.factory.post(
             '/api/translate-example/',
-            data,
+            json.dumps(data),
+            content_type='application/json',
             **authorization_header)
         response = NewRepositoryTranslatedExampleViewSet.as_view(
             {'post': 'create'})(request)
@@ -53,6 +55,7 @@ class TranslateExampleTestCase(TestCase):
                 'original_example': self.example.id,
                 'language': languages.LANGUAGE_PT,
                 'text': 'oi',
+                'entities': [],
             },
             self.owner_token)
         self.assertEqual(
@@ -73,6 +76,7 @@ class TranslateExampleTestCase(TestCase):
                 'original_example': self.example.id,
                 'language': language,
                 'text': text,
+                'entities': [],
             },
             self.owner_token)
         self.assertEqual(
@@ -90,11 +94,72 @@ class TranslateExampleTestCase(TestCase):
                 'original_example': self.example.id,
                 'language': languages.LANGUAGE_PT,
                 'text': 'oi',
+                'entities': [],
             },
             user_token)
         self.assertEqual(
             response.status_code,
             status.HTTP_403_FORBIDDEN)
+
+    def test_okay_with_entities(self):
+        example = RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(),
+            text='my name is douglas')
+        RepositoryExampleEntity.objects.create(
+            repository_example=example,
+            start=11,
+            end=18,
+            entity='name')
+        response, content_data = self.request(
+            {
+                'original_example': example.id,
+                'language': languages.LANGUAGE_PT,
+                'text': 'meu nome é douglas',
+                'entities': [
+                    {
+                        'start': 11,
+                        'end': 18,
+                        'entity': 'name',
+                    },
+                ],
+            },
+            self.owner_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_201_CREATED)
+        self.assertEqual(
+            len(content_data.get('entities')),
+            1)
+
+    def test_entities_no_valid(self):
+        example = RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(),
+            text='my name is douglas')
+        RepositoryExampleEntity.objects.create(
+            repository_example=self.example,
+            start=11,
+            end=18,
+            entity='name')
+        response, content_data = self.request(
+            {
+                'original_example': example.id,
+                'language': languages.LANGUAGE_PT,
+                'text': 'meu nome é douglas',
+                'entities': [
+                    {
+                        'start': 11,
+                        'end': 18,
+                        'entity': 'nome',
+                    },
+                ],
+            },
+            self.owner_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            len(content_data.get('entities')),
+            1)
 
 
 class RepositoryTranslatedExampleRetrieveTestCase(TestCase):
