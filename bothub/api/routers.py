@@ -19,6 +19,7 @@ from .views import MyUserProfileViewSet
 from .views import UserProfileViewSet
 from .views import Categories
 from .views import RepositoriesViewSet
+from .views import TranslationsViewSet
 
 
 class Router(routers.SimpleRouter):
@@ -108,3 +109,4 @@ router.register('my-profile', MyUserProfileViewSet)
 router.register('user-profile', UserProfileViewSet)
 router.register('categories', Categories)
 router.register('repositories', RepositoriesViewSet)
+router.register('translations', TranslationsViewSet)
