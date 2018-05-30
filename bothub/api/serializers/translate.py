@@ -42,10 +42,12 @@ class RepositoryTranslatedExampleSerializer(serializers.ModelSerializer):
         fields = [
             'id',
             'original_example',
+            'from_language',
             'language',
             'text',
             'has_valid_entities',
             'entities',
+            'created_at',
         ]
 
     original_example = serializers.PrimaryKeyRelatedField(
@@ -54,10 +56,14 @@ class RepositoryTranslatedExampleSerializer(serializers.ModelSerializer):
             CanContributeInRepositoryExampleValidator(),
         ],
         help_text=_('Example\'s ID'))
+    from_language = serializers.SerializerMethodField()
     has_valid_entities = serializers.SerializerMethodField()
     entities = RepositoryTranslatedExampleEntitySeralizer(
         many=True,
         read_only=True)
+
+    def get_from_language(self, obj):
+        return obj.original_example.repository_update.language
 
     def get_has_valid_entities(self, obj):
         return obj.has_valid_entities

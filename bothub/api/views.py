@@ -175,6 +175,48 @@ class RepositoriesFilter(filters.FilterSet):
         ]
 
 
+class TranslationsFilter(filters.FilterSet):
+    class Meta:
+        model = RepositoryTranslatedExample
+        fields = []
+
+    repository_uuid = filters.CharFilter(
+        name='repository_uuid',
+        method='filter_repository_uuid',
+        required=True,
+        help_text=_('Repository\'s UUID'))
+    from_language = filters.CharFilter(
+        name='language',
+        method='filter_from_language',
+        help_text='Filter by original language')
+    to_language = filters.CharFilter(
+        name='language',
+        method='filter_to_language',
+        help_text='Filter by translated language')
+
+    def filter_repository_uuid(self, queryset, name, value):
+        request = self.request
+        try:
+            repository = Repository.objects.get(uuid=value)
+            authorization = repository.get_user_authorization(request.user)
+            if not authorization.can_read:
+                raise PermissionDenied()
+            return RepositoryTranslatedExample.objects.filter(
+                original_example__repository_update__repository=repository)
+        except Repository.DoesNotExist:
+            raise NotFound(
+                _('Repository {} does not exist').format(value))
+        except DjangoValidationError:
+            raise NotFound(_('Invalid repository_uuid'))
+
+    def filter_from_language(self, queryset, name, value):
+        return queryset.filter(
+            original_example__repository_update__language=value)
+
+    def filter_to_language(self, queryset, name, value):
+        return queryset.filter(language=value)
+
+
 # Mixins
 
 class MultipleFieldLookupMixin(object):
@@ -634,3 +676,14 @@ class RepositoriesViewSet(
     serializer_class = RepositorySerializer
     queryset = Repository.objects.filter(is_private=False)
     filter_class = RepositoriesFilter
+
+
+class TranslationsViewSet(
+        mixins.ListModelMixin,
+        GenericViewSet):
+    """
+    List repository translations.
+    """
+    serializer_class = RepositoryTranslatedExampleSerializer
+    queryset = RepositoryTranslatedExample.objects.all()
+    filter_class = TranslationsFilter
