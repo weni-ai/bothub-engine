@@ -163,6 +163,22 @@ class TranslateExampleTestCase(TestCase):
             len(content_data.get('entities')),
             1)
 
+    def test_can_not_translate_to_same_language(self):
+        response, content_data = self.request(
+            {
+                'original_example': self.example.id,
+                'language': self.example.repository_update.language,
+                'text': 'oi',
+                'entities': [],
+            },
+            self.owner_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST)
+        self.assertIn(
+            'language',
+            content_data.keys())
+
 
 class RepositoryTranslatedExampleRetrieveTestCase(TestCase):
     def setUp(self):

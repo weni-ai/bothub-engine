@@ -9,6 +9,7 @@ from bothub.common.models import RepositoryExample
 from ..validators import CanContributeInRepositoryTranslatedExampleValidator
 from ..validators import CanContributeInRepositoryExampleValidator
 from ..validators import TranslatedExampleEntitiesValidator
+from ..validators import TranslatedExampleLanguageValidator
 
 
 class RepositoryTranslatedExampleEntitySeralizer(serializers.ModelSerializer):
@@ -95,6 +96,7 @@ class NewRepositoryTranslatedExampleSerializer(serializers.ModelSerializer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.validators.append(TranslatedExampleEntitiesValidator())
+        self.validators.append(TranslatedExampleLanguageValidator())
 
     original_example = serializers.PrimaryKeyRelatedField(
         queryset=RepositoryExample.objects,
