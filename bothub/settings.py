@@ -192,3 +192,14 @@ BOTHUB_WEBAPP_BASE_URL = config(
 BOTHUB_NLP_BASE_URL = config(
     'BOTHUB_NLP_BASE_URL',
     default='http://127.0.1:8001/')
+
+
+# CSRF
+
+CSRF_COOKIE_DOMAIN = config(
+    'CSRF_COOKIE_DOMAIN',
+    default=None)
+
+CSRF_COOKIE_SECURE = config(
+    'CSRF_COOKIE_SECURE',
+    default=False)
