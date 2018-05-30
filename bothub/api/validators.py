@@ -59,4 +59,4 @@ class TranslatedExampleLanguageValidator(object):
         language = attrs.get('language')
         if original_example.repository_update.language == language:
             raise ValidationError({'language': _(
-                'Can\'t translate to same language')})
+                'Can\'t translate to the same language')})
