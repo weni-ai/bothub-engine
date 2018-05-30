@@ -51,3 +51,11 @@ class TranslatedExampleEntitiesValidator(object):
             list(map(lambda x: x.to_dict, original_example.entities.all())))
         if not entities_valid:
             raise ValidationError({'entities': _('Invalid entities')})
+
+
+class TranslatedExampleLanguageValidator(object):
+    def __call__(self, attrs):
+        original_example = attrs.get('original_example')
+        language = attrs.get('language')
+        if original_example.repository_update.language == language:
+            raise ValidationError({'language': _('Can\'t translate to same language')})
