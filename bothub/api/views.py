@@ -352,7 +352,8 @@ class RepositoryViewSet(
 
     @detail_route(
         methods=['POST'],
-        url_name='repository-analyze')
+        url_name='repository-analyze',
+        permission_classes=[])
     def analyze(self, request, **kwargs):
         repository = self.get_object()
         user_authorization = repository.get_user_authorization(request.user)
@@ -369,12 +370,9 @@ class RepositoryViewSet(
             except Exception:
                 pass
             raise APIException(  # pragma: no cover
-                {
-                    'status_code': request.status_code,
-                    'response': response,
-                },
+                response,
                 code=request.status_code)
-        return Response(request.json())  # pragma: no cover
+        return Response(response)  # pragma: no cover
 
     def get_serializer_class(self):
         if self.request and self.request.method in \

@@ -525,6 +525,12 @@ class AnalyzeRepositoryTestCase(TestCase):
             name='Testing',
             slug='test',
             language=languages.LANGUAGE_EN)
+        self.private_repository = Repository.objects.create(
+            owner=self.owner,
+            name='Testing',
+            slug='private',
+            language=languages.LANGUAGE_EN,
+            is_private=True)
 
     def request(self, repository, token, data):
         authorization_header = {
@@ -536,14 +542,17 @@ class AnalyzeRepositoryTestCase(TestCase):
                 repository.slug),
             data,
             **authorization_header)
-        response = RepositoryViewSet.as_view({'post': 'analyze'})(request)
+        response = RepositoryViewSet.as_view({'post': 'analyze'})(
+            request,
+            owner__nickname=repository.owner.nickname,
+            slug=repository.slug)
         response.render()
         content_data = json.loads(response.content)
         return (response, content_data,)
 
-    def test_permission_denied(self):
+    def test_permission_denied_in_private_repository(self):
         response, content_data = self.request(
-            self.repository,
+            self.private_repository,
             self.user_token,
             {
                 'language': 'en',
