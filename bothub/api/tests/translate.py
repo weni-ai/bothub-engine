@@ -1,4 +1,5 @@
 import json
+import uuid
 
 from django.test import TestCase
 from django.test import RequestFactory
@@ -15,6 +16,7 @@ from ..views import NewRepositoryTranslatedExampleViewSet
 from ..views import RepositoryTranslatedExampleViewSet
 from ..views import NewRepositoryTranslatedExampleEntityViewSet
 from ..views import RepositoryTranslatedExampleEntityViewSet
+from ..views import TranslationsViewSet
 
 from .utils import create_user_and_token
 
@@ -499,3 +501,158 @@ class RepositoryTranslatedExampleEntityDestroyTestCase(TestCase):
         self.assertEqual(
             response.status_code,
             status.HTTP_403_FORBIDDEN)
+
+
+class TranslationsViewTest(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.owner, self.owner_token = create_user_and_token('owner')
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name='Testing',
+            slug='test',
+            language=languages.LANGUAGE_EN)
+        self.example = RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(),
+            text='hi')
+        self.translated = RepositoryTranslatedExample.objects.create(
+            original_example=self.example,
+            language=languages.LANGUAGE_PT,
+            text='oi')
+
+    def request(self, data, user_token=None):
+        authorization_header = {
+            'HTTP_AUTHORIZATION': 'Token {}'.format(user_token.key),
+        } if user_token else {}
+        request = self.factory.get(
+            '/api/translations/',
+            data,
+            **authorization_header)
+        response = TranslationsViewSet.as_view({'get': 'list'})(request)
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data,)
+
+    def test_okay(self):
+        response, content_data = self.request({
+            'repository_uuid': self.repository.uuid,
+        })
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK)
+        self.assertEqual(
+            content_data.get('count'),
+            1)
+
+    def test_repository_not_found(self):
+        response, content_data = self.request({
+            'repository_uuid': uuid.uuid4(),
+        })
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_404_NOT_FOUND)
+
+    def test_repository_uuid_invalid(self):
+        response, content_data = self.request({
+            'repository_uuid': 'invalid',
+        })
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_404_NOT_FOUND)
+
+    def test_forbidden(self):
+        private_repository = Repository.objects.create(
+            owner=self.owner,
+            name='Testing',
+            slug='private',
+            language=languages.LANGUAGE_EN,
+            is_private=True)
+
+        response, content_data = self.request({
+            'repository_uuid': private_repository.uuid,
+        })
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_403_FORBIDDEN)
+
+        user, user_token = create_user_and_token('user')
+        response, content_data = self.request(
+            {
+                'repository_uuid': private_repository.uuid,
+            },
+            user_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_403_FORBIDDEN)
+
+    def test_filter_from_language(self):
+        example = RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(
+                languages.LANGUAGE_ES),
+            text='hola')
+        translated = RepositoryTranslatedExample.objects.create(
+            original_example=example,
+            language=languages.LANGUAGE_PT,
+            text='oi')
+
+        response, content_data = self.request({
+            'repository_uuid': self.repository.uuid,
+            'from_language': self.example.repository_update.language,
+        })
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK)
+        self.assertEqual(
+            content_data.get('count'),
+            1)
+        self.assertEqual(
+            content_data.get('results')[0].get('id'),
+            self.translated.id)
+
+        response, content_data = self.request({
+            'repository_uuid': self.repository.uuid,
+            'from_language': example.repository_update.language,
+        })
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK)
+        self.assertEqual(
+            content_data.get('count'),
+            1)
+        self.assertEqual(
+            content_data.get('results')[0].get('id'),
+            translated.id)
+
+    def test_filter_to_language(self):
+        example = RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(
+                languages.LANGUAGE_ES),
+            text='hola')
+        RepositoryTranslatedExample.objects.create(
+            original_example=example,
+            language=languages.LANGUAGE_PT,
+            text='oi')
+
+        response, content_data = self.request({
+            'repository_uuid': self.repository.uuid,
+            'to_language': self.translated.language,
+        })
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK)
+        self.assertEqual(
+            content_data.get('count'),
+            2)
+
+        response, content_data = self.request({
+            'repository_uuid': self.repository.uuid,
+            'to_language': languages.LANGUAGE_DE,
+        })
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK)
+        self.assertEqual(
+            content_data.get('count'),
+            0)

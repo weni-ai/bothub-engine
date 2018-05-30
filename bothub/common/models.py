@@ -415,6 +415,7 @@ class RepositoryTranslatedExample(models.Model):
         verbose_name = _('repository translated example')
         verbose_name_plural = _('repository translated examples')
         unique_together = ['original_example', 'language']
+        ordering = ['-created_at']
 
     repository_update = models.ForeignKey(
         RepositoryUpdate,
@@ -435,6 +436,9 @@ class RepositoryTranslatedExample(models.Model):
     text = models.TextField(
         _('text'),
         help_text=_('Translation text'))
+    created_at = models.DateTimeField(
+        _('created at'),
+        auto_now_add=True)
 
     objects = RepositoryTranslatedExampleManager()
 
