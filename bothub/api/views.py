@@ -363,16 +363,23 @@ class RepositoryViewSet(
         request = Repository.request_nlp_analyze(
             user_authorization,
             serializer.data)  # pragma: no cover
-        if request.status_code != status.HTTP_200_OK:  # pragma: no cover
-            response = None  # pragma: no cover
-            try:
-                response = request.json()  # pragma: no cover
-            except Exception:
-                pass
+
+        if request.status_code == status.HTTP_200_OK:  # pragma: no cover
+            return Response(request.json())  # pragma: no cover
+
+        response = None  # pragma: no cover
+        try:
+            response = request.json()  # pragma: no cover
+        except Exception:
+            pass
+
+        if not response:  # pragma: no cover
             raise APIException(  # pragma: no cover
-                response,
-                code=request.status_code)
-        return Response(response)  # pragma: no cover
+                detail=_('Something unexpected happened! ' + \
+                         'We couldn\'t analyze your text.'))
+        error = response.get('error')  # pragma: no cover
+        message = error.get('message')  # pragma: no cover
+        raise APIException(detail=message)  # pragma: no cover
 
     def get_serializer_class(self):
         if self.request and self.request.method in \
