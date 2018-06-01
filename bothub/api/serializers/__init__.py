@@ -4,6 +4,7 @@ from .repository import (  # noqa: F401
     RepositoryAuthorizationSerializer,
     AnalyzeTextSerializer,
     EditRepositorySerializer,
+    VoteSerializer,
 )
 
 from .category import (  # noqa: F401
