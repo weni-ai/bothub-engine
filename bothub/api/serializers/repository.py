@@ -64,6 +64,7 @@ class RepositorySerializer(serializers.ModelSerializer):
             'examples__count',
             'authorization',
             'ready_for_train',
+            'votes_sum',
             'created_at',
         ]
 
