@@ -143,6 +143,11 @@ class Repository(models.Model):
 
         return False
 
+    @property
+    def votes_sum(self):
+        return self.votes.aggregate(
+            votes_sum=models.Sum('vote')).get('votes_sum')
+
     def examples(self, language=None, deleted=True, queryset=None):
         if queryset is None:
             queryset = RepositoryExample.objects
@@ -599,3 +604,34 @@ class RepositoryAuthorization(models.Model):
     @property
     def is_admin(self):
         return self.level == RepositoryAuthorization.LEVEL_ADMIN
+
+
+class RepositoryVote(models.Model):
+    UP_VOTE = 1
+    DOWN_VOTE = -1
+    NEUTRAL_VOTE = 0
+    VOTE_CHOICES = [
+        (UP_VOTE, _('Up'),),
+        (DOWN_VOTE, _('Down')),
+        (NEUTRAL_VOTE, _('Neutral')),
+    ]
+
+    class Meta:
+        verbose_name = _('repository vote')
+        verbose_name_plural = _('repository votes')
+        unique_together = [
+            'user',
+            'repository',
+        ]
+
+    user = models.ForeignKey(
+        User,
+        models.CASCADE,
+        related_name='repository_votes')
+    repository = models.ForeignKey(
+        Repository,
+        models.CASCADE,
+        related_name='votes')
+    vote = models.IntegerField(
+        _('vote'),
+        choices=VOTE_CHOICES)

@@ -9,6 +9,7 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.authtoken.models import Token
 from rest_framework import status
 from rest_framework.filters import OrderingFilter
+from rest_framework.permissions import IsAuthenticated
 from django.utils.translation import gettext as _
 from django.db.models import Count
 from django.core.exceptions import ValidationError as DjangoValidationError
@@ -22,6 +23,7 @@ from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryTranslatedExample
 from bothub.common.models import RepositoryTranslatedExampleEntity
 from bothub.common.models import RepositoryCategory
+from bothub.common.models import RepositoryVote
 from bothub.authentication.models import User
 
 from .serializers import RepositorySerializer
@@ -41,6 +43,7 @@ from .serializers import NewRepositoryExampleSerializer
 from .serializers import AnalyzeTextSerializer
 from .serializers import EditRepositorySerializer
 from .serializers import NewRepositoryTranslatedExampleSerializer
+from .serializers import VoteSerializer
 
 
 # Permisions
@@ -363,22 +366,64 @@ class RepositoryViewSet(
         request = Repository.request_nlp_analyze(
             user_authorization,
             serializer.data)  # pragma: no cover
-        if request.status_code != status.HTTP_200_OK:  # pragma: no cover
-            response = None  # pragma: no cover
-            try:
-                response = request.json()  # pragma: no cover
-            except Exception:
-                pass
+
+        if request.status_code == status.HTTP_200_OK:  # pragma: no cover
+            return Response(request.json())  # pragma: no cover
+
+        response = None  # pragma: no cover
+        try:
+            response = request.json()  # pragma: no cover
+        except Exception:
+            pass
+
+        if not response:  # pragma: no cover
             raise APIException(  # pragma: no cover
-                response,
-                code=request.status_code)
-        return Response(response)  # pragma: no cover
+                detail=_('Something unexpected happened! ' + \
+                         'We couldn\'t analyze your text.'))
+        error = response.get('error')  # pragma: no cover
+        message = error.get('message')  # pragma: no cover
+        raise APIException(detail=message)  # pragma: no cover
+
+    @detail_route(
+        methods=['POST'],
+        url_name='repository-vote',
+        permission_classes=[
+            IsAuthenticated,
+        ])
+    def vote(self, request, **kwargs):
+        user = request.user
+        repository = self.get_object()
+        instance, created = RepositoryVote.objects.get_or_create(
+            user=user,
+            repository=repository,
+            defaults={
+                'vote': RepositoryVote.NEUTRAL_VOTE,
+            })
+        serializer = VoteSerializer(
+            data=request.data,
+            instance=instance)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(
+            {
+                'votes_sum': repository.votes_sum,
+            },
+            status=status.HTTP_201_CREATED)
 
     def get_serializer_class(self):
         if self.request and self.request.method in \
            ['OPTIONS'] + WRITE_METHODS or not self.request:
                 return self.edit_serializer_class
         return self.serializer_class
+
+    def get_permissions(self):
+        fn = getattr(self, self.action)
+        fn_kwargs = getattr(fn, 'kwargs', None)
+        if fn_kwargs:
+            permission_classes = fn_kwargs.get('permission_classes')
+            if permission_classes:
+                return [permission() for permission in permission_classes]
+        return super().get_permissions()
 
 
 class NewRepositoryExampleViewSet(
