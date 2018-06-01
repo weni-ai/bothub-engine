@@ -707,10 +707,7 @@ class RepositoryVoteTestCase(TestCase):
         response = RepositoryViewSet.as_view(
             {'post': 'vote'})(request)
         response.render()
-        try:
-            content_data = json.loads(response.content)
-        except json.JSONDecodeError:
-            content_data = response.content
+        content_data = json.loads(response.content)
         return (response, content_data,)
 
     def test_unauthorized(self):
@@ -749,6 +746,12 @@ class RepositoryVoteTestCase(TestCase):
         self.assertEqual(
             vote.vote,
             RepositoryVote.UP_VOTE)
+        self.assertEqual(
+            self.repository.votes_sum,
+            1)
+        self.assertEqual(
+            content_data.get('votes_sum'),
+            1)
 
     def test_vote_down(self):
         response, content_data = self.request(
@@ -766,3 +769,6 @@ class RepositoryVoteTestCase(TestCase):
         self.assertEqual(
             vote.vote,
             RepositoryVote.DOWN_VOTE)
+        self.assertEqual(
+            self.repository.votes_sum,
+            -1)

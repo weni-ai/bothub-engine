@@ -404,7 +404,11 @@ class RepositoryViewSet(
             instance=instance)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response(status=status.HTTP_201_CREATED)
+        return Response(
+            {
+                'votes_sum': repository.votes_sum,
+            },
+            status=status.HTTP_201_CREATED)
 
     def get_serializer_class(self):
         if self.request and self.request.method in \
