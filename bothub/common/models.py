@@ -143,6 +143,11 @@ class Repository(models.Model):
 
         return False
 
+    @property
+    def votes_sum(self):
+        return self.votes.aggregate(
+            votes_sum=models.Sum('vote')).get('votes_sum')
+
     def examples(self, language=None, deleted=True, queryset=None):
         if queryset is None:
             queryset = RepositoryExample.objects
