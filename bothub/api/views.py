@@ -453,7 +453,6 @@ class RepositoryExampleViewSet(
     queryset = RepositoryExample.objects
     serializer_class = RepositoryExampleSerializer
     permission_classes = [
-        permissions.IsAuthenticated,
         RepositoryExamplePermission,
     ]
 
