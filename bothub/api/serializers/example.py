@@ -9,6 +9,7 @@ from bothub.common.models import RepositoryExampleEntity
 from ..fields import EntityText
 from ..validators import CanContributeInRepositoryExampleValidator
 from ..validators import CanContributeInRepositoryValidator
+from ..validators import ExampleWithIntentOrEntityValidator
 from .translate import RepositoryTranslatedExampleSerializer
 
 
@@ -108,6 +109,10 @@ class NewRepositoryExampleSerializer(serializers.ModelSerializer):
     entities = NewRepositoryExampleEntitySerializer(
         many=True,
         style={'text_field': 'text'})
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.validators.append(ExampleWithIntentOrEntityValidator())
 
     def validate_repository(self, repository):
         return repository.current_update()

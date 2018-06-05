@@ -60,3 +60,12 @@ class TranslatedExampleLanguageValidator(object):
         if original_example.repository_update.language == language:
             raise ValidationError({'language': _(
                 'Can\'t translate to the same language')})
+
+
+class ExampleWithIntentOrEntityValidator(object):
+    def __call__(self, attrs):
+        intent = attrs.get('intent')
+        entities = attrs.get('entities')
+
+        if not intent and not entities:
+            raise ValidationError(_('Define a intent or one entity'))
