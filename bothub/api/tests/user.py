@@ -60,6 +60,22 @@ class RegisterUserTestCase(TestCase):
             'password',
             content_data.keys())
 
+    def test_unique_nickname(self):
+        nickname = 'fake'
+        User.objects.create_user('user1@user.com', nickname)
+        response, content_data = self.request({
+            'email': 'user2@user.com',
+            'name': 'Fake',
+            'nickname': nickname,
+            'password': 'abc!1234',
+        })
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST)
+        self.assertIn(
+            'nickname',
+            content_data.keys())
+
 
 class UserUpdateTestCase(TestCase):
     def setUp(self):
