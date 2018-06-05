@@ -141,6 +141,19 @@ class NewRepositoryExampleTestCase(TestCase):
             len(content_data.get('entities')),
             1)
 
+    def test_intent_or_entity_required(self):
+        response, content_data = self.request(
+            self.owner_token,
+            {
+                'repository': str(self.repository.uuid),
+                'text': 'hi',
+                'intent': '',
+                'entities': [],
+            })
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST)
+
 
 class RepositoryExampleRetrieveTestCase(TestCase):
     def setUp(self):
