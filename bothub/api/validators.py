@@ -50,7 +50,8 @@ class TranslatedExampleEntitiesValidator(object):
             list(map(lambda x: dict(x), attrs.get('entities'))),
             list(map(lambda x: x.to_dict, original_example.entities.all())))
         if not entities_valid:
-            raise ValidationError({'entities': _('Entities need to match from the original content')})
+            raise ValidationError({'entities': _(
+                'Entities need to match from the original content')})
 
 
 class TranslatedExampleLanguageValidator(object):
