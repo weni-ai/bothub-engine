@@ -46,11 +46,24 @@ class CanContributeInRepositoryTranslatedExampleValidator(object):
 class TranslatedExampleEntitiesValidator(object):
     def __call__(self, attrs):
         original_example = attrs.get('original_example')
+        entities_list = list(map(lambda x: dict(x), attrs.get('entities')))
+        original_entities_list = list(map(
+            lambda x: x.to_dict,
+            original_example.entities.all()))
         entities_valid = RepositoryTranslatedExample.same_entities_validator(
-            list(map(lambda x: dict(x), attrs.get('entities'))),
-            list(map(lambda x: x.to_dict, original_example.entities.all())))
+            entities_list,
+            original_entities_list)
         if not entities_valid:
-            raise ValidationError({'entities': _('Invalid entities')})
+            raise ValidationError({'entities': _(
+                'Entities need to match from the original content. ' +
+                'Entities: {0}. Original entities: {1}.').format(
+                    RepositoryTranslatedExample.count_entities(
+                        entities_list,
+                        to_str=True),
+                    RepositoryTranslatedExample.count_entities(
+                        original_entities_list,
+                        to_str=True),
+                )})
 
 
 class TranslatedExampleLanguageValidator(object):
@@ -60,3 +73,12 @@ class TranslatedExampleLanguageValidator(object):
         if original_example.repository_update.language == language:
             raise ValidationError({'language': _(
                 'Can\'t translate to the same language')})
+
+
+class ExampleWithIntentOrEntityValidator(object):
+    def __call__(self, attrs):
+        intent = attrs.get('intent')
+        entities = attrs.get('entities')
+
+        if not intent and not entities:
+            raise ValidationError(_('Define a intent or one entity'))
