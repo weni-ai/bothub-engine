@@ -258,7 +258,7 @@ class TranslateTestCase(TestCase):
 
 class RepositoryTestCase(TestCase):
     def setUp(self):
-        self.owner = User.objects.create_user('owner@user.com', 'user')
+        self.owner = User.objects.create_user('owner@user.com', 'owner')
         self.user = User.objects.create_user('fake@user.com', 'user')
 
         self.repository = Repository.objects.create(
@@ -354,7 +354,7 @@ class RepositoryExampleTestCase(TestCase):
 
 class RepositoryAuthorizationTestCase(TestCase):
     def setUp(self):
-        self.owner = User.objects.create_user('owner@user.com', 'user')
+        self.owner = User.objects.create_user('owner@user.com', 'owner')
         self.user = User.objects.create_user('fake@user.com', 'user')
 
         self.repository = Repository.objects.create(
