@@ -2,6 +2,8 @@ import uuid
 import base64
 import requests
 
+from functools import reduce
+
 from django.db import models
 from django.utils.translation import gettext as _
 from django.utils import timezone
@@ -465,6 +467,21 @@ class RepositoryTranslatedExample(models.Model):
             if a_sorted[i].get('entity') != b_sorted[i].get('entity'):
                 return False
         return True
+
+    @classmethod
+    def count_entities(cls, entities_list, to_str=False):
+        r = {}
+        reduce(
+            lambda current, next: current.update({
+                next.get('entity'): current.get('entity', 0) + 1,
+            }),
+            entities_list,
+            r)
+        if to_str:
+            r = ', '.join(map(
+                lambda x: '{} {}'.format(x[1], x[0]),
+                r.items())) if entities_list else 'no entities'
+        return r
 
     @property
     def has_valid_entities(self):
