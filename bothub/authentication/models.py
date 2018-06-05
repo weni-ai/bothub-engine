@@ -68,7 +68,8 @@ class User(AbstractBaseUser, PermissionsMixin):
         max_length=16,
         validators=[validate_user_nickname],
         help_text=_('User\'s nickname, using letters, numbers, underscores ' +
-                    'and hyphens without spaces.'))
+                    'and hyphens without spaces.'),
+        unique=True)
     locale = models.CharField(
         _('locale'),
         max_length=48,
