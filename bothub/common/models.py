@@ -31,6 +31,22 @@ class RepositoryCategory(models.Model):
         return self.name  # pragma: no cover
 
 
+class RepositoryQuerySet(models.QuerySet):
+    def publics(self):
+        return self.filter(is_private=False)
+
+    def order_by_relevance(self):
+        return self \
+            .annotate(votes_summ=models.Sum('votes__vote')) \
+            .annotate(examples_sum=models.Sum('updates__added')) \
+            .order_by('-votes_summ', '-examples_sum', '-created_at')
+
+
+class RepositoryManager(models.Manager):
+    def get_queryset(self):
+        return RepositoryQuerySet(self.model, using=self._db)
+
+
 class Repository(models.Model):
     class Meta:
         verbose_name = _('repository')
@@ -79,6 +95,8 @@ class Repository(models.Model):
     created_at = models.DateTimeField(
         _('created at'),
         auto_now_add=True)
+
+    objects = RepositoryManager()
 
     nlp_train_url = '{}v1/train'.format(settings.BOTHUB_NLP_BASE_URL)
     nlp_analyze_url = '{}v1/message'.format(settings.BOTHUB_NLP_BASE_URL)
