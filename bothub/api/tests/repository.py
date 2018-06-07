@@ -462,9 +462,10 @@ class RepositoriesTestCase(TestCase):
             is_private=True)
         self.repository.categories.add(self.category)
 
-    def request(self):
+    def request(self, data={}):
         request = self.factory.get(
-            '/api/repositories/')
+            '/api/repositories/',
+            data)
         response = RepositoriesViewSet.as_view({'get': 'list'})(request)
         response.render()
         content_data = json.loads(response.content)
@@ -478,6 +479,27 @@ class RepositoriesTestCase(TestCase):
         self.assertEqual(
             uuid.UUID(content_data.get('results')[0].get('uuid')),
             self.repository.uuid)
+
+    def test_filter_by_name(self):
+        response, content_data = self.request({
+            'search': 'Test',
+        })
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK)
+        self.assertEqual(
+            content_data.get('count'),
+            1)
+
+        response, content_data = self.request({
+            'search': 'z',
+        })
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK)
+        self.assertEqual(
+            content_data.get('count'),
+            0)
 
 
 class TrainRepositoryTestCase(TestCase):
