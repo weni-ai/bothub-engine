@@ -721,6 +721,7 @@ class RepositoriesViewSet(
     queryset = Repository.objects.all().publics().order_by_relevance()
     filter_class = RepositoriesFilter
     filter_backends = [
+        DjangoFilterBackend,
         SearchFilter,
     ]
     search_fields = [
