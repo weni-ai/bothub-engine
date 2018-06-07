@@ -716,7 +716,7 @@ class RepositoriesViewSet(
     List all public repositories.
     """
     serializer_class = RepositorySerializer
-    queryset = Repository.objects.filter(is_private=False)
+    queryset = Repository.objects.all().publics().order_by_relevance()
     filter_class = RepositoriesFilter
 
 
