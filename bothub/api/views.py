@@ -419,12 +419,13 @@ class RepositoryViewSet(
         return self.serializer_class
 
     def get_permissions(self):
-        fn = getattr(self, self.action)
-        fn_kwargs = getattr(fn, 'kwargs', None)
-        if fn_kwargs:
-            permission_classes = fn_kwargs.get('permission_classes')
-            if permission_classes:
-                return [permission() for permission in permission_classes]
+        if self.action:
+            fn = getattr(self, self.action)
+            fn_kwargs = getattr(fn, 'kwargs', None)
+            if fn_kwargs:
+                permission_classes = fn_kwargs.get('permission_classes')
+                if permission_classes:
+                    return [permission() for permission in permission_classes]
         return super().get_permissions()
 
 
