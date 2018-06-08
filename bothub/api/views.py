@@ -9,6 +9,7 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.authtoken.models import Token
 from rest_framework import status
 from rest_framework.filters import OrderingFilter
+from rest_framework.filters import SearchFilter
 from rest_framework.permissions import IsAuthenticated
 from django.utils.translation import gettext as _
 from django.db.models import Count
@@ -174,6 +175,7 @@ class RepositoriesFilter(filters.FilterSet):
     class Meta:
         model = Repository
         fields = [
+            'name',
             'categories',
         ]
 
@@ -718,6 +720,15 @@ class RepositoriesViewSet(
     serializer_class = RepositorySerializer
     queryset = Repository.objects.all().publics().order_by_relevance()
     filter_class = RepositoriesFilter
+    filter_backends = [
+        DjangoFilterBackend,
+        SearchFilter,
+    ]
+    search_fields = [
+        '$name',
+        '^name',
+        '=name',
+    ]
 
 
 class TranslationsViewSet(
