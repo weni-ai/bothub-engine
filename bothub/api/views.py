@@ -418,13 +418,26 @@ class RepositoryViewSet(
                 return self.edit_serializer_class
         return self.serializer_class
 
-    def get_permissions(self):
-        fn = getattr(self, self.action)
+    def get_action_permissions_classes(self):
+        if not self.action:
+            return None
+        fn = getattr(self, self.action, None)
+        if not fn:
+            return None
         fn_kwargs = getattr(fn, 'kwargs', None)
-        if fn_kwargs:
-            permission_classes = fn_kwargs.get('permission_classes')
-            if permission_classes:
-                return [permission() for permission in permission_classes]
+        if not fn_kwargs:
+            return None
+        permission_classes = fn_kwargs.get('permission_classes')
+        if not permission_classes:
+            return None
+        return permission_classes
+
+    def get_permissions(self):
+        action_permissions_classes = self.get_action_permissions_classes()
+        if action_permissions_classes:
+            return [permission()
+                    for permission
+                    in action_permissions_classes]
         return super().get_permissions()
 
 
