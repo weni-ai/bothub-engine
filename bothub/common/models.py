@@ -8,6 +8,7 @@ from django.db import models
 from django.utils.translation import gettext as _
 from django.utils import timezone
 from django.conf import settings
+from django.core.validators import RegexValidator, _lazy_re_compile
 
 from bothub.authentication.models import User
 
@@ -16,6 +17,15 @@ from .exceptions import RepositoryUpdateAlreadyStartedTraining
 from .exceptions import RepositoryUpdateAlreadyTrained
 from .exceptions import TrainingNotAllowed
 from .exceptions import DoesNotHaveTranslation
+
+
+entity_and_intent_regex = _lazy_re_compile(r'^[-a-z0-9_]+\Z')
+validate_entity_and_intent = RegexValidator(
+    entity_and_intent_regex,
+    _('Enter a valid value consisting of lowercase letters, numbers, ' +
+        'underscores or hyphens.'),
+    'invalid'
+)
 
 
 class RepositoryCategory(models.Model):
@@ -379,7 +389,8 @@ class RepositoryExample(models.Model):
         _('intent'),
         max_length=64,
         blank=True,
-        help_text=_('Example intent reference'))
+        help_text=_('Example intent reference'),
+        validators=[validate_entity_and_intent])
     created_at = models.DateTimeField(
         _('created at'),
         auto_now_add=True)
@@ -525,7 +536,8 @@ class EntityBase(models.Model):
     entity = models.CharField(
         _('entity'),
         max_length=64,
-        help_text=_('Entity name'))
+        help_text=_('Entity name'),
+        validators=[validate_entity_and_intent])
     created_at = models.DateTimeField(
         _('created at'),
         auto_now_add=True)

@@ -154,6 +154,44 @@ class NewRepositoryExampleTestCase(TestCase):
             response.status_code,
             status.HTTP_400_BAD_REQUEST)
 
+    def test_entity_with_special_char(self):
+        response, content_data = self.request(
+            self.owner_token,
+            {
+                'repository': str(self.repository.uuid),
+                'text': 'my name is douglas',
+                'intent': '',
+                'entities': [
+                    {
+                        'start': 11,
+                        'end': 18,
+                        'entity': 'nam&',
+                    },
+                ],
+            })
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            len(content_data.get('entities')),
+            1)
+
+    def test_intent_with_special_char(self):
+        response, content_data = self.request(
+            self.owner_token,
+            {
+                'repository': str(self.repository.uuid),
+                'text': 'my name is douglas',
+                'intent': 'nam$s',
+                'entities': [],
+            })
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            len(content_data.get('intent')),
+            1)
+
 
 class RepositoryExampleRetrieveTestCase(TestCase):
     def setUp(self):
