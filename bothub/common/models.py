@@ -108,8 +108,8 @@ class Repository(models.Model):
 
     objects = RepositoryManager()
 
-    nlp_train_url = '{}v1/train'.format(settings.BOTHUB_NLP_BASE_URL)
-    nlp_analyze_url = '{}v1/message'.format(settings.BOTHUB_NLP_BASE_URL)
+    nlp_train_url = '{}train/'.format(settings.BOTHUB_NLP_BASE_URL)
+    nlp_analyze_url = '{}parse/'.format(settings.BOTHUB_NLP_BASE_URL)
 
     @classmethod
     def request_nlp_train(cls, user_authorization):
@@ -125,8 +125,8 @@ class Repository(models.Model):
         r = requests.post(  # pragma: no cover
             cls.nlp_analyze_url,
             data={
+                'text': data.get('text'),
                 'language': data.get('language'),
-                'msg': data.get('text'),
             },
             headers={'Authorization': 'Bearer {}'.format(
                 user_authorization.uuid)})
