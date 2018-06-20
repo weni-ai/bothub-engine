@@ -4,17 +4,16 @@ python:
 services:
   - docker
 install:
-  - pip install -r requirements.txt
-  - pip install python-coveralls
-  - pip install flake8
+  - pip install pipenv
+  - pipenv install --system --dev
+  - pip install coveralls
 env:
   global:
     - SECRET_KEY=SK
-    - DOCKER_HUB_REPO=ilha/bothub
+    - SUPPORTED_LANGUAGES="en pt"
 script:
   - flake8
-  - coverage run manage.py test
-  - coverage report
+  - travis_wait coverage run manage.py test
 after_success:
   - coveralls
   - export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo $TRAVIS_BRANCH ; fi`
