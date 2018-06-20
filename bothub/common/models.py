@@ -230,9 +230,6 @@ class Repository(models.Model):
             training_started_at=None)
         return repository_update
 
-    def current_rasa_nlu_data(self, language=None):
-        return self.current_update(language).rasa_nlu_data
-
     def last_trained_update(self, language=None):
         language = language or self.language
         return self.updates.filter(
@@ -301,18 +298,6 @@ class RepositoryUpdate(models.Model):
         else:
             examples = examples.exclude(deleted_in=self)
         return examples
-
-    @property
-    def rasa_nlu_data(self):
-        return {
-            'common_examples': list(
-                map(
-                    lambda example: example.to_rasa_nlu_data(self.language),
-                    filter(
-                        lambda example: example.has_valid_entities(
-                            self.language),
-                        self.examples)))
-        }
 
     @property
     def ready_for_train(self):
@@ -420,12 +405,12 @@ class RepositoryExample(models.Model):
             return self.entities.all()
         return self.get_translation(language).entities.all()
 
-    def to_rasa_nlu_data(self, language):
+    def rasa_nlu_data(self, language):
         return {
             'text': self.get_text(language),
             'intent': self.intent,
             'entities': [
-                entity.to_rasa_nlu_data for entity in self.get_entities(
+                entity.rasa_nlu_data for entity in self.get_entities(
                     language)],
         }
 
@@ -547,7 +532,7 @@ class EntityBase(models.Model):
         return self.get_example().text[self.start:self.end]
 
     @property
-    def to_rasa_nlu_data(self):
+    def rasa_nlu_data(self):
         return {
             'start': self.start,
             'end': self.end,
