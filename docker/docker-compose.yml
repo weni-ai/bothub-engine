@@ -15,15 +15,19 @@ services:
       - DEFAULT_DATABASE
       - LANGUAGE_CODE
       - TIME_ZONE
-      - ADMINS
-      - DEFAULT_FROM_EMAIL
-      - SERVER_EMAIL
       - EMAIL_HOST
       - EMAIL_PORT
+      - DEFAULT_FROM_EMAIL
+      - SERVER_EMAIL
       - EMAIL_HOST_USER
       - EMAIL_HOST_PASSWORD
       - EMAIL_USE_SSL
       - EMAIL_USE_TLS
+      - ADMINS
+      - CSRF_COOKIE_DOMAIN
+      - CSRF_COOKIE_SECURE
       - BOTHUB_WEBAPP_BASE_URL
-      - API_BASE_URL
+      - BOTHUB_NLP_BASE_URL
+      - WEBAPP_REPO=https://github.com/push-flow/bothub-webapp
       - WEBAPP_BRANCH=master
+      - API_BASE_URL
