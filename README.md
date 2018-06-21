@@ -59,5 +59,14 @@ You can set environment variables in your OS, write on ```.env``` file or pass v
 | ADMINS | ```string``` | ```''``` | A list of all the people who get code error notifications. Follow the pattern: ```admin1@email.com|Admin 1,admin2@email.com|Admin 2```
 | CSRF_COOKIE_DOMAIN | ```string``` | ```None``` | The domain to be used when setting the CSRF cookie.
 | CSRF_COOKIE_SECURE | ```boolean``` | ```False``` | Whether to use a secure cookie for the CSRF cookie.
-| BOTHUB_WEBAPP_BASE_URL | ```string``` | ```http://localhost:8080/``` | The bothub-webapp application URL. Used to refer and redirect user correctly.
-| BOTHUB_NLP_BASE_URL | ```string``` | ```http://localhost:8001/``` | The bothub-blp application URL. Used to proxy requests.
+| BOTHUB_WEBAPP_BASE_URL | ```string``` | ```http://localhost:8080/``` | The bothub-webapp production application URL. Used to refer and redirect user correctly.
+| BOTHUB_NLP_BASE_URL | ```string``` | ```http://localhost:8001/``` | The bothub-blp production application URL. Used to proxy requests.
+
+
+### Docker Environment Variables
+
+| Variable | Type | Default | Description |
+|--|--|--|--|
+| WEBAPP_REPO | ```string``` | ```https://github.com/push-flow/bothub-webapp``` | Git repository URL. It will clone and run ```npm install && npm run build``` command on the entrypoint. This build is served by Nginx.
+| WEBAPP_BRANCH | ```string``` | ```master``` | Specify the branch of the bothub-webapp Git repository.
+| API_BASE_URL | ```string``` | Not defined | The bothub production application URL. Used by ```bothub-webapp``` application.

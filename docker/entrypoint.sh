@@ -1,5 +1,5 @@
 #!/bin/sh
-git clone --branch $WEBAPP_BRANCH --depth 1 https://github.com/push-flow/bothub-webapp /tmp/bothub-webapp/
+git clone --branch $WEBAPP_BRANCH --depth 1 $WEBAPP_REPO /tmp/bothub-webapp/
 cd /tmp/bothub-webapp/ && npm install && npm run build
 
 cd $WORKDIR
