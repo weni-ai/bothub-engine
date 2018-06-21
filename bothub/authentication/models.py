@@ -8,15 +8,22 @@ from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.conf import settings
+from django.core.exceptions import ValidationError
 
 
 user_nickname_re = _lazy_re_compile(r'^[-a-zA-Z0-9_]+\Z')
-validate_user_nickname = RegexValidator(
+validate_user_nickname_format = RegexValidator(
     user_nickname_re,
     _('Enter a valid \'nickname\' consisting of letters, numbers, ' +
         'underscores or hyphens.'),
     'invalid'
 )
+
+
+def validate_user_nickname_value(value):
+    if value in ['api', 'docs', 'admin']:
+        raise ValidationError(
+            _('The user nickname can\'t be \'{}\'').format(value))
 
 
 class UserManager(BaseUserManager):
@@ -66,7 +73,10 @@ class User(AbstractBaseUser, PermissionsMixin):
     nickname = models.CharField(
         _('nickname'),
         max_length=16,
-        validators=[validate_user_nickname],
+        validators=[
+            validate_user_nickname_format,
+            validate_user_nickname_value,
+        ],
         help_text=_('User\'s nickname, using letters, numbers, underscores ' +
                     'and hyphens without spaces.'),
         unique=True)
