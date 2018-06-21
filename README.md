@@ -56,7 +56,7 @@ You can set environment variables in your OS, write on ```.env``` file or pass v
 | EMAIL_HOST_PASSWORD | ```string``` | ```''``` | Password to use for the SMTP server defined in ```EMAIL_HOST```.
 | EMAIL_USE_SSL | ```boolean``` | ```False``` | Whether to use an implicit TLS (secure) connection when talking to the SMTP server.
 | EMAIL_USE_TLS | ```boolean``` | ```False``` | Whether to use a TLS (secure) connection when talking to the SMTP server.
-| ADMINS | ```string``` | ```''``` | A list of all the people who get code error notifications. Follow the pattern: ```admin1@email.com|Admin 1,admin2@email.com|Admin 2```
+| ADMINS | ```string``` | ```''``` | A list of all the people who get code error notifications. Follow the pattern: ```admin1@email.com\|Admin 1,admin2@email.com\|Admin 2```
 | CSRF_COOKIE_DOMAIN | ```string``` | ```None``` | The domain to be used when setting the CSRF cookie.
 | CSRF_COOKIE_SECURE | ```boolean``` | ```False``` | Whether to use a secure cookie for the CSRF cookie.
 | BOTHUB_WEBAPP_BASE_URL | ```string``` | ```http://localhost:8080/``` | The bothub-webapp production application URL. Used to refer and redirect user correctly.
