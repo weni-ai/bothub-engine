@@ -25,6 +25,7 @@ from bothub.common.models import RepositoryTranslatedExample
 from bothub.common.models import RepositoryTranslatedExampleEntity
 from bothub.common.models import RepositoryCategory
 from bothub.common.models import RepositoryVote
+from bothub.common.models import RepositoryAuthorization
 from bothub.authentication.models import User
 
 from .serializers import RepositorySerializer
@@ -45,6 +46,7 @@ from .serializers import AnalyzeTextSerializer
 from .serializers import EditRepositorySerializer
 from .serializers import NewRepositoryTranslatedExampleSerializer
 from .serializers import VoteSerializer
+from .serializers import RepositoryAuthorizationRoleSerializer
 
 
 # Permisions
@@ -92,6 +94,12 @@ class RepositoryTranslatedExampleEntityPermission(permissions.BasePermission):
         if request.method in READ_METHODS:
             return authorization.can_read
         return authorization.can_contribute
+
+
+class RepositoryAdminManagerAuthorization(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        authorization = obj.repository.get_user_authorization(request.user)
+        return authorization.is_admin
 
 
 # Filters
@@ -220,6 +228,31 @@ class TranslationsFilter(filters.FilterSet):
 
     def filter_to_language(self, queryset, name, value):
         return queryset.filter(language=value)
+
+
+class RepositoryAuthorizationFilter(filters.FilterSet):
+    class Meta:
+        model = RepositoryAuthorization
+        fields = ['repository']
+
+    repository = filters.CharFilter(
+        name='repository',
+        method='filter_repository_uuid',
+        help_text=_('Repository\'s UUID'))
+
+    def filter_repository_uuid(self, queryset, name, value):
+        request = self.request
+        try:
+            repository = Repository.objects.get(uuid=value)
+            authorization = repository.get_user_authorization(request.user)
+            if not authorization.is_admin:
+                raise PermissionDenied()
+            return queryset.filter(repository=repository)
+        except Repository.DoesNotExist:
+            raise NotFound(
+                _('Repository {} does not exist').format(value))
+        except DjangoValidationError:
+            raise NotFound(_('Invalid repository UUID'))
 
 
 # Mixins
@@ -753,3 +786,42 @@ class TranslationsViewSet(
     serializer_class = RepositoryTranslatedExampleSerializer
     queryset = RepositoryTranslatedExample.objects.all()
     filter_class = TranslationsFilter
+
+
+class RepositoryAuthorizationViewSet(
+        mixins.ListModelMixin,
+        GenericViewSet):
+    queryset = RepositoryAuthorization.objects.exclude(
+        role=RepositoryAuthorization.ROLE_NOT_SET)
+    serializer_class = RepositoryAuthorizationSerializer
+    filter_class = RepositoryAuthorizationFilter
+    permission_classes = [
+        IsAuthenticated,
+    ]
+
+
+class RepositoryAuthorizationSetRoleViewSet(
+        MultipleFieldLookupMixin,
+        mixins.UpdateModelMixin,
+        GenericViewSet):
+    queryset = RepositoryAuthorization.objects.exclude(
+        role=RepositoryAuthorization.ROLE_NOT_SET)
+    lookup_field = 'user__nickname'
+    lookup_fields = ['repository__uuid', 'user__nickname']
+    serializer_class = RepositoryAuthorizationRoleSerializer
+    permission_classes = [
+        IsAuthenticated,
+        RepositoryAdminManagerAuthorization,
+    ]
+
+    def get_object(self):
+        repository_uuid = self.kwargs.get('repository__uuid')
+        user_nickname = self.kwargs.get('user__nickname')
+
+        repository = get_object_or_404(Repository, uuid=repository_uuid)
+        user = get_object_or_404(User, nickname=user_nickname)
+
+        obj = repository.get_user_authorization(user)
+
+        self.check_object_permissions(self.request, obj)
+        return obj

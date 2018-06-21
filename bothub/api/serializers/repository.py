@@ -100,6 +100,7 @@ class RepositoryAuthorizationSerializer(serializers.ModelSerializer):
             'uuid',
             'user',
             'repository',
+            'role',
             'level',
             'can_read',
             'can_contribute',
@@ -119,4 +120,12 @@ class VoteSerializer(serializers.ModelSerializer):
         model = RepositoryVote
         fields = [
             'vote',
+        ]
+
+
+class RepositoryAuthorizationRoleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RepositoryAuthorization
+        fields = [
+            'role',
         ]

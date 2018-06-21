@@ -20,6 +20,8 @@ from .views import UserProfileViewSet
 from .views import Categories
 from .views import RepositoriesViewSet
 from .views import TranslationsViewSet
+from .views import RepositoryAuthorizationViewSet
+from .views import RepositoryAuthorizationSetRoleViewSet
 
 
 class Router(routers.SimpleRouter):
@@ -110,3 +112,6 @@ router.register('user-profile', UserProfileViewSet)
 router.register('categories', Categories)
 router.register('repositories', RepositoriesViewSet)
 router.register('translations', TranslationsViewSet)
+router.register('list-authorizations', RepositoryAuthorizationViewSet)
+router.register('update-authorization-role',
+                RepositoryAuthorizationSetRoleViewSet)
