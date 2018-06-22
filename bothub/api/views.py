@@ -792,7 +792,7 @@ class RepositoryAuthorizationViewSet(
         mixins.ListModelMixin,
         GenericViewSet):
     queryset = RepositoryAuthorization.objects.exclude(
-        role=RepositoryAuthorization.ROLE_NOT_SET)
+        role=RepositoryAuthorization.ROLE_NOT_SETTED)
     serializer_class = RepositoryAuthorizationSerializer
     filter_class = RepositoryAuthorizationFilter
     permission_classes = [
@@ -805,7 +805,7 @@ class RepositoryAuthorizationSetRoleViewSet(
         mixins.UpdateModelMixin,
         GenericViewSet):
     queryset = RepositoryAuthorization.objects.exclude(
-        role=RepositoryAuthorization.ROLE_NOT_SET)
+        role=RepositoryAuthorization.ROLE_NOT_SETTED)
     lookup_field = 'user__nickname'
     lookup_fields = ['repository__uuid', 'user__nickname']
     serializer_class = RepositoryAuthorizationRoleSerializer
