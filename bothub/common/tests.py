@@ -16,23 +16,6 @@ from .exceptions import TrainingNotAllowed
 
 
 class RepositoryUpdateTestCase(TestCase):
-    EXPECTED_RASA_NLU_DATA = {
-        'common_examples': [
-            {
-                'text': 'my name is Douglas',
-                'intent': '',
-                'entities': [
-                    {
-                        'start': 11,
-                        'end': 18,
-                        'value': 'Douglas',
-                        'entity': 'name',
-                    },
-                ],
-            }
-        ],
-    }
-
     def setUp(self):
         owner = User.objects.create_user('fake@user.com', 'user', '123456')
         self.repository = Repository.objects.create(
@@ -51,11 +34,6 @@ class RepositoryUpdateTestCase(TestCase):
     def test_repository_example_entity(self):
         self.assertEqual(self.entity.value, 'Douglas')
 
-    def test_get_rasa_nlu_data(self):
-        self.assertDictEqual(
-            self.repository_update.rasa_nlu_data,
-            RepositoryUpdateTestCase.EXPECTED_RASA_NLU_DATA)
-
     def test_repository_current_update(self):
         update1 = self.repository.current_update('en')
         self.assertEqual(update1, self.repository.current_update('en'))
@@ -66,29 +44,21 @@ class RepositoryUpdateTestCase(TestCase):
 
 class TranslateTestCase(TestCase):
     EXPECTED_RASA_NLU_DATA = {
-        'common_examples': [
-            {
-                'text': 'meu nome é Douglas',
-                'intent': 'greet',
-                'entities': [],
-            },
-        ],
+        'text': 'meu nome é Douglas',
+        'intent': 'greet',
+        'entities': [],
     }
 
     EXPECTED_RASA_NLU_DATA_WITH_ENTITIES = {
-        'common_examples': [
+        'text': 'meu nome é Douglas',
+        'intent': 'greet',
+        'entities': [
             {
-                'text': 'meu nome é Douglas',
-                'intent': 'greet',
-                'entities': [
-                    {
-                        'start': 11,
-                        'end': 18,
-                        'value': 'Douglas',
-                        'entity': 'name',
-                    }
-                ],
-            },
+                'start': 11,
+                'end': 18,
+                'value': 'Douglas',
+                'entity': 'name',
+            }
         ],
     }
 
@@ -122,8 +92,7 @@ class TranslateTestCase(TestCase):
             text='meu nome é Douglas')
 
         self.assertDictEqual(
-            self.repository.current_update(
-                languages.LANGUAGE_PT).rasa_nlu_data,
+            self.example.rasa_nlu_data(language),
             TranslateTestCase.EXPECTED_RASA_NLU_DATA)
 
     def test_translated_entity(self):
@@ -144,8 +113,7 @@ class TranslateTestCase(TestCase):
             end=18,
             entity='name')
         self.assertDictEqual(
-            self.repository.current_update(
-                languages.LANGUAGE_PT).rasa_nlu_data,
+            self.example.rasa_nlu_data(language),
             TranslateTestCase.EXPECTED_RASA_NLU_DATA_WITH_ENTITIES)
 
     def test_valid_entities(self):
@@ -298,14 +266,6 @@ class RepositoryTestCase(TestCase):
             list(languages_status.keys()),
             languages.SUPPORTED_LANGUAGES)
         # TODO: Update test_languages_status test
-        #       Create expeted result
-
-    def test_current_rasa_nlu_data(self):
-        current_rasa_nlu_data = self.repository.current_rasa_nlu_data()
-        self.assertListEqual(
-            list(current_rasa_nlu_data.keys()),
-            ['common_examples'])
-        # TODO: Update test_current_rasa_nlu_data test
         #       Create expeted result
 
     def test_last_trained_update(self):

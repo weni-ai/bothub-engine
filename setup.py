@@ -1,15 +1,21 @@
 from setuptools import setup, find_packages
 
-with open('requirements.txt') as fp:
-    install_requires = fp.read()
-install_requires = list(
-    filter(lambda x: len(x) > 0, install_requires.split('\n')))
 
 setup(
     name='bothub',
-    version='1.8.8',
+    version='1.9.0',
     description='bothub',
     packages=find_packages(),
-    install_requires=install_requires,
+    install_requires=[
+        'python-decouple',
+        'requests',
+        'django==2.0.6',
+        'djangorestframework==3.7.7',
+        'whitenoise',
+        'dj-database-url',
+        'django-cors-headers',
+        'django-filter',
+        'coreapi',
+    ],
     python_requires='>=3.6',
 )

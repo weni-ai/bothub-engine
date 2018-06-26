@@ -1,60 +1,88 @@
-ENV_DIR=./env/
-SETTINGS_FILE=settings.ini
+ENVIRONMENT_VARS_FILE := .env
+IS_PRODUCTION ?= false
+CHECK_ENVIRONMENT := true
+
+
+# Commands
 
 help:
 	@cat Makefile-help.txt
+	@exit 0
 
-init_envoriment:
-	virtualenv -p python3.6 $(ENV_DIR);
-	$(ENV_DIR)bin/pip install --upgrade pip
-	make install_requirements
-
-check_envoriment:
-	if [ ! -d "$(ENV_DIR)" ]; then make init_envoriment; fi
+check_environment:
+	@if [[ ${CHECK_ENVIRONMENT} = true ]]; then make _check_environment; fi
 
 install_requirements:
-	make check_envoriment
-	$(ENV_DIR)bin/pip install -r requirements.txt
-
-update_requirements:
-	make check_envoriment
-	$(ENV_DIR)bin/pip freeze > requirements.txt
+	@if [[ ${IS_PRODUCTION} = true ]]; \
+		then make install_production_requirements; \
+		else make install_development_requirements; fi
 
 lint:
-	make check_envoriment
-	$(ENV_DIR)bin/flake8
-
-create_development_settings:
-	echo "[settings]" > $(SETTINGS_FILE)
-	echo "SECRET_KEY=SK" >> $(SETTINGS_FILE)
-	echo "DEBUG=True" >> $(SETTINGS_FILE)
-
-check_ready_for_development:
-	make check_envoriment
-	if [ ! -f "$(SETTINGS_FILE)" ]; then make create_development_settings; fi
+	@make development_mode_guard
+	@make check_environment
+	@pipenv run flake8
+	@echo "${SUCCESS}✔${NC} The code is following the PEP8"
 
 test:
-	make check_ready_for_development
-	$(ENV_DIR)bin/coverage run manage.py test && $(ENV_DIR)bin/coverage report -m
-
-runserver:
-	make check_ready_for_development
-	make migrate
-	$(ENV_DIR)bin/python ./manage.py runserver
+	@make development_mode_guard
+	@make check_environment
+	@make migrate CHECK_ENVIRONMENT=false
+	@SUPPORTED_LANGUAGES="en pt" pipenv run python manage.py test && pipenv run coverage report -m
 
 migrate:
-	make check_ready_for_development
-	$(ENV_DIR)bin/python ./manage.py migrate
+	@make check_environment
+	@if [[ ${IS_PRODUCTION} = true ]]; \
+		then python manage.py migrate; \
+		else pipenv run python manage.py migrate; fi
 
-makemigrations:
-	make check_ready_for_development
-	$(ENV_DIR)bin/python ./manage.py makemigrations
+start:
+	@make development_mode_guard
+	@make check_environment
+	@make migrate CHECK_ENVIRONMENT=false
+	@pipenv run python ./manage.py runserver
 
-shell:
-	make check_ready_for_development
-	$(ENV_DIR)bin/python ./manage.py shell
+migrations:
+	@make development_mode_guard
+	@make check_environment
+	@pipenv run python ./manage.py makemigrations
+	@make migrate CHECK_ENVIRONMENT=false
 
-fill_db_using_fake_data:
-	make check_ready_for_development
-	make migrate
-	$(ENV_DIR)bin/python ./manage.py fill_db_using_fake_data
+
+# Utils
+
+## Colors
+SUCCESS = \033[0;32m
+INFO = \033[0;36m
+WARNING = \033[0;33m
+DANGER = \033[0;31m
+NC = \033[0m
+
+create_environment_vars_file:
+	@echo "SECRET_KEY=SK" > "${ENVIRONMENT_VARS_FILE}"
+	@echo "DEBUG=true" >> "${ENVIRONMENT_VARS_FILE}"
+	@echo "SUPPORTED_LANGUAGES=en de es pt fr it nl" >> "${ENVIRONMENT_VARS_FILE}"
+	@echo "${SUCCESS}✔${NC} Settings file created"
+
+install_development_requirements:
+	@echo "${INFO}Installing development requirements...${NC}"
+	@pipenv install --dev &> /dev/null
+	@echo "${SUCCESS}✔${NC} Development requirements installed"
+
+install_production_requirements:
+	@echo "${INFO}Installing production requirements...${NC}"
+	@pipenv install --system
+	@echo "${SUCCESS}✔${NC} Requirements installed"
+
+development_mode_guard:
+	@if [[ ${IS_PRODUCTION} = true ]]; then echo "${DANGER}Just run this command in development mode${NC}"; fi
+	@if [[ ${IS_PRODUCTION} = true ]]; then exit 1; fi
+
+
+# Checkers
+
+_check_environment:
+	@type pipenv &> /dev/null || (echo "${DANGER}☓${NC} Install pipenv to continue..." && exit 1)
+	@echo "${SUCCESS}✔${NC} pipenv installed"
+	@if [[ ! -f "${ENVIRONMENT_VARS_FILE}" && ${IS_PRODUCTION} = false ]]; then make create_environment_vars_file; fi
+	@make install_requirements
+	@echo "${SUCCESS}✔${NC} Environment checked"

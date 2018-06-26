@@ -76,6 +76,28 @@ class RegisterUserTestCase(TestCase):
             'nickname',
             content_data.keys())
 
+    def test_invalid_nickname_url_conflict(self):
+        URL_PATHS = [
+            'api',
+            'docs',
+            'admin',
+        ]
+
+        for url_path in URL_PATHS:
+            response, content_data = self.request({
+                'email': '{}@fake.com'.format(url_path),
+                'name': 'Fake',
+                'nickname': url_path,
+                'password': 'abc!1234',
+            })
+
+            self.assertEqual(
+                response.status_code,
+                status.HTTP_400_BAD_REQUEST)
+            self.assertIn(
+                'nickname',
+                content_data.keys())
+
 
 class UserUpdateTestCase(TestCase):
     def setUp(self):
