@@ -1,4 +1,6 @@
 from rest_framework import serializers
+from rest_framework.exceptions import PermissionDenied
+from django.utils.translation import gettext as _
 
 from bothub.common.models import Repository
 from bothub.common.models import RepositoryCategory
@@ -129,3 +131,8 @@ class RepositoryAuthorizationRoleSerializer(serializers.ModelSerializer):
         fields = [
             'role',
         ]
+
+    def validate(self, data):
+        if self.instance.user == self.instance.repository.owner:
+            raise PermissionDenied(_('The owner role can\'t be changed.'))
+        return data

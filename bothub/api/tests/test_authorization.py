@@ -222,3 +222,16 @@ class UpdateAuthorizationRoleTestCase(TestCase):
         self.assertEqual(
             response.status_code,
             status.HTTP_403_FORBIDDEN)
+
+    def test_owner_can_t_set_your_role(self):
+        response, content_data = self.request(
+            self.repository,
+            self.owner_token,
+            self.owner,
+            {
+                'role': RepositoryAuthorization.ROLE_CONTRIBUTOR,
+            })
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_403_FORBIDDEN)
