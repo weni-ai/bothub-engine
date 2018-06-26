@@ -171,7 +171,7 @@ SERVER_EMAIL = config('SERVER_EMAIL', default='root@localhost')
 
 if not DEBUG and envvar_EMAIL_HOST:
     EMAIL_HOST = envvar_EMAIL_HOST
-    EMAIL_PORT = config('EMAIL_PORT', default=25)
+    EMAIL_PORT = config('EMAIL_PORT', default=25, cast=bool)
     EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
     EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
     EMAIL_USE_SSL = config('EMAIL_USE_SSL', default=False, cast=bool)
@@ -191,7 +191,7 @@ BOTHUB_WEBAPP_BASE_URL = config(
 
 BOTHUB_NLP_BASE_URL = config(
     'BOTHUB_NLP_BASE_URL',
-    default='http://127.0.1:8001/')
+    default='http://localhost:8001/')
 
 
 # CSRF
@@ -202,4 +202,5 @@ CSRF_COOKIE_DOMAIN = config(
 
 CSRF_COOKIE_SECURE = config(
     'CSRF_COOKIE_SECURE',
-    default=False)
+    default=False,
+    cast=bool)

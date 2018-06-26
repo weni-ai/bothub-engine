@@ -1,0 +1,22 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+django = "==2.0.6"
+dj-database-url = "*"
+python-decouple = "*"
+djangorestframework = "==3.7.7"
+django-filter = "*"
+django-cors-headers = "*"
+requests = "*"
+coreapi = "*"
+whitenoise = "*"
+
+[dev-packages]
+"flake8" = "*"
+coverage = "*"
+
+[requires]
+python_version = "3.6"
