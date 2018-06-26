@@ -21,7 +21,7 @@ from .views import Categories
 from .views import RepositoriesViewSet
 from .views import TranslationsViewSet
 from .views import RepositoryAuthorizationViewSet
-from .views import RepositoryAuthorizationSetRoleViewSet
+from .views import RepositoryAuthorizationRoleViewSet
 from .views import SearchUserViewSet
 
 
@@ -114,6 +114,6 @@ router.register('categories', Categories)
 router.register('repositories', RepositoriesViewSet)
 router.register('translations', TranslationsViewSet)
 router.register('list-authorizations', RepositoryAuthorizationViewSet)
-router.register('update-authorization-role',
-                RepositoryAuthorizationSetRoleViewSet)
+router.register('authorization-role',
+                RepositoryAuthorizationRoleViewSet)
 router.register('search-user', SearchUserViewSet)
