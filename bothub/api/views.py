@@ -825,3 +825,30 @@ class RepositoryAuthorizationSetRoleViewSet(
 
         self.check_object_permissions(self.request, obj)
         return obj
+
+
+class SearchUserViewSet(
+        mixins.ListModelMixin,
+        GenericViewSet):
+    serializer_class = UserSerializer
+    queryset = User.objects.all()
+    filter_backends = [
+        DjangoFilterBackend,
+        SearchFilter,
+    ]
+    search_fields = [
+        '=name',
+        '^name',
+        '$name',
+        '=nickname',
+        '^nickname',
+        '$nickname',
+        '=email',
+    ]
+    pagination_class = None
+    limit = 5
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())[:self.limit]
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)

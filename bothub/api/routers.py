@@ -22,6 +22,7 @@ from .views import RepositoriesViewSet
 from .views import TranslationsViewSet
 from .views import RepositoryAuthorizationViewSet
 from .views import RepositoryAuthorizationSetRoleViewSet
+from .views import SearchUserViewSet
 
 
 class Router(routers.SimpleRouter):
@@ -115,3 +116,4 @@ router.register('translations', TranslationsViewSet)
 router.register('list-authorizations', RepositoryAuthorizationViewSet)
 router.register('update-authorization-role',
                 RepositoryAuthorizationSetRoleViewSet)
+router.register('search-user', SearchUserViewSet)

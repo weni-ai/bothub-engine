@@ -35,7 +35,6 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = [
             'nickname',
-            'email',
             'name',
             'locale',
         ]
