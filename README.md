@@ -67,6 +67,6 @@ You can set environment variables in your OS, write on ```.env``` file or pass v
 
 | Variable | Type | Default | Description |
 |--|--|--|--|
-| WEBAPP_REPO | ```string``` | ```https://github.com/push-flow/bothub-webapp``` | Git repository URL. It will clone and run ```npm install && npm run build``` command on the entrypoint. This build is served by Nginx.
+| WEBAPP_REPO | ```string``` | ```https://github.com/push-flow/bothub-webapp``` | bothub-webapp git repository URL. It will clone and run ```npm install && npm run build``` command on the entrypoint. This build is served by Nginx.
 | WEBAPP_BRANCH | ```string``` | ```master``` | Specify the branch of the bothub-webapp Git repository.
 | API_BASE_URL | ```string``` | Not defined | The bothub production application URL. Used by ```bothub-webapp``` application.
