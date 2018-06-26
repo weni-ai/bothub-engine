@@ -800,7 +800,7 @@ class RepositoryAuthorizationViewSet(
     ]
 
 
-class RepositoryAuthorizationSetRoleViewSet(
+class RepositoryAuthorizationRoleViewSet(
         MultipleFieldLookupMixin,
         mixins.UpdateModelMixin,
         GenericViewSet):

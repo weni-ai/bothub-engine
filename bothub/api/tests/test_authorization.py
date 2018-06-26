@@ -11,7 +11,7 @@ from bothub.common.models import RepositoryAuthorization
 
 from ..views import RepositoryViewSet
 from ..views import RepositoryAuthorizationViewSet
-from ..views import RepositoryAuthorizationSetRoleViewSet
+from ..views import RepositoryAuthorizationRoleViewSet
 
 from .utils import create_user_and_token
 
@@ -174,12 +174,12 @@ class UpdateAuthorizationRoleTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
         }
         request = self.factory.patch(
-            '/api/update-authorization-role/{}/{}/'.format(
+            '/api/authorization-role/{}/{}/'.format(
                 repository.uuid, user.nickname),
             self.factory._encode_data(data, MULTIPART_CONTENT),
             MULTIPART_CONTENT,
             **authorization_header)
-        view = RepositoryAuthorizationSetRoleViewSet.as_view(
+        view = RepositoryAuthorizationRoleViewSet.as_view(
             {'patch': 'update'})
         response = view(
             request,
