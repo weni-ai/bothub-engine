@@ -2,7 +2,7 @@ version: '3.3'
 
 services:
   bothub:
-    image: ${DOCKER_HUB_REPO:-ilha/bothub}:${TAG:-latest}
+    image: ${DOCKER_IMAGE_NAME:-ilha/bothub-engine}:${TAG:-latest}
     build:
       context: ..
       dockerfile: docker/Dockerfile

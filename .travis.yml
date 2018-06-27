@@ -11,10 +11,11 @@ env:
   global:
     - SECRET_KEY=SK
     - SUPPORTED_LANGUAGES="en pt"
+    - DOCKER_IMAGE_NAME=ilha/bothub-engine
 script:
   - flake8
   - travis_wait coverage run manage.py test
 after_success:
   - coveralls
   - export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo $TRAVIS_BRANCH ; fi`
-  - '[[ $TRAVIS_EVENT_TYPE == "push" && $TRAVIS_BRANCH == "master" || $TRAVIS_EVENT_TYPE == "push" && $TRAVIS_BRANCH == "develop" ]] && docker login -u $DOCKER_HUB_USER -p $DOCKER_HUB_PASS && docker-compose -f docker/docker-compose.yml build && docker push $DOCKER_HUB_REPO:$TAG'
+  - '[[ $TRAVIS_EVENT_TYPE == "push" && $TRAVIS_BRANCH == "master" || $TRAVIS_EVENT_TYPE == "push" && $TRAVIS_BRANCH == "develop" ]] && docker login -u $DOCKER_HUB_USER -p $DOCKER_HUB_PASS && docker-compose -f docker/docker-compose.yml build && docker push $DOCKER_IMAGE_NAME:$TAG'
