@@ -11,7 +11,7 @@ env:
   global:
     - SECRET_KEY=SK
     - SUPPORTED_LANGUAGES="en pt"
-    - DOCKER_IMAGE_NAME=ilha/bothub-engine
+    - DOCKER_IMAGE_NAME=ilha/bothub
 script:
   - flake8
   - travis_wait coverage run manage.py test

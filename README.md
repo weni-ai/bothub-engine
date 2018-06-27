@@ -34,7 +34,7 @@ Run ```pipenv run python ./manage.py fill_db_using_fake_data``` to fill database
 
 ## Production
 
-Docker images available in [Bothub's Docker Hub repository](https://hub.docker.com/r/ilha/bothub-engine/).
+Docker images available in [Bothub's Docker Hub repository](https://hub.docker.com/r/ilha/bothub/).
 
 ## Environment Variables
 
