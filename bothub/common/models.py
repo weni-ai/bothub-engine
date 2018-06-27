@@ -178,6 +178,13 @@ class Repository(models.Model):
         return self.votes.aggregate(
             votes_sum=models.Sum('vote')).get('votes_sum')
 
+    @property
+    def intents(self):
+        return list(set(self.examples(
+            deleted=False).values_list(
+                'intent',
+                flat=True)))
+
     def examples(self, language=None, deleted=True, queryset=None):
         if queryset is None:
             queryset = RepositoryExample.objects
