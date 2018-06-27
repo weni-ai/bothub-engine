@@ -1,6 +1,6 @@
 # Bothub
 
-[![Build Status](https://travis-ci.org/push-flow/bothub.svg?branch=master)](https://travis-ci.org/push-flow/bothub) [![Coverage Status](https://coveralls.io/repos/github/push-flow/bothub/badge.svg?branch=master)](https://coveralls.io/github/push-flow/bothub?branch=master) [![Python Version](https://img.shields.io/badge/python-3.6-blue.svg)](https://www.python.org/) [![License GPL-3.0](https://img.shields.io/badge/license-%20GPL--3.0-yellow.svg)](https://github.com/push-flow/bothub/blob/master/LICENSE)
+[![Build Status](https://travis-ci.org/push-flow/bothub.svg?branch=master)](https://travis-ci.org/push-flow/bothub) [![Coverage Status](https://coveralls.io/repos/github/push-flow/bothub/badge.svg?branch=master)](https://coveralls.io/github/push-flow/bothub?branch=master) [![Python Version](https://img.shields.io/badge/python-3.6-blue.svg)](https://www.python.org/) [![License GPL-3.0](https://img.shields.io/badge/license-%20GPL--3.0-yellow.svg)](https://github.com/Ilhasoft/bothub-engine/blob/master/LICENSE)
 
 ## Development
 
@@ -20,7 +20,7 @@ Use ```make``` commands to ```check_environment```, ```install_requirements```, 
 
 ### Fill database using fake data
 
-Run ```pipenv run python ./manage.py fill_db_using_fake_data``` to fill database using fake data. This can help you to test [Bothub Webapp](https://github.com/push-flow/bothub-webapp).
+Run ```pipenv run python ./manage.py fill_db_using_fake_data``` to fill database using fake data. This can help you to test [Bothub Webapp](https://github.com/Ilhasoft/bothub-webapp).
 
 
 #### Fake users infos:
@@ -67,6 +67,6 @@ You can set environment variables in your OS, write on ```.env``` file or pass v
 
 | Variable | Type | Default | Description |
 |--|--|--|--|
-| WEBAPP_REPO | ```string``` | ```https://github.com/push-flow/bothub-webapp``` | Git repository URL. It will clone and run ```npm install && npm run build``` command on the entrypoint. This build is served by Nginx.
+| WEBAPP_REPO | ```string``` | ```https://github.com/Ilhasoft/bothub-webapp``` | bothub-webapp git repository URL. It will clone and run ```npm install && npm run build``` command on the entrypoint. This build is served by Nginx.
 | WEBAPP_BRANCH | ```string``` | ```master``` | Specify the branch of the bothub-webapp Git repository.
 | API_BASE_URL | ```string``` | Not defined | The bothub production application URL. Used by ```bothub-webapp``` application.
