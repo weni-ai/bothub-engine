@@ -185,6 +185,13 @@ class Repository(models.Model):
                 'intent',
                 flat=True)))
 
+    @property
+    def entities(self):
+        return list(set(self.examples().annotate(
+            entities_count=models.Count(
+                'entities')).filter(entities_count__gte=1).values_list(
+                    'entities__entity', flat=True)))
+
     def examples(self, language=None, deleted=True, queryset=None):
         if queryset is None:
             queryset = RepositoryExample.objects
