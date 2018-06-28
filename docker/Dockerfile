@@ -8,6 +8,7 @@ RUN apk add alpine-sdk postgresql-dev nodejs nginx
 
 RUN pip install pipenv
 RUN pip install gunicorn
+RUN pip install psycopg2-binary
 
 COPY Pipfile Pipfile
 COPY Pipfile.lock Pipfile.lock

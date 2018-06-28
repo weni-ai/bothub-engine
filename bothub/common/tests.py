@@ -279,6 +279,39 @@ class RepositoryTestCase(TestCase):
         self.assertIn(languages.LANGUAGE_ES, available_languages)
         self.assertEqual(len(available_languages), 3)
 
+    def test_intents(self):
+        self.assertIn(
+            'greet',
+            self.repository.intents)
+
+        RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(
+                languages.LANGUAGE_PT),
+            text='tchau',
+            intent='bye')
+
+        self.assertIn(
+            'greet',
+            self.repository.intents)
+        self.assertIn(
+            'bye',
+            self.repository.intents)
+
+    def test_entities(self):
+        example = RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(
+                languages.LANGUAGE_EN),
+            text='my name is Douglas')
+        RepositoryExampleEntity.objects.create(
+            repository_example=example,
+            start=11,
+            end=18,
+            entity='name')
+
+        self.assertIn(
+            'name',
+            self.repository.entities)
+
 
 class RepositoryExampleTestCase(TestCase):
     def setUp(self):

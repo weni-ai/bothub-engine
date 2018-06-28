@@ -63,6 +63,8 @@ class RepositorySerializer(serializers.ModelSerializer):
             'categories_list',
             'description',
             'is_private',
+            'intents',
+            'entities',
             'examples__count',
             'authorization',
             'ready_for_train',
