@@ -113,7 +113,7 @@ router.register('user-profile', UserProfileViewSet)
 router.register('categories', Categories)
 router.register('repositories', RepositoriesViewSet)
 router.register('translations', TranslationsViewSet)
-router.register('list-authorizations', RepositoryAuthorizationViewSet)
+router.register('authorizations', RepositoryAuthorizationViewSet)
 router.register('authorization-role',
                 RepositoryAuthorizationRoleViewSet)
 router.register('search-user', SearchUserViewSet)
