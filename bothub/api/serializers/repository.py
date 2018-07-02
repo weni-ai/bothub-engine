@@ -12,7 +12,6 @@ from ..fields import ModelMultipleChoiceField
 from ..fields import TextField
 
 from .category import RepositoryCategorySerializer
-from .user import UserSerializer
 
 
 class NewRepositorySerializer(serializers.ModelSerializer):
