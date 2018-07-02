@@ -181,9 +181,10 @@ class Repository(models.Model):
     @property
     def intents(self):
         return list(set(self.examples(
-            deleted=False).values_list(
-                'intent',
-                flat=True)))
+            deleted=False).exclude(
+                intent='').values_list(
+                    'intent',
+                    flat=True)))
 
     @property
     def entities(self):

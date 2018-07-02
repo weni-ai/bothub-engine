@@ -312,6 +312,16 @@ class RepositoryTestCase(TestCase):
             'name',
             self.repository.entities)
 
+    def test_not_blank_value_in_intents(self):
+        RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(
+                languages.LANGUAGE_EN),
+            text='hi')
+
+        self.assertNotIn(
+            '',
+            self.repository.intents)
+
 
 class RepositoryExampleTestCase(TestCase):
     def setUp(self):
