@@ -12,6 +12,7 @@ from ..fields import ModelMultipleChoiceField
 from ..fields import TextField
 
 from .category import RepositoryCategorySerializer
+from .user import UserSerializer
 
 
 class NewRepositorySerializer(serializers.ModelSerializer):
@@ -103,6 +104,7 @@ class RepositoryAuthorizationSerializer(serializers.ModelSerializer):
         fields = [
             'uuid',
             'user',
+            'user__nickname',
             'repository',
             'role',
             'level',
@@ -112,6 +114,11 @@ class RepositoryAuthorizationSerializer(serializers.ModelSerializer):
             'is_admin',
             'created_at',
         ]
+
+    user__nickname = serializers.SlugRelatedField(
+        source='user',
+        slug_field='nickname',
+        read_only=True)
 
 
 class AnalyzeTextSerializer(serializers.Serializer):
