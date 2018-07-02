@@ -598,7 +598,20 @@ class RepositoryAuthorization(models.Model):
 
     LEVEL_NOTHING = 0
     LEVEL_READER = 1
-    LEVEL_ADMIN = 2
+    LEVEL_CONTRIBUTOR = 2
+    LEVEL_ADMIN = 3
+
+    ROLE_NOT_SETTED = 0
+    ROLE_USER = 1
+    ROLE_CONTRIBUTOR = 2
+    ROLE_ADMIN = 3
+
+    ROLE_CHOICES = [
+        (ROLE_NOT_SETTED, _('not set')),
+        (ROLE_USER, _('user')),
+        (ROLE_CONTRIBUTOR, _('contributor')),
+        (ROLE_ADMIN, _('admin')),
+    ]
 
     uuid = models.UUIDField(
         _('UUID'),
@@ -611,6 +624,10 @@ class RepositoryAuthorization(models.Model):
     repository = models.ForeignKey(
         Repository,
         models.CASCADE)
+    role = models.PositiveIntegerField(
+        _('role'),
+        choices=ROLE_CHOICES,
+        default=ROLE_NOT_SETTED)
     created_at = models.DateTimeField(
         _('created at'),
         auto_now_add=True)
@@ -624,20 +641,35 @@ class RepositoryAuthorization(models.Model):
 
         if user and self.repository.owner == user:
             return RepositoryAuthorization.LEVEL_ADMIN
-        if self.repository.is_private:
-            return RepositoryAuthorization.LEVEL_NOTHING
-        return RepositoryAuthorization.LEVEL_READER
+
+        if self.role == RepositoryAuthorization.ROLE_NOT_SETTED:
+            if self.repository.is_private:
+                return RepositoryAuthorization.LEVEL_NOTHING
+            return RepositoryAuthorization.LEVEL_READER
+
+        if self.role == RepositoryAuthorization.ROLE_USER:
+            return RepositoryAuthorization.LEVEL_READER
+
+        if self.role == RepositoryAuthorization.ROLE_CONTRIBUTOR:
+            return RepositoryAuthorization.LEVEL_CONTRIBUTOR
+
+        if self.role == RepositoryAuthorization.ROLE_ADMIN:
+            return RepositoryAuthorization.LEVEL_ADMIN
+
+        return RepositoryAuthorization.LEVEL_NOTHING
 
     @property
     def can_read(self):
         return self.level in [
             RepositoryAuthorization.LEVEL_READER,
+            RepositoryAuthorization.LEVEL_CONTRIBUTOR,
             RepositoryAuthorization.LEVEL_ADMIN,
         ]
 
     @property
     def can_contribute(self):
         return self.level in [
+            RepositoryAuthorization.LEVEL_CONTRIBUTOR,
             RepositoryAuthorization.LEVEL_ADMIN,
         ]
 

@@ -451,6 +451,56 @@ class RepositoryAuthorizationTestCase(TestCase):
             .get_user_authorization(self.user)
         self.assertFalse(private_authorization_user.is_admin)
 
+    def test_owner_ever_admin(self):
+        authorization_owner = self.repository.get_user_authorization(
+            self.owner)
+        self.assertTrue(authorization_owner.is_admin)
+
+    def test_role_user_can_read(self):
+        # public repository
+        authorization_user = self.repository.get_user_authorization(
+            self.user)
+        authorization_user.role = RepositoryAuthorization.ROLE_USER
+        authorization_user.save()
+        self.assertTrue(authorization_user.can_read)
+
+        # private repository
+        authorization_user = self.private_repository.get_user_authorization(
+            self.user)
+        authorization_user.role = RepositoryAuthorization.ROLE_USER
+        authorization_user.save()
+        self.assertTrue(authorization_user.can_read)
+
+    def test_role_user_can_t_contribute(self):
+        # public repository
+        authorization_user = self.repository.get_user_authorization(
+            self.user)
+        authorization_user.role = RepositoryAuthorization.ROLE_USER
+        authorization_user.save()
+        self.assertFalse(authorization_user.can_contribute)
+
+        # private repository
+        authorization_user = self.private_repository.get_user_authorization(
+            self.user)
+        authorization_user.role = RepositoryAuthorization.ROLE_USER
+        authorization_user.save()
+        self.assertFalse(authorization_user.can_contribute)
+
+    def test_role_contributor_can_contribute(self):
+        # public repository
+        authorization_user = self.repository.get_user_authorization(
+            self.user)
+        authorization_user.role = RepositoryAuthorization.ROLE_CONTRIBUTOR
+        authorization_user.save()
+        self.assertTrue(authorization_user.can_contribute)
+
+        # private repository
+        authorization_user = self.private_repository.get_user_authorization(
+            self.user)
+        authorization_user.role = RepositoryAuthorization.ROLE_CONTRIBUTOR
+        authorization_user.save()
+        self.assertTrue(authorization_user.can_contribute)
+
 
 class RepositoryUpdateTrainingTestCase(TestCase):
     def setUp(self):
