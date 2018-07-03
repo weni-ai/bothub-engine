@@ -1,0 +1,5 @@
+{% load i18n %}{% trans 'Welcome to Bothub' %}
+
+{% blocktrans %}Hello, {{ name }}!{% endblocktrans %}
+{% trans 'You\'ve successfully signed up for Bothub and now you can start creating, improving and translating bots on the platform.' %}
+{% trans 'We are happy to have you with us and hope you enjoy Bothub.' %}
