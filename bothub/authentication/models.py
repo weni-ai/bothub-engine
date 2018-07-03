@@ -9,6 +9,7 @@ from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.dispatch import receiver
 
 
 user_nickname_re = _lazy_re_compile(r'^[-a-zA-Z0-9_]+\Z')
@@ -101,6 +102,21 @@ class User(AbstractBaseUser, PermissionsMixin):
     def token_generator(self):
         return PasswordResetTokenGenerator()
 
+    def send_welcome_email(self):
+        context = {
+            'name': self.name,
+        }
+        send_mail(
+            _('Welcome to Bothub'),
+            render_to_string(
+                'authentication/emails/welcome.txt',
+                context),
+            None,
+            [self.email],
+            html_message=render_to_string(
+                'authentication/emails/welcome.html',
+                context))
+
     def make_password_reset_token(self):
         return self.token_generator.make_token(self)
 
@@ -126,3 +142,9 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def check_password_reset_token(self, token):
         return self.token_generator.check_token(self, token)
+
+
+@receiver(models.signals.post_save, sender=User)
+def send_welcome_email(instance, created, **kwargs):
+    if created:
+        instance.send_welcome_email()
