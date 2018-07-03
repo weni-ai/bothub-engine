@@ -52,8 +52,8 @@ migrations:
 collectstatic:
 	@make check_environment
 	@if [[ ${IS_PRODUCTION} = true ]]; \
-		then python manage.py collectstatic; \
-		else pipenv run python manage.py collectstatic; fi
+		then python manage.py collectstatic --no-input; \
+		else pipenv run python manage.py collectstatic --no-input; fi
 
 
 # Utils
