@@ -33,7 +33,8 @@ class RequestAuthorizationTestCase(TestCase):
             '/api/request-authorization/',
             data,
             **authorization_header)
-        response = RequestAuthorizationViewSet.as_view({'post': 'create'})(request)
+        response = RequestAuthorizationViewSet.as_view(
+            {'post': 'create'})(request)
         response.render()
         content_data = json.loads(response.content)
         return (response, content_data,)
