@@ -1,0 +1,6 @@
+{% load i18n %}{% blocktrans %}Hi, {{ user_name }}{% endblocktrans %}
+
+{% with new_role_lower=new_role|lower %}{% blocktrans %}{{ responsible_name }} added you as {{ new_role_lower }} in the {{ repository_name }} repository.{% endblocktrans %}{% endwith %}{% if repository_url %}
+
+Access {{ repository_name }}:
+{{ repository_url }}{% endif %}
