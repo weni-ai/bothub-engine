@@ -32,3 +32,7 @@ from .user import (  # noqa: F401
     ResetPasswordSerializer,
     LoginSerializer,
 )
+
+from .request import (  # noqa: F401
+    NewRequestRepositoryAuthorizationSerializer,
+)
