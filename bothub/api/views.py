@@ -26,6 +26,7 @@ from bothub.common.models import RepositoryTranslatedExampleEntity
 from bothub.common.models import RepositoryCategory
 from bothub.common.models import RepositoryVote
 from bothub.common.models import RepositoryAuthorization
+from bothub.common.models import RequestRepositoryAuthorization
 from bothub.authentication.models import User
 
 from .serializers import RepositorySerializer
@@ -47,6 +48,7 @@ from .serializers import EditRepositorySerializer
 from .serializers import NewRepositoryTranslatedExampleSerializer
 from .serializers import VoteSerializer
 from .serializers import RepositoryAuthorizationRoleSerializer
+from .serializers import NewRequestRepositoryAuthorizationSerializer
 
 
 # Permisions
@@ -852,3 +854,13 @@ class SearchUserViewSet(
         queryset = self.filter_queryset(self.get_queryset())[:self.limit]
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+
+
+class RequestAuthorizationViewSet(
+        mixins.CreateModelMixin,
+        GenericViewSet):
+    serializer_class = NewRequestRepositoryAuthorizationSerializer
+    queryset = RequestRepositoryAuthorization.objects
+    permission_classes = [
+        IsAuthenticated,
+    ]
