@@ -714,3 +714,29 @@ class RepositoryVote(models.Model):
     vote = models.IntegerField(
         _('vote'),
         choices=VOTE_CHOICES)
+
+
+class RequestRepositoryAuthorization(models.Model):
+    class Meta:
+        unique_together = ['user', 'repository']
+
+    user = models.ForeignKey(
+        User,
+        models.CASCADE,
+        related_name='requests')
+    repository = models.ForeignKey(
+        Repository,
+        models.CASCADE,
+        related_name='requests')
+    text = models.CharField(
+        _('text'),
+        max_length=250)
+    approved_by = models.ForeignKey(
+        User,
+        models.CASCADE,
+        blank=True,
+        null=True)
+    created_at = models.DateTimeField(
+        _('created at'),
+        auto_now_add=True,
+        editable=False)
