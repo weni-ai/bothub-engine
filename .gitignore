@@ -112,3 +112,6 @@ settings.ini
 
 # db
 db.sqlite3
+
+# OS
+.DS_Store
