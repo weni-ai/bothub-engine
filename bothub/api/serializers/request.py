@@ -16,3 +16,14 @@ class NewRequestRepositoryAuthorizationSerializer(serializers.ModelSerializer):
         read_only=True,
         default=serializers.CurrentUserDefault(),
         style={'show': False})
+
+
+class RequestRepositoryAuthorizationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RequestRepositoryAuthorization
+        fields = [
+            'id',
+            'user',
+            'repository',
+            'text',
+        ]
