@@ -26,5 +26,14 @@ if settings.DEBUG:
                 render_template(
                     'authentication/emails/welcome.html',
                     name='Douglas')),
+            path(
+                'new-role/',
+                render_template(
+                    'common/emails/new_role.html',
+                    responsible_name='Douglas',
+                    user_name='Michael',
+                    repository_name='Repository 1',
+                    repository_url='http://localhost:8080/douglas/repo1/',
+                    new_role='Admin')),
         ])),
     ]

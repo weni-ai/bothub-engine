@@ -1,0 +1,20 @@
+{% extends 'bothub/emails/base.html' %}
+
+{% load i18n %}
+
+{% block main-content %}
+    <p><strong>{% blocktrans %}Hi, {{ user_name }}{% endblocktrans %}</strong></p>
+    {% with new_role_lower=new_role|lower %}
+        <p align="justify">{% blocktrans %}{{ responsible_name }} added you as <strong>{{ new_role_lower }}</strong> in the <strong>{{ repository_name }}</strong> repository.{% endblocktrans %}</p>
+    {% endwith %}
+{% endblock %}
+
+{% block after-content %}
+    {% if repository_url %}
+        <tr>
+            <td style="padding: 16px;">
+                <p align="center"><a rel="nofollow" href="{{ repository_url }}" style="padding: 16px; background-color: #2bbfac; color: white; text-decoration: none; border-radius: 4px;">Access {{ repository_name }}</a></p>
+            </td>
+        </tr>
+    {% endif %}
+{% endblock %}
