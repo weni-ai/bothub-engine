@@ -684,6 +684,14 @@ class RepositoryAuthorization(models.Model):
     def is_admin(self):
         return self.level == RepositoryAuthorization.LEVEL_ADMIN
 
+    @property
+    def is_owner(self):
+        try:
+            user = self.user
+        except User.DoesNotExist:
+            return False
+        return self.repository.owner == user
+
 
 class RepositoryVote(models.Model):
     UP_VOTE = 1
