@@ -6,12 +6,14 @@ from bothub.common.models import Repository
 from bothub.common.models import RepositoryCategory
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryVote
+from bothub.common.models import RequestRepositoryAuthorization
 from bothub.common.languages import LANGUAGE_CHOICES
 
 from ..fields import ModelMultipleChoiceField
 from ..fields import TextField
 
 from .category import RepositoryCategorySerializer
+from .request import RequestRepositoryAuthorizationSerializer
 
 
 class NewRepositorySerializer(serializers.ModelSerializer):
@@ -67,6 +69,8 @@ class RepositorySerializer(serializers.ModelSerializer):
             'entities',
             'examples__count',
             'authorization',
+            'available_request_authorization',
+            'request_authorization',
             'ready_for_train',
             'votes_sum',
             'created_at',
@@ -82,6 +86,8 @@ class RepositorySerializer(serializers.ModelSerializer):
     categories_list = serializers.SerializerMethodField()
     authorization = serializers.SerializerMethodField()
     examples__count = serializers.SerializerMethodField()
+    request_authorization = serializers.SerializerMethodField()
+    available_request_authorization = serializers.SerializerMethodField()
 
     def get_categories_list(self, obj):
         return RepositoryCategorySerializer(obj.categories, many=True).data
@@ -95,6 +101,36 @@ class RepositorySerializer(serializers.ModelSerializer):
 
     def get_examples__count(self, obj):
         return obj.examples().count()
+
+    def get_available_request_authorization(self, obj):
+        request = self.context.get('request')
+        if not request or not request.user.is_authenticated:
+            return False
+        authorization = obj.get_user_authorization(request.user)
+        if authorization.role is not RepositoryAuthorization.ROLE_NOT_SETTED:
+            return False
+        if authorization.is_owner:
+            return False
+        try:
+            RequestRepositoryAuthorization.objects.get(
+                user=request.user,
+                repository=obj)
+            return False
+        except RequestRepositoryAuthorization.DoesNotExist:
+            return True
+
+    def get_request_authorization(self, obj):
+        request = self.context.get('request')
+        if not request or not request.user.is_authenticated:
+            return None
+        try:
+            request_authorization = RequestRepositoryAuthorization.objects.get(
+                user=request.user,
+                repository=obj)
+            return RequestRepositoryAuthorizationSerializer(
+                request_authorization).data
+        except RequestRepositoryAuthorization.DoesNotExist:
+            return None
 
 
 class RepositoryAuthorizationSerializer(serializers.ModelSerializer):
