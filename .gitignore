@@ -110,5 +110,9 @@ settings.ini
 # IDEs
 .vscode/
 
-# db
+# db and staticfiles
 db.sqlite3
+staticfiles/
+
+# OS
+.DS_Store

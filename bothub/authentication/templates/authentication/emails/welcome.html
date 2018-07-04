@@ -1,0 +1,18 @@
+{% extends 'bothub/emails/base.html' %}
+
+{% load staticfiles i18n %}
+
+{% block before-content %}
+<tr>
+    <td align="center" style="padding-top: 20px;">
+        <img src="{% static 'authentication/emails/welcome.png' %}" alt="{% trans 'Welcome to Bothub' %}" width="100%" style="max-width: 388px; display: block;" />
+        <h1 style="font-size: 24px;">{% trans 'Welcome to Bothub' %}</h1>
+    </td>
+</tr>
+{% endblock %}
+
+{% block main-content %}
+    <p style="margin: 32px 0; text-align: center;"><b>{% blocktrans %}Hello, {{ name }}!{% endblocktrans %}</b></p>
+    <p align="justify">{% trans 'You\'ve successfully signed up for Bothub and now you can start creating, improving and translating bots on the platform.' %}</p>
+    <p align="justify">{% trans 'We are happy to have you with us and hope you enjoy Bothub.' %}</p>
+{% endblock %}

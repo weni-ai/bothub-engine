@@ -27,6 +27,7 @@ test:
 	@make development_mode_guard
 	@make check_environment
 	@make migrate CHECK_ENVIRONMENT=false
+	@make collectstatic CHECK_ENVIRONMENT=false
 	@SUPPORTED_LANGUAGES="en pt" pipenv run python manage.py test && pipenv run coverage report -m
 
 migrate:
@@ -39,6 +40,7 @@ start:
 	@make development_mode_guard
 	@make check_environment
 	@make migrate CHECK_ENVIRONMENT=false
+	@make collectstatic CHECK_ENVIRONMENT=false
 	@pipenv run python ./manage.py runserver
 
 migrations:
@@ -46,6 +48,12 @@ migrations:
 	@make check_environment
 	@pipenv run python ./manage.py makemigrations
 	@make migrate CHECK_ENVIRONMENT=false
+
+collectstatic:
+	@make check_environment
+	@if [[ ${IS_PRODUCTION} = true ]]; \
+		then python manage.py collectstatic --no-input; \
+		else pipenv run python manage.py collectstatic --no-input; fi
 
 
 # Utils
