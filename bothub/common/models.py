@@ -9,6 +9,8 @@ from django.utils.translation import gettext as _
 from django.utils import timezone
 from django.conf import settings
 from django.core.validators import RegexValidator, _lazy_re_compile
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
 
 from bothub.authentication.models import User
 
@@ -258,6 +260,12 @@ class Repository(models.Model):
             user=user,
             repository=self)
         return get
+
+    def get_absolute_url(self):
+        return '{}{}/{}/'.format(
+            settings.BOTHUB_WEBAPP_BASE_URL,
+            self.owner.nickname,
+            self.slug)
 
 
 class RepositoryUpdate(models.Model):
@@ -691,6 +699,31 @@ class RepositoryAuthorization(models.Model):
         except User.DoesNotExist:
             return False
         return self.repository.owner == user
+
+    @property
+    def role_verbose(self):
+        return dict(RepositoryAuthorization.ROLE_CHOICES).get(self.role)
+
+    def send_new_role_email(self, responsible=None):
+        responsible_name = responsible and responsible.name \
+            or self.repository.owner.name
+        context = {
+            'responsible_name': responsible_name,
+            'user_name': self.user.name,
+            'repository_name': self.repository.name,
+            'repository_url': self.repository.get_absolute_url(),
+            'new_role': self.role_verbose,
+        }
+        send_mail(
+            _('New role in {}').format(self.repository.name),
+            render_to_string(
+                'common/emails/new_role.txt',
+                context),
+            None,
+            [self.user.email],
+            html_message=render_to_string(
+                'common/emails/new_role.html',
+                context))
 
 
 class RepositoryVote(models.Model):

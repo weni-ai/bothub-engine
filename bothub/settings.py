@@ -122,7 +122,7 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 
-STATIC_URL = '/static/'
+STATIC_URL = config('STATIC_URL', default='/static/')
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
@@ -169,7 +169,7 @@ DEFAULT_FROM_EMAIL = config(
     default='webmaster@localhost')
 SERVER_EMAIL = config('SERVER_EMAIL', default='root@localhost')
 
-if not DEBUG and envvar_EMAIL_HOST:
+if envvar_EMAIL_HOST:
     EMAIL_HOST = envvar_EMAIL_HOST
     EMAIL_PORT = config('EMAIL_PORT', default=25, cast=int)
     EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')

@@ -828,6 +828,13 @@ class RepositoryAuthorizationRoleViewSet(
         self.check_object_permissions(self.request, obj)
         return obj
 
+    def update(self, *args, **kwargs):
+        response = super().update(*args, **kwargs)
+        instance = self.get_object()
+        if instance.role is not RepositoryAuthorization.ROLE_NOT_SETTED:
+            instance.send_new_role_email(self.request.user)
+        return response
+
 
 class SearchUserViewSet(
         mixins.ListModelMixin,
