@@ -36,4 +36,5 @@ from .user import (  # noqa: F401
 from .request import (  # noqa: F401
     NewRequestRepositoryAuthorizationSerializer,
     RequestRepositoryAuthorizationSerializer,
+    ReviewAuthorizationRequestSerializer,
 )

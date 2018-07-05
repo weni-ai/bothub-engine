@@ -45,3 +45,16 @@ class RequestRepositoryAuthorizationSerializer(serializers.ModelSerializer):
         source='user',
         slug_field='nickname',
         read_only=True)
+
+
+class ReviewAuthorizationRequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RequestRepositoryAuthorization
+        fields = [
+            'approved_by'
+        ]
+
+    approved_by = serializers.PrimaryKeyRelatedField(
+        read_only=True,
+        default=serializers.CurrentUserDefault(),
+        style={'show': False})

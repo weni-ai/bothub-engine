@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework.exceptions import APIException
 from rest_framework.exceptions import NotFound
 from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import ValidationError
 from rest_framework.authtoken.models import Token
 from rest_framework import status
 from rest_framework.filters import OrderingFilter
@@ -50,6 +51,7 @@ from .serializers import VoteSerializer
 from .serializers import RepositoryAuthorizationRoleSerializer
 from .serializers import NewRequestRepositoryAuthorizationSerializer
 from .serializers import RequestRepositoryAuthorizationSerializer
+from .serializers import ReviewAuthorizationRequestSerializer
 
 
 # Permisions
@@ -910,3 +912,21 @@ class RepositoryAuthorizationRequestsViewSet(
     permission_classes = [
         IsAuthenticated,
     ]
+
+
+class ReviewAuthorizationRequestViewSet(
+        mixins.UpdateModelMixin,
+        mixins.DestroyModelMixin,
+        GenericViewSet):
+    queryset = RequestRepositoryAuthorization.objects
+    serializer_class = ReviewAuthorizationRequestSerializer
+    permission_classes = [
+        IsAuthenticated,
+        RepositoryAdminManagerAuthorization,
+    ]
+
+    def update(self, *args, **kwargs):
+        try:
+            return super().update(*args, **kwargs)
+        except DjangoValidationError as e:
+            raise ValidationError(e.message)

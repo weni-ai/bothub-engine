@@ -11,6 +11,7 @@ from bothub.common.models import RepositoryAuthorization
 
 from ..views import RequestAuthorizationViewSet
 from ..views import RepositoryAuthorizationRequestsViewSet
+from ..views import ReviewAuthorizationRequestViewSet
 from .utils import create_user_and_token
 
 
@@ -139,6 +140,114 @@ class RepositoryAuthorizationRequestsTestCase(TestCase):
         response, content_data = self.request({
             'repository_uuid': self.repository.uuid,
         }, self.user_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_403_FORBIDDEN)
+
+
+class ReviewAuthorizationRequestTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.owner, self.owner_token = create_user_and_token('owner')
+        self.admin, self.admin_token = create_user_and_token('admin')
+        self.user, self.user_token = create_user_and_token()
+
+        repository = Repository.objects.create(
+            owner=self.owner,
+            name='Testing',
+            slug='test',
+            language=languages.LANGUAGE_EN)
+
+        self.ra = RequestRepositoryAuthorization.objects.create(
+            user=self.user,
+            repository=repository,
+            text='I can contribute')
+
+        admin_autho = repository.get_user_authorization(self.admin)
+        admin_autho.role = RepositoryAuthorization.ROLE_ADMIN
+        admin_autho.save()
+
+    def request_approve(self, ra, token=None):
+        authorization_header = {
+            'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
+        } if token else {}
+        request = self.factory.post(
+            '/api/review-authorization-request/{}/'.format(ra.pk),
+            {},
+            **authorization_header)
+        response = ReviewAuthorizationRequestViewSet.as_view(
+            {'post': 'update'})(request, pk=ra.pk)
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data,)
+
+    def request_reject(self, ra, token=None):
+        authorization_header = {
+            'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
+        } if token else {}
+        request = self.factory.delete(
+            '/api/review-authorization-request/{}/'.format(ra.pk),
+            **authorization_header)
+        response = ReviewAuthorizationRequestViewSet.as_view(
+            {'delete': 'destroy'})(request, pk=ra.pk)
+        response.render()
+        return response
+
+    def test_approve_okay(self):
+        response, content_data = self.request_approve(
+            self.ra,
+            self.owner_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK)
+        self.assertEqual(
+            content_data.get('approved_by'),
+            self.owner.id)
+
+    def test_admin_approve_okay(self):
+        response, content_data = self.request_approve(
+            self.ra,
+            self.admin_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK)
+        self.assertEqual(
+            content_data.get('approved_by'),
+            self.admin.id)
+
+    def test_approve_twice(self):
+        self.ra.approved_by = self.owner
+        self.ra.save()
+        response, content_data = self.request_approve(
+            self.ra,
+            self.owner_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST)
+
+    def test_approve_forbidden(self):
+        response, content_data = self.request_approve(
+            self.ra,
+            self.user_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_403_FORBIDDEN)
+
+    def test_reject_okay(self):
+        response = self.request_reject(self.ra, self.owner_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_204_NO_CONTENT)
+
+    def test_admin_reject_okay(self):
+        response = self.request_reject(self.ra, self.admin_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_204_NO_CONTENT)
+
+    def test_reject_forbidden(self):
+        response = self.request_reject(self.ra, self.user_token)
         self.assertEqual(
             response.status_code,
             status.HTTP_403_FORBIDDEN)
