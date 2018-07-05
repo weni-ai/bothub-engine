@@ -2,6 +2,7 @@ import json
 
 from django.test import TestCase
 from django.test import RequestFactory
+from django.test.client import MULTIPART_CONTENT
 from rest_framework import status
 
 from bothub.common import languages
@@ -172,12 +173,13 @@ class ReviewAuthorizationRequestTestCase(TestCase):
         authorization_header = {
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
         } if token else {}
-        request = self.factory.post(
+        request = self.factory.put(
             '/api/review-authorization-request/{}/'.format(ra.pk),
-            {},
+            self.factory._encode_data({}, MULTIPART_CONTENT),
+            MULTIPART_CONTENT,
             **authorization_header)
         response = ReviewAuthorizationRequestViewSet.as_view(
-            {'post': 'update'})(request, pk=ra.pk)
+            {'put': 'update'})(request, pk=ra.pk)
         response.render()
         content_data = json.loads(response.content)
         return (response, content_data,)
