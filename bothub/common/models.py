@@ -11,6 +11,8 @@ from django.conf import settings
 from django.core.validators import RegexValidator, _lazy_re_compile
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
+from django.dispatch import receiver
+from django.core.exceptions import ValidationError
 
 from bothub.authentication.models import User
 
@@ -781,3 +783,21 @@ class RequestRepositoryAuthorization(models.Model):
         _('created at'),
         auto_now_add=True,
         editable=False)
+
+
+@receiver(models.signals.pre_save, sender=RequestRepositoryAuthorization)
+def set_user_role_on_approved(instance, **kwargs):
+    current = None
+    try:
+        current = RequestRepositoryAuthorization.objects.get(pk=instance.pk)
+    except RequestRepositoryAuthorization.DoesNotExist as e:
+        pass
+    if current:
+        if current.approved_by is None and instance.approved_by is not None:
+            user_authorization = instance.repository.get_user_authorization(
+                instance.user)
+            user_authorization.role = RepositoryAuthorization.ROLE_USER
+            user_authorization.save(update_fields=['role'])
+        else:
+            raise ValidationError(
+                _('You can\'t change approved_by to another value.'))
