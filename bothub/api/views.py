@@ -49,6 +49,7 @@ from .serializers import NewRepositoryTranslatedExampleSerializer
 from .serializers import VoteSerializer
 from .serializers import RepositoryAuthorizationRoleSerializer
 from .serializers import NewRequestRepositoryAuthorizationSerializer
+from .serializers import RequestRepositoryAuthorizationSerializer
 
 
 # Permisions
@@ -239,6 +240,32 @@ class RepositoryAuthorizationFilter(filters.FilterSet):
 
     repository = filters.CharFilter(
         name='repository',
+        method='filter_repository_uuid',
+        help_text=_('Repository\'s UUID'))
+
+    def filter_repository_uuid(self, queryset, name, value):
+        request = self.request
+        try:
+            repository = Repository.objects.get(uuid=value)
+            authorization = repository.get_user_authorization(request.user)
+            if not authorization.is_admin:
+                raise PermissionDenied()
+            return queryset.filter(repository=repository)
+        except Repository.DoesNotExist:
+            raise NotFound(
+                _('Repository {} does not exist').format(value))
+        except DjangoValidationError:
+            raise NotFound(_('Invalid repository UUID'))
+
+
+class RepositoryAuthorizationRequestsFilter(filters.FilterSet):
+    class Meta:
+        model = RequestRepositoryAuthorization
+        fields = ['repository_uuid']
+
+    repository_uuid = filters.CharFilter(
+        name='repository_uuid',
+        required=True,
         method='filter_repository_uuid',
         help_text=_('Repository\'s UUID'))
 
@@ -868,6 +895,18 @@ class RequestAuthorizationViewSet(
         GenericViewSet):
     serializer_class = NewRequestRepositoryAuthorizationSerializer
     queryset = RequestRepositoryAuthorization.objects
+    permission_classes = [
+        IsAuthenticated,
+    ]
+
+
+class RepositoryAuthorizationRequestsViewSet(
+        mixins.ListModelMixin,
+        GenericViewSet):
+    queryset = RequestRepositoryAuthorization.objects.exclude(
+        approved_by__isnull=False)
+    serializer_class = RequestRepositoryAuthorizationSerializer
+    filter_class = RepositoryAuthorizationRequestsFilter
     permission_classes = [
         IsAuthenticated,
     ]

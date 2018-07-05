@@ -24,6 +24,7 @@ from .views import RepositoryAuthorizationViewSet
 from .views import RepositoryAuthorizationRoleViewSet
 from .views import SearchUserViewSet
 from .views import RequestAuthorizationViewSet
+from .views import RepositoryAuthorizationRequestsViewSet
 
 
 class Router(routers.SimpleRouter):
@@ -119,3 +120,5 @@ router.register('authorization-role',
                 RepositoryAuthorizationRoleViewSet)
 router.register('search-user', SearchUserViewSet)
 router.register('request-authorization', RequestAuthorizationViewSet)
+router.register('authorization-requests',
+                RepositoryAuthorizationRequestsViewSet)
