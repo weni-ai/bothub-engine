@@ -37,4 +37,5 @@ class RequestRepositoryAuthorizationSerializer(serializers.ModelSerializer):
             'user',
             'repository',
             'text',
+            'created_at',
         ]
