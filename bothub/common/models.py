@@ -793,11 +793,11 @@ def set_user_role_on_approved(instance, **kwargs):
     except RequestRepositoryAuthorization.DoesNotExist as e:
         pass
     if current:
-        if current.approved_by is None and instance.approved_by is not None:
+        if current.approved_by is None and current.approved_by is not instance.approved_by:
             user_authorization = instance.repository.get_user_authorization(
                 instance.user)
             user_authorization.role = RepositoryAuthorization.ROLE_USER
             user_authorization.save(update_fields=['role'])
         else:
             raise ValidationError(
-                _('You can\'t change approved_by to another value.'))
+                _('You can change approved_by just one time.'))
