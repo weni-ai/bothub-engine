@@ -35,7 +35,13 @@ class RequestRepositoryAuthorizationSerializer(serializers.ModelSerializer):
         fields = [
             'id',
             'user',
+            'user__nickname',
             'repository',
             'text',
             'created_at',
         ]
+
+    user__nickname = serializers.SlugRelatedField(
+        source='user',
+        slug_field='nickname',
+        read_only=True)
