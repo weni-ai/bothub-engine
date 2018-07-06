@@ -1,7 +1,9 @@
 from django.test import TestCase
 from django.utils import timezone
+from django.core.exceptions import ValidationError
 
 from bothub.authentication.models import User
+
 from .models import Repository
 from .models import RepositoryExample
 from .models import RepositoryExampleEntity
@@ -9,6 +11,7 @@ from .models import RepositoryTranslatedExample
 from .models import RepositoryTranslatedExampleEntity
 from .models import RepositoryAuthorization
 from .models import DoesNotHaveTranslation
+from .models import RequestRepositoryAuthorization
 from . import languages
 from .exceptions import RepositoryUpdateAlreadyStartedTraining
 from .exceptions import RepositoryUpdateAlreadyTrained
@@ -678,3 +681,45 @@ class RepositoryUpdateReadyForTrain(TestCase):
         self.repository.current_update().start_training(self.owner)
         example.delete()
         self.assertTrue(self.repository.current_update().ready_for_train)
+
+
+class RequestRepositoryAuthorizationTestCase(TestCase):
+    def setUp(self):
+        self.owner = User.objects.create_user('owner@user.com', 'owner')
+        repository = Repository.objects.create(
+            owner=self.owner,
+            name='Test',
+            slug='test',
+            language=languages.LANGUAGE_EN)
+        self.user = User.objects.create_user('user@user.com', 'user')
+        self.ra = RequestRepositoryAuthorization.objects.create(
+            user=self.user,
+            repository=repository,
+            text='I can contribute')
+        self.admin = User.objects.create_user('admin@user.com', 'admin')
+        admin_authorization = repository.get_user_authorization(self.admin)
+        admin_authorization.role = RepositoryAuthorization.ROLE_ADMIN
+        admin_authorization.save()
+
+    def test_approve(self):
+        self.ra.approved_by = self.owner
+        self.ra.save()
+        user_authorization = self.ra.repository.get_user_authorization(
+            self.ra.user)
+        self.assertEqual(
+            user_authorization.role,
+            RepositoryAuthorization.ROLE_USER)
+
+    def test_approve_twice(self):
+        self.ra.approved_by = self.owner
+        self.ra.save()
+        with self.assertRaises(ValidationError):
+            self.ra.approved_by = self.owner
+            self.ra.save()
+
+    def test_approve_twice_another_admin(self):
+        self.ra.approved_by = self.owner
+        self.ra.save()
+        with self.assertRaises(ValidationError):
+            self.ra.approved_by = self.admin
+            self.ra.save()

@@ -11,6 +11,8 @@ from django.conf import settings
 from django.core.validators import RegexValidator, _lazy_re_compile
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
+from django.dispatch import receiver
+from django.core.exceptions import ValidationError
 
 from bothub.authentication.models import User
 
@@ -194,6 +196,14 @@ class Repository(models.Model):
             entities_count=models.Count(
                 'entities')).filter(entities_count__gte=1).values_list(
                     'entities__entity', flat=True)))
+
+    @property
+    def admins(self):
+        admins = [self.owner] + [
+            authorization.user for authorization in
+            self.authorizations.filter(role=RepositoryAuthorization.ROLE_ADMIN)
+        ]
+        return list(set(admins))
 
     def examples(self, language=None, deleted=True, queryset=None):
         if queryset is None:
@@ -632,7 +642,8 @@ class RepositoryAuthorization(models.Model):
         models.CASCADE)
     repository = models.ForeignKey(
         Repository,
-        models.CASCADE)
+        models.CASCADE,
+        related_name='authorizations')
     role = models.PositiveIntegerField(
         _('role'),
         choices=ROLE_CHOICES,
@@ -693,6 +704,14 @@ class RepositoryAuthorization(models.Model):
         return self.level == RepositoryAuthorization.LEVEL_ADMIN
 
     @property
+    def is_owner(self):
+        try:
+            user = self.user
+        except User.DoesNotExist:
+            return False
+        return self.repository.owner == user
+
+    @property
     def role_verbose(self):
         return dict(RepositoryAuthorization.ROLE_CHOICES).get(self.role)
 
@@ -747,3 +766,116 @@ class RepositoryVote(models.Model):
     vote = models.IntegerField(
         _('vote'),
         choices=VOTE_CHOICES)
+
+
+class RequestRepositoryAuthorization(models.Model):
+    class Meta:
+        unique_together = ['user', 'repository']
+
+    user = models.ForeignKey(
+        User,
+        models.CASCADE,
+        related_name='requests')
+    repository = models.ForeignKey(
+        Repository,
+        models.CASCADE,
+        related_name='requests')
+    text = models.CharField(
+        _('text'),
+        max_length=250)
+    approved_by = models.ForeignKey(
+        User,
+        models.CASCADE,
+        blank=True,
+        null=True)
+    created_at = models.DateTimeField(
+        _('created at'),
+        auto_now_add=True,
+        editable=False)
+
+    def send_new_request_email_to_admins(self):
+        context = {
+            'user_name': self.user.name,
+            'repository_name': self.repository.name,
+            'text': self.text,
+            'repository_url': self.repository.get_absolute_url(),
+        }
+        for admin in self.repository.admins:
+            send_mail(
+                _('New authorization request in {}').format(
+                    self.repository.name),
+                render_to_string(
+                    'common/emails/new_request.txt',
+                    context),
+                None,
+                [admin.email],
+                html_message=render_to_string(
+                    'common/emails/new_request.html',
+                    context))
+
+    def send_request_rejected(self):
+        context = {
+            'repository_name': self.repository.name,
+        }
+        send_mail(
+            _('Access denied to {}').format(
+                self.repository.name),
+            render_to_string(
+                'common/emails/request_rejected.txt',
+                context),
+            None,
+            [self.user.email],
+            html_message=render_to_string(
+                'common/emails/request_rejected.html',
+                context))
+
+    def send_request_approved(self):
+        context = {
+            'admin_name': self.approved_by.name,
+            'repository_name': self.repository.name,
+        }
+        send_mail(
+            _('Authorization Request Approved to {}').format(
+                self.repository.name),
+            render_to_string(
+                'common/emails/request_approved.txt',
+                context),
+            None,
+            [self.user.email],
+            html_message=render_to_string(
+                'common/emails/request_approved.html',
+                context))
+
+
+@receiver(models.signals.pre_save, sender=RequestRepositoryAuthorization)
+def set_user_role_on_approved(instance, **kwargs):
+    current = None
+    try:
+        current = RequestRepositoryAuthorization.objects.get(pk=instance.pk)
+    except RequestRepositoryAuthorization.DoesNotExist as e:
+        pass
+
+    if not current:
+        return False
+
+    if current.approved_by is None and \
+       current.approved_by is not instance.approved_by:
+        user_authorization = instance.repository.get_user_authorization(
+            instance.user)
+        user_authorization.role = RepositoryAuthorization.ROLE_USER
+        user_authorization.save(update_fields=['role'])
+        instance.send_request_approved()
+    else:
+        raise ValidationError(
+            _('You can change approved_by just one time.'))
+
+
+@receiver(models.signals.post_save, sender=RequestRepositoryAuthorization)
+def send_new_request_email_to_admins_on_created(instance, created, **kwargs):
+    if created:
+        instance.send_new_request_email_to_admins()
+
+
+@receiver(models.signals.post_delete, sender=RequestRepositoryAuthorization)
+def send_request_rejected_email(instance, **kwargs):
+    instance.send_request_rejected()

@@ -1,0 +1,8 @@
+{% extends 'bothub/emails/base.html' %}
+
+{% load i18n %}
+
+{% block main-content %}
+    <p><strong>{% blocktrans %}We’re sorry to say that, but your request to access the repository {{ repository_name }} was denied.{% endblocktrans %}</strong></p>
+    <p>{% trans 'Keep up contributing and creating bots with Bothub.' %}</p>
+{% endblock %}

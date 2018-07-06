@@ -1,0 +1,6 @@
+{% load i18n %}{% trans 'Authorization Request Approved' %}
+
+{% blocktrans %}Your authorization request to repository {{ repository_name }} was approved by {{ admin_name }}.{% endblocktrans %}{% if repository_url %}
+
+Access {{ repository_name }}:
+{{ repository_url }}{% endif %}

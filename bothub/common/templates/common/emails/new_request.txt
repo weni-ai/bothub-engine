@@ -1,0 +1,9 @@
+{% load i18n %}{% trans 'New Authorization Request' %}
+
+{% blocktrans %}You receive new authorization request from {{ user_name }} to repository {{ repository_name }}.{% endblocktrans %}
+
+"{{ text }}"
+- {{ user_name }}{% if repository_url %}
+
+Access {{ repository_name }}:
+{{ repository_url }}{% endif %}
