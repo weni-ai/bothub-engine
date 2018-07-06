@@ -52,5 +52,12 @@ if settings.DEBUG:
                 render_template(
                     'common/emails/request_rejected.html',
                     repository_name='Repository 1')),
+            path(
+                'request-approved/',
+                render_template(
+                    'common/emails/request_approved.html',
+                    admin_name='Douglas',
+                    repository_name='Repository 1',
+                    repository_url='http://localhost:8080/douglas/repo1/')),
         ])),
     ]

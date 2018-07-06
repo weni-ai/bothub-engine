@@ -829,6 +829,23 @@ class RequestRepositoryAuthorization(models.Model):
                 'common/emails/request_rejected.html',
                 context))
 
+    def send_request_approved(self):
+        context = {
+            'admin_name': self.approved_by.name,
+            'repository_name': self.repository.name,
+        }
+        send_mail(
+            _('Authorization Request Approved to {}').format(
+                self.repository.name),
+            render_to_string(
+                'common/emails/request_approved.txt',
+                context),
+            None,
+            [self.user.email],
+            html_message=render_to_string(
+                'common/emails/request_approved.html',
+                context))
+
 
 @receiver(models.signals.pre_save, sender=RequestRepositoryAuthorization)
 def set_user_role_on_approved(instance, **kwargs):
@@ -847,6 +864,7 @@ def set_user_role_on_approved(instance, **kwargs):
             instance.user)
         user_authorization.role = RepositoryAuthorization.ROLE_USER
         user_authorization.save(update_fields=['role'])
+        instance.send_request_approved()
     else:
         raise ValidationError(
             _('You can change approved_by just one time.'))

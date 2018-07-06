@@ -1,0 +1,26 @@
+{% extends 'bothub/emails/base.html' %}
+
+{% load i18n staticfiles %}
+
+{% block before-content %}
+<tr>
+    <td align="center" style="padding-top: 20px;">
+        <img src="{% static 'common/emails/request.gif' %}" alt="{% trans 'Authorization Request Approved' %}" width="100%" style="max-width: 456px; display: block;" />
+        <h1 style="font-size: 24px;">{% trans 'Authorization Request Approved' %}</h1>
+    </td>
+</tr>
+{% endblock %}
+
+{% block main-content %}
+    <p>{% blocktrans %}Your authorization request to repository <strong>{{ repository_name }}</strong> was approved by <strong>{{ admin_name }}</strong>.{% endblocktrans %}</p>
+{% endblock %}
+
+{% block after-content %}
+    {% if repository_url %}
+        <tr>
+            <td style="padding: 16px;">
+                <p align="center"><a rel="nofollow" href="{{ repository_url }}" style="padding: 16px; background-color: #2bbfac; color: white; text-decoration: none; border-radius: 4px;">Access {{ repository_name }}</a></p>
+            </td>
+        </tr>
+    {% endif %}
+{% endblock %}
