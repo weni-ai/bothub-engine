@@ -35,5 +35,17 @@ if settings.DEBUG:
                     repository_name='Repository 1',
                     repository_url='http://localhost:8080/douglas/repo1/',
                     new_role='Admin')),
+            path(
+                'new-request/',
+                render_template(
+                    'common/emails/new_request.html',
+                    user_name='Michael',
+                    repository_name='Repository 1',
+                    text='Lorem ipsum dolor sit amet, consectetur ' +
+                    'adipiscing elit. Pellentesque tristique dapibus ' +
+                    'consectetur. Praesent eleifend sit amet nulla sed ' +
+                    'egestas. Nam ac quam lacus. Pellentesque posuere, ' +
+                    'nisl nullam.',
+                    repository_url='http://localhost:8080/douglas/repo1/')),
         ])),
     ]

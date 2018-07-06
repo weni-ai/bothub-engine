@@ -197,6 +197,14 @@ class Repository(models.Model):
                 'entities')).filter(entities_count__gte=1).values_list(
                     'entities__entity', flat=True)))
 
+    @property
+    def admins(self):
+        admins = [self.owner] + [
+            authorization.user for authorization in
+            self.authorizations.filter(role=RepositoryAuthorization.ROLE_ADMIN)
+        ]
+        return list(set(admins))
+
     def examples(self, language=None, deleted=True, queryset=None):
         if queryset is None:
             queryset = RepositoryExample.objects
@@ -634,7 +642,8 @@ class RepositoryAuthorization(models.Model):
         models.CASCADE)
     repository = models.ForeignKey(
         Repository,
-        models.CASCADE)
+        models.CASCADE,
+        related_name='authorizations')
     role = models.PositiveIntegerField(
         _('role'),
         choices=ROLE_CHOICES,
@@ -784,6 +793,26 @@ class RequestRepositoryAuthorization(models.Model):
         auto_now_add=True,
         editable=False)
 
+    def send_new_request_email_to_admins(self):
+        context = {
+            'user_name': self.user.name,
+            'repository_name': self.repository.name,
+            'text': self.text,
+            'repository_url': self.repository.get_absolute_url(),
+        }
+        for admin in self.repository.admins:
+            send_mail(
+                _('New authorization request in {}').format(
+                    self.repository.name),
+                render_to_string(
+                    'common/emails/new_request.txt',
+                    context),
+                None,
+                [admin.email],
+                html_message=render_to_string(
+                    'common/emails/new_request.html',
+                    context))
+
 
 @receiver(models.signals.pre_save, sender=RequestRepositoryAuthorization)
 def set_user_role_on_approved(instance, **kwargs):
@@ -805,3 +834,9 @@ def set_user_role_on_approved(instance, **kwargs):
     else:
         raise ValidationError(
             _('You can change approved_by just one time.'))
+
+
+@receiver(models.signals.post_save, sender=RequestRepositoryAuthorization)
+def send_new_request_email_to_admins_on_created(instance, created, **kwargs):
+    if created:
+        instance.send_new_request_email_to_admins()
