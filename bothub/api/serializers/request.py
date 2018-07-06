@@ -38,6 +38,7 @@ class RequestRepositoryAuthorizationSerializer(serializers.ModelSerializer):
             'user__nickname',
             'repository',
             'text',
+            'approved_by',
             'created_at',
         ]
 
