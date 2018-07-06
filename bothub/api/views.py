@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework.exceptions import APIException
 from rest_framework.exceptions import NotFound
 from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import ValidationError
 from rest_framework.authtoken.models import Token
 from rest_framework import status
 from rest_framework.filters import OrderingFilter
@@ -26,6 +27,7 @@ from bothub.common.models import RepositoryTranslatedExampleEntity
 from bothub.common.models import RepositoryCategory
 from bothub.common.models import RepositoryVote
 from bothub.common.models import RepositoryAuthorization
+from bothub.common.models import RequestRepositoryAuthorization
 from bothub.authentication.models import User
 
 from .serializers import RepositorySerializer
@@ -47,6 +49,9 @@ from .serializers import EditRepositorySerializer
 from .serializers import NewRepositoryTranslatedExampleSerializer
 from .serializers import VoteSerializer
 from .serializers import RepositoryAuthorizationRoleSerializer
+from .serializers import NewRequestRepositoryAuthorizationSerializer
+from .serializers import RequestRepositoryAuthorizationSerializer
+from .serializers import ReviewAuthorizationRequestSerializer
 
 
 # Permisions
@@ -237,6 +242,32 @@ class RepositoryAuthorizationFilter(filters.FilterSet):
 
     repository = filters.CharFilter(
         name='repository',
+        method='filter_repository_uuid',
+        help_text=_('Repository\'s UUID'))
+
+    def filter_repository_uuid(self, queryset, name, value):
+        request = self.request
+        try:
+            repository = Repository.objects.get(uuid=value)
+            authorization = repository.get_user_authorization(request.user)
+            if not authorization.is_admin:
+                raise PermissionDenied()
+            return queryset.filter(repository=repository)
+        except Repository.DoesNotExist:
+            raise NotFound(
+                _('Repository {} does not exist').format(value))
+        except DjangoValidationError:
+            raise NotFound(_('Invalid repository UUID'))
+
+
+class RepositoryAuthorizationRequestsFilter(filters.FilterSet):
+    class Meta:
+        model = RequestRepositoryAuthorization
+        fields = ['repository_uuid']
+
+    repository_uuid = filters.CharFilter(
+        name='repository_uuid',
+        required=True,
         method='filter_repository_uuid',
         help_text=_('Repository\'s UUID'))
 
@@ -859,3 +890,43 @@ class SearchUserViewSet(
         queryset = self.filter_queryset(self.get_queryset())[:self.limit]
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+
+
+class RequestAuthorizationViewSet(
+        mixins.CreateModelMixin,
+        GenericViewSet):
+    serializer_class = NewRequestRepositoryAuthorizationSerializer
+    queryset = RequestRepositoryAuthorization.objects
+    permission_classes = [
+        IsAuthenticated,
+    ]
+
+
+class RepositoryAuthorizationRequestsViewSet(
+        mixins.ListModelMixin,
+        GenericViewSet):
+    queryset = RequestRepositoryAuthorization.objects.exclude(
+        approved_by__isnull=False)
+    serializer_class = RequestRepositoryAuthorizationSerializer
+    filter_class = RepositoryAuthorizationRequestsFilter
+    permission_classes = [
+        IsAuthenticated,
+    ]
+
+
+class ReviewAuthorizationRequestViewSet(
+        mixins.UpdateModelMixin,
+        mixins.DestroyModelMixin,
+        GenericViewSet):
+    queryset = RequestRepositoryAuthorization.objects
+    serializer_class = ReviewAuthorizationRequestSerializer
+    permission_classes = [
+        IsAuthenticated,
+        RepositoryAdminManagerAuthorization,
+    ]
+
+    def update(self, *args, **kwargs):
+        try:
+            return super().update(*args, **kwargs)
+        except DjangoValidationError as e:
+            raise ValidationError(e.message)

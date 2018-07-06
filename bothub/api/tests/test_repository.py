@@ -12,6 +12,8 @@ from bothub.common.models import Repository
 from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryExampleEntity
 from bothub.common.models import RepositoryVote
+from bothub.common.models import RepositoryAuthorization
+from bothub.common.models import RequestRepositoryAuthorization
 
 from ..views import NewRepositoryViewSet
 from ..views import RepositoryViewSet
@@ -222,6 +224,60 @@ class RetrieveRepositoryTestCase(TestCase):
         self.assertEqual(
             response.status_code,
             status.HTTP_200_OK)
+
+    def test_available_request_authorization(self):
+        response, content_data = self.request(
+            self.repository,
+            self.user_token)
+        self.assertTrue(content_data.get('available_request_authorization'))
+
+    def test_owner_not_available_request_authorization(self):
+        response, content_data = self.request(
+            self.repository,
+            self.owner_token)
+        self.assertFalse(content_data.get('available_request_authorization'))
+
+    def test_user_not_available_request_authorization(self):
+        authorization = self.repository.get_user_authorization(self.user)
+        authorization.role = RepositoryAuthorization.ROLE_USER
+        authorization.save()
+        response, content_data = self.request(
+            self.repository,
+            self.user_token)
+        self.assertFalse(content_data.get('available_request_authorization'))
+
+    def test_requested_not_available_request_authorization(self):
+        RequestRepositoryAuthorization.objects.create(
+            user=self.user,
+            repository=self.repository,
+            text='I can contribute')
+        response, content_data = self.request(
+            self.repository,
+            self.user_token)
+        self.assertFalse(content_data.get('available_request_authorization'))
+
+    def test_none_request_authorization(self):
+        response, content_data = self.request(
+            self.repository,
+            self.user_token)
+        self.assertIsNone(content_data.get('request_authorization'))
+
+    def test_request_authorization(self):
+        text = 'I can contribute'
+        request = RequestRepositoryAuthorization.objects.create(
+            user=self.user,
+            repository=self.repository,
+            text=text)
+        response, content_data = self.request(
+            self.repository,
+            self.user_token)
+        request_authorization = content_data.get('request_authorization')
+        self.assertEqual(
+            request_authorization.get('id'),
+            request.id)
+        self.assertEqual(
+            request_authorization.get('text'),
+            text)
 
 
 class UpdateRepositoryTestCase(TestCase):
