@@ -813,6 +813,22 @@ class RequestRepositoryAuthorization(models.Model):
                     'common/emails/new_request.html',
                     context))
 
+    def send_request_rejected(self):
+        context = {
+            'repository_name': self.repository.name,
+        }
+        send_mail(
+            _('Access denied to {}').format(
+                self.repository.name),
+            render_to_string(
+                'common/emails/request_rejected.txt',
+                context),
+            None,
+            [self.user.email],
+            html_message=render_to_string(
+                'common/emails/request_rejected.html',
+                context))
+
 
 @receiver(models.signals.pre_save, sender=RequestRepositoryAuthorization)
 def set_user_role_on_approved(instance, **kwargs):
@@ -840,3 +856,8 @@ def set_user_role_on_approved(instance, **kwargs):
 def send_new_request_email_to_admins_on_created(instance, created, **kwargs):
     if created:
         instance.send_new_request_email_to_admins()
+
+
+@receiver(models.signals.post_delete, sender=RequestRepositoryAuthorization)
+def send_request_rejected_email(instance, **kwargs):
+    instance.send_request_rejected()

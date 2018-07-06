@@ -47,5 +47,10 @@ if settings.DEBUG:
                     'egestas. Nam ac quam lacus. Pellentesque posuere, ' +
                     'nisl nullam.',
                     repository_url='http://localhost:8080/douglas/repo1/')),
+            path(
+                'request-rejected/',
+                render_template(
+                    'common/emails/request_rejected.html',
+                    repository_name='Repository 1')),
         ])),
     ]

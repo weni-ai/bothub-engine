@@ -1,0 +1,2 @@
+{% load i18n %}{% blocktrans %}We’re sorry to say that, but your request to access the repository {{ repository_name }} was denied.{% endblocktrans %}
+{% trans 'Keep up contributing and creating bots with Bothub.' %}
