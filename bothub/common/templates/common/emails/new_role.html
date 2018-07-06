@@ -5,7 +5,7 @@
 {% block main-content %}
     <p><strong>{% blocktrans %}Hi, {{ user_name }}{% endblocktrans %}</strong></p>
     {% with new_role_lower=new_role|lower %}
-        <p align="justify">{% blocktrans %}{{ responsible_name }} added you as <strong>{{ new_role_lower }}</strong> in the <strong>{{ repository_name }}</strong> repository.{% endblocktrans %}</p>
+        <p align="justify">{% blocktrans %}{{ responsible_name }} added you as <strong>{{ new_role_lower }}</strong> in the repository <strong>{{ repository_name }}</strong>.{% endblocktrans %}</p>
     {% endwith %}
 {% endblock %}
 
