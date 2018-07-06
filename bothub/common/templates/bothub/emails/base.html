@@ -8,59 +8,61 @@
 </head>
 
 <body style="margin: 0; padding: 0;" bgcolor="#2bbfac">
-    <table style="font-family: sans-serif;" cellpadding="0" cellspacing="0" width="100%">
-        <tr>
-            <td>
-                <table align="center" bgcolor="#f9f9f9" cellpadding="0" cellspacing="0" style="width: 100%; max-width: 600px; border-collapse: collapse;">
-                    {% block content %}
+    <div style="background-color: #2bbfac; width: 100%; height: 100%; padding: 32px 0;">
+        <table style="font-family: sans-serif;" cellpadding="0" cellspacing="0" width="100%">
+            <tr>
+                <td>
+                    <table align="center" bgcolor="#f9f9f9" cellpadding="0" cellspacing="0" style="width: 100%; max-width: 600px; border-collapse: collapse;">
+                        {% block content %}
+                            <tr>
+                                <td align="center" style="padding: 20px 0;">
+                                    <a rel="nofollow" href="https://bothub.it/">
+                                        <img src="{% static 'bothub/emails/logo.png' %}" alt="Bothub" width="124" height="26" style="display: block;" />
+                                    </a>
+                                </td>
+                            </tr>
+                            {% block before-content %}{% endblock %}
+                            <tr>
+                                <td style="padding: 16px 50px; font-size: 16px;">
+                                    {% block main-content %}{% endblock %}
+                                </td>
+                            </tr>
+                            {% block after-content %}{% endblock %}
+                        {% endblock %}
                         <tr>
-                            <td align="center" style="padding: 20px 0;">
-                                <a rel="nofollow" href="https://bothub.it/">
-                                    <img src="{% static 'bothub/emails/logo.png' %}" alt="Bothub" width="124" height="26" style="display: block;" />
-                                </a>
+                            <td bgcolor="#312B53" style="padding: 30px;">
+                                <table style="font-family: sans-serif; font-size: 12px; color: #FFFFFF; line-height: 20px;" cellpadding="0" cellspacing="0" width="100%">
+                                    <tr>
+                                        <td width="75%">
+                                            <div><a rel="nofollow" href="http://bothub.it/" style="color: #ffffff; text-decoration: none;" target="_blank">Bothub</a></div>
+                                            {% if cancel_subscription_url %}<div>{% blocktrans %}You can cancel your e-mail subscription <a rel="nofollow" href="{{ cancel_subscription_url }}" style="color: #FFFFFF;">here</a>.{% endblocktrans %}</div>{% endif %}
+                                        </td>
+                                        <td align="right">
+                                            <table border="0" cellpadding="0" cellspacing="0">
+                                                <tr>
+                                                    <td>
+                                                        <a rel="nofollow" href="https://www.facebook.com/bothub.it/">
+                                                            <img src="{% static 'bothub/emails/facebook.png' %}" alt="Facebook" width="38" height="38" style="display: block;" border="0" />
+                                                        </a>
+                                                    </td>
+                                                    <td style="font-size: 0; line-height: 0;" width="20">&nbsp;</td>
+                                                    <td>
+                                                        <a rel="nofollow" href="https://www.linkedin.com/company/bothubit/">
+                                                            <img src="{% static 'bothub/emails/linkedin.png' %}" alt="LinkedIn" width="38" height="38" style="display: block;" border="0" />
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                </table>
                             </td>
                         </tr>
-                        {% block before-content %}{% endblock %}
-                        <tr>
-                            <td style="padding: 16px 50px; font-size: 16px;">
-                                {% block main-content %}{% endblock %}
-                            </td>
-                        </tr>
-                        {% block after-content %}{% endblock %}
-                    {% endblock %}
-                    <tr>
-                        <td bgcolor="#312B53" style="padding: 30px;">
-                            <table style="font-family: sans-serif; font-size: 12px; color: #FFFFFF; line-height: 20px;" cellpadding="0" cellspacing="0" width="100%">
-                                <tr>
-                                    <td width="75%">
-                                        <div><a rel="nofollow" href="http://bothub.it/" style="color: #ffffff; text-decoration: none;" target="_blank">Bothub</a></div>
-                                        {% if cancel_subscription_url %}<div>{% blocktrans %}You can cancel your e-mail subscription <a rel="nofollow" href="{{ cancel_subscription_url }}" style="color: #FFFFFF;">here</a>.{% endblocktrans %}</div>{% endif %}
-                                    </td>
-                                    <td align="right">
-                                        <table border="0" cellpadding="0" cellspacing="0">
-                                            <tr>
-                                                <td>
-                                                    <a rel="nofollow" href="https://www.facebook.com/bothub.it/">
-                                                        <img src="{% static 'bothub/emails/facebook.png' %}" alt="Facebook" width="38" height="38" style="display: block;" border="0" />
-                                                    </a>
-                                                </td>
-                                                <td style="font-size: 0; line-height: 0;" width="20">&nbsp;</td>
-                                                <td>
-                                                    <a rel="nofollow" href="https://www.linkedin.com/company/bothubit/">
-                                                        <img src="{% static 'bothub/emails/linkedin.png' %}" alt="LinkedIn" width="38" height="38" style="display: block;" border="0" />
-                                                    </a>
-                                                </td>
-                                            </tr>
-                                        </table>
-                                    </td>
-                                </tr>
-                            </table>
-                        </td>
-                    </tr>
-                </table>
-            </td>
-        </tr>
-    </table>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </div>
 </body>
 
 </html>
