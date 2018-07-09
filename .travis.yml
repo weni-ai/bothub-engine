@@ -11,7 +11,7 @@ install:
 env:
   global:
     - SECRET_KEY=SK
-    - SUPPORTED_LANGUAGES="en pt"
+    - SUPPORTED_LANGUAGES="en|pt"
     - DOCKER_IMAGE_NAME=ilha/bothub
 script:
   - flake8

@@ -62,6 +62,7 @@ You can set environment variables in your OS, write on ```.env``` file or pass v
 | CSRF_COOKIE_SECURE | ```boolean``` | ```False``` | Whether to use a secure cookie for the CSRF cookie.
 | BOTHUB_WEBAPP_BASE_URL | ```string``` | ```http://localhost:8080/``` | The bothub-webapp production application URL. Used to refer and redirect user correctly.
 | BOTHUB_NLP_BASE_URL | ```string``` | ```http://localhost:8001/``` | The bothub-blp production application URL. Used to proxy requests.
+| SUPPORTED_LANGUAGES | ```string```| ```en|pt``` | Set supported languages. Separe languages using ```|```. You can set location follow the format: ```[LANGUAGE_CODE]:[LANGUAGE_LOCATION]```.
 
 
 ### Docker Environment Variables

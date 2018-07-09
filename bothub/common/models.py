@@ -89,10 +89,12 @@ class Repository(models.Model):
         help_text=_('Easy way to found and share repositories'))
     language = models.CharField(
         _('language'),
-        choices=languages.LANGUAGE_CHOICES,
         max_length=2,
         help_text=_('Repository\'s examples language. The examples can be ' +
-                    'translated to other languages.'))
+                    'translated to other languages.'),
+        validators=[
+            languages.validate_language,
+        ])
     categories = models.ManyToManyField(
         RepositoryCategory,
         help_text=CATEGORIES_HELP_TEXT)
@@ -159,7 +161,7 @@ class Repository(models.Model):
                 lambda language: (
                     language,
                     self.language_status(language)),
-                languages.SUPPORTED_LANGUAGES,
+                settings.SUPPORTED_LANGUAGES.keys(),
             ))
 
     @property
@@ -290,8 +292,10 @@ class RepositoryUpdate(models.Model):
         related_name='updates')
     language = models.CharField(
         _('language'),
-        choices=languages.LANGUAGE_CHOICES,
-        max_length=2)
+        max_length=2,
+        validators=[
+            languages.validate_language,
+        ])
     created_at = models.DateTimeField(
         _('created at'),
         auto_now_add=True)
@@ -484,9 +488,11 @@ class RepositoryTranslatedExample(models.Model):
         help_text=_('Example object'))
     language = models.CharField(
         _('language'),
-        choices=languages.LANGUAGE_CHOICES,
         max_length=2,
-        help_text=_('Translation language'))
+        help_text=_('Translation language'),
+        validators=[
+            languages.validate_language,
+        ])
     text = models.TextField(
         _('text'),
         help_text=_('Translation text'))

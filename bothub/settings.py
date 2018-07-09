@@ -3,6 +3,8 @@ import dj_database_url
 
 from decouple import config
 
+from .utils import cast_supported_languages
+
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -204,3 +206,11 @@ CSRF_COOKIE_SECURE = config(
     'CSRF_COOKIE_SECURE',
     default=False,
     cast=bool)
+
+
+# Supported Languages
+
+SUPPORTED_LANGUAGES = config(
+    'SUPPORTED_LANGUAGES',
+    default='en|pt',
+    cast=cast_supported_languages)
