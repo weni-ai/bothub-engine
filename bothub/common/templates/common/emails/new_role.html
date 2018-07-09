@@ -11,10 +11,8 @@
 
 {% block after-content %}
     {% if repository_url %}
-        <tr>
-            <td style="padding: 16px;">
-                <p align="center"><a rel="nofollow" href="{{ repository_url }}" style="padding: 16px; background-color: #2bbfac; color: white; text-decoration: none; border-radius: 4px;">Access {{ repository_name }}</a></p>
-            </td>
-        </tr>
+        <div style="padding: 8px 0;">
+            <a style="margin: auto; display: block; width: fit-content; padding: 16px; background-color: #2bbfac; color: white; text-decoration: none; border-radius: 4px;" rel="nofollow" href="{{ repository_url }}" target="_blank">Access {{ repository_name }}</a>
+        </div>
     {% endif %}
 {% endblock %}
