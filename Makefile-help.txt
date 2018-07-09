@@ -7,3 +7,4 @@ Make commands:
     make migrate - Update DB shema, apply migrations
     make start - Start development web server
     make migrations - Create DB migrations files
+    make collectstatic - Collects the static files into STATIC_ROOT.
