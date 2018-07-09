@@ -4,7 +4,7 @@
 
 ## Development
 
-Use ```make``` commands to ```check_environment```, ```install_requirements```, ```lint```, ```test```, ```migrate```, ```start``` and ```migrations```.
+Use ```make``` commands to ```check_environment```, ```install_requirements```, ```lint```, ```test```, ```migrate```, ```start```, ```migrations``` and ```collectstatic```.
 
 | Command | Description |
 |--|--|
@@ -16,6 +16,7 @@ Use ```make``` commands to ```check_environment```, ```install_requirements```, 
 | make migrate | Update DB shema, apply migrations
 | make start | Start development web server
 | make migrations | Create DB migrations files
+| make collectstatic | Collects the static files into ```STATIC_ROOT```
 
 
 ### Fill database using fake data
