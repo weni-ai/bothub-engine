@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='bothub',
-    version='1.13.3',
+    version='1.13.4',
     description='bothub',
     packages=find_packages(),
     install_requires=[
