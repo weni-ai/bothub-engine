@@ -28,7 +28,7 @@ services:
       - CSRF_COOKIE_SECURE
       - BOTHUB_WEBAPP_BASE_URL=http://localhost/
       - BOTHUB_NLP_BASE_URL
-      - BUILD_WEBAPP=True
+      - BUILD_WEBAPP=true
       - WEBAPP_REPO=https://github.com/Ilhasoft/bothub-webapp
       - WEBAPP_BRANCH=master
       - API_BASE_URL=/api
