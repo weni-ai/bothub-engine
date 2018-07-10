@@ -62,7 +62,7 @@ You can set environment variables in your OS, write on ```.env``` file or pass v
 | CSRF_COOKIE_DOMAIN | ```string``` | ```None``` | The domain to be used when setting the CSRF cookie.
 | CSRF_COOKIE_SECURE | ```boolean``` | ```False``` | Whether to use a secure cookie for the CSRF cookie.
 | BOTHUB_WEBAPP_BASE_URL | ```string``` | ```http://localhost:8080/``` | The bothub-webapp production application URL. Used to refer and redirect user correctly.
-| BOTHUB_NLP_BASE_URL | ```string``` | ```http://localhost:8001/``` | The bothub-blp production application URL. Used to proxy requests.
+| BOTHUB_NLP_BASE_URL | ```string``` | ```http://localhost:2657/``` | The bothub-blp production application URL. Used to proxy requests.
 
 
 ### Docker Environment Variables
