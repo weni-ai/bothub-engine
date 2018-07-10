@@ -15,9 +15,8 @@ def check_database_connection(**kwargs):
         return False
     logger.info('found {} database connection'.format(len(connections.all())))
     for i, conn in enumerate(connections.all(), 1):
-        db_conn = connections['default']
         try:
-            db_conn.cursor()
+            conn.cursor()
             logger.info('#{} db connection OKAY'.format(i))
         except OperationalError as e:
             logger.warning('#{} db connection ERROR'.format(i))
