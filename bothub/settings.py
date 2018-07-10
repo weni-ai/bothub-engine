@@ -192,7 +192,7 @@ BOTHUB_WEBAPP_BASE_URL = config(
 
 BOTHUB_NLP_BASE_URL = config(
     'BOTHUB_NLP_BASE_URL',
-    default='http://localhost:8001/')
+    default='http://localhost:2657/')
 
 
 # CSRF
