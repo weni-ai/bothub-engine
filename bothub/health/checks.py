@@ -32,6 +32,9 @@ def check_accessible_api(request, **kwargs):
     logger.info('{} status code: {}'.format(
         CHECK_ACCESSIBLE_API_URL,
         response.status_code))
-    if response.status_code is status.HTTP_200_OK:
-        return True
-    return False
+    if response.status_code is not status.HTTP_200_OK:
+        logger.info('{} returns {}'.format(
+            CHECK_ACCESSIBLE_API_URL,
+            response.content))
+        return False
+    return True
