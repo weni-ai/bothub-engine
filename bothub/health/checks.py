@@ -7,17 +7,22 @@ logger = logging.getLogger('bothub.health.checks')
 
 CHECK_ACCESSIBLE_API_URL = '/api/repositories/'
 
+
 def check_database_connection(**kwargs):
     from django.db import connections
     from django.db.utils import OperationalError
-    db_conn = connections['default']
-    if not db_conn:
+    if len(connections.all()) is 0:
         return False
-    try:
-        db_conn.cursor()
-        return True
-    except OperationalError as e:
-        return False
+    logger.info('found {} database connection'.format(len(connections.all())))
+    for i, conn in enumerate(connections.all(), 1):
+        db_conn = connections['default']
+        try:
+            db_conn.cursor()
+            logger.info('#{} db connection OKAY'.format(i))
+        except OperationalError as e:
+            logger.warning('#{} db connection ERROR'.format(i))
+            return False
+    return True
 
 
 def check_accessible_api(request, **kwargs):
