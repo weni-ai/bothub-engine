@@ -2,6 +2,7 @@ import os
 import dj_database_url
 
 from decouple import config
+from django.utils.log import DEFAULT_LOGGING
 
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -204,3 +205,21 @@ CSRF_COOKIE_SECURE = config(
     'CSRF_COOKIE_SECURE',
     default=False,
     cast=bool)
+
+
+# Logging
+
+LOGGING = DEFAULT_LOGGING
+LOGGING['formatters']['bothub.health'] = {
+    'format': '[bothub.health] {message}',
+    'style': '{',
+}
+LOGGING['handlers']['bothub.health'] = {
+    'level': 'DEBUG',
+    'class': 'logging.StreamHandler',
+    'formatter': 'bothub.health',
+}
+LOGGING['loggers']['bothub.health.checks'] = {
+    'handlers': ['bothub.health'],
+    'level': 'DEBUG',
+}
