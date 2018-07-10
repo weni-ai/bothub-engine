@@ -1,6 +1,8 @@
 #!/bin/sh
-git clone --branch $WEBAPP_BRANCH --depth 1 $WEBAPP_REPO /tmp/bothub-webapp/
-cd /tmp/bothub-webapp/ && npm install && npm run build
+if [ ${BUILD_WEBAPP} ]; then
+    git clone --branch $WEBAPP_BRANCH --depth 1 $WEBAPP_REPO /tmp/bothub-webapp/
+    cd /tmp/bothub-webapp/ && npm install && npm run build
+fi
 
 cd $WORKDIR
 python manage.py migrate
