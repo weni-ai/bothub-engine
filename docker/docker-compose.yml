@@ -9,13 +9,13 @@ services:
     ports:
       - 80:80
     environment:
-      - SECRET_KEY
+      - SECRET_KEY=SK
       - DEBUG
       - ALLOWED_HOSTS
       - DEFAULT_DATABASE
       - LANGUAGE_CODE
       - TIME_ZONE
-      - EMAIL_HOST
+      - EMAIL_HOST=
       - EMAIL_PORT
       - DEFAULT_FROM_EMAIL
       - SERVER_EMAIL
@@ -26,8 +26,8 @@ services:
       - ADMINS
       - CSRF_COOKIE_DOMAIN
       - CSRF_COOKIE_SECURE
-      - BOTHUB_WEBAPP_BASE_URL
+      - BOTHUB_WEBAPP_BASE_URL=http://localhost/
       - BOTHUB_NLP_BASE_URL
       - WEBAPP_REPO=https://github.com/Ilhasoft/bothub-webapp
       - WEBAPP_BRANCH=master
-      - API_BASE_URL
+      - API_BASE_URL=/api
