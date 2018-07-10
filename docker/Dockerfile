@@ -13,7 +13,7 @@ RUN pip install psycopg2-binary
 COPY Pipfile Pipfile
 COPY Pipfile.lock Pipfile.lock
 
-RUN pipenv install --system --dev
+RUN pipenv install --system
 
 COPY . .
 COPY ./docker/bothub-nginx.conf /etc/nginx/conf.d/default.conf
