@@ -1,3 +1,12 @@
+import logging
+
+from rest_framework import status
+
+
+logger = logging.getLogger('bothub.health.checks')
+
+CHECK_ACCESSIBLE_API_URL = '/api/repositories/'
+
 def check_database_connection(**kwargs):
     from django.db import connections
     from django.db.utils import OperationalError
@@ -12,12 +21,13 @@ def check_database_connection(**kwargs):
 
 
 def check_accessible_api(request, **kwargs):
-    import requests
-    HTTP_HOST = request.META.get('HTTP_HOST')
-    repositories_url = 'http://{}/api/repositories/'.format(HTTP_HOST)
-    request = requests.get(repositories_url)
-    try:
-        request.raise_for_status()
+    from django.test import Client
+    logger.info('making request to {}'.format(CHECK_ACCESSIBLE_API_URL))
+    client = Client()
+    response = client.get(CHECK_ACCESSIBLE_API_URL)
+    logger.info('{} status code: {}'.format(
+        CHECK_ACCESSIBLE_API_URL,
+        response.status_code))
+    if response.status_code is status.HTTP_200_OK:
         return True
-    except requests.HTTPError as e:
-        return False
+    return False
