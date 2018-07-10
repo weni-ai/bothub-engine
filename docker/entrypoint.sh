@@ -8,8 +8,10 @@ cd $WORKDIR
 python manage.py migrate
 python manage.py collectstatic --noinput
 
-gunicorn -e DJANGO_SETTINGS_MODULE=bothub.settings -b unix:/tmp/bothub.sock -D bothub.wsgi --log-file /var/log/gunicorn.log --log-level debug --capture-output
+GUNICORN_LOG_FILE="/var/log/gunicorn.log"
+touch ${GUNICORN_LOG_FILE}
+gunicorn bothub.wsgi -c docker/gunicorn.conf.py --log-file ${GUNICORN_LOG_FILE} --log-level debug
 
 mkdir -p /run/nginx/
 nginx
-tail -f /var/log/nginx/* /var/log/gunicorn.log
+tail -f /var/log/nginx/* ${GUNICORN_LOG_FILE}
