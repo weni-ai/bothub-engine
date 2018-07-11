@@ -3,12 +3,10 @@
 {% load i18n staticfiles %}
 
 {% block before-content %}
-<tr>
-    <td align="center" style="padding-top: 20px;">
-        <img src="{% static 'common/emails/request.gif' %}" alt="{% trans 'Authorization Request Approved' %}" width="100%" style="max-width: 456px; display: block;" />
+    <div style="text-align: center; padding-top: 20px;">
+        <img src="{% static 'common/emails/request.gif' %}" alt="{% trans 'Authorization Request Approved' %}" style="margin: auto; width: 100%; max-width: 456px; display: block;" />
         <h1 style="font-size: 24px;">{% trans 'Authorization Request Approved' %}</h1>
-    </td>
-</tr>
+    </div>
 {% endblock %}
 
 {% block main-content %}
@@ -17,10 +15,8 @@
 
 {% block after-content %}
     {% if repository_url %}
-        <tr>
-            <td style="padding: 16px;">
-                <p align="center"><a rel="nofollow" href="{{ repository_url }}" style="padding: 16px; background-color: #2bbfac; color: white; text-decoration: none; border-radius: 4px;">Access {{ repository_name }}</a></p>
-            </td>
-        </tr>
+        <div style="padding: 8px 0;">
+            <a style="margin: auto; display: block; width: fit-content; padding: 16px; background-color: #2bbfac; color: white; text-decoration: none; border-radius: 4px;" rel="nofollow" href="{{ repository_url }}" target="_blank">Access {{ repository_name }}</a>
+        </div>
     {% endif %}
 {% endblock %}

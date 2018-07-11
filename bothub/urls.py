@@ -4,12 +4,14 @@ from django.conf import settings
 from rest_framework.documentation import include_docs_urls
 
 from bothub.api.routers import router as bothub_api_routers
+from bothub.health.views import ping
 
 
 urlpatterns = [
     path('api/', include(bothub_api_routers.urls)),
     path('docs/', include_docs_urls(title='API Documentation')),
     path('admin/', admin.site.urls),
+    path('ping/', ping, name='ping'),
 ]
 
 if settings.DEBUG:

@@ -2,6 +2,7 @@ import os
 import dj_database_url
 
 from decouple import config
+from django.utils.log import DEFAULT_LOGGING
 
 from .utils import cast_supported_languages
 
@@ -181,6 +182,8 @@ if envvar_EMAIL_HOST:
 else:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
+SEND_EMAILS = config('SEND_EMAILS', default=True, cast=bool)
+
 
 # webapp
 
@@ -193,7 +196,7 @@ BOTHUB_WEBAPP_BASE_URL = config(
 
 BOTHUB_NLP_BASE_URL = config(
     'BOTHUB_NLP_BASE_URL',
-    default='http://localhost:8001/')
+    default='http://localhost:2657/')
 
 
 # CSRF
@@ -206,6 +209,24 @@ CSRF_COOKIE_SECURE = config(
     'CSRF_COOKIE_SECURE',
     default=False,
     cast=bool)
+
+
+# Logging
+
+LOGGING = DEFAULT_LOGGING
+LOGGING['formatters']['bothub.health'] = {
+    'format': '[bothub.health] {message}',
+    'style': '{',
+}
+LOGGING['handlers']['bothub.health'] = {
+    'level': 'DEBUG',
+    'class': 'logging.StreamHandler',
+    'formatter': 'bothub.health',
+}
+LOGGING['loggers']['bothub.health.checks'] = {
+    'handlers': ['bothub.health'],
+    'level': 'DEBUG',
+}
 
 
 # Supported Languages
