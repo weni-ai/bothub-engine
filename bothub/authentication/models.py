@@ -103,6 +103,8 @@ class User(AbstractBaseUser, PermissionsMixin):
         return PasswordResetTokenGenerator()
 
     def send_welcome_email(self):
+        if not settings.SEND_EMAILS:
+            return False
         context = {
             'name': self.name,
         }
@@ -121,6 +123,8 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.token_generator.make_token(self)
 
     def send_reset_password_email(self):
+        if not settings.SEND_EMAILS:
+            return False
         token = self.make_password_reset_token()
         reset_url = '{}reset-password/{}/{}/'.format(
             settings.BOTHUB_WEBAPP_BASE_URL,

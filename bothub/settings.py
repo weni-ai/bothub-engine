@@ -180,6 +180,8 @@ if envvar_EMAIL_HOST:
 else:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
+SEND_EMAILS = config('SEND_EMAILS', default=True, cast=bool)
+
 
 # webapp
 
