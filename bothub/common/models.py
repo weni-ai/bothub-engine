@@ -716,6 +716,8 @@ class RepositoryAuthorization(models.Model):
         return dict(RepositoryAuthorization.ROLE_CHOICES).get(self.role)
 
     def send_new_role_email(self, responsible=None):
+        if not settings.SEND_EMAILS:
+            return False
         responsible_name = responsible and responsible.name \
             or self.repository.owner.name
         context = {
@@ -794,6 +796,8 @@ class RequestRepositoryAuthorization(models.Model):
         editable=False)
 
     def send_new_request_email_to_admins(self):
+        if not settings.SEND_EMAILS:
+            return False
         context = {
             'user_name': self.user.name,
             'repository_name': self.repository.name,
@@ -813,7 +817,9 @@ class RequestRepositoryAuthorization(models.Model):
                     'common/emails/new_request.html',
                     context))
 
-    def send_request_rejected(self):
+    def send_request_rejected_email(self):
+        if not settings.SEND_EMAILS:
+            return False
         context = {
             'repository_name': self.repository.name,
         }
@@ -829,7 +835,9 @@ class RequestRepositoryAuthorization(models.Model):
                 'common/emails/request_rejected.html',
                 context))
 
-    def send_request_approved(self):
+    def send_request_approved_email(self):
+        if not settings.SEND_EMAILS:
+            return False
         context = {
             'admin_name': self.approved_by.name,
             'repository_name': self.repository.name,
@@ -864,7 +872,7 @@ def set_user_role_on_approved(instance, **kwargs):
             instance.user)
         user_authorization.role = RepositoryAuthorization.ROLE_USER
         user_authorization.save(update_fields=['role'])
-        instance.send_request_approved()
+        instance.send_request_approved_email()
     else:
         raise ValidationError(
             _('You can change approved_by just one time.'))
@@ -878,4 +886,4 @@ def send_new_request_email_to_admins_on_created(instance, created, **kwargs):
 
 @receiver(models.signals.post_delete, sender=RequestRepositoryAuthorization)
 def send_request_rejected_email(instance, **kwargs):
-    instance.send_request_rejected()
+    instance.send_request_rejected_email()
