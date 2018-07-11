@@ -33,3 +33,4 @@ services:
       - WEBAPP_BRANCH=master
       - API_BASE_URL=/api
       - CHECK_ACCESSIBLE_API_URL
+      - SEND_EMAILS
