@@ -8,7 +8,7 @@ logger = logging.getLogger('bothub.health.checks')
 
 CHECK_ACCESSIBLE_API_URL = config(
     'CHECK_ACCESSIBLE_API_URL',
-    default='http://localhost/api/repositories/')
+    default=None)
 
 
 def check_database_connection(**kwargs):
@@ -27,10 +27,16 @@ def check_database_connection(**kwargs):
     return True
 
 
-def check_accessible_api(**kwargs):
+def check_accessible_api(request, **kwargs):
     import requests
     logger.info('requesting {}'.format(CHECK_ACCESSIBLE_API_URL))
-    response = requests.get(CHECK_ACCESSIBLE_API_URL)
+    if CHECK_ACCESSIBLE_API_URL:
+        response = requests.get(CHECK_ACCESSIBLE_API_URL)
+    else:
+        url = 'http://{}/api/repositories/'.format(
+            request.META.get('HTTP_HOST'))
+        logger.info('requesting to {}'.format(url))
+        response = requests.get(url)
     logger.info('{} response status code {}'.format(
         CHECK_ACCESSIBLE_API_URL,
         response.status_code))
