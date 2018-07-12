@@ -109,6 +109,7 @@ class NewRepositoryTestCase(TestCase):
             'slug': 'test',
             'language': 'jj',
             'categories': [self.category.id],
+            'description': '',
         })
         self.assertEqual(
             response.status_code,

@@ -5,6 +5,7 @@ from django.utils.translation import gettext as _
 from bothub.common.models import RepositoryTranslatedExampleEntity
 from bothub.common.models import RepositoryTranslatedExample
 from bothub.common.models import RepositoryExample
+from bothub.common.languages import LANGUAGE_CHOICES
 
 from ..validators import CanContributeInRepositoryTranslatedExampleValidator
 from ..validators import CanContributeInRepositoryExampleValidator
@@ -104,6 +105,9 @@ class NewRepositoryTranslatedExampleSerializer(serializers.ModelSerializer):
             CanContributeInRepositoryExampleValidator(),
         ],
         help_text=_('Example\'s ID'))
+    language = serializers.ChoiceField(
+        LANGUAGE_CHOICES,
+        label=_('Language'))
     has_valid_entities = serializers.SerializerMethodField()
     entities = NewRepositoryTranslatedExampleEntitySeralizer(
         many=True,
