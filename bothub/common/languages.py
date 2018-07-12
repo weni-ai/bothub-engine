@@ -26,8 +26,10 @@ LANGUAGE_CHOICES = [
     settings.SUPPORTED_LANGUAGES
 ]
 
+
 def is_valid_language(value):
     return value in settings.SUPPORTED_LANGUAGES.keys()
+
 
 def validate_language(value):
     if not is_valid_language(value):
