@@ -4,6 +4,8 @@ import dj_database_url
 from decouple import config
 from django.utils.log import DEFAULT_LOGGING
 
+from .utils import cast_supported_languages
+
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -225,3 +227,11 @@ LOGGING['loggers']['bothub.health.checks'] = {
     'handlers': ['bothub.health'],
     'level': 'DEBUG',
 }
+
+
+# Supported Languages
+
+SUPPORTED_LANGUAGES = config(
+    'SUPPORTED_LANGUAGES',
+    default='en|pt',
+    cast=cast_supported_languages)

@@ -1,6 +1,7 @@
 from django.test import TestCase
 from django.utils import timezone
 from django.core.exceptions import ValidationError
+from django.conf import settings
 
 from bothub.authentication.models import User
 
@@ -267,7 +268,7 @@ class RepositoryTestCase(TestCase):
         languages_status = self.repository.languages_status
         self.assertListEqual(
             list(languages_status.keys()),
-            languages.SUPPORTED_LANGUAGES)
+            list(settings.SUPPORTED_LANGUAGES.keys()))
         # TODO: Update test_languages_status test
         #       Create expeted result
 

@@ -36,6 +36,9 @@ class NewRepositorySerializer(serializers.ModelSerializer):
         read_only=True,
         default=serializers.CurrentUserDefault(),
         style={'show': False})
+    language = serializers.ChoiceField(
+        LANGUAGE_CHOICES,
+        label=_('Language'))
     categories = ModelMultipleChoiceField(
         child_relation=serializers.PrimaryKeyRelatedField(
             queryset=RepositoryCategory.objects.all()),
