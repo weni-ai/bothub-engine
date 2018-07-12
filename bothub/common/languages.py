@@ -10,6 +10,7 @@ LANGUAGE_PT = 'pt'
 LANGUAGE_FR = 'fr'
 LANGUAGE_IT = 'it'
 LANGUAGE_NL = 'nl'
+LANGUAGE_PT_BR = 'pt_br'
 
 VERBOSE_LANGUAGES = {
     LANGUAGE_EN: _('English'),
@@ -19,6 +20,7 @@ VERBOSE_LANGUAGES = {
     LANGUAGE_FR: _('French'),
     LANGUAGE_IT: _('Italian'),
     LANGUAGE_NL: _('Dutch'),
+    LANGUAGE_PT_BR: _('Brazilian Portuguese'),
 }
 
 LANGUAGE_CHOICES = [
