@@ -4,7 +4,7 @@
 
 ## Development
 
-Use ```make``` commands to ```check_environment```, ```install_requirements```, ```lint```, ```test```, ```migrate```, ```start``` and ```migrations```.
+Use ```make``` commands to ```check_environment```, ```install_requirements```, ```lint```, ```test```, ```migrate```, ```start```, ```migrations``` and ```collectstatic```.
 
 | Command | Description |
 |--|--|
@@ -16,6 +16,7 @@ Use ```make``` commands to ```check_environment```, ```install_requirements```, 
 | make migrate | Update DB shema, apply migrations
 | make start | Start development web server
 | make migrations | Create DB migrations files
+| make collectstatic | Collects the static files into ```STATIC_ROOT```
 
 
 ### Fill database using fake data
@@ -61,14 +62,16 @@ You can set environment variables in your OS, write on ```.env``` file or pass v
 | CSRF_COOKIE_DOMAIN | ```string``` | ```None``` | The domain to be used when setting the CSRF cookie.
 | CSRF_COOKIE_SECURE | ```boolean``` | ```False``` | Whether to use a secure cookie for the CSRF cookie.
 | BOTHUB_WEBAPP_BASE_URL | ```string``` | ```http://localhost:8080/``` | The bothub-webapp production application URL. Used to refer and redirect user correctly.
-| BOTHUB_NLP_BASE_URL | ```string``` | ```http://localhost:8001/``` | The bothub-blp production application URL. Used to proxy requests.
 | SUPPORTED_LANGUAGES | ```string```| ```en|pt``` | Set supported languages. Separe languages using ```|```. You can set location follow the format: ```[LANGUAGE_CODE]:[LANGUAGE_LOCATION]```.
-
+| BOTHUB_NLP_BASE_URL | ```string``` | ```http://localhost:2657/``` | The bothub-blp production application URL. Used to proxy requests.
+| CHECK_ACCESSIBLE_API_URL | ```string``` | ```http://localhost/api/repositories/``` | URL used by ```bothub.health.check.check_accessible_api``` to make a HTTP request. The response status code must be 200.
+| SEND_EMAILS | ```boolean``` | ```True``` | Send emails flag.
 
 ### Docker Environment Variables
 
 | Variable | Type | Default | Description |
 |--|--|--|--|
+| BUILD_WEBAPP | ```boolean``` | ```true``` | Build webapp application in entrypoint.
 | WEBAPP_REPO | ```string``` | ```https://github.com/Ilhasoft/bothub-webapp``` | bothub-webapp git repository URL. It will clone and run ```npm install && npm run build``` command on the entrypoint. This build is served by Nginx.
 | WEBAPP_BRANCH | ```string``` | ```master``` | Specify the branch of the bothub-webapp Git repository.
 | API_BASE_URL | ```string``` | Not defined | The bothub production application URL. Used by ```bothub-webapp``` application.

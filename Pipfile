@@ -17,6 +17,7 @@ whitenoise = "*"
 [dev-packages]
 "flake8" = "*"
 coverage = "*"
+ipython = "*"
 
 [requires]
 python_version = "3.6"
