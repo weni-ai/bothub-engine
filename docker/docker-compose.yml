@@ -34,3 +34,4 @@ services:
       - API_BASE_URL=/api
       - CHECK_ACCESSIBLE_API_URL
       - SEND_EMAILS
+      - SUPPORTED_LANGUAGES
