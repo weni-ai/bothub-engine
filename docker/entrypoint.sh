@@ -1,5 +1,5 @@
 #!/bin/sh
-if [ ${BUILD_WEBAPP} ]; then
+if [ ${BUILD_WEBAPP} == true ]; then
     git clone --branch $WEBAPP_BRANCH --depth 1 $WEBAPP_REPO /tmp/bothub-webapp/
     cd /tmp/bothub-webapp/ && npm install && npm run build
 fi
