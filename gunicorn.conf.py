@@ -10,4 +10,3 @@ proc_name = name
 default_proc_name = proc_name
 chdir = current_path
 timeout = 120
-access_log_format = 'gunicorn - %(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s"'
