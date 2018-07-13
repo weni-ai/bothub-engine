@@ -13,11 +13,13 @@ django-cors-headers = "*"
 requests = "*"
 coreapi = "*"
 whitenoise = "*"
+"psycopg2-binary" = "*"
 
 [dev-packages]
 "flake8" = "*"
 coverage = "*"
 ipython = "*"
+pylint = "*"
 
 [requires]
 python_version = "3.6"
