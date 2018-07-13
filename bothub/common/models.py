@@ -89,7 +89,7 @@ class Repository(models.Model):
         help_text=_('Easy way to found and share repositories'))
     language = models.CharField(
         _('language'),
-        max_length=2,
+        max_length=5,
         help_text=_('Repository\'s examples language. The examples can be ' +
                     'translated to other languages.'),
         validators=[
@@ -292,7 +292,7 @@ class RepositoryUpdate(models.Model):
         related_name='updates')
     language = models.CharField(
         _('language'),
-        max_length=2,
+        max_length=5,
         validators=[
             languages.validate_language,
         ])
@@ -488,7 +488,7 @@ class RepositoryTranslatedExample(models.Model):
         help_text=_('Example object'))
     language = models.CharField(
         _('language'),
-        max_length=2,
+        max_length=5,
         help_text=_('Translation language'),
         validators=[
             languages.validate_language,

@@ -5,6 +5,7 @@ from decouple import config
 from django.utils.log import DEFAULT_LOGGING
 
 from .utils import cast_supported_languages
+from .utils import cast_empty_str_to_none
 
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -156,7 +157,10 @@ CORS_URLS_REGEX = r'^/api/.*$'
 
 # mail
 
-envvar_EMAIL_HOST = config('EMAIL_HOST', default=None)
+envvar_EMAIL_HOST = config(
+    'EMAIL_HOST',
+    default=None,
+    cast=cast_empty_str_to_none)
 
 ADMINS = config(
     'ADMINS',
@@ -203,7 +207,8 @@ BOTHUB_NLP_BASE_URL = config(
 
 CSRF_COOKIE_DOMAIN = config(
     'CSRF_COOKIE_DOMAIN',
-    default=None)
+    default=None,
+    cast=cast_empty_str_to_none)
 
 CSRF_COOKIE_SECURE = config(
     'CSRF_COOKIE_SECURE',
