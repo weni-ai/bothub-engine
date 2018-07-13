@@ -2,44 +2,35 @@ version: '3.3'
 
 services:
   database:
-      image: postgres
-      ports:
-        - 5432:5432
-      environment:
-        - POSTGRES_USER=${POSTGRES_USER:-bothub}
-        - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-bothub}
-        - POSTGRES_DB=${POSTGRES_DB:-bothub}
+    image: postgres
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-bothub}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-bothub}
+      - POSTGRES_DB=${POSTGRES_DB:-bothub}
   bothub:
-    image: ${DOCKER_IMAGE_NAME:-ilha/bothub}:${TAG:-latest}
+    image: ${BOTHUB_IMAGE_NAME:-ilha/bothub}:${TAG:-latest}
+    links:
+      - database
     build:
       context: ..
       dockerfile: docker/Dockerfile
     ports:
       - 80:80
     environment:
-      - SECRET_KEY=${SECRET_KEY:-SK}
-      - DEBUG=${DEBUG:-true}
-      - ALLOWED_HOSTS=${ALLOWED_HOSTS:-*}
-      - DEFAULT_DATABASE=${DEFAULT_DATABASE:-postgres://bothub:bothub@database:5432/bothub}
-      - LANGUAGE_CODE=${LANGUAGE_CODE:-en-us}
-      - TIME_ZONE=${TIME_ZONE:-UTC}
-      - EMAIL_HOST=${EMAIL_HOST:-}
-      - EMAIL_PORT=${EMAIL_PORT:-25}
-      - DEFAULT_FROM_EMAIL=${DEFAULT_FROM_EMAIL:-webmaster@localhost}
-      - SERVER_EMAIL=${SERVER_EMAIL:-root@localhost}
-      - EMAIL_HOST_USER=${EMAIL_HOST_USER:-}
-      - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD:-}
-      - EMAIL_USE_SSL=${EMAIL_USE_SSL:-false}
-      - EMAIL_USE_TLS=${EMAIL_USE_TLS:-false}
-      - ADMINS=${ADMINS:-}
-      - CSRF_COOKIE_DOMAIN=${CSRF_COOKIE_DOMAIN:-}
-      - CSRF_COOKIE_SECURE=${CSRF_COOKIE_SECURE:-false}
-      - BOTHUB_WEBAPP_BASE_URL=${BOTHUB_WEBAPP_BASE_URL:-http://localhost/}
-      - BOTHUB_NLP_BASE_URL=${BOTHUB_NLP_BASE_URL:-http://localhost:2657/}
-      - BUILD_WEBAPP=${BUILD_WEBAPP:-true}
-      - WEBAPP_REPO=${WEBAPP_REPO:-https://github.com/Ilhasoft/bothub-webapp}
-      - WEBAPP_BRANCH=${WEBAPP_BRANCH:-master}
-      - API_BASE_URL=${API_BASE_URL:-/api}
-      - CHECK_ACCESSIBLE_API_URL=${CHECK_ACCESSIBLE_API_URL:-}
-      - SEND_EMAILS=${SEND_EMAILS:-true}
-      - SUPPORTED_LANGUAGES=${SUPPORTED_LANGUAGES:-en|pt}
+      - SECRET_KEY=${SECRET_KEY:-WvGRtPeHxjbmrWs4wR3W7u6e8NhdJDNj}
+      - DEBUG=${DEBUG:-False}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS:-localhost}
+      - DATABASE_URL=${DATABASE_URL:-postgres://bothub:bothub@database/bothub}
+      - EMAIL_HOST=${EMAIL_HOST}
+      - EMAIL_PORT=${EMAIL_PORT}
+      - DEFAULT_FROM_EMAIL=${DEFAULT_FROM_EMAIL}
+      - SERVER_EMAIL=${SERVER_EMAIL}
+      - EMAIL_HOST_USER=${EMAIL_HOST_USER}
+      - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD}
+      - EMAIL_USE_SSL=${EMAIL_USE_SSL}
+      - EMAIL_USE_TLS=${EMAIL_USE_TLS}
+      - ADMINS=${ADMINS}
+      - CSRF_COOKIE_DOMAIN=${CSRF_COOKIE_DOMAIN}
+      - CSRF_COOKIE_SECURE=${CSRF_COOKIE_SECURE}
