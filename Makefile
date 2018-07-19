@@ -28,7 +28,7 @@ test:
 	@make check_environment
 	@make migrate CHECK_ENVIRONMENT=false
 	@make collectstatic CHECK_ENVIRONMENT=false
-	@PIPENV_DONT_LOAD_ENV=1 SECRET_KEY=SK SUPPORTED_LANGUAGES="en|pt" pipenv run python manage.py test
+	@PIPENV_DONT_LOAD_ENV=1 SECRET_KEY=SK SUPPORTED_LANGUAGES="en|pt" pipenv run coverage run manage.py test
 	@PIPENV_DONT_LOAD_ENV=1 pipenv run coverage report -m
 
 migrate:
