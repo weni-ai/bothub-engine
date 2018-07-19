@@ -333,7 +333,7 @@ class RepositoryUpdate(models.Model):
                 models.Q(deleted_in=self) |
                 models.Q(deleted_in__training_started_at__lt=t_started_at))
         else:
-            examples = examples.exclude(deleted_in=self)
+            examples = examples.exclude(deleted_in__isnull=False)
         return examples
 
     @property
