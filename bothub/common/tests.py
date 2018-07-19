@@ -352,7 +352,7 @@ class RepositoryExampleTestCase(TestCase):
             self.example.language,
             self.language)
 
-    def teste_delete(self):
+    def test_delete(self):
         self.example.delete()
         self.assertEqual(
             self.example.deleted_in,
