@@ -7,6 +7,7 @@ from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryExampleEntity
 
 from ..fields import EntityText
+from ..fields import EntityValueField
 from ..validators import CanContributeInRepositoryExampleValidator
 from ..validators import CanContributeInRepositoryValidator
 from ..validators import ExampleWithIntentOrEntityValidator
@@ -32,7 +33,11 @@ class RepositoryExampleEntitySerializer(serializers.ModelSerializer):
             CanContributeInRepositoryExampleValidator(),
         ],
         help_text=_('Example\'s ID'))
+    entity = serializers.SerializerMethodField()
     value = serializers.SerializerMethodField()
+
+    def get_entity(self, obj):
+        return obj.entity.value
 
     def get_value(self, obj):
         return obj.value
@@ -47,6 +52,8 @@ class NewRepositoryExampleEntitySerializer(serializers.ModelSerializer):
             'end',
             'entity',
         ]
+
+    entity = EntityValueField()
 
 
 class RepositoryExampleSerializer(serializers.ModelSerializer):

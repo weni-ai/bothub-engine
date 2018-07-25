@@ -23,7 +23,6 @@ from django.db.models import Q
 from bothub.common.models import Repository
 from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryTranslatedExample
-from bothub.common.models import RepositoryTranslatedExampleEntity
 from bothub.common.models import RepositoryCategory
 from bothub.common.models import RepositoryVote
 from bothub.common.models import RepositoryAuthorization
@@ -35,7 +34,6 @@ from .serializers import NewRepositorySerializer
 from .serializers import RepositoryExampleSerializer
 from .serializers import RepositoryAuthorizationSerializer
 from .serializers import RepositoryTranslatedExampleSerializer
-from .serializers import RepositoryTranslatedExampleEntitySeralizer
 from .serializers import RegisterUserSerializer
 from .serializers import UserSerializer
 from .serializers import ChangePasswordSerializer
@@ -577,38 +575,6 @@ class RepositoryTranslatedExampleViewSet(
     permission_classes = [
         permissions.IsAuthenticated,
         RepositoryTranslatedExamplePermission,
-    ]
-
-
-class NewRepositoryTranslatedExampleEntityViewSet(
-        mixins.CreateModelMixin,
-        GenericViewSet):
-    """
-    Add entity to example translation
-    """
-    queryset = RepositoryTranslatedExampleEntity.objects
-    serializer_class = RepositoryTranslatedExampleEntitySeralizer
-    permission_classes = [permissions.IsAuthenticated]
-
-
-class RepositoryTranslatedExampleEntityViewSet(
-        mixins.RetrieveModelMixin,
-        mixins.DestroyModelMixin,
-        GenericViewSet):
-    """
-    Manage translation entity
-
-    retrieve:
-    Get translation entity data.
-
-    delete:
-    Delete translation entity.
-    """
-    queryset = RepositoryTranslatedExampleEntity.objects
-    serializer_class = RepositoryTranslatedExampleEntitySeralizer
-    permission_classes = [
-        permissions.IsAuthenticated,
-        RepositoryTranslatedExampleEntityPermission,
     ]
 
 

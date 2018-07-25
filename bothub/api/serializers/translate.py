@@ -7,6 +7,7 @@ from bothub.common.models import RepositoryTranslatedExample
 from bothub.common.models import RepositoryExample
 from bothub.common.languages import LANGUAGE_CHOICES
 
+from ..fields import EntityValueField
 from ..validators import CanContributeInRepositoryTranslatedExampleValidator
 from ..validators import CanContributeInRepositoryExampleValidator
 from ..validators import TranslatedExampleEntitiesValidator
@@ -32,7 +33,11 @@ class RepositoryTranslatedExampleEntitySeralizer(serializers.ModelSerializer):
             CanContributeInRepositoryTranslatedExampleValidator(),
         ],
         help_text='Example translation ID')
+    entity = serializers.SerializerMethodField()
     value = serializers.SerializerMethodField()
+
+    def get_entity(self, obj):
+        return obj.entity.value
 
     def get_value(self, obj):
         return obj.value
@@ -80,6 +85,8 @@ class NewRepositoryTranslatedExampleEntitySeralizer(
             'end',
             'entity',
         ]
+
+    entity = EntityValueField()
 
 
 class NewRepositoryTranslatedExampleSerializer(serializers.ModelSerializer):

@@ -87,6 +87,7 @@ class RepositorySerializer(serializers.ModelSerializer):
         slug_field='nickname',
         read_only=True)
     categories_list = serializers.SerializerMethodField()
+    entities = serializers.SerializerMethodField()
     authorization = serializers.SerializerMethodField()
     examples__count = serializers.SerializerMethodField()
     request_authorization = serializers.SerializerMethodField()
@@ -94,6 +95,9 @@ class RepositorySerializer(serializers.ModelSerializer):
 
     def get_categories_list(self, obj):
         return RepositoryCategorySerializer(obj.categories, many=True).data
+
+    def get_entities(self, obj):
+        return obj.entities_list
 
     def get_authorization(self, obj):
         request = self.context.get('request')
