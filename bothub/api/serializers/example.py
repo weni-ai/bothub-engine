@@ -23,6 +23,7 @@ class RepositoryExampleEntitySerializer(serializers.ModelSerializer):
             'start',
             'end',
             'entity',
+            'label',
             'created_at',
             'value',
         ]
@@ -34,13 +35,15 @@ class RepositoryExampleEntitySerializer(serializers.ModelSerializer):
         ],
         help_text=_('Example\'s ID'))
     entity = serializers.SerializerMethodField()
-    value = serializers.SerializerMethodField()
+    label = serializers.SerializerMethodField()
 
     def get_entity(self, obj):
         return obj.entity.value
 
-    def get_value(self, obj):
-        return obj.value
+    def get_label(self, obj):
+        if not obj.entity.label:
+            return None
+        return obj.entity.label.value
 
 
 class NewRepositoryExampleEntitySerializer(serializers.ModelSerializer):

@@ -208,7 +208,7 @@ class RepositoryExampleRetrieveTestCase(TestCase):
         self.example = RepositoryExample.objects.create(
             repository_update=self.repository.current_update(),
             text='my name is douglas')
-        RepositoryExampleEntity.objects.create(
+        self.example_entity = RepositoryExampleEntity.objects.create(
             repository_example=self.example,
             start=11,
             end=18,
@@ -277,6 +277,36 @@ class RepositoryExampleRetrieveTestCase(TestCase):
         self.assertEqual(
             len(content_data.get('entities')),
             1)
+
+    def test_entity_has_label(self):
+        response, content_data = self.request(
+            self.example,
+            self.owner_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK)
+        entity = content_data.get('entities')[0]
+        self.assertIn(
+            'label',
+            entity.keys())
+
+    def test_entity_has_valid_label(self):
+        label = 'subject'
+        self.example_entity.entity.set_label('subject')
+        self.example_entity.entity.save(update_fields=['label'])
+        response, content_data = self.request(
+            self.example,
+            self.owner_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK)
+        entity = content_data.get('entities')[0]
+        self.assertIn(
+            'label',
+            entity.keys())
+        self.assertEqual(
+            entity.get('label'),
+            label)
 
 
 class RepositoryExampleDestroyTestCase(TestCase):
