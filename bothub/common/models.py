@@ -23,9 +23,9 @@ from .exceptions import TrainingNotAllowed
 from .exceptions import DoesNotHaveTranslation
 
 
-entity_and_intent_regex = _lazy_re_compile(r'^[-a-z0-9_]+\Z')
-validate_entity_and_intent = RegexValidator(
-    entity_and_intent_regex,
+item_key_regex = _lazy_re_compile(r'^[-a-z0-9_]+\Z')
+validate_item_key = RegexValidator(
+    item_key_regex,
     _('Enter a valid value consisting of lowercase letters, numbers, ' +
         'underscores or hyphens.'),
     'invalid'
@@ -409,7 +409,7 @@ class RepositoryExample(models.Model):
         max_length=64,
         blank=True,
         help_text=_('Example intent reference'),
-        validators=[validate_entity_and_intent])
+        validators=[validate_item_key])
     created_at = models.DateTimeField(
         _('created at'),
         auto_now_add=True)
@@ -542,6 +542,43 @@ class RepositoryTranslatedExample(models.Model):
             list(map(lambda x: x.to_dict, my_entities)))
 
 
+class RepositoryEntityLabelQueryset(models.QuerySet):
+    def get(self, repository, value):
+        try:
+            return super().get(
+                repository=repository,
+                value=value)
+        except self.model.DoesNotExist as e:
+            return super().create(
+                repository=repository,
+                value=value)
+
+
+class RepositoryEntityLabelManager(models.Manager):
+    def get_queryset(self):
+        return RepositoryEntityLabelQueryset(self.model, using=self._db)
+
+
+class RepositoryEntityLabel(models.Model):
+    class Meta:
+        unique_together = ['repository', 'value']
+
+    repository = models.ForeignKey(
+        Repository,
+        on_delete=models.CASCADE,
+        related_name='labels')
+    value = models.CharField(
+        _('label'),
+        max_length=64,
+        validators=[validate_item_key],
+        blank=True)
+    created_at = models.DateTimeField(
+        _('created at'),
+        auto_now_add=True)
+
+    objects = RepositoryEntityLabelManager()
+
+
 class RepositoryEntityQueryset(models.QuerySet):
     def get(self, repository, value):
         try:
@@ -571,9 +608,26 @@ class RepositoryEntity(models.Model):
         _('entity'),
         max_length=64,
         help_text=_('Entity name'),
-        validators=[validate_entity_and_intent])
+        validators=[validate_item_key])
+    label = models.ForeignKey(
+        RepositoryEntityLabel,
+        on_delete=models.CASCADE,
+        related_name='entities',
+        null=True,
+        blank=True)
+    created_at = models.DateTimeField(
+        _('created at'),
+        auto_now_add=True)
 
     objects = RepositoryEntityManager()
+
+    def set_label(self, value):
+        if not value:
+            self.label = None
+        else:
+            self.label = RepositoryEntityLabel.objects.get(
+                repository=self.repository,
+                value=value)
 
 
 class EntityBaseQueryset(models.QuerySet):

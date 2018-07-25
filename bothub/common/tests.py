@@ -13,6 +13,7 @@ from .models import RepositoryTranslatedExampleEntity
 from .models import RepositoryAuthorization
 from .models import RequestRepositoryAuthorization
 from .models import RepositoryEntity
+from .models import RepositoryEntityLabel
 from . import languages
 from .exceptions import RepositoryUpdateAlreadyStartedTraining
 from .exceptions import RepositoryUpdateAlreadyTrained
@@ -833,7 +834,7 @@ class RepositoryEntityTestCase(TestCase):
             name_entity.pk,
             self.example_entity_1.pk)
 
-    def test_example_entity_dont_duplicate_entity(self):
+    def test_dont_duplicate_entity(self):
         name_entity = RepositoryEntity.objects.get(
             repository=self.repository,
             value='name')
@@ -850,3 +851,87 @@ class RepositoryEntityTestCase(TestCase):
         self.assertEqual(
             name_entity.pk,
             new_example_entity.entity.pk)
+
+
+class RepositoryEntityLabelTestCase(TestCase):
+    def setUp(self):
+        self.language = languages.LANGUAGE_EN
+
+        self.owner = User.objects.create_user('owner@user.com', 'user')
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name='Test',
+            slug='test',
+            language=self.language)
+
+        self.example = RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(),
+            text='my name is Douglas')
+
+        self.example_entity_1 = RepositoryExampleEntity.objects.create(
+            repository_example=self.example,
+            start=11,
+            end=18,
+            entity='name')
+
+        self.example_entity_2 = RepositoryExampleEntity.objects.create(
+            repository_example=self.example,
+            start=0,
+            end=2,
+            entity='object')
+
+    def test_set_label(self):
+        name_entity = RepositoryEntity.objects.get(
+            repository=self.repository,
+            value='name')
+
+        name_entity.set_label('subject')
+
+        self.assertIsNotNone(name_entity.label)
+
+    def test_entity_label_created(self):
+        name_entity = RepositoryEntity.objects.get(
+            repository=self.repository,
+            value='name')
+
+        name_entity.set_label('subject')
+
+        subject_label = RepositoryEntityLabel.objects.get(
+            repository=self.repository,
+            value='subject')
+
+        self.assertEqual(
+            name_entity.label.pk,
+            subject_label.pk)
+
+    def test_dont_duplicate_label(self):
+        name_entity = RepositoryEntity.objects.get(
+            repository=self.repository,
+            value='name')
+        name_entity.set_label('subject')
+
+        object_entity = RepositoryEntity.objects.get(
+            repository=self.repository,
+            value='object')
+        object_entity.set_label('subject')
+
+        subject_label = RepositoryEntityLabel.objects.get(
+            repository=self.repository,
+            value='subject')
+
+        self.assertEqual(
+            name_entity.label.pk,
+            subject_label.pk)
+        self.assertEqual(
+            object_entity.label.pk,
+            subject_label.pk)
+
+    def test_set_label_to_none(self):
+        name_entity = RepositoryEntity.objects.get(
+            repository=self.repository,
+            value='name')
+
+        name_entity.set_label(None)
+
+        self.assertIsNone(name_entity.label)
