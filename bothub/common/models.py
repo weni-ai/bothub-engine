@@ -193,11 +193,8 @@ class Repository(models.Model):
                     flat=True)))
 
     @property
-    def entities(self):
-        return list(set(self.examples().annotate(
-            entities_count=models.Count(
-                'entities')).filter(entities_count__gte=1).values_list(
-                    'entities__entity', flat=True)))
+    def entities_list(self):
+        return list(set(self.entities.all().values_list('value', flat=True)))
 
     @property
     def admins(self):
