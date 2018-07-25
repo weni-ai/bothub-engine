@@ -11,12 +11,13 @@ from .models import RepositoryExampleEntity
 from .models import RepositoryTranslatedExample
 from .models import RepositoryTranslatedExampleEntity
 from .models import RepositoryAuthorization
-from .models import DoesNotHaveTranslation
 from .models import RequestRepositoryAuthorization
+from .models import RepositoryEntity
 from . import languages
 from .exceptions import RepositoryUpdateAlreadyStartedTraining
 from .exceptions import RepositoryUpdateAlreadyTrained
 from .exceptions import TrainingNotAllowed
+from .exceptions import DoesNotHaveTranslation
 
 
 class RepositoryUpdateTestCase(TestCase):
@@ -794,3 +795,58 @@ class RequestRepositoryAuthorizationTestCase(TestCase):
         with self.assertRaises(ValidationError):
             self.ra.approved_by = self.admin
             self.ra.save()
+
+
+class RepositoryEntityTestCase(TestCase):
+    def setUp(self):
+        self.language = languages.LANGUAGE_EN
+
+        self.owner = User.objects.create_user('owner@user.com', 'user')
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name='Test',
+            slug='test',
+            language=self.language)
+
+        self.example = RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(),
+            text='my name is Douglas')
+
+        self.example_entity_1 = RepositoryExampleEntity.objects.create(
+            repository_example=self.example,
+            start=11,
+            end=18,
+            entity='name')
+
+        self.example_entity_2 = RepositoryExampleEntity.objects.create(
+            repository_example=self.example,
+            start=0,
+            end=2,
+            entity='object')
+
+    def test_example_entity_create_entity(self):
+        name_entity = RepositoryEntity.objects.get(
+            repository=self.repository,
+            value='name')
+        self.assertEqual(
+            name_entity.pk,
+            self.example_entity_1.pk)
+
+    def test_example_entity_dont_duplicate_entity(self):
+        name_entity = RepositoryEntity.objects.get(
+            repository=self.repository,
+            value='name')
+
+        new_example_entity = RepositoryExampleEntity.objects.create(
+            repository_example=self.example,
+            start=11,
+            end=18,
+            entity='name')
+
+        self.assertEqual(
+            name_entity.pk,
+            self.example_entity_1.pk)
+        self.assertEqual(
+            name_entity.pk,
+            new_example_entity.entity.pk)
