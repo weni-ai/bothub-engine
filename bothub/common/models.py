@@ -545,6 +545,58 @@ class RepositoryTranslatedExample(models.Model):
             list(map(lambda x: x.to_dict, my_entities)))
 
 
+class RepositoryEntityQueryset(models.QuerySet):
+    def get(self, repository, value):
+        try:
+            return super().get(
+                repository=repository,
+                value=value)
+        except self.model.DoesNotExist as e:
+            return super().create(
+                repository=repository,
+                value=value)
+
+
+class RepositoryEntityManager(models.Manager):
+    def get_queryset(self):
+        return RepositoryEntityQueryset(self.model, using=self._db)
+
+
+class RepositoryEntity(models.Model):
+    class Meta:
+        unique_together = ['repository', 'value']
+
+    repository = models.ForeignKey(
+        Repository,
+        on_delete=models.CASCADE,
+        related_name='entities')
+    value = models.CharField(
+        _('entity'),
+        max_length=64,
+        help_text=_('Entity name'),
+        validators=[validate_entity_and_intent])
+
+    objects = RepositoryEntityManager()
+
+
+class EntityBaseQueryset(models.QuerySet):
+    def create(self, entity, **kwargs):
+        if type(entity) is not RepositoryEntity:
+            instance = self.model(**kwargs)
+            repository = instance.example.repository_update.repository
+            entity = RepositoryEntity.objects.get(
+                repository=repository,
+                value=entity)
+        return super().create(
+            entity=entity,
+            **kwargs)
+
+
+class EntityBaseManager(models.Manager):
+    def get_queryset(self):
+        return EntityBaseQueryset(self.model, using=self._db)
+
+
 class EntityBase(models.Model):
     class Meta:
         verbose_name = _('repository example entity')
@@ -557,18 +609,22 @@ class EntityBase(models.Model):
     end = models.PositiveIntegerField(
         _('end'),
         help_text=_('End index of entity value in example text'))
-    entity = models.CharField(
-        _('entity'),
-        max_length=64,
-        help_text=_('Entity name'),
-        validators=[validate_entity_and_intent])
+    entity = models.ForeignKey(
+        RepositoryEntity,
+        on_delete=models.CASCADE)
     created_at = models.DateTimeField(
         _('created at'),
         auto_now_add=True)
 
+    objects = EntityBaseManager()
+
+    @property
+    def example(self):
+        return self.get_example()
+
     @property
     def value(self):
-        return self.get_example().text[self.start:self.end]
+        return self.example.text[self.start:self.end]
 
     @property
     def rasa_nlu_data(self):
@@ -576,7 +632,7 @@ class EntityBase(models.Model):
             'start': self.start,
             'end': self.end,
             'value': self.value,
-            'entity': self.entity,
+            'entity': self.entity.value,
         }
 
     @property
@@ -584,7 +640,7 @@ class EntityBase(models.Model):
         return {
             'start': self.start,
             'end': self.end,
-            'entity': self.entity,
+            'entity': self.entity.value,
         }
 
     def get_example(self):

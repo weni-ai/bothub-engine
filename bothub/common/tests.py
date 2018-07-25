@@ -314,7 +314,7 @@ class RepositoryTestCase(TestCase):
 
         self.assertIn(
             'name',
-            self.repository.entities)
+            self.repository.entities.values_list('value', flat=True))
 
     def test_not_blank_value_in_intents(self):
         RepositoryExample.objects.create(
