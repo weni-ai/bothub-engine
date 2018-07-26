@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.fields import empty
 
 from django.utils.translation import gettext as _
 
@@ -8,6 +9,7 @@ from bothub.common.models import RepositoryExampleEntity
 
 from ..fields import EntityText
 from ..fields import EntityValueField
+from ..fields import LabelValueField
 from ..validators import CanContributeInRepositoryExampleValidator
 from ..validators import CanContributeInRepositoryValidator
 from ..validators import ExampleWithIntentOrEntityValidator
@@ -54,9 +56,28 @@ class NewRepositoryExampleEntitySerializer(serializers.ModelSerializer):
             'start',
             'end',
             'entity',
+            'entity_label',
         ]
 
+    repository_example = serializers.PrimaryKeyRelatedField(
+        queryset=RepositoryExample.objects,
+        required=False)
+
     entity = EntityValueField()
+    entity_label = LabelValueField(
+        allow_blank=True,
+        required=False)
+
+    def create(self, validated_data):
+        repository_example = validated_data.pop('repository_example', None)
+        assert repository_example
+        entity_label = validated_data.pop('entity_label', empty)
+        example_entity = self.Meta.model.objects.create(
+            repository_example=repository_example,
+            **validated_data)
+        if entity_label is not empty:
+            example_entity.entity.set_label(entity_label)
+        return example_entity
 
 
 class RepositoryExampleSerializer(serializers.ModelSerializer):
@@ -131,7 +152,8 @@ class NewRepositoryExampleSerializer(serializers.ModelSerializer):
         entities_data = validated_data.pop('entities')
         example = self.Meta.model.objects.create(**validated_data)
         for entity_data in entities_data:
-            RepositoryExampleEntity.objects.create(
-                repository_example=example,
-                **entity_data)
+            entity_data.update({'repository_example': example.pk})
+            entity_serializer = NewRepositoryExampleEntitySerializer(data=entity_data)
+            entity_serializer.is_valid(raise_exception=True)
+            entity_serializer.save()
         return example

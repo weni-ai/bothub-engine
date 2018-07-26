@@ -141,6 +141,29 @@ class NewRepositoryExampleTestCase(TestCase):
             len(content_data.get('entities')),
             1)
 
+    def test_with_entities_with_label(self):
+        response, content_data = self.request(
+            self.owner_token,
+            {
+                'repository': str(self.repository.uuid),
+                'text': 'my name is douglas',
+                'intent': 'greet',
+                'entities': [
+                    {
+                        'start': 11,
+                        'end': 18,
+                        'entity': 'name',
+                        'label': 'subject',
+                    },
+                ],
+            })
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_201_CREATED)
+        self.assertEqual(
+            len(content_data.get('entities')),
+            1)
+
     def test_intent_or_entity_required(self):
         response, content_data = self.request(
             self.owner_token,
