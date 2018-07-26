@@ -153,7 +153,8 @@ class NewRepositoryExampleSerializer(serializers.ModelSerializer):
         example = self.Meta.model.objects.create(**validated_data)
         for entity_data in entities_data:
             entity_data.update({'repository_example': example.pk})
-            entity_serializer = NewRepositoryExampleEntitySerializer(data=entity_data)
+            entity_serializer = NewRepositoryExampleEntitySerializer(
+                data=entity_data)
             entity_serializer.is_valid(raise_exception=True)
             entity_serializer.save()
         return example
