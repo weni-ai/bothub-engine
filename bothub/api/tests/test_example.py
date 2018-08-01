@@ -12,6 +12,7 @@ from bothub.common.models import RepositoryExampleEntity
 
 from ..views import NewRepositoryExampleViewSet
 from ..views import RepositoryExampleViewSet
+from ..views import RepositoryEntitiesViewSet
 
 from .utils import create_user_and_token
 
@@ -410,3 +411,76 @@ class RepositoryExampleDestroyTestCase(TestCase):
         self.assertEqual(
             response.status_code,
             status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class RepositoryEntitiesTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.owner, self.owner_token = create_user_and_token('owner')
+        self.user, self.user_token = create_user_and_token()
+
+        self.entity_value = 'douglas'
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name='Testing',
+            slug='test',
+            language=languages.LANGUAGE_EN)
+        self.example = RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(),
+            text='my name is douglas')
+        self.example_entity = RepositoryExampleEntity.objects.create(
+            repository_example=self.example,
+            start=11,
+            end=18,
+            entity=self.entity_value)
+        self.example_entity.entity.set_label('name')
+        self.example_entity.entity.save()
+
+    def request(self, data, token):
+        authorization_header = {
+            'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
+        }
+        request = self.factory.get(
+            '/api/entities/',
+            data=data,
+            **authorization_header)
+        response = RepositoryEntitiesViewSet.as_view(
+            {'get': 'list'})(request)
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data,)
+
+    def test_okay(self):
+        response, content_data = self.request(
+            {
+                'repository_uuid': self.repository.uuid,
+            },
+            self.owner_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK)
+        self.assertEqual(content_data.get('count'), 1)
+
+        response, content_data = self.request(
+            {
+                'repository_uuid': self.repository.uuid,
+                'value': self.entity_value,
+            },
+            self.owner_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK)
+        self.assertEqual(content_data.get('count'), 1)
+
+        response, content_data = self.request(
+            {
+                'repository_uuid': self.repository.uuid,
+                'value': 'other',
+            },
+            self.owner_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK)
+        self.assertEqual(content_data.get('count'), 0)
