@@ -6,6 +6,7 @@ from django.utils.translation import gettext as _
 from bothub.common.models import Repository
 from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryExampleEntity
+from bothub.common.models import RepositoryEntity
 
 from ..fields import EntityText
 from ..fields import EntityValueField
@@ -158,3 +159,20 @@ class NewRepositoryExampleSerializer(serializers.ModelSerializer):
             entity_serializer.is_valid(raise_exception=True)
             entity_serializer.save()
         return example
+
+
+class RepositoryEntitySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RepositoryEntity
+        fields = [
+            'repository',
+            'value',
+            'label',
+        ]
+
+    label = serializers.SerializerMethodField()
+
+    def get_label(self, obj):
+        if not obj.label:
+            return None
+        return obj.label.value
