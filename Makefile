@@ -10,10 +10,10 @@ help:
 	@exit 0
 
 check_environment:
-	@if [ ${CHECK_ENVIRONMENT} = true ]; then make _check_environment; fi
+	@if [[ ${CHECK_ENVIRONMENT} = true ]]; then make _check_environment; fi
 
 install_requirements:
-	@if [ ${IS_PRODUCTION} = true ]; \
+	@if [[ ${IS_PRODUCTION} = true ]]; \
 		then make install_production_requirements; \
 		else make install_development_requirements; fi
 
@@ -33,7 +33,7 @@ test:
 
 migrate:
 	@make check_environment
-	@if [ ${IS_PRODUCTION} = true ]; \
+	@if [[ ${IS_PRODUCTION} = true ]]; \
 		then python manage.py migrate; \
 		else pipenv run python manage.py migrate; fi
 
@@ -52,7 +52,7 @@ migrations:
 
 collectstatic:
 	@make check_environment
-	@if [ ${IS_PRODUCTION} = true ]; \
+	@if [[ ${IS_PRODUCTION} = true ]]; \
 		then python manage.py collectstatic --no-input; \
 		else pipenv run python manage.py collectstatic --no-input; fi
 
@@ -83,8 +83,8 @@ install_production_requirements:
 	@echo "${SUCCESS}✔${NC} Requirements installed"
 
 development_mode_guard:
-	@if [ ${IS_PRODUCTION} = true ]; then echo "${DANGER}Just run this command in development mode${NC}"; fi
-	@if [ ${IS_PRODUCTION} = true ]; then exit 1; fi
+	@if [[ ${IS_PRODUCTION} = true ]]; then echo "${DANGER}Just run this command in development mode${NC}"; fi
+	@if [[ ${IS_PRODUCTION} = true ]]; then exit 1; fi
 
 
 # Checkers
@@ -92,6 +92,7 @@ development_mode_guard:
 _check_environment:
 	@type pipenv &> /dev/null || (echo "${DANGER}☓${NC} Install pipenv to continue..." && exit 1)
 	@echo "${SUCCESS}✔${NC} pipenv installed"
-	@if [ ! -f "${ENVIRONMENT_VARS_FILE}" && ${IS_PRODUCTION} = false ]; then make create_environment_vars_file; fi
+	@if [[ ! -f "${ENVIRONMENT_VARS_FILE}" && ${IS_PRODUCTION} = false ]]; \
+		then make create_environment_vars_file; fi
 	@make install_requirements
 	@echo "${SUCCESS}✔${NC} Environment checked"
