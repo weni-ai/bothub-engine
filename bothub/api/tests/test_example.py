@@ -164,6 +164,10 @@ class NewRepositoryExampleTestCase(TestCase):
         self.assertEqual(
             len(content_data.get('entities')),
             1)
+        id = content_data.get('id')
+        repository_example = RepositoryExample.objects.get(id=id)
+        example_entity = repository_example.entities.all()[0]
+        self.assertIsNotNone(example_entity.entity.label)
 
     def test_intent_or_entity_required(self):
         response, content_data = self.request(

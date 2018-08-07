@@ -57,7 +57,7 @@ class NewRepositoryExampleEntitySerializer(serializers.ModelSerializer):
             'start',
             'end',
             'entity',
-            'entity_label',
+            'label',
         ]
 
     repository_example = serializers.PrimaryKeyRelatedField(
@@ -65,19 +65,20 @@ class NewRepositoryExampleEntitySerializer(serializers.ModelSerializer):
         required=False)
 
     entity = EntityValueField()
-    entity_label = LabelValueField(
+    label = LabelValueField(
         allow_blank=True,
         required=False)
 
     def create(self, validated_data):
         repository_example = validated_data.pop('repository_example', None)
         assert repository_example
-        entity_label = validated_data.pop('entity_label', empty)
+        label = validated_data.pop('label', empty)
         example_entity = self.Meta.model.objects.create(
             repository_example=repository_example,
             **validated_data)
-        if entity_label is not empty:
-            example_entity.entity.set_label(entity_label)
+        if label is not empty:
+            example_entity.entity.set_label(label)
+            example_entity.entity.save(update_fields=['label'])
         return example_entity
 
 
