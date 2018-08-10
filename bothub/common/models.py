@@ -439,15 +439,6 @@ class RepositoryExample(models.Model):
             return self.entities.all()
         return self.get_translation(language).entities.all()
 
-    def rasa_nlu_data(self, language):
-        return {
-            'text': self.get_text(language),
-            'intent': self.intent,
-            'entities': [
-                entity.rasa_nlu_data for entity in self.get_entities(
-                    language)],
-        }
-
     def delete(self):
         self.deleted_in = self.repository_update.repository.current_update(
             self.repository_update.language)
@@ -688,14 +679,19 @@ class EntityBase(models.Model):
 
     @property
     def to_dict(self):
-        return {
-            'start': self.start,
-            'end': self.end,
-            'entity': self.entity.value,
-        }
+        return self.get_rasa_nlu_data()
 
     def get_example(self):
         pass  # pragma: no cover
+    
+
+    def get_rasa_nlu_data(self, label_as_entity=False):
+        return {
+            'start': self.start,
+            'end': self.end,
+            'entity': self.entity.label.value
+            if label_as_entity else self.entity.value,
+        }
 
 
 class RepositoryExampleEntity(EntityBase):

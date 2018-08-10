@@ -90,17 +90,6 @@ class TranslateTestCase(TestCase):
             len(self.repository.current_update(language).examples),
             1)
 
-    def test_to_rasa_nlu_data(self):
-        language = languages.LANGUAGE_PT
-        RepositoryTranslatedExample.objects.create(
-            original_example=self.example,
-            language=language,
-            text='meu nome é Douglas')
-
-        self.assertDictEqual(
-            self.example.rasa_nlu_data(language),
-            TranslateTestCase.EXPECTED_RASA_NLU_DATA)
-
     def test_translated_entity(self):
         RepositoryExampleEntity.objects.create(
             repository_example=self.example,
@@ -118,9 +107,6 @@ class TranslateTestCase(TestCase):
             start=11,
             end=18,
             entity='name')
-        self.assertDictEqual(
-            self.example.rasa_nlu_data(language),
-            TranslateTestCase.EXPECTED_RASA_NLU_DATA_WITH_ENTITIES)
 
     def test_valid_entities(self):
         RepositoryExampleEntity.objects.create(
