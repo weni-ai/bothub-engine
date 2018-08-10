@@ -683,7 +683,6 @@ class EntityBase(models.Model):
 
     def get_example(self):
         pass  # pragma: no cover
-    
 
     def get_rasa_nlu_data(self, label_as_entity=False):
         return {
