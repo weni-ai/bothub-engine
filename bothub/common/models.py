@@ -32,6 +32,11 @@ validate_item_key = RegexValidator(
 )
 
 
+def can_t_be_other(value):
+    if value == 'other':
+        raise ValidationError(_('The label can\'t be named as "other"'))
+
+
 class RepositoryCategory(models.Model):
     class Meta:
         verbose_name = _('repository category')
@@ -561,7 +566,10 @@ class RepositoryEntityLabel(models.Model):
     value = models.CharField(
         _('label'),
         max_length=64,
-        validators=[validate_item_key],
+        validators=[
+            validate_item_key,
+            can_t_be_other,
+        ],
         blank=True)
     created_at = models.DateTimeField(
         _('created at'),
@@ -683,7 +691,6 @@ class EntityBase(models.Model):
 
     def get_example(self):
         pass  # pragma: no cover
-    
 
     def get_rasa_nlu_data(self, label_as_entity=False):
         return {
