@@ -14,6 +14,7 @@ from ..fields import LabelValueField
 from ..validators import CanContributeInRepositoryExampleValidator
 from ..validators import CanContributeInRepositoryValidator
 from ..validators import ExampleWithIntentOrEntityValidator
+from ..validators import EntityNotEqualLabelValidator
 from .translate import RepositoryTranslatedExampleSerializer
 
 
@@ -68,6 +69,10 @@ class NewRepositoryExampleEntitySerializer(serializers.ModelSerializer):
     label = LabelValueField(
         allow_blank=True,
         required=False)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.validators.append(EntityNotEqualLabelValidator())
 
     def create(self, validated_data):
         repository_example = validated_data.pop('repository_example', None)

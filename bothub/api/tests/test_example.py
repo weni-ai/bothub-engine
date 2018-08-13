@@ -196,6 +196,33 @@ class NewRepositoryExampleTestCase(TestCase):
             'label',
             entities_errors[0])
 
+    def test_with_entities_with_equal_label(self):
+        response, content_data = self.request(
+            self.owner_token,
+            {
+                'repository': str(self.repository.uuid),
+                'text': 'my name is douglas',
+                'intent': 'greet',
+                'entities': [
+                    {
+                        'start': 11,
+                        'end': 18,
+                        'entity': 'name',
+                        'label': 'name',
+                    },
+                ],
+            })
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST)
+        self.assertIn(
+            'entities',
+            content_data.keys())
+        entities_errors = content_data.get('entities')
+        self.assertIn(
+            'label',
+            entities_errors[0])
+
     def test_intent_or_entity_required(self):
         response, content_data = self.request(
             self.owner_token,

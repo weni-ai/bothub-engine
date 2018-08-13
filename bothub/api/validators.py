@@ -82,3 +82,13 @@ class ExampleWithIntentOrEntityValidator(object):
 
         if not intent and not entities:
             raise ValidationError(_('Define a intent or one entity'))
+
+
+class EntityNotEqualLabelValidator(object):
+    def __call__(self, attrs):
+        entity = attrs.get('entity')
+        label = attrs.get('label')
+
+        if entity == label:
+            raise ValidationError({'label': _(
+                'Label name can\'t be equal to entity name')})
