@@ -2,8 +2,6 @@ import uuid
 import base64
 import requests
 
-from functools import reduce
-
 from django.db import models
 from django.utils.translation import gettext as _
 from django.utils import timezone
@@ -517,12 +515,8 @@ class RepositoryTranslatedExample(models.Model):
     @classmethod
     def count_entities(cls, entities_list, to_str=False):
         r = {}
-        reduce(
-            lambda current, next: current.update({
-                next.get('entity'): current.get('entity', 0) + 1,
-            }),
-            entities_list,
-            r)
+        for e in entities_list:
+            r.update({e.get('entity'): r.get('entity', 0) + 1})
         if to_str:
             r = ', '.join(map(
                 lambda x: '{} {}'.format(x[1], x[0]),

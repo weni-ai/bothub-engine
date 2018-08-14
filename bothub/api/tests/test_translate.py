@@ -160,6 +160,41 @@ class TranslateExampleTestCase(TestCase):
             len(content_data.get('entities')),
             1)
 
+    def test_entities_no_valid_2(self):
+        example = RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(),
+            text='my name is douglas')
+        RepositoryExampleEntity.objects.create(
+            repository_example=self.example,
+            start=11,
+            end=18,
+            entity='name')
+        response, content_data = self.request(
+            {
+                'original_example': example.id,
+                'language': languages.LANGUAGE_PT,
+                'text': 'meu nome é douglas',
+                'entities': [
+                    {
+                        'start': 11,
+                        'end': 18,
+                        'entity': 'name',
+                    },
+                    {
+                        'start': 0,
+                        'end': 3,
+                        'entity': 'my',
+                    },
+                ],
+            },
+            self.owner_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            len(content_data.get('entities')),
+            1)
+
     def test_can_not_translate_to_same_language(self):
         response, content_data = self.request(
             {
