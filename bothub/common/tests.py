@@ -159,6 +159,22 @@ class TranslateTestCase(TestCase):
             translate.has_valid_entities,
             False)
 
+        RepositoryTranslatedExampleEntity.objects.create(
+            repository_translated_example=translate,
+            start=11,
+            end=18,
+            entity='name')
+
+        RepositoryTranslatedExampleEntity.objects.create(
+            repository_translated_example=translate,
+            start=0,
+            end=3,
+            entity='my')
+
+        self.assertEqual(
+            translate.has_valid_entities,
+            False)
+
     def test_invalid_how_entities(self):
         RepositoryExampleEntity.objects.create(
             repository_example=self.example,
