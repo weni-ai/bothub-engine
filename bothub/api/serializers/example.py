@@ -7,6 +7,7 @@ from bothub.common.models import Repository
 from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryExampleEntity
 from bothub.common.models import RepositoryEntity
+from bothub.common import languages
 
 from ..fields import EntityText
 from ..fields import EntityValueField
@@ -126,8 +127,9 @@ class NewRepositoryExampleSerializer(serializers.ModelSerializer):
             'repository',
             'repository_update',
             'text',
-            'entities',
+            'language',
             'intent',
+            'entities',
         ]
 
     id = serializers.PrimaryKeyRelatedField(
@@ -139,11 +141,15 @@ class NewRepositoryExampleSerializer(serializers.ModelSerializer):
         validators=[
             CanContributeInRepositoryValidator(),
         ],
-        source='repository_update',
+        write_only=True,
         style={'show': False})
     repository_update = serializers.PrimaryKeyRelatedField(
         read_only=True,
         style={'show': False})
+    language = serializers.ChoiceField(
+        languages.LANGUAGE_CHOICES,
+        allow_blank=True,
+        required=False)
     entities = NewRepositoryExampleEntitySerializer(
         many=True,
         style={'text_field': 'text'})
@@ -152,11 +158,15 @@ class NewRepositoryExampleSerializer(serializers.ModelSerializer):
         super().__init__(*args, **kwargs)
         self.validators.append(ExampleWithIntentOrEntityValidator())
 
-    def validate_repository(self, repository):
-        return repository.current_update()
-
     def create(self, validated_data):
         entities_data = validated_data.pop('entities')
+        repository = validated_data.pop('repository')
+        try:
+            language = validated_data.pop('language')
+        except KeyError as e:
+            language = None
+        repository_update = repository.current_update(language or None)
+        validated_data.update({'repository_update': repository_update})
         example = self.Meta.model.objects.create(**validated_data)
         for entity_data in entities_data:
             entity_data.update({'repository_example': example.pk})

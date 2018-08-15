@@ -9,6 +9,7 @@ from bothub.common import languages
 from bothub.common.models import Repository
 from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryExampleEntity
+from bothub.common.models import RepositoryUpdate
 
 from ..views import NewRepositoryExampleViewSet
 from ..views import RepositoryExampleViewSet
@@ -65,6 +66,33 @@ class NewRepositoryExampleTestCase(TestCase):
         self.assertEqual(
             content_data.get('intent'),
             intent)
+
+    def test_okay_with_language(self):
+        text = 'hi'
+        intent = 'greet'
+        language = languages.LANGUAGE_PT
+        response, content_data = self.request(
+            self.owner_token,
+            {
+                'repository': str(self.repository.uuid),
+                'text': text,
+                'language': language,
+                'intent': intent,
+                'entities': [],
+            })
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_201_CREATED)
+        self.assertEqual(
+            content_data.get('text'),
+            text)
+        self.assertEqual(
+            content_data.get('intent'),
+            intent)
+        repository_update_pk = content_data.get('repository_update')
+        repository_update = RepositoryUpdate.objects.get(
+            pk=repository_update_pk)
+        self.assertEqual(repository_update.language, language)
 
     def test_forbidden(self):
         response, content_data = self.request(
