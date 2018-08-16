@@ -190,14 +190,38 @@ class Repository(models.Model):
     @property
     def intents(self):
         return list(set(self.examples(
-            deleted=False).exclude(
+            exclude_deleted=False).exclude(
                 intent='').values_list(
                     'intent',
                     flat=True)))
 
     @property
+    def current_entities(self):
+        return self.entities.filter(value__in=self.examples(
+            exclude_deleted=True).exclude(
+                entities__entity__value__isnull=True).values_list(
+                    'entities__entity__value',
+                    flat=True).distinct())
+
+    @property
     def entities_list(self):
-        return list(set(self.entities.all().values_list('value', flat=True)))
+        return self.current_entities.values_list(
+            'value',
+            flat=True).distinct()
+
+    @property
+    def current_labels(self):
+        return self.labels.filter(entities__value__in=self.examples(
+            exclude_deleted=True).exclude(
+                entities__entity__value__isnull=True).values_list(
+                    'entities__entity__value',
+                    flat=True).distinct())
+
+    @property
+    def labels_list(self):
+        return self.current_labels.values_list(
+            'value',
+            flat=True).distinct()
 
     @property
     def admins(self):
@@ -207,7 +231,7 @@ class Repository(models.Model):
         ]
         return list(set(admins))
 
-    def examples(self, language=None, deleted=True, queryset=None):
+    def examples(self, language=None, exclude_deleted=True, queryset=None):
         if queryset is None:
             queryset = RepositoryExample.objects
         query = queryset.filter(
@@ -215,7 +239,7 @@ class Repository(models.Model):
         if language:
             query = query.filter(
                 repository_update__language=language)
-        if deleted:
+        if exclude_deleted:
             return query.exclude(deleted_in__isnull=False)
         return query
 
@@ -323,7 +347,7 @@ class RepositoryUpdate(models.Model):
 
     @property
     def examples(self):
-        examples = self.repository.examples(deleted=False).filter(
+        examples = self.repository.examples(exclude_deleted=False).filter(
             models.Q(repository_update__language=self.language) |
             models.Q(translations__language=self.language))
         if self.training_started_at:

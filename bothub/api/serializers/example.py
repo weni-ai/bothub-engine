@@ -7,6 +7,7 @@ from bothub.common.models import Repository
 from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryExampleEntity
 from bothub.common.models import RepositoryEntity
+from bothub.common.models import RepositoryEntityLabel
 from bothub.common import languages
 
 from ..fields import EntityText
@@ -192,3 +193,18 @@ class RepositoryEntitySerializer(serializers.ModelSerializer):
         if not obj.label:
             return None
         return obj.label.value
+
+
+class RepositoryEntityLabelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RepositoryEntityLabel
+        fields = [
+            'repository',
+            'value',
+            'entities',
+        ]
+
+    entities = serializers.SlugRelatedField(
+        many=True,
+        slug_field='value',
+        read_only=True)

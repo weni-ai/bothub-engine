@@ -14,6 +14,7 @@ from ..fields import TextField
 
 from .category import RepositoryCategorySerializer
 from .request import RequestRepositoryAuthorizationSerializer
+from .example import RepositoryEntityLabelSerializer
 
 
 class NewRepositorySerializer(serializers.ModelSerializer):
@@ -70,6 +71,8 @@ class RepositorySerializer(serializers.ModelSerializer):
             'is_private',
             'intents',
             'entities',
+            'labels',
+            'labels_list',
             'examples__count',
             'authorization',
             'available_request_authorization',
@@ -88,6 +91,8 @@ class RepositorySerializer(serializers.ModelSerializer):
         read_only=True)
     categories_list = serializers.SerializerMethodField()
     entities = serializers.SerializerMethodField()
+    labels = RepositoryEntityLabelSerializer(many=True)
+    labels_list = serializers.SerializerMethodField()
     authorization = serializers.SerializerMethodField()
     examples__count = serializers.SerializerMethodField()
     request_authorization = serializers.SerializerMethodField()
@@ -98,6 +103,9 @@ class RepositorySerializer(serializers.ModelSerializer):
 
     def get_entities(self, obj):
         return obj.entities_list
+
+    def get_labels_list(self, obj):
+        return obj.labels_list
 
     def get_authorization(self, obj):
         request = self.context.get('request')
