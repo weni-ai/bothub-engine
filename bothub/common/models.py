@@ -81,7 +81,8 @@ class Repository(models.Model):
         editable=False)
     owner = models.ForeignKey(
         User,
-        models.CASCADE)
+        models.CASCADE,
+        related_name='repositories')
     name = models.CharField(
         _('name'),
         max_length=64,
