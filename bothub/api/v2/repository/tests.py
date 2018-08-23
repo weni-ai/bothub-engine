@@ -38,6 +38,7 @@ def get_valid_mockups(categories):
         },
     ]
 
+
 def get_invalid_mockups(categories):
     return [
         {
