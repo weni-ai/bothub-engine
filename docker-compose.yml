@@ -12,8 +12,8 @@ services:
   bothub:
     image: ${DOCKER_IMAGE_NAME:-ilha/bothub}:${TAG:-latest}
     build:
-      context: ..
-      dockerfile: docker/Dockerfile
+      context: .
+      dockerfile: Dockerfile
     ports:
       - 80:80
     environment:
@@ -36,10 +36,6 @@ services:
       - CSRF_COOKIE_SECURE=${CSRF_COOKIE_SECURE:-false}
       - BOTHUB_WEBAPP_BASE_URL=${BOTHUB_WEBAPP_BASE_URL:-http://localhost/}
       - BOTHUB_NLP_BASE_URL=${BOTHUB_NLP_BASE_URL:-http://localhost:2657/}
-      - BUILD_WEBAPP=${BUILD_WEBAPP:-true}
-      - WEBAPP_REPO=${WEBAPP_REPO:-https://github.com/Ilhasoft/bothub-webapp}
-      - WEBAPP_BRANCH=${WEBAPP_BRANCH:-master}
-      - API_BASE_URL=${API_BASE_URL:-/api}
       - CHECK_ACCESSIBLE_API_URL=${CHECK_ACCESSIBLE_API_URL}
       - SEND_EMAILS=${SEND_EMAILS:-true}
       - SUPPORTED_LANGUAGES=${SUPPORTED_LANGUAGES:-en|pt}
