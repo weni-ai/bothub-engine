@@ -23,11 +23,11 @@ from django.db.models import Q
 from bothub.common.models import Repository
 from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryTranslatedExample
-from bothub.common.models import RepositoryTranslatedExampleEntity
 from bothub.common.models import RepositoryCategory
 from bothub.common.models import RepositoryVote
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RequestRepositoryAuthorization
+from bothub.common.models import RepositoryEntity
 from bothub.authentication.models import User
 
 from .serializers import RepositorySerializer
@@ -35,7 +35,6 @@ from .serializers import NewRepositorySerializer
 from .serializers import RepositoryExampleSerializer
 from .serializers import RepositoryAuthorizationSerializer
 from .serializers import RepositoryTranslatedExampleSerializer
-from .serializers import RepositoryTranslatedExampleEntitySeralizer
 from .serializers import RegisterUserSerializer
 from .serializers import UserSerializer
 from .serializers import ChangePasswordSerializer
@@ -52,6 +51,7 @@ from .serializers import RepositoryAuthorizationRoleSerializer
 from .serializers import NewRequestRepositoryAuthorizationSerializer
 from .serializers import RequestRepositoryAuthorizationSerializer
 from .serializers import ReviewAuthorizationRequestSerializer
+from .serializers import RepositoryEntitySerializer
 
 
 # Permisions
@@ -105,6 +105,18 @@ class RepositoryAdminManagerAuthorization(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         authorization = obj.repository.get_user_authorization(request.user)
         return authorization.is_admin
+
+
+class RepositoryEntityHasPermission(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        authorization = obj.repository.get_user_authorization(request.user)
+        if request.method in READ_METHODS:
+            return authorization.can_read
+        if request.user.is_authenticated:
+            if request.method in WRITE_METHODS:
+                return authorization.can_write
+            return authorization.is_admin
+        return False
 
 
 # Filters
@@ -264,6 +276,35 @@ class RepositoryAuthorizationRequestsFilter(filters.FilterSet):
     class Meta:
         model = RequestRepositoryAuthorization
         fields = ['repository_uuid']
+
+    repository_uuid = filters.CharFilter(
+        name='repository_uuid',
+        required=True,
+        method='filter_repository_uuid',
+        help_text=_('Repository\'s UUID'))
+
+    def filter_repository_uuid(self, queryset, name, value):
+        request = self.request
+        try:
+            repository = Repository.objects.get(uuid=value)
+            authorization = repository.get_user_authorization(request.user)
+            if not authorization.is_admin:
+                raise PermissionDenied()
+            return queryset.filter(repository=repository)
+        except Repository.DoesNotExist:
+            raise NotFound(
+                _('Repository {} does not exist').format(value))
+        except DjangoValidationError:
+            raise NotFound(_('Invalid repository UUID'))
+
+
+class RepositoryEntitiesFilter(filters.FilterSet):
+    class Meta:
+        model = RepositoryEntity
+        fields = [
+            'repository_uuid',
+            'value',
+        ]
 
     repository_uuid = filters.CharFilter(
         name='repository_uuid',
@@ -577,38 +618,6 @@ class RepositoryTranslatedExampleViewSet(
     permission_classes = [
         permissions.IsAuthenticated,
         RepositoryTranslatedExamplePermission,
-    ]
-
-
-class NewRepositoryTranslatedExampleEntityViewSet(
-        mixins.CreateModelMixin,
-        GenericViewSet):
-    """
-    Add entity to example translation
-    """
-    queryset = RepositoryTranslatedExampleEntity.objects
-    serializer_class = RepositoryTranslatedExampleEntitySeralizer
-    permission_classes = [permissions.IsAuthenticated]
-
-
-class RepositoryTranslatedExampleEntityViewSet(
-        mixins.RetrieveModelMixin,
-        mixins.DestroyModelMixin,
-        GenericViewSet):
-    """
-    Manage translation entity
-
-    retrieve:
-    Get translation entity data.
-
-    delete:
-    Delete translation entity.
-    """
-    queryset = RepositoryTranslatedExampleEntity.objects
-    serializer_class = RepositoryTranslatedExampleEntitySeralizer
-    permission_classes = [
-        permissions.IsAuthenticated,
-        RepositoryTranslatedExampleEntityPermission,
     ]
 
 
@@ -930,3 +939,15 @@ class ReviewAuthorizationRequestViewSet(
             return super().update(*args, **kwargs)
         except DjangoValidationError as e:
             raise ValidationError(e.message)
+
+
+class RepositoryEntitiesViewSet(
+        mixins.ListModelMixin,
+        GenericViewSet):
+    queryset = RepositoryEntity.objects.all()
+    serializer_class = RepositoryEntitySerializer
+    filter_class = RepositoryEntitiesFilter
+    permission_classes = [
+        IsAuthenticated,
+        RepositoryEntityHasPermission,
+    ]

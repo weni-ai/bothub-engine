@@ -20,7 +20,7 @@ install_requirements:
 lint:
 	@make development_mode_guard
 	@make check_environment
-	@pipenv run flake8
+	@PIPENV_DONT_LOAD_ENV=1 pipenv run flake8
 	@echo "${SUCCESS}✔${NC} The code is following the PEP8"
 
 test:
@@ -92,6 +92,7 @@ development_mode_guard:
 _check_environment:
 	@type pipenv &> /dev/null || (echo "${DANGER}☓${NC} Install pipenv to continue..." && exit 1)
 	@echo "${SUCCESS}✔${NC} pipenv installed"
-	@if [[ ! -f "${ENVIRONMENT_VARS_FILE}" && ${IS_PRODUCTION} = false ]]; then make create_environment_vars_file; fi
+	@if [[ ! -f "${ENVIRONMENT_VARS_FILE}" && ${IS_PRODUCTION} = false ]]; \
+		then make create_environment_vars_file; fi
 	@make install_requirements
 	@echo "${SUCCESS}✔${NC} Environment checked"

@@ -7,8 +7,6 @@ from .views import NewRepositoryExampleViewSet
 from .views import RepositoryExampleViewSet
 from .views import NewRepositoryTranslatedExampleViewSet
 from .views import RepositoryTranslatedExampleViewSet
-from .views import NewRepositoryTranslatedExampleEntityViewSet
-from .views import RepositoryTranslatedExampleEntityViewSet
 from .views import RepositoryExamplesViewSet
 from .views import RegisterUserViewSet
 from .views import LoginViewSet
@@ -26,6 +24,7 @@ from .views import SearchUserViewSet
 from .views import RequestAuthorizationViewSet
 from .views import RepositoryAuthorizationRequestsViewSet
 from .views import ReviewAuthorizationRequestViewSet
+from .views import RepositoryEntitiesViewSet
 
 
 class Router(routers.SimpleRouter):
@@ -101,10 +100,6 @@ router.register('example/new', NewRepositoryExampleViewSet)
 router.register('example', RepositoryExampleViewSet)
 router.register('translate-example', NewRepositoryTranslatedExampleViewSet)
 router.register('translation', RepositoryTranslatedExampleViewSet)
-router.register('translation-entity/new',
-                NewRepositoryTranslatedExampleEntityViewSet)
-router.register('translation-entity',
-                RepositoryTranslatedExampleEntityViewSet)
 router.register('examples', RepositoryExamplesViewSet)
 router.register('register', RegisterUserViewSet)
 router.register('login', LoginViewSet)
@@ -125,3 +120,4 @@ router.register('authorization-requests',
                 RepositoryAuthorizationRequestsViewSet)
 router.register('review-authorization-request',
                 ReviewAuthorizationRequestViewSet)
+router.register('entities', RepositoryEntitiesViewSet)
