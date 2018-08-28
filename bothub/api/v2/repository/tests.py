@@ -72,13 +72,6 @@ def get_invalid_mockups(categories):
             'is_private': False,
         },
         {
-            'name': 'Repository 3',
-            'slug': 'repo3',
-            'language': languages.LANGUAGE_EN,
-            'categories': [],
-            'is_private': False,
-        },
-        {
             'name': 'Repository 4',
             'slug': 'repository 4',
             'language': languages.LANGUAGE_EN,

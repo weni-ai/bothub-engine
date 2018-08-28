@@ -37,27 +37,39 @@ class RepositorySerializer(serializers.ModelSerializer):
             'uuid',
             'name',
             'slug',
-            'language',
             'description',
             'is_private',
-            'absolute_url',
             'available_languages',
             'intents',
             'entities_list',
             'labels_list',
             'ready_for_train',
             'created_at',
+            'language',
             'owner',
             'owner__nickname',
             'categories',
             'categories_list',
             'labels',
             'examples__count',
+            'absolute_url',
+        ]
+        read_only = [
+            'uuid',
+            'available_languages',
+            'intents',
+            'entities_list',
+            'labels_list',
+            'ready_for_train',
+            'created_at',
         ]
 
+    language = serializers.ChoiceField(
+        LANGUAGE_CHOICES,
+        label=Repository._meta.get_field('language').verbose_name)
     owner = serializers.PrimaryKeyRelatedField(
-        read_only=True,
-        default=serializers.CurrentUserDefault())
+        default=serializers.CurrentUserDefault(),
+        read_only=True)
     owner__nickname = serializers.SlugRelatedField(
         source='owner',
         slug_field='nickname',
@@ -70,19 +82,14 @@ class RepositorySerializer(serializers.ModelSerializer):
         slug_field='name',
         many=True,
         read_only=True)
-    language = serializers.ChoiceField(
-        LANGUAGE_CHOICES,
-        label=Repository._meta.get_field('language').verbose_name)
-    owner__nickname = serializers.SlugRelatedField(
-        source='owner',
-        slug_field='nickname',
+    labels = RepositoryEntityLabelSerializer(
+        many=True,
         read_only=True)
-    absolute_url = serializers.SerializerMethodField()
-    labels = RepositoryEntityLabelSerializer(many=True)
     examples__count = serializers.SerializerMethodField()
-
-    def get_absolute_url(self, obj):
-        return obj.get_absolute_url()
+    absolute_url = serializers.SerializerMethodField()
 
     def get_examples__count(self, obj):
         return obj.examples().count()
+
+    def get_absolute_url(self, obj):
+        return obj.get_absolute_url()
