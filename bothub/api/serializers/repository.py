@@ -102,10 +102,10 @@ class RepositorySerializer(serializers.ModelSerializer):
         return RepositoryCategorySerializer(obj.categories, many=True).data
 
     def get_entities(self, obj):
-        return obj.entities_list
+        return list(obj.entities_list)
 
     def get_labels_list(self, obj):
-        return obj.labels_list
+        return list(obj.labels_list)
 
     def get_authorization(self, obj):
         request = self.context.get('request')
