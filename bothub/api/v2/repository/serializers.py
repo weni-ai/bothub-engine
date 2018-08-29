@@ -22,12 +22,17 @@ class RepositoryEntityLabelSerializer(serializers.ModelSerializer):
             'repository',
             'value',
             'entities',
+            'examples__count',
         ]
 
     entities = serializers.SlugRelatedField(
         many=True,
         slug_field='value',
         read_only=True)
+    examples__count = serializers.SerializerMethodField()
+
+    def get_examples__count(self, obj):
+        return obj.examples().count()
 
 
 class IntentSerializer(serializers.Serializer):
@@ -90,6 +95,7 @@ class RepositorySerializer(serializers.ModelSerializer):
         many=True,
         read_only=True)
     labels = RepositoryEntityLabelSerializer(
+        source='current_labels',
         many=True,
         read_only=True)
     examples__count = serializers.SerializerMethodField()

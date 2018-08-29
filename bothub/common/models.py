@@ -216,7 +216,7 @@ class Repository(models.Model):
             exclude_deleted=True).exclude(
                 entities__entity__value__isnull=True).values_list(
                     'entities__entity__value',
-                    flat=True).distinct())
+                    flat=True).distinct()).distinct()
 
     @property
     def labels_list(self):
@@ -595,6 +595,11 @@ class RepositoryEntityLabel(models.Model):
         auto_now_add=True)
 
     objects = RepositoryEntityLabelManager()
+
+    def examples(self, exclude_deleted=True):
+        return self.repository.examples(
+            exclude_deleted=exclude_deleted).filter(
+                entities__entity__label=self)
 
 
 class RepositoryEntityQueryset(models.QuerySet):
