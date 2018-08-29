@@ -30,6 +30,11 @@ class RepositoryEntityLabelSerializer(serializers.ModelSerializer):
         read_only=True)
 
 
+class IntentSerializer(serializers.Serializer):
+    value = serializers.CharField()
+    examples__count = serializers.IntegerField()
+
+
 class RepositorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Repository
@@ -40,7 +45,6 @@ class RepositorySerializer(serializers.ModelSerializer):
             'description',
             'is_private',
             'available_languages',
-            'intents',
             'entities_list',
             'labels_list',
             'ready_for_train',
@@ -50,6 +54,8 @@ class RepositorySerializer(serializers.ModelSerializer):
             'owner__nickname',
             'categories',
             'categories_list',
+            'intents',
+            'intents_list',
             'labels',
             'examples__count',
             'absolute_url',
@@ -57,7 +63,6 @@ class RepositorySerializer(serializers.ModelSerializer):
         read_only = [
             'uuid',
             'available_languages',
-            'intents',
             'entities_list',
             'labels_list',
             'ready_for_train',
@@ -74,6 +79,8 @@ class RepositorySerializer(serializers.ModelSerializer):
         source='owner',
         slug_field='nickname',
         read_only=True)
+    intents = serializers.SerializerMethodField()
+    intents_list = serializers.SerializerMethodField()
     categories = RepositoryCategorySerializer(
         many=True,
         read_only=True)
@@ -87,6 +94,21 @@ class RepositorySerializer(serializers.ModelSerializer):
         read_only=True)
     examples__count = serializers.SerializerMethodField()
     absolute_url = serializers.SerializerMethodField()
+
+    def get_intents(self, obj):
+        return IntentSerializer(
+            map(
+                lambda intent: {
+                    'value': intent,
+                    'examples__count': obj.examples(
+                        exclude_deleted=False).filter(
+                            intent=intent).count(),
+                },
+                obj.intents),
+            many=True).data
+
+    def get_intents_list(self, obj):
+        return obj.intents
 
     def get_examples__count(self, obj):
         return obj.examples().count()
