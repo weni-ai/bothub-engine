@@ -59,7 +59,8 @@ class ListExamplesAPITestCase(TestCase):
             text='hi',
             intent='greet')
         self.example_6 = RepositoryExample.objects.create(
-            repository_update=self.repository_2.current_update(languages.LANGUAGE_PT),
+            repository_update=self.repository_2.current_update(
+                languages.LANGUAGE_PT),
             text='oi',
             intent='greet')
         self.translation_6 = RepositoryTranslatedExample.objects.create(
