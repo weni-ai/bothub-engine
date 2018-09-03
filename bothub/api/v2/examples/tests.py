@@ -201,13 +201,16 @@ class ListExamplesAPITestCase(TestCase):
             content_data.get('count'),
             1)
 
-    def test_order_by_translation(self):
+    def test_filter_order_by_translation(self):
         response, content_data = self.request(
             {
                 'repository_uuid': self.repository_2.uuid,
                 'order_by_translation': languages.LANGUAGE_EN,
             },
             self.owner_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK)
         results = content_data.get('results')
         self.assertEqual(
             0,
@@ -216,13 +219,16 @@ class ListExamplesAPITestCase(TestCase):
             1,
             len(results[1].get('translations')))
 
-    def test_order_by_translation_inverted(self):
+    def test_filter_order_by_translation_inverted(self):
         response, content_data = self.request(
             {
                 'repository_uuid': self.repository_2.uuid,
                 'order_by_translation': '-{}'.format(languages.LANGUAGE_EN),
             },
             self.owner_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK)
         results = content_data.get('results')
         self.assertEqual(
             1,
@@ -230,3 +236,17 @@ class ListExamplesAPITestCase(TestCase):
         self.assertEqual(
             0,
             len(results[1].get('translations')))
+
+    def test_filter_intent(self):
+        response, content_data = self.request(
+            {
+                'repository_uuid': self.repository.uuid,
+                'intent': 'farewell',
+            },
+            self.owner_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK)
+        self.assertEqual(
+            content_data.get('count'),
+            2)

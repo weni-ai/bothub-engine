@@ -16,6 +16,7 @@ class ExamplesFilter(filters.FilterSet):
         fields = [
             'text',
             'language',
+            'intent',
         ]
 
     repository_uuid = filters.CharFilter(
