@@ -204,6 +204,7 @@ class RepositoryEntityLabelSerializer(serializers.ModelSerializer):
             'entities',
         ]
 
+    repository = serializers.StringRelatedField(read_only=True)
     entities = serializers.SlugRelatedField(
         many=True,
         slug_field='value',
