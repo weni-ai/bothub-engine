@@ -7,6 +7,7 @@ from rest_framework import status
 from bothub.common.models import Repository
 from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryTranslatedExample
+from bothub.common.models import RepositoryExampleEntity
 from bothub.common import languages
 
 from ..tests.utils import create_user_and_token
@@ -28,6 +29,13 @@ class ListExamplesAPITestCase(TestCase):
             repository_update=self.repository.current_update(),
             text='hi',
             intent='greet')
+        entity_1 = RepositoryExampleEntity.objects.create(
+            repository_example=self.example_1,
+            start=0,
+            end=0,
+            entity='hi')
+        entity_1.entity.set_label('greet')
+        entity_1.entity.save()
         self.example_2 = RepositoryExample.objects.create(
             repository_update=self.repository.current_update(),
             text='hello',
@@ -250,3 +258,17 @@ class ListExamplesAPITestCase(TestCase):
         self.assertEqual(
             content_data.get('count'),
             2)
+
+    def test_filter_label(self):
+        response, content_data = self.request(
+            {
+                'repository_uuid': self.repository.uuid,
+                'label': 'greet',
+            },
+            self.owner_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK)
+        self.assertEqual(
+            content_data.get('count'),
+            1)

@@ -39,6 +39,10 @@ class ExamplesFilter(filters.FilterSet):
         name='order_by_translation',
         method='filter_order_by_translation',
         help_text=_('Order examples with translation by language'))
+    label = filters.CharFilter(
+        name='label',
+        method='filter_label',
+        help_text=_('Filter for examples with entities with specific label.'))
 
     def filter_repository_uuid(self, queryset, name, value):
         request = self.request
@@ -84,3 +88,6 @@ class ExamplesFilter(filters.FilterSet):
         result_queryset = result_queryset.order_by(
             '-translation_count' if inverted else 'translation_count')
         return result_queryset
+
+    def filter_label(self, queryset, name, value):
+        return queryset.filter(entities__entity__label__value=value)
