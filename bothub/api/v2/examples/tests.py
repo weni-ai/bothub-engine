@@ -200,3 +200,33 @@ class ListExamplesAPITestCase(TestCase):
         self.assertEqual(
             content_data.get('count'),
             1)
+
+    def test_order_by_translation(self):
+        response, content_data = self.request(
+            {
+                'repository_uuid': self.repository_2.uuid,
+                'order_by_translation': languages.LANGUAGE_EN,
+            },
+            self.owner_token)
+        results = content_data.get('results')
+        self.assertEqual(
+            0,
+            len(results[0].get('translations')))
+        self.assertEqual(
+            1,
+            len(results[1].get('translations')))
+
+    def test_order_by_translation_inverted(self):
+        response, content_data = self.request(
+            {
+                'repository_uuid': self.repository_2.uuid,
+                'order_by_translation': '-{}'.format(languages.LANGUAGE_EN),
+            },
+            self.owner_token)
+        results = content_data.get('results')
+        self.assertEqual(
+            1,
+            len(results[0].get('translations')))
+        self.assertEqual(
+            0,
+            len(results[1].get('translations')))
