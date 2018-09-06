@@ -2,8 +2,6 @@ import uuid
 import base64
 import requests
 
-from functools import reduce
-
 from django.db import models
 from django.utils.translation import gettext as _
 from django.utils import timezone
@@ -23,13 +21,18 @@ from .exceptions import TrainingNotAllowed
 from .exceptions import DoesNotHaveTranslation
 
 
-entity_and_intent_regex = _lazy_re_compile(r'^[-a-z0-9_]+\Z')
-validate_entity_and_intent = RegexValidator(
-    entity_and_intent_regex,
+item_key_regex = _lazy_re_compile(r'^[-a-z0-9_]+\Z')
+validate_item_key = RegexValidator(
+    item_key_regex,
     _('Enter a valid value consisting of lowercase letters, numbers, ' +
         'underscores or hyphens.'),
     'invalid'
 )
+
+
+def can_t_be_other(value):
+    if value == 'other':
+        raise ValidationError(_('The label can\'t be named as "other"'))
 
 
 class RepositoryCategory(models.Model):
@@ -187,17 +190,38 @@ class Repository(models.Model):
     @property
     def intents(self):
         return list(set(self.examples(
-            deleted=False).exclude(
+            exclude_deleted=False).exclude(
                 intent='').values_list(
                     'intent',
                     flat=True)))
 
     @property
-    def entities(self):
-        return list(set(self.examples().annotate(
-            entities_count=models.Count(
-                'entities')).filter(entities_count__gte=1).values_list(
-                    'entities__entity', flat=True)))
+    def current_entities(self):
+        return self.entities.filter(value__in=self.examples(
+            exclude_deleted=True).exclude(
+                entities__entity__value__isnull=True).values_list(
+                    'entities__entity__value',
+                    flat=True).distinct())
+
+    @property
+    def entities_list(self):
+        return self.current_entities.values_list(
+            'value',
+            flat=True).distinct()
+
+    @property
+    def current_labels(self):
+        return self.labels.filter(entities__value__in=self.examples(
+            exclude_deleted=True).exclude(
+                entities__entity__value__isnull=True).values_list(
+                    'entities__entity__value',
+                    flat=True).distinct())
+
+    @property
+    def labels_list(self):
+        return self.current_labels.values_list(
+            'value',
+            flat=True).distinct()
 
     @property
     def admins(self):
@@ -207,7 +231,7 @@ class Repository(models.Model):
         ]
         return list(set(admins))
 
-    def examples(self, language=None, deleted=True, queryset=None):
+    def examples(self, language=None, exclude_deleted=True, queryset=None):
         if queryset is None:
             queryset = RepositoryExample.objects
         query = queryset.filter(
@@ -215,7 +239,7 @@ class Repository(models.Model):
         if language:
             query = query.filter(
                 repository_update__language=language)
-        if deleted:
+        if exclude_deleted:
             return query.exclude(deleted_in__isnull=False)
         return query
 
@@ -323,7 +347,7 @@ class RepositoryUpdate(models.Model):
 
     @property
     def examples(self):
-        examples = self.repository.examples(deleted=False).filter(
+        examples = self.repository.examples(exclude_deleted=False).filter(
             models.Q(repository_update__language=self.language) |
             models.Q(translations__language=self.language))
         if self.training_started_at:
@@ -412,7 +436,7 @@ class RepositoryExample(models.Model):
         max_length=64,
         blank=True,
         help_text=_('Example intent reference'),
-        validators=[validate_entity_and_intent])
+        validators=[validate_item_key])
     created_at = models.DateTimeField(
         _('created at'),
         auto_now_add=True)
@@ -441,15 +465,6 @@ class RepositoryExample(models.Model):
         if not language or language == self.repository_update.language:
             return self.entities.all()
         return self.get_translation(language).entities.all()
-
-    def rasa_nlu_data(self, language):
-        return {
-            'text': self.get_text(language),
-            'intent': self.intent,
-            'entities': [
-                entity.rasa_nlu_data for entity in self.get_entities(
-                    language)],
-        }
 
     def delete(self):
         self.deleted_in = self.repository_update.repository.current_update(
@@ -524,12 +539,8 @@ class RepositoryTranslatedExample(models.Model):
     @classmethod
     def count_entities(cls, entities_list, to_str=False):
         r = {}
-        reduce(
-            lambda current, next: current.update({
-                next.get('entity'): current.get('entity', 0) + 1,
-            }),
-            entities_list,
-            r)
+        for e in entities_list:
+            r.update({e.get('entity'): r.get('entity', 0) + 1})
         if to_str:
             r = ', '.join(map(
                 lambda x: '{} {}'.format(x[1], x[0]),
@@ -545,6 +556,115 @@ class RepositoryTranslatedExample(models.Model):
             list(map(lambda x: x.to_dict, my_entities)))
 
 
+class RepositoryEntityLabelQueryset(models.QuerySet):
+    def get(self, repository, value):
+        try:
+            return super().get(
+                repository=repository,
+                value=value)
+        except self.model.DoesNotExist as e:
+            return super().create(
+                repository=repository,
+                value=value)
+
+
+class RepositoryEntityLabelManager(models.Manager):
+    def get_queryset(self):
+        return RepositoryEntityLabelQueryset(self.model, using=self._db)
+
+
+class RepositoryEntityLabel(models.Model):
+    class Meta:
+        unique_together = ['repository', 'value']
+
+    repository = models.ForeignKey(
+        Repository,
+        on_delete=models.CASCADE,
+        related_name='labels')
+    value = models.CharField(
+        _('label'),
+        max_length=64,
+        validators=[
+            validate_item_key,
+            can_t_be_other,
+        ],
+        blank=True)
+    created_at = models.DateTimeField(
+        _('created at'),
+        auto_now_add=True)
+
+    objects = RepositoryEntityLabelManager()
+
+
+class RepositoryEntityQueryset(models.QuerySet):
+    def get(self, repository, value):
+        try:
+            return super().get(
+                repository=repository,
+                value=value)
+        except self.model.DoesNotExist as e:
+            return super().create(
+                repository=repository,
+                value=value)
+
+
+class RepositoryEntityManager(models.Manager):
+    def get_queryset(self):
+        return RepositoryEntityQueryset(self.model, using=self._db)
+
+
+class RepositoryEntity(models.Model):
+    class Meta:
+        unique_together = ['repository', 'value']
+
+    repository = models.ForeignKey(
+        Repository,
+        on_delete=models.CASCADE,
+        related_name='entities')
+    value = models.CharField(
+        _('entity'),
+        max_length=64,
+        help_text=_('Entity name'),
+        validators=[validate_item_key])
+    label = models.ForeignKey(
+        RepositoryEntityLabel,
+        on_delete=models.CASCADE,
+        related_name='entities',
+        null=True,
+        blank=True)
+    created_at = models.DateTimeField(
+        _('created at'),
+        auto_now_add=True)
+
+    objects = RepositoryEntityManager()
+
+    def set_label(self, value):
+        if not value:
+            self.label = None
+        else:
+            self.label = RepositoryEntityLabel.objects.get(
+                repository=self.repository,
+                value=value)
+
+
+class EntityBaseQueryset(models.QuerySet):
+    def create(self, entity, **kwargs):
+        if type(entity) is not RepositoryEntity:
+            instance = self.model(**kwargs)
+            repository = instance.example.repository_update.repository
+            entity = RepositoryEntity.objects.get(
+                repository=repository,
+                value=entity)
+        return super().create(
+            entity=entity,
+            **kwargs)
+
+
+class EntityBaseManager(models.Manager):
+    def get_queryset(self):
+        return EntityBaseQueryset(self.model, using=self._db)
+
+
 class EntityBase(models.Model):
     class Meta:
         verbose_name = _('repository example entity')
@@ -557,18 +677,22 @@ class EntityBase(models.Model):
     end = models.PositiveIntegerField(
         _('end'),
         help_text=_('End index of entity value in example text'))
-    entity = models.CharField(
-        _('entity'),
-        max_length=64,
-        help_text=_('Entity name'),
-        validators=[validate_entity_and_intent])
+    entity = models.ForeignKey(
+        RepositoryEntity,
+        on_delete=models.CASCADE)
     created_at = models.DateTimeField(
         _('created at'),
         auto_now_add=True)
 
+    objects = EntityBaseManager()
+
+    @property
+    def example(self):
+        return self.get_example()
+
     @property
     def value(self):
-        return self.get_example().text[self.start:self.end]
+        return self.example.text[self.start:self.end]
 
     @property
     def rasa_nlu_data(self):
@@ -576,19 +700,23 @@ class EntityBase(models.Model):
             'start': self.start,
             'end': self.end,
             'value': self.value,
-            'entity': self.entity,
+            'entity': self.entity.value,
         }
 
     @property
     def to_dict(self):
-        return {
-            'start': self.start,
-            'end': self.end,
-            'entity': self.entity,
-        }
+        return self.get_rasa_nlu_data()
 
     def get_example(self):
         pass  # pragma: no cover
+
+    def get_rasa_nlu_data(self, label_as_entity=False):
+        return {
+            'start': self.start,
+            'end': self.end,
+            'entity': self.entity.label.value
+            if label_as_entity else self.entity.value,
+        }
 
 
 class RepositoryExampleEntity(EntityBase):
