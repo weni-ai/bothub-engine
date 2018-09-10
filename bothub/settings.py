@@ -239,3 +239,8 @@ SUPPORTED_LANGUAGES = config(
     'SUPPORTED_LANGUAGES',
     default='en|pt',
     cast=cast_supported_languages)
+
+
+# SECURE PROXY SSL HEADER
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
