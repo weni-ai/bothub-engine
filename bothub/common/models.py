@@ -190,7 +190,7 @@ class Repository(models.Model):
     @property
     def intents(self):
         return list(set(self.examples(
-            exclude_deleted=False).exclude(
+            exclude_deleted=True).exclude(
                 intent='').values_list(
                     'intent',
                     flat=True)))
