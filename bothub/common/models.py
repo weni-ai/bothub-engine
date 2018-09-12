@@ -287,7 +287,8 @@ class Repository(models.Model):
         language = language or self.language
         return self.updates.filter(
             language=language,
-            by__isnull=False).first()
+            by__isnull=False,
+            trained_at__isnull=False).first()
 
     def get_user_authorization(self, user):
         if user.is_anonymous:
@@ -404,8 +405,8 @@ class RepositoryUpdate(models.Model):
         return base64.b64decode(self.bot_data)
 
     def train_fail(self):
-        self.failed_at = timezone.now()  # pragma: no cover
-        self.save(  # pragma: no cover
+        self.failed_at = timezone.now()
+        self.save(
             update_fields=[
                 'failed_at',
             ])

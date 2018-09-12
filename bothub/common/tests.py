@@ -278,7 +278,18 @@ class RepositoryTestCase(TestCase):
 
     def test_last_trained_update(self):
         self.assertFalse(self.repository.last_trained_update())
-        # TODO: Update last_trained_update test
+        update_1 = self.repository.current_update()
+        update_1.start_training(self.owner)
+        update_2 = self.repository.current_update()
+        update_2.start_training(self.owner)
+        update_1.save_training(b'bot')
+        self.assertEqual(
+            update_1,
+            self.repository.last_trained_update())
+        update_2.train_fail()
+        self.assertEqual(
+            update_1,
+            self.repository.last_trained_update())
 
     def test_available_languages(self):
         available_languages = self.repository.available_languages
