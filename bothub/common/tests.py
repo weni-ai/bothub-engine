@@ -303,7 +303,7 @@ class RepositoryTestCase(TestCase):
             'greet',
             self.repository.intents)
 
-        RepositoryExample.objects.create(
+        example = RepositoryExample.objects.create(
             repository_update=self.repository.current_update(
                 languages.LANGUAGE_PT),
             text='tchau',
@@ -313,6 +313,12 @@ class RepositoryTestCase(TestCase):
             'greet',
             self.repository.intents)
         self.assertIn(
+            'bye',
+            self.repository.intents)
+
+        example.delete()
+
+        self.assertNotIn(
             'bye',
             self.repository.intents)
 
