@@ -273,3 +273,17 @@ class ListExamplesAPITestCase(TestCase):
         self.assertEqual(
             content_data.get('count'),
             1)
+
+    def test_filter_entity(self):
+        response, content_data = self.request(
+            {
+                'repository_uuid': self.repository.uuid,
+                'entity': 'hi',
+            },
+            self.owner_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK)
+        self.assertEqual(
+            content_data.get('count'),
+            1)

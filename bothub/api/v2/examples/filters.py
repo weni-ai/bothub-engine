@@ -43,6 +43,10 @@ class ExamplesFilter(filters.FilterSet):
         name='label',
         method='filter_label',
         help_text=_('Filter for examples with entities with specific label.'))
+    entity = filters.CharFilter(
+        name='entity',
+        method='filter_entity',
+        help_text=_('Filter for examples with entity.'))
 
     def filter_repository_uuid(self, queryset, name, value):
         request = self.request
@@ -91,3 +95,6 @@ class ExamplesFilter(filters.FilterSet):
 
     def filter_label(self, queryset, name, value):
         return queryset.filter(entities__entity__label__value=value)
+
+    def filter_entity(self, queryset, name, value):
+        return queryset.filter(entities__entity__value=value)
