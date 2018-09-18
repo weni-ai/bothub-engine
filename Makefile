@@ -60,9 +60,9 @@ collectstatic:
 # Utils
 
 ## Colors
-SUCCESS = \033[0;32m /dev/null
+SUCCESS = \033[0;32m
 INFO = \033[0;36m
-WARNING = \033[0;33m /dev/null
+WARNING = \033[0;33m
 DANGER = \033[0;31m
 NC = \033[0m
 
