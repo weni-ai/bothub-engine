@@ -13,6 +13,7 @@ django-cors-headers = "*"
 requests = "*"
 coreapi = "*"
 whitenoise = "*"
+pytz = "==2018.5"
 
 [dev-packages]
 "flake8" = "*"
