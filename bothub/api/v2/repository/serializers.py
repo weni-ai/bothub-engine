@@ -3,6 +3,7 @@ from rest_framework import serializers
 from bothub.common.models import Repository
 from bothub.common.models import RepositoryCategory
 from bothub.common.models import RepositoryEntityLabel
+from bothub.common.models import RepositoryAuthorization
 from bothub.common.languages import LANGUAGE_CHOICES
 
 
@@ -40,6 +41,36 @@ class IntentSerializer(serializers.Serializer):
     examples__count = serializers.IntegerField()
 
 
+class RepositoryAuthorizationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RepositoryAuthorization
+        fields = [
+            'uuid',
+            'user',
+            'user__nickname',
+            'repository',
+            'role',
+            'level',
+            'can_read',
+            'can_contribute',
+            'can_write',
+            'is_admin',
+            'created_at',
+        ]
+        read_only = [
+            'user',
+            'user__nickname',
+            'repository',
+            'role',
+            'created_at',
+        ]
+
+    user__nickname = serializers.SlugRelatedField(
+        source='user',
+        slug_field='nickname',
+        read_only=True)
+
+
 class RepositorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Repository
@@ -64,6 +95,7 @@ class RepositorySerializer(serializers.ModelSerializer):
             'labels',
             'examples__count',
             'absolute_url',
+            'authorization',
         ]
         read_only = [
             'uuid',
@@ -72,6 +104,7 @@ class RepositorySerializer(serializers.ModelSerializer):
             'labels_list',
             'ready_for_train',
             'created_at',
+            'authorization',
         ]
 
     language = serializers.ChoiceField(
@@ -100,6 +133,7 @@ class RepositorySerializer(serializers.ModelSerializer):
         read_only=True)
     examples__count = serializers.SerializerMethodField()
     absolute_url = serializers.SerializerMethodField()
+    authorization = serializers.SerializerMethodField()
 
     def get_intents(self, obj):
         return IntentSerializer(
@@ -121,3 +155,10 @@ class RepositorySerializer(serializers.ModelSerializer):
 
     def get_absolute_url(self, obj):
         return obj.get_absolute_url()
+
+    def get_authorization(self, obj):
+        request = self.context.get('request')
+        if not request or not request.user.is_authenticated:
+            return None
+        return RepositoryAuthorizationSerializer(
+            obj.get_user_authorization(request.user)).data

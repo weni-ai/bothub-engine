@@ -254,3 +254,52 @@ class UpdateRepositoryTestCase(TestCase):
             self.assertEqual(
                 response.status_code,
                 status.HTTP_403_FORBIDDEN)
+
+
+class RepositoryAuthorizationTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.user, self.user_token = create_user_and_token()
+        self.owner, self.owner_token = create_user_and_token('owner')
+        self.category = RepositoryCategory.objects.create(name='Category 1')
+
+        self.repositories = [
+            create_repository_from_mockup(self.owner, **mockup)
+            for mockup in get_valid_mockups([self.category])
+        ]
+
+    def request(self, repository, token=None):
+        authorization_header = {
+            'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
+        } if token else {}
+
+        request = self.factory.get(
+            '/api/v2/repository/{}/'.format(repository.uuid),
+            **authorization_header)
+
+        response = RepositoryViewSet.as_view({'get': 'retrieve'})(
+            request,
+            uuid=repository.uuid)
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data,)
+
+    def test_authorization_without_user(self):
+        for repository in self.repositories:
+            # ignore private repositories
+            if repository.is_private:
+                continue
+            response, content_data = self.request(repository)
+            self.assertIsNone(content_data.get('authorization'))
+
+    def test_authorization_with_user(self):
+        for repository in self.repositories:
+            user, user_token = (self.owner, self.owner_token) \
+                if repository.is_private else (self.user, self.user_token)
+            response, content_data = self.request(repository, user_token)
+            authorization = content_data.get('authorization')
+            self.assertIsNotNone(authorization)
+            self.assertEqual(
+                authorization.get('uuid'),
+                str(repository.get_user_authorization(user).uuid))
