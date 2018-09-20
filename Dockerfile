@@ -7,6 +7,7 @@ RUN apk update && apk add alpine-sdk postgresql-dev
 
 RUN pip install pipenv
 RUN pip install gunicorn
+RUN pip install gevent
 RUN pip install psycopg2-binary
 
 COPY Pipfile Pipfile
