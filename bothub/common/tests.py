@@ -803,12 +803,24 @@ class RepositoryUpdateReadyForTrain(TestCase):
             repository_update=self.repository.current_update(),
             text='hi',
             intent='greet')
+        RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(),
+            text='hello',
+            intent='greet')
+        RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(),
+            text='hellow',
+            intent='greet')
         self.repository.current_update().start_training(self.owner)
         example.delete()
         self.assertTrue(self.repository.current_update().ready_for_train)
 
     def test_empty_intent(self):
         example = RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(),
+            text='douglas',
+            intent='')
+        RepositoryExample.objects.create(
             repository_update=self.repository.current_update(),
             text='douglas',
             intent='')
