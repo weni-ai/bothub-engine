@@ -829,6 +829,11 @@ class RepositoryUpdateReadyForTrain(TestCase):
             start=0,
             end=7,
             entity='name')
+        RepositoryExampleEntity.objects.create(
+            repository_example=example,
+            start=0,
+            end=7,
+            entity='name')
         self.assertFalse(self.repository.current_update().ready_for_train)
 
     def test_intent_dont_have_min_examples(self):
@@ -837,6 +842,28 @@ class RepositoryUpdateReadyForTrain(TestCase):
             text='hi',
             intent='greet')
         self.assertFalse(self.repository.current_update().ready_for_train)
+
+    def test_entity_dont_have_min_examples(self):
+        example = RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(),
+            text='hi',
+            intent='greet')
+        RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(),
+            text='hello',
+            intent='greet')
+        RepositoryExampleEntity.objects.create(
+            repository_example=example,
+            start=0,
+            end=2,
+            entity='hi')
+        self.assertFalse(self.repository.current_update().ready_for_train)
+        RepositoryExampleEntity.objects.create(
+            repository_example=example,
+            start=1,
+            end=2,
+            entity='hi')
+        self.assertTrue(self.repository.current_update().ready_for_train)
 
 
 class RequestRepositoryAuthorizationTestCase(TestCase):

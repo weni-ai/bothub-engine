@@ -313,6 +313,7 @@ class RepositoryUpdate(models.Model):
         ordering = ['-created_at']
 
     MIN_EXAMPLES_PER_INTENT = 2
+    MIN_EXAMPLES_PER_ENTITY = 2
 
     repository = models.ForeignKey(
         Repository,
@@ -398,6 +399,20 @@ class RepositoryUpdate(models.Model):
                         i.get('intent'),
                         i.get('intent_count'),
                         self.MIN_EXAMPLES_PER_INTENT))
+
+        weak_entities = self.examples.annotate(
+            es_count=models.Count('entities')).filter(
+                es_count__gte=1).values(
+                    'entities__entity__value').annotate(
+                        entities_count=models.Count('id')).order_by().exclude(
+                            entities_count__gte=self.MIN_EXAMPLES_PER_ENTITY)
+        if weak_entities.exists():
+            for e in weak_entities:
+                r.append(_('Entity "{}" has only {} examples. ' +
+                           'Minimum is {}.').format(
+                        e.get('entities__entity__value'),
+                        e.get('entities_count'),
+                        self.MIN_EXAMPLES_PER_ENTITY))
 
         return r
 
