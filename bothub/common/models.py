@@ -177,6 +177,12 @@ class Repository(models.Model):
                 self.updates.filter(training_started_at__isnull=True))))
 
     @property
+    def languages_ready_for_train(self):
+        return dict(map(
+                lambda u: (u.language, u.ready_for_train,),
+                self.updates.filter(training_started_at__isnull=True)))
+
+    @property
     def ready_for_train(self):
         return reduce(
             lambda current, u: u.ready_for_train or current,
