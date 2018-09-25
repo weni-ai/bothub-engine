@@ -26,13 +26,20 @@ class RepositoryEntityLabelSerializer(serializers.ModelSerializer):
             'examples__count',
         ]
 
-    entities = serializers.SlugRelatedField(
-        many=True,
-        slug_field='value',
-        read_only=True)
+    entities = serializers.SerializerMethodField()
     examples__count = serializers.SerializerMethodField()
 
+    def get_entities(self, obj):
+        entities = obj.repository.current_entities \
+            if obj.value == 'other' else obj.entities.all()
+        return map(lambda e: e.value, entities)
+
     def get_examples__count(self, obj):
+        if obj.value == 'other':
+            return obj.repository.examples(
+                exclude_deleted=True).filter(
+                    entities__entity__in=obj.repository.current_entities) \
+                    .count()
         return obj.examples().count()
 
 
@@ -93,6 +100,7 @@ class RepositorySerializer(serializers.ModelSerializer):
             'intents',
             'intents_list',
             'labels',
+            'other_label',
             'examples__count',
             'absolute_url',
             'authorization',
@@ -131,6 +139,7 @@ class RepositorySerializer(serializers.ModelSerializer):
         source='current_labels',
         many=True,
         read_only=True)
+    other_label = serializers.SerializerMethodField()
     examples__count = serializers.SerializerMethodField()
     absolute_url = serializers.SerializerMethodField()
     authorization = serializers.SerializerMethodField()
@@ -149,6 +158,12 @@ class RepositorySerializer(serializers.ModelSerializer):
 
     def get_intents_list(self, obj):
         return obj.intents
+
+    def get_other_label(self, obj):
+        return RepositoryEntityLabelSerializer(
+            RepositoryEntityLabel(
+                repository=obj,
+                value='other')).data
 
     def get_examples__count(self, obj):
         return obj.examples().count()
