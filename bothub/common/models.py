@@ -223,10 +223,7 @@ class Repository(models.Model):
 
     @property
     def other_entities(self):
-        return RepositoryEntity.objects.filter(
-            repository=self,
-            value__in=self.entities_list,
-            label__isnull=True)
+        return self.current_entities.filter(label__isnull=True)
 
     @property
     def admins(self):
