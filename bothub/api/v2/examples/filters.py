@@ -94,6 +94,8 @@ class ExamplesFilter(filters.FilterSet):
         return result_queryset
 
     def filter_label(self, queryset, name, value):
+        if value == 'other':
+            return queryset.filter(entities__entity__label__isnull=True)
         return queryset.filter(entities__entity__label__value=value)
 
     def filter_entity(self, queryset, name, value):
