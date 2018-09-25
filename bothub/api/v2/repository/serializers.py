@@ -30,7 +30,7 @@ class RepositoryEntityLabelSerializer(serializers.ModelSerializer):
     examples__count = serializers.SerializerMethodField()
 
     def get_entities(self, obj):
-        entities = obj.repository.current_entities \
+        entities = obj.repository.other_entities \
             if obj.value == 'other' else obj.entities.all()
         return map(lambda e: e.value, entities)
 
@@ -38,7 +38,7 @@ class RepositoryEntityLabelSerializer(serializers.ModelSerializer):
         if obj.value == 'other':
             return obj.repository.examples(
                 exclude_deleted=True).filter(
-                    entities__entity__in=obj.repository.current_entities) \
+                    entities__entity__in=obj.repository.other_entities) \
                     .count()
         return obj.examples().count()
 
