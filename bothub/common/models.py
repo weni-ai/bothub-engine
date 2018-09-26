@@ -169,24 +169,30 @@ class Repository(models.Model):
             ))
 
     @property
+    def current_updates(self):
+        return map(
+            lambda lang: self.current_update(lang),
+            self.available_languages)
+
+    @property
     def requirements_to_train(self):
         return dict(filter(
             lambda l: l[1],
             map(
                 lambda u: (u.language, u.requirements_to_train,),
-                self.updates.filter(training_started_at__isnull=True))))
+                self.current_updates)))
 
     @property
     def languages_ready_for_train(self):
         return dict(map(
                 lambda u: (u.language, u.ready_for_train,),
-                self.updates.filter(training_started_at__isnull=True)))
+                self.current_updates))
 
     @property
     def ready_for_train(self):
         return reduce(
             lambda current, u: u.ready_for_train or current,
-            self.updates.filter(training_started_at__isnull=True),
+            self.current_updates,
             False)
 
     @property
