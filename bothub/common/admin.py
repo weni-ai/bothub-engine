@@ -35,6 +35,9 @@ class RepositoryUpdateAdmin(admin.ModelAdmin):
         'trained_at',
         'failed_at',
     ]
+    readonly_fields = [
+        'training_log',
+    ]
 
 
 @admin.register(RepositoryExample)
