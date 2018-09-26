@@ -2,6 +2,7 @@ import uuid
 import base64
 import requests
 
+from functools import reduce
 from django.db import models
 from django.utils.translation import gettext as _
 from django.utils import timezone
@@ -168,19 +169,25 @@ class Repository(models.Model):
             ))
 
     @property
+    def requirements_to_train(self):
+        return dict(filter(
+            lambda l: l[1],
+            map(
+                lambda u: (u.language, u.requirements_to_train,),
+                self.updates.filter(training_started_at__isnull=True))))
+
+    @property
+    def languages_ready_for_train(self):
+        return dict(map(
+                lambda u: (u.language, u.ready_for_train,),
+                self.updates.filter(training_started_at__isnull=True)))
+
+    @property
     def ready_for_train(self):
-        updates = self.updates.filter(training_started_at=None)
-
-        if RepositoryExample.objects.filter(
-                models.Q(repository_update__in=updates) |
-                models.Q(deleted_in__in=updates)).exists():
-            return True
-
-        if RepositoryTranslatedExample.objects.filter(
-                repository_update__in=updates).exists():
-            return True
-
-        return False
+        return reduce(
+            lambda current, u: u.ready_for_train or current,
+            self.updates.filter(training_started_at__isnull=True),
+            False)
 
     @property
     def votes_sum(self):
@@ -311,6 +318,9 @@ class RepositoryUpdate(models.Model):
         verbose_name_plural = _('repository updates')
         ordering = ['-created_at']
 
+    MIN_EXAMPLES_PER_INTENT = 2
+    MIN_EXAMPLES_PER_ENTITY = 2
+
     repository = models.ForeignKey(
         Repository,
         models.CASCADE,
@@ -362,25 +372,72 @@ class RepositoryUpdate(models.Model):
         return examples
 
     @property
-    def ready_for_train(self):
-        if self.added.exists():
-            return True
-        if self.translated_added.exists():
-            return True
-        if self.deleted.exists():
-            return True
-        return False
+    def requirements_to_train(self):
+        try:
+            self.validate_init_train()
+        except RepositoryUpdateAlreadyTrained as e:
+            return [_('This bot version has already been trained.')]
+        except RepositoryUpdateAlreadyStartedTraining as e:
+            return [_('This bot version is being trained.')]
 
-    def start_training(self, by):
+        r = []
+
+        if not self.added.exists() and \
+           not self.translated_added.exists() and \
+           not self.deleted.exists():
+            r.append(_('There was no change in this bot version. No ' +
+                       'examples or translations for {} have been added or ' +
+                       'removed.').format(
+                           languages.VERBOSE_LANGUAGES.get(self.language)))
+
+        intents = self.examples.values_list('intent', flat=True)
+
+        if '' in intents:
+            r.append(_('All examples need have a intent.'))
+
+        weak_intents = self.examples.values('intent').annotate(
+            intent_count=models.Count('id')).order_by().exclude(
+                intent_count__gte=self.MIN_EXAMPLES_PER_INTENT)
+        if weak_intents.exists():
+            for i in weak_intents:
+                r.append(_('Intent "{}" has only {} examples. ' +
+                           'Minimum is {}.').format(
+                        i.get('intent'),
+                        i.get('intent_count'),
+                        self.MIN_EXAMPLES_PER_INTENT))
+
+        weak_entities = self.examples.annotate(
+            es_count=models.Count('entities')).filter(
+                es_count__gte=1).values(
+                    'entities__entity__value').annotate(
+                        entities_count=models.Count('id')).order_by().exclude(
+                            entities_count__gte=self.MIN_EXAMPLES_PER_ENTITY)
+        if weak_entities.exists():
+            for e in weak_entities:
+                r.append(_('Entity "{}" has only {} examples. ' +
+                           'Minimum is {}.').format(
+                        e.get('entities__entity__value'),
+                        e.get('entities_count'),
+                        self.MIN_EXAMPLES_PER_ENTITY))
+
+        return r
+
+    @property
+    def ready_for_train(self):
+        return len(self.requirements_to_train) is 0
+
+    def validate_init_train(self, by=None):
         if self.trained_at:
             raise RepositoryUpdateAlreadyTrained()
         if self.training_started_at:
             raise RepositoryUpdateAlreadyStartedTraining()
+        if by:
+            authorization = self.repository.get_user_authorization(by)
+            if not authorization.can_write:
+                raise TrainingNotAllowed()
 
-        authorization = self.repository.get_user_authorization(by)
-        if not authorization.can_write:
-            raise TrainingNotAllowed()
-
+    def start_training(self, by):
+        self.validate_init_train(by)
         self.by = by
         self.training_started_at = timezone.now()
         self.save(
@@ -435,7 +492,7 @@ class RepositoryExample(models.Model):
     intent = models.CharField(
         _('intent'),
         max_length=64,
-        blank=True,
+        default='no_intent',
         help_text=_('Example intent reference'),
         validators=[validate_item_key])
     created_at = models.DateTimeField(
