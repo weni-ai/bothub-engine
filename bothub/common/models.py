@@ -355,7 +355,7 @@ class RepositoryUpdate(models.Model):
         _('failed at'),
         blank=True,
         null=True)
-    training_logging = models.TextField(
+    training_log = models.TextField(
         _('training log'),
         blank=True,
         editable=False)
