@@ -78,6 +78,8 @@ class RepositorySerializer(serializers.ModelSerializer):
             'available_request_authorization',
             'request_authorization',
             'ready_for_train',
+            'requirements_to_train',
+            'languages_ready_for_train',
             'votes_sum',
             'created_at',
         ]

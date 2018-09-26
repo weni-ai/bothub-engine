@@ -705,9 +705,25 @@ class RepositoryReadyForTrain(TestCase):
             name='Test',
             slug='test',
             language=languages.LANGUAGE_EN)
-        self.example = RepositoryExample.objects.create(
+        self.example_1 = RepositoryExample.objects.create(
             repository_update=self.repository.current_update(),
             text='hi',
+            intent='greet')
+        self.example_2 = RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(),
+            text='hello',
+            intent='greet')
+        self.example_3 = RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(),
+            text='bye!',
+            intent='bye')
+        self.example_4 = RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(),
+            text='good bye',
+            intent='bye')
+        self.example_5 = RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(),
+            text='hellow',
             intent='greet')
 
     def test_be_true(self):
@@ -720,15 +736,20 @@ class RepositoryReadyForTrain(TestCase):
     def test_be_true_when_new_translate(self):
         self.repository.current_update().start_training(self.owner)
         RepositoryTranslatedExample.objects.create(
-            original_example=self.example,
+            original_example=self.example_1,
             language=languages.LANGUAGE_PT,
             text='oi')
+        RepositoryTranslatedExample.objects.create(
+            original_example=self.example_2,
+            language=languages.LANGUAGE_PT,
+            text='olá')
         self.repository.current_update()
         self.assertTrue(self.repository.ready_for_train)
 
     def test_be_true_when_deleted_example(self):
+        self.repository.current_update()
         self.repository.current_update().start_training(self.owner)
-        self.example.delete()
+        self.example_1.delete()
         self.assertTrue(self.repository.ready_for_train)
 
 
@@ -747,21 +768,33 @@ class RepositoryUpdateReadyForTrain(TestCase):
             repository_update=self.repository.current_update(),
             text='hi',
             intent='greet')
+        RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(),
+            text='hi',
+            intent='greet')
         self.assertTrue(self.repository.current_update().ready_for_train)
 
     def test_be_false(self):
         self.assertFalse(self.repository.current_update().ready_for_train)
 
     def test_new_translate(self):
-        example = RepositoryExample.objects.create(
+        example_1 = RepositoryExample.objects.create(
             repository_update=self.repository.current_update(),
             text='hi',
             intent='greet')
+        example_2 = RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(),
+            text='hello',
+            intent='greet')
         self.repository.current_update().start_training(self.owner)
         RepositoryTranslatedExample.objects.create(
-            original_example=example,
+            original_example=example_1,
             language=languages.LANGUAGE_PT,
             text='oi')
+        RepositoryTranslatedExample.objects.create(
+            original_example=example_2,
+            language=languages.LANGUAGE_PT,
+            text='olá')
         self.assertTrue(self.repository.current_update(
             languages.LANGUAGE_PT).ready_for_train)
 
@@ -770,8 +803,66 @@ class RepositoryUpdateReadyForTrain(TestCase):
             repository_update=self.repository.current_update(),
             text='hi',
             intent='greet')
+        RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(),
+            text='hello',
+            intent='greet')
+        RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(),
+            text='hellow',
+            intent='greet')
         self.repository.current_update().start_training(self.owner)
         example.delete()
+        self.assertTrue(self.repository.current_update().ready_for_train)
+
+    def test_empty_intent(self):
+        example = RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(),
+            text='douglas',
+            intent='')
+        RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(),
+            text='douglas',
+            intent='')
+        RepositoryExampleEntity.objects.create(
+            repository_example=example,
+            start=0,
+            end=7,
+            entity='name')
+        RepositoryExampleEntity.objects.create(
+            repository_example=example,
+            start=0,
+            end=7,
+            entity='name')
+        self.assertFalse(self.repository.current_update().ready_for_train)
+
+    def test_intent_dont_have_min_examples(self):
+        RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(),
+            text='hi',
+            intent='greet')
+        self.assertFalse(self.repository.current_update().ready_for_train)
+
+    def test_entity_dont_have_min_examples(self):
+        example = RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(),
+            text='hi',
+            intent='greet')
+        RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(),
+            text='hello',
+            intent='greet')
+        RepositoryExampleEntity.objects.create(
+            repository_example=example,
+            start=0,
+            end=2,
+            entity='hi')
+        self.assertFalse(self.repository.current_update().ready_for_train)
+        RepositoryExampleEntity.objects.create(
+            repository_example=example,
+            start=1,
+            end=2,
+            entity='hi')
         self.assertTrue(self.repository.current_update().ready_for_train)
 
 
