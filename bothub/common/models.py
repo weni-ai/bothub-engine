@@ -225,17 +225,18 @@ class Repository(models.Model):
 
     @property
     def current_labels(self):
-        return self.labels.filter(entities__value__in=self.examples(
-            exclude_deleted=True).exclude(
-                entities__entity__value__isnull=True).values_list(
-                    'entities__entity__value',
-                    flat=True).distinct()).distinct()
+        return self.labels.filter(
+            entities__value__in=self.entities_list).distinct()
 
     @property
     def labels_list(self):
         return self.current_labels.values_list(
             'value',
             flat=True).distinct()
+
+    @property
+    def other_entities(self):
+        return self.current_entities.filter(label__isnull=True)
 
     @property
     def admins(self):
