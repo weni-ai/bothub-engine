@@ -93,16 +93,6 @@ class RepositoryTranslatedExamplePermission(permissions.BasePermission):
         return authorization.can_contribute
 
 
-class RepositoryTranslatedExampleEntityPermission(permissions.BasePermission):
-    def has_object_permission(self, request, view, obj):
-        repository = obj.repository_translated_example.original_example \
-            .repository_update.repository
-        authorization = repository.get_user_authorization(request.user)
-        if request.method in READ_METHODS:
-            return authorization.can_read
-        return authorization.can_contribute
-
-
 class RepositoryAdminManagerAuthorization(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         authorization = obj.repository.get_user_authorization(request.user)
@@ -520,7 +510,7 @@ class RepositoryViewSet(
             return Response(request.json())  # pragma: no cover
 
         response = None  # pragma: no cover
-        try:
+        try:  # pragma: no cover
             response = request.json()  # pragma: no cover
         except Exception:
             pass
