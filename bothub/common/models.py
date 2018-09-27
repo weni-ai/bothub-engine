@@ -361,6 +361,10 @@ class RepositoryUpdate(models.Model):
         _('failed at'),
         blank=True,
         null=True)
+    training_log = models.TextField(
+        _('training log'),
+        blank=True,
+        editable=False)
 
     @property
     def examples(self):

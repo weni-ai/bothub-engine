@@ -39,3 +39,7 @@ from .request import (  # noqa: F401
     RequestRepositoryAuthorizationSerializer,
     ReviewAuthorizationRequestSerializer,
 )
+
+from .update import (  # noqa: F401
+    RepositoryUpdateSerializer,
+)
