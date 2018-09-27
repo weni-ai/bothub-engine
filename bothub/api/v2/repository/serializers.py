@@ -96,6 +96,9 @@ class RepositorySerializer(serializers.ModelSerializer):
             'examples__count',
             'absolute_url',
             'authorization',
+            'ready_for_train',
+            'requirements_to_train',
+            'languages_ready_for_train',
         ]
         read_only = [
             'uuid',
