@@ -442,6 +442,12 @@ class RepositoryUpdate(models.Model):
 
     @property
     def ready_for_train(self):
+        last_trained_update = self.repository.last_trained_update(
+            language=self.language)
+        if last_trained_update:
+            if last_trained_update.use_language_model_featurizer is not \
+               self.repository.use_language_model_featurizer:
+                return True
         return len(self.requirements_to_train) is 0
 
     def validate_init_train(self, by=None):
@@ -458,10 +464,13 @@ class RepositoryUpdate(models.Model):
         self.validate_init_train(by)
         self.by = by
         self.training_started_at = timezone.now()
+        self.use_language_model_featurizer = self.repository \
+            .use_language_model_featurizer
         self.save(
             update_fields=[
                 'by',
                 'training_started_at',
+                'use_language_model_featurizer',
             ])
 
     def save_training(self, bot_data):
