@@ -99,6 +99,12 @@ class Repository(models.Model):
         validators=[
             languages.validate_language,
         ])
+    use_language_model_featurizer = models.BooleanField(
+        _('Use language model featurizer'),
+        help_text=_('You can use language featurizer to get words ' +
+                    'similarity. You need less examples to create a great ' +
+                    'bot.'),
+        default=True)
     categories = models.ManyToManyField(
         RepositoryCategory,
         help_text=CATEGORIES_HELP_TEXT)
@@ -293,7 +299,8 @@ class Repository(models.Model):
         language = language or self.language
         repository_update, created = self.updates.get_or_create(
             language=language,
-            training_started_at=None)
+            training_started_at=None,
+            use_language_model_featurizer=self.use_language_model_featurizer)
         return repository_update
 
     def last_trained_update(self, language=None):
@@ -337,6 +344,7 @@ class RepositoryUpdate(models.Model):
         validators=[
             languages.validate_language,
         ])
+    use_language_model_featurizer = models.BooleanField(default=True)
     created_at = models.DateTimeField(
         _('created at'),
         auto_now_add=True)
