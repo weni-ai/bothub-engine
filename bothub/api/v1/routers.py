@@ -25,6 +25,7 @@ from .views import RequestAuthorizationViewSet
 from .views import RepositoryAuthorizationRequestsViewSet
 from .views import ReviewAuthorizationRequestViewSet
 from .views import RepositoryEntitiesViewSet
+from .views import RepositoryUpdatesViewSet
 
 
 class Router(routers.SimpleRouter):
@@ -121,3 +122,4 @@ router.register('authorization-requests',
 router.register('review-authorization-request',
                 ReviewAuthorizationRequestViewSet)
 router.register('entities', RepositoryEntitiesViewSet)
+router.register('updates', RepositoryUpdatesViewSet)
