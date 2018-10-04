@@ -5,6 +5,11 @@ from django.db import migrations, models
 import re
 
 
+def populate_empty_intent(apps, *args):
+    RepositoryExample = apps.get_model('common', 'RepositoryExample')
+    RepositoryExample.objects.filter(intent='').update(intent='no_intent')
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -17,4 +22,5 @@ class Migration(migrations.Migration):
             name='intent',
             field=models.CharField(default='no_intent', help_text='Example intent reference', max_length=64, validators=[django.core.validators.RegexValidator(re.compile('^[-a-z0-9_]+\\Z'), 'Enter a valid value consisting of lowercase letters, numbers, underscores or hyphens.', 'invalid')], verbose_name='intent'),
         ),
+        migrations.RunPython(populate_empty_intent),
     ]
