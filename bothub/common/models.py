@@ -255,6 +255,13 @@ class Repository(models.Model):
         ]
         return list(set(admins))
 
+    def __str__(self):
+        return 'Repository {} - {}/{}'.format(
+            self.name,
+            self.owner.nickname,
+            self.slug,
+        )
+
     def examples(self, language=None, exclude_deleted=True, queryset=None):
         if queryset is None:
             queryset = RepositoryExample.objects
@@ -459,6 +466,9 @@ class RepositoryUpdate(models.Model):
                self.repository.use_competing_intents:
                 return True
         return len(self.requirements_to_train) is 0
+
+    def __str__(self):
+        return 'Repository Update #{}'.format(self.id)
 
     def validate_init_train(self, by=None):
         if self.trained_at:
