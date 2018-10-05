@@ -5,6 +5,7 @@ from rest_framework.documentation import include_docs_urls
 
 from bothub.api.routers import router as bothub_api_routers
 from bothub.health.views import ping
+from bothub.common.views import download_bot_data
 
 
 urlpatterns = [
@@ -13,6 +14,10 @@ urlpatterns = [
     path('docs/', include_docs_urls(title='API Documentation')),
     path('admin/', admin.site.urls),
     path('ping/', ping, name='ping'),
+    path(
+        'downloadbotdata/<int:update_id>/',
+        download_bot_data,
+        name='download_bot_data')
 ]
 
 if settings.DEBUG:

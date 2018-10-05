@@ -231,6 +231,13 @@ class Repository(models.Model):
         ]
         return list(set(admins))
 
+    def __str__(self):
+        return 'Repository {} - {}/{}'.format(
+            self.name,
+            self.owner.nickname,
+            self.slug,
+        )
+
     def examples(self, language=None, exclude_deleted=True, queryset=None):
         if queryset is None:
             queryset = RepositoryExample.objects
@@ -370,6 +377,9 @@ class RepositoryUpdate(models.Model):
         if self.deleted.exists():
             return True
         return False
+
+    def __str__(self):
+        return 'Repository Update #{}'.format(self.id)
 
     def start_training(self, by):
         if self.trained_at:
