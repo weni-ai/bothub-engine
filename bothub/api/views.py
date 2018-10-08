@@ -988,7 +988,8 @@ class RepositoryEntitiesViewSet(
 class RepositoryUpdatesViewSet(
       mixins.ListModelMixin,
       GenericViewSet):
-    queryset = RepositoryUpdate.objects.all()
+    queryset = RepositoryUpdate.objects.filter(
+        training_started_at__isnull=False)
     serializer_class = RepositoryUpdateSerializer
     filter_class = RepositoryUpdatesFilter
     permission_classes = [
