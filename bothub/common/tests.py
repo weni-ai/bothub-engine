@@ -752,6 +752,12 @@ class RepositoryReadyForTrain(TestCase):
         self.example_1.delete()
         self.assertTrue(self.repository.ready_for_train)
 
+    def test_last_train_failed(self):
+        current_update = self.repository.current_update()
+        current_update.start_training(self.owner)
+        current_update.train_fail()
+        self.assertTrue(self.repository.current_update().ready_for_train)
+
 
 class RepositoryUpdateReadyForTrain(TestCase):
     def setUp(self):

@@ -456,14 +456,23 @@ class RepositoryUpdate(models.Model):
 
     @property
     def ready_for_train(self):
-        last_trained_update = self.repository.last_trained_update(
-            language=self.language)
-        if last_trained_update:
-            if last_trained_update.use_language_model_featurizer is not \
+        if self.training_started_at:
+            return False
+
+        previous_update = self.repository.updates.filter(
+            language=self.language,
+            by__isnull=False,
+            training_started_at__isnull=False,
+            created_at__lt=self.created_at).first()
+
+        if previous_update:
+            if previous_update.use_language_model_featurizer is not \
                self.repository.use_language_model_featurizer:
                 return True
-            if last_trained_update.use_competing_intents is not \
+            if previous_update.use_competing_intents is not \
                self.repository.use_competing_intents:
+                return True
+            if previous_update.failed_at:
                 return True
         return len(self.requirements_to_train) is 0
 
