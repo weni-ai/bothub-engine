@@ -339,7 +339,7 @@ class RepositoryUpdatesFilter(filters.FilterSet):
         ]
 
     repository_uuid = filters.CharFilter(
-        name='repository_uuid',
+        field_name='repository_uuid',
         required=True,
         method='filter_repository_uuid',
         help_text=_('Repository\'s UUID'))
