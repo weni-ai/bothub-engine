@@ -4,6 +4,7 @@ from django.test import TestCase
 from django.test import RequestFactory
 from rest_framework import status
 from bothub.common.models import Repository
+from bothub.common.models import RepositoryExample
 from bothub.common import languages
 
 from ..views import RepositoryUpdatesViewSet
@@ -21,7 +22,16 @@ class UpdatesTestCase(TestCase):
             name='Testing',
             slug='test',
             language=languages.LANGUAGE_EN)
-        self.repository.current_update()
+        current_update = self.repository.current_update()
+        RepositoryExample.objects.create(
+            repository_update=current_update,
+            text='my name is Douglas',
+            intent='greet')
+        RepositoryExample.objects.create(
+            repository_update=current_update,
+            text='my name is John',
+            intent='greet')
+        current_update.start_training(self.owner)
 
     def request(self, data, token=None):
         authorization_header = {

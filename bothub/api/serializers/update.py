@@ -16,7 +16,6 @@ class RepositoryUpdateSerializer(serializers.ModelSerializer):
             'training_started_at',
             'trained_at',
             'failed_at',
-            'training_log',
         ]
 
     by__nickname = serializers.SlugRelatedField(
