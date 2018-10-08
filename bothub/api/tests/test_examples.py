@@ -75,10 +75,10 @@ class ExamplesTestCase(TestCase):
             self.owner_token)
         self.assertEqual(
             response.status_code,
-            status.HTTP_200_OK)
+            status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
-            content_data.get('count'),
-            0)
+            len(content_data.get('repository_uuid')),
+            1)
 
     def test_repository_does_not_exist(self):
         response, content_data = self.request(
