@@ -497,6 +497,7 @@ class RepositoryViewSet(
         url_name='repository-analyze',
         permission_classes=[])
     def analyze(self, request, **kwargs):
+        rasa_format = bool(request.GET.get('rasa_format', False))
         repository = self.get_object()
         user_authorization = repository.get_user_authorization(request.user)
         serializer = AnalyzeTextSerializer(
@@ -504,7 +505,8 @@ class RepositoryViewSet(
         serializer.is_valid(raise_exception=True)  # pragma: no cover
         request = Repository.request_nlp_analyze(
             user_authorization,
-            serializer.data)  # pragma: no cover
+            serializer.data,
+            rasa_format)  # pragma: no cover
 
         if request.status_code == status.HTTP_200_OK:  # pragma: no cover
             return Response(request.json())  # pragma: no cover
@@ -519,8 +521,7 @@ class RepositoryViewSet(
             raise APIException(  # pragma: no cover
                 detail=_('Something unexpected happened! ' + \
                          'We couldn\'t analyze your text.'))
-        error = response.get('error')  # pragma: no cover
-        message = error.get('message')  # pragma: no cover
+        message = response.get('details')  # pragma: no cover
         raise APIException(detail=message)  # pragma: no cover
 
     @detail_route(

@@ -142,13 +142,16 @@ class Repository(models.Model):
         return r  # pragma: no cover
 
     @classmethod
-    def request_nlp_analyze(cls, user_authorization, data):
+    def request_nlp_analyze(cls, user_authorization, data, rasa_format=False):
+        data = {
+            'text': data.get('text'),
+            'language': data.get('language'),
+        }  # pragma: no cover
+        if rasa_format:
+            data.update({'rasa_format': rasa_format})  # pragma: no cover
         r = requests.post(  # pragma: no cover
             cls.nlp_analyze_url,
-            data={
-                'text': data.get('text'),
-                'language': data.get('language'),
-            },
+            data=data,
             headers={'Authorization': 'Bearer {}'.format(
                 user_authorization.uuid)})
         return r  # pragma: no cover
