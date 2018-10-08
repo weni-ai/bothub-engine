@@ -33,7 +33,6 @@ class UpdatesTestCase(TestCase):
             intent='greet')
         current_update.start_training(self.owner)
 
-
     def request(self, data, token=None):
         authorization_header = {
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
