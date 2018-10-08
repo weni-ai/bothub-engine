@@ -76,7 +76,4 @@ class UpdatesTestCase(TestCase):
             self.owner_token)
         self.assertEqual(
             response.status_code,
-            status.HTTP_200_OK)
-        self.assertEqual(
-            content_data.get('count'),
-            0)
+            status.HTTP_400_BAD_REQUEST)
