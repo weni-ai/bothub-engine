@@ -207,6 +207,12 @@ class Repository(models.Model):
             False)
 
     @property
+    def languages_warnings(self):
+        return dict(map(
+                lambda u: (u.language, u.warnings,),
+                self.current_updates))
+
+    @property
     def votes_sum(self):
         return self.votes.aggregate(
             votes_sum=models.Sum('vote')).get('votes_sum')
