@@ -1092,7 +1092,6 @@ class UseLanguageModelFeaturizerTestCase(TestCase):
         current_update = self.repository.current_update()
         self.repository.use_language_model_featurizer = False
         self.repository.save()
-        self.assertTrue(current_update.use_language_model_featurizer)
         current_update.start_training(self.owner)
         current_update.save_training(b'')
         self.assertFalse(current_update.use_language_model_featurizer)
@@ -1137,7 +1136,6 @@ class UseCompetingIntentsTestCase(TestCase):
         current_update = self.repository.current_update()
         self.repository.use_competing_intents = False
         self.repository.save()
-        self.assertTrue(current_update.use_competing_intents)
         current_update.start_training(self.owner)
         current_update.save_training(b'')
         self.assertFalse(current_update.use_competing_intents)
