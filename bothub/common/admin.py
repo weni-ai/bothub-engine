@@ -1,65 +1,59 @@
 from django.contrib import admin
+from django.utils.html import format_html
+from django.shortcuts import reverse
 
-from .models import RepositoryCategory
-from .models import Repository
-from .models import RepositoryUpdate
-from .models import RepositoryExample
-from .models import RepositoryExampleEntity
-from .models import RepositoryTranslatedExample
-from .models import RepositoryTranslatedExampleEntity
-from .models import RepositoryAuthorization
+from bothub.common.models import Repository
+from bothub.common.models import RepositoryUpdate
 
 
-@admin.register(RepositoryCategory)
-class RepositoryCategoryAdmin(admin.ModelAdmin):
-    pass
+class RepositoryUpdateInline(admin.TabularInline):
+    model = RepositoryUpdate
+    extra = 0
+    can_delete = False
+
+    fields = [
+        'language',
+        'use_language_model_featurizer',
+        'use_competing_intents',
+        'created_at',
+        'by',
+        'training_started_at',
+        'trained_at',
+        'failed_at',
+        'training_log',
+        'download_bot_data',
+    ]
+    readonly_fields = fields
+
+    def download_bot_data(self, obj):
+        if not obj.trained_at:
+            return '-'
+        return format_html("""
+<a href="{}">Download Bot Data</a>
+""".format(reverse('download_bot_data', kwargs={'update_id': obj.id})))
 
 
 @admin.register(Repository)
 class RepositoryAdmin(admin.ModelAdmin):
-    pass
-
-
-@admin.register(RepositoryUpdate)
-class RepositoryUpdateAdmin(admin.ModelAdmin):
-    list_display_links = [
-        'id',
-        '__str__',
-    ]
     list_display = [
-        'id',
         '__str__',
-        'repository',
+        'uuid',
         'language',
-        'training_started_at',
-        'trained_at',
-        'failed_at',
+        'is_private',
+        'created_at',
     ]
-    readonly_fields = [
-        'training_log',
+    search_fields = [
+        'name',
+        'uuid',
+        'language',
+        'owner__nickname',
+        'slug',
     ]
-
-
-@admin.register(RepositoryExample)
-class RepositoryExampleAdmin(admin.ModelAdmin):
-    pass
-
-
-@admin.register(RepositoryExampleEntity)
-class RepositoryExampleEntityAdmin(admin.ModelAdmin):
-    pass
-
-
-@admin.register(RepositoryTranslatedExample)
-class RepositoryTranslatedExampleAdmin(admin.ModelAdmin):
-    pass
-
-
-@admin.register(RepositoryTranslatedExampleEntity)
-class RepositoryTranslatedExampleEntity(admin.ModelAdmin):
-    pass
-
-
-@admin.register(RepositoryAuthorization)
-class RepositoryAuthorizationAdmin(admin.ModelAdmin):
-    pass
+    list_filter = [
+        'is_private',
+        'language',
+        'categories',
+    ]
+    inlines = [
+        RepositoryUpdateInline,
+    ]

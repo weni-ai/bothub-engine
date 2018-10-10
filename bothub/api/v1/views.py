@@ -134,23 +134,23 @@ class ExamplesFilter(filters.FilterSet):
         ]
 
     repository_uuid = filters.CharFilter(
-        name='repository_uuid',
+        field_name='repository_uuid',
         method='filter_repository_uuid',
         required=True,
         help_text=_('Repository\'s UUID'))
     language = filters.CharFilter(
-        name='language',
+        field_name='language',
         method='filter_language',
         help_text='Filter by language, default is repository base language')
     has_translation = filters.BooleanFilter(
-        name='has_translation',
+        field_name='has_translation',
         method='filter_has_translation',
         help_text=_('Filter for examples with or without translation'))
     has_not_translation_to = filters.CharFilter(
-        name='has_not_translation_to',
+        field_name='has_not_translation_to',
         method='filter_has_not_translation_to')
     order_by_translation = filters.CharFilter(
-        name='order_by_translation',
+        field_name='order_by_translation',
         method='filter_order_by_translation',
         help_text=_('Order examples with translation by language'))
 
@@ -215,16 +215,16 @@ class TranslationsFilter(filters.FilterSet):
         fields = []
 
     repository_uuid = filters.CharFilter(
-        name='repository_uuid',
+        field_name='repository_uuid',
         method='filter_repository_uuid',
         required=True,
         help_text=_('Repository\'s UUID'))
     from_language = filters.CharFilter(
-        name='language',
+        field_name='language',
         method='filter_from_language',
         help_text='Filter by original language')
     to_language = filters.CharFilter(
-        name='language',
+        field_name='language',
         method='filter_to_language',
         help_text='Filter by translated language')
 
@@ -257,7 +257,7 @@ class RepositoryAuthorizationFilter(filters.FilterSet):
         fields = ['repository']
 
     repository = filters.CharFilter(
-        name='repository',
+        field_name='repository',
         method='filter_repository_uuid',
         help_text=_('Repository\'s UUID'))
 
@@ -282,7 +282,7 @@ class RepositoryAuthorizationRequestsFilter(filters.FilterSet):
         fields = ['repository_uuid']
 
     repository_uuid = filters.CharFilter(
-        name='repository_uuid',
+        field_name='repository_uuid',
         required=True,
         method='filter_repository_uuid',
         help_text=_('Repository\'s UUID'))
@@ -311,7 +311,7 @@ class RepositoryEntitiesFilter(filters.FilterSet):
         ]
 
     repository_uuid = filters.CharFilter(
-        name='repository_uuid',
+        field_name='repository_uuid',
         required=True,
         method='filter_repository_uuid',
         help_text=_('Repository\'s UUID'))
@@ -339,7 +339,7 @@ class RepositoryUpdatesFilter(filters.FilterSet):
         ]
 
     repository_uuid = filters.CharFilter(
-        name='repository_uuid',
+        field_name='repository_uuid',
         required=True,
         method='filter_repository_uuid',
         help_text=_('Repository\'s UUID'))
@@ -988,7 +988,8 @@ class RepositoryEntitiesViewSet(
 class RepositoryUpdatesViewSet(
       mixins.ListModelMixin,
       GenericViewSet):
-    queryset = RepositoryUpdate.objects.all()
+    queryset = RepositoryUpdate.objects.filter(
+        training_started_at__isnull=False)
     serializer_class = RepositoryUpdateSerializer
     filter_class = RepositoryUpdatesFilter
     permission_classes = [

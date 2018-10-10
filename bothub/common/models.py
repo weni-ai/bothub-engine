@@ -100,6 +100,17 @@ class Repository(models.Model):
         validators=[
             languages.validate_language,
         ])
+    use_language_model_featurizer = models.BooleanField(
+        _('Use language model featurizer'),
+        help_text=_('You can use language featurizer to get words ' +
+                    'similarity. You need less examples to create a great ' +
+                    'bot.'),
+        default=True)
+    use_competing_intents = models.BooleanField(
+        _('Use competing intents'),
+        help_text=_('When using competing intents the confidence of the ' +
+                    'prediction is distributed in all the intents.'),
+        default=False)
     categories = models.ManyToManyField(
         RepositoryCategory,
         help_text=CATEGORIES_HELP_TEXT)
@@ -197,6 +208,14 @@ class Repository(models.Model):
             False)
 
     @property
+    def languages_warnings(self):
+        return dict(filter(
+                lambda w: len(w[1]) > 0,
+                map(
+                    lambda u: (u.language, u.warnings,),
+                    self.current_updates)))
+
+    @property
     def votes_sum(self):
         return self.votes.aggregate(
             votes_sum=models.Sum('vote')).get('votes_sum')
@@ -245,6 +264,13 @@ class Repository(models.Model):
             self.authorizations.filter(role=RepositoryAuthorization.ROLE_ADMIN)
         ]
         return list(set(admins))
+
+    def __str__(self):
+        return 'Repository {} - {}/{}'.format(
+            self.name,
+            self.owner.nickname,
+            self.slug,
+        )
 
     def examples(self, language=None, exclude_deleted=True, queryset=None):
         if queryset is None:
@@ -328,6 +354,7 @@ class RepositoryUpdate(models.Model):
 
     MIN_EXAMPLES_PER_INTENT = 2
     MIN_EXAMPLES_PER_ENTITY = 2
+    RECOMMENDED_INTENTS = 2
 
     repository = models.ForeignKey(
         Repository,
@@ -339,6 +366,8 @@ class RepositoryUpdate(models.Model):
         validators=[
             languages.validate_language,
         ])
+    use_language_model_featurizer = models.BooleanField(default=True)
+    use_competing_intents = models.BooleanField(default=False)
     created_at = models.DateTimeField(
         _('created at'),
         auto_now_add=True)
@@ -436,7 +465,41 @@ class RepositoryUpdate(models.Model):
 
     @property
     def ready_for_train(self):
+        if self.training_started_at:
+            return False
+
+        previous_update = self.repository.updates.filter(
+            language=self.language,
+            by__isnull=False,
+            training_started_at__isnull=False,
+            created_at__lt=self.created_at).first()
+
+        if previous_update:
+            if previous_update.use_language_model_featurizer is not \
+               self.repository.use_language_model_featurizer:
+                return True
+            if previous_update.use_competing_intents is not \
+               self.repository.use_competing_intents:
+                return True
+            if previous_update.failed_at:
+                return True
         return len(self.requirements_to_train) is 0
+
+    @property
+    def intents(self):
+        return list(set(self.examples.values_list('intent', flat=True)))
+
+    @property
+    def warnings(self):
+        w = []
+        if 0 < len(self.intents) < self.RECOMMENDED_INTENTS:
+            w.append(_('You need to have at least {} intents for the ' +
+                       'algorithm to identify intents.').format(
+                           self.RECOMMENDED_INTENTS))
+        return w
+
+    def __str__(self):
+        return 'Repository Update #{}'.format(self.id)
 
     def validate_init_train(self, by=None):
         if self.trained_at:
@@ -452,10 +515,15 @@ class RepositoryUpdate(models.Model):
         self.validate_init_train(by)
         self.by = by
         self.training_started_at = timezone.now()
+        self.use_language_model_featurizer = self.repository \
+            .use_language_model_featurizer
+        self.use_competing_intents = self.repository.use_competing_intents
         self.save(
             update_fields=[
                 'by',
                 'training_started_at',
+                'use_language_model_featurizer',
+                'use_competing_intents',
             ])
 
     def save_training(self, bot_data):
