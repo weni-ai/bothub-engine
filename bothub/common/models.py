@@ -208,9 +208,11 @@ class Repository(models.Model):
 
     @property
     def languages_warnings(self):
-        return dict(map(
-                lambda u: (u.language, u.warnings,),
-                self.current_updates))
+        return dict(filter(
+                lambda w: len(w[1]) > 0,
+                map(
+                    lambda u: (u.language, u.warnings,),
+                    self.current_updates)))
 
     @property
     def votes_sum(self):
@@ -488,7 +490,7 @@ class RepositoryUpdate(models.Model):
     @property
     def warnings(self):
         w = []
-        if len(self.intents) < self.RECOMMENDED_INTENTS:
+        if 0 < len(self.intents) < self.RECOMMENDED_INTENTS:
             w.append(_('You need to have at least {} intents for the ' +
                        'algorithm to identify intentions.').format(
                            self.RECOMMENDED_INTENTS))
