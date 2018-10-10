@@ -317,9 +317,7 @@ class Repository(models.Model):
         language = language or self.language
         repository_update, created = self.updates.get_or_create(
             language=language,
-            training_started_at=None,
-            use_language_model_featurizer=self.use_language_model_featurizer,
-            use_competing_intents=self.use_competing_intents)
+            training_started_at=None)
         return repository_update
 
     def last_trained_update(self, language=None):
