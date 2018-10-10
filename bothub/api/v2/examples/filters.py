@@ -20,31 +20,31 @@ class ExamplesFilter(filters.FilterSet):
         ]
 
     repository_uuid = filters.CharFilter(
-        name='repository_uuid',
+        field_name='repository_uuid',
         method='filter_repository_uuid',
         required=True,
         help_text=_('Repository\'s UUID'))
     language = filters.CharFilter(
-        name='language',
+        field_name='language',
         method='filter_language',
         help_text='Filter by language, default is repository base language')
     has_translation = filters.BooleanFilter(
-        name='has_translation',
+        field_name='has_translation',
         method='filter_has_translation',
         help_text=_('Filter for examples with or without translation'))
     has_not_translation_to = filters.CharFilter(
-        name='has_not_translation_to',
+        field_name='has_not_translation_to',
         method='filter_has_not_translation_to')
     order_by_translation = filters.CharFilter(
-        name='order_by_translation',
+        field_name='order_by_translation',
         method='filter_order_by_translation',
         help_text=_('Order examples with translation by language'))
     label = filters.CharFilter(
-        name='label',
+        field_name='label',
         method='filter_label',
         help_text=_('Filter for examples with entities with specific label.'))
     entity = filters.CharFilter(
-        name='entity',
+        field_name='entity',
         method='filter_entity',
         help_text=_('Filter for examples with entity.'))
 

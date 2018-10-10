@@ -120,10 +120,7 @@ class ListExamplesAPITestCase(TestCase):
         response, content_data = self.request()
         self.assertEqual(
             response.status_code,
-            status.HTTP_200_OK)
-        self.assertEqual(
-            content_data.get('count'),
-            0)
+            status.HTTP_400_BAD_REQUEST)
 
     def test_filter_text(self):
         response, content_data = self.request({
