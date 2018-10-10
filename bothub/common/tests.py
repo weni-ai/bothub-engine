@@ -1139,3 +1139,34 @@ class UseCompetingIntentsTestCase(TestCase):
         current_update.start_training(self.owner)
         current_update.save_training(b'')
         self.assertFalse(current_update.use_competing_intents)
+
+
+class RepositoryUpdateWarnings(TestCase):
+    def setUp(self):
+        self.language = languages.LANGUAGE_EN
+
+        self.owner = User.objects.create_user('owner@user.com', 'user')
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name='Test',
+            slug='test',
+            language=self.language,
+            use_competing_intents=True)
+
+        RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(),
+            text='my name is Douglas',
+            intent='greet')
+
+    def test_min_intents(self):
+        self.assertEqual(
+            len(self.repository.current_update().warnings),
+            1)
+        RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(),
+            text='bye',
+            intent='bye')
+        self.assertEqual(
+            len(self.repository.current_update().warnings),
+            0)

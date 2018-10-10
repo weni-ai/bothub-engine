@@ -84,6 +84,7 @@ class RepositorySerializer(serializers.ModelSerializer):
             'ready_for_train',
             'requirements_to_train',
             'languages_ready_for_train',
+            'languages_warnings',
             'votes_sum',
             'created_at',
         ]

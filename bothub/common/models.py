@@ -207,6 +207,12 @@ class Repository(models.Model):
             False)
 
     @property
+    def languages_warnings(self):
+        return dict(map(
+                lambda u: (u.language, u.warnings,),
+                self.current_updates))
+
+    @property
     def votes_sum(self):
         return self.votes.aggregate(
             votes_sum=models.Sum('vote')).get('votes_sum')
@@ -344,6 +350,7 @@ class RepositoryUpdate(models.Model):
 
     MIN_EXAMPLES_PER_INTENT = 2
     MIN_EXAMPLES_PER_ENTITY = 2
+    RECOMMENDED_INTENTS = 2
 
     repository = models.ForeignKey(
         Repository,
@@ -473,6 +480,19 @@ class RepositoryUpdate(models.Model):
             if previous_update.failed_at:
                 return True
         return len(self.requirements_to_train) is 0
+
+    @property
+    def intents(self):
+        return list(set(self.examples.values_list('intent', flat=True)))
+
+    @property
+    def warnings(self):
+        w = []
+        if len(self.intents) < self.RECOMMENDED_INTENTS:
+            w.append(_('You need to have at least {} intents for the ' +
+                       'algorithm to identify intentions.').format(
+                           self.RECOMMENDED_INTENTS))
+        return w
 
     def __str__(self):
         return 'Repository Update #{}'.format(self.id)
