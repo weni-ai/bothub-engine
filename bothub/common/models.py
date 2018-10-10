@@ -492,7 +492,7 @@ class RepositoryUpdate(models.Model):
         w = []
         if 0 < len(self.intents) < self.RECOMMENDED_INTENTS:
             w.append(_('You need to have at least {} intents for the ' +
-                       'algorithm to identify intentions.').format(
+                       'algorithm to identify intents.').format(
                            self.RECOMMENDED_INTENTS))
         return w
 
