@@ -28,6 +28,7 @@ from bothub.common.models import RepositoryVote
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RequestRepositoryAuthorization
 from bothub.common.models import RepositoryEntity
+from bothub.common.models import RepositoryUpdate
 from bothub.authentication.models import User
 
 from .serializers import RepositorySerializer
@@ -52,6 +53,7 @@ from .serializers import NewRequestRepositoryAuthorizationSerializer
 from .serializers import RequestRepositoryAuthorizationSerializer
 from .serializers import ReviewAuthorizationRequestSerializer
 from .serializers import RepositoryEntitySerializer
+from .serializers import RepositoryUpdateSerializer
 
 
 # Permisions
@@ -91,16 +93,6 @@ class RepositoryTranslatedExamplePermission(permissions.BasePermission):
         return authorization.can_contribute
 
 
-class RepositoryTranslatedExampleEntityPermission(permissions.BasePermission):
-    def has_object_permission(self, request, view, obj):
-        repository = obj.repository_translated_example.original_example \
-            .repository_update.repository
-        authorization = repository.get_user_authorization(request.user)
-        if request.method in READ_METHODS:
-            return authorization.can_read
-        return authorization.can_contribute
-
-
 class RepositoryAdminManagerAuthorization(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         authorization = obj.repository.get_user_authorization(request.user)
@@ -108,6 +100,18 @@ class RepositoryAdminManagerAuthorization(permissions.BasePermission):
 
 
 class RepositoryEntityHasPermission(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        authorization = obj.repository.get_user_authorization(request.user)
+        if request.method in READ_METHODS:
+            return authorization.can_read
+        if request.user.is_authenticated:
+            if request.method in WRITE_METHODS:
+                return authorization.can_write
+            return authorization.is_admin
+        return False
+
+
+class RepositoryUpdateHasPermission(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         authorization = obj.repository.get_user_authorization(request.user)
         if request.method in READ_METHODS:
@@ -327,6 +331,34 @@ class RepositoryEntitiesFilter(filters.FilterSet):
             raise NotFound(_('Invalid repository UUID'))
 
 
+class RepositoryUpdatesFilter(filters.FilterSet):
+    class Meta:
+        model = RepositoryUpdate
+        fields = [
+            'repository_uuid',
+        ]
+
+    repository_uuid = filters.CharFilter(
+        field_name='repository_uuid',
+        required=True,
+        method='filter_repository_uuid',
+        help_text=_('Repository\'s UUID'))
+
+    def filter_repository_uuid(self, queryset, name, value):
+        request = self.request
+        try:
+            repository = Repository.objects.get(uuid=value)
+            authorization = repository.get_user_authorization(request.user)
+            if not authorization.can_read:
+                raise PermissionDenied()
+            return queryset.filter(repository=repository)
+        except Repository.DoesNotExist:
+            raise NotFound(
+                _('Repository {} does not exist').format(value))
+        except DjangoValidationError:
+            raise NotFound(_('Invalid repository UUID'))
+
+
 # Mixins
 
 class MultipleFieldLookupMixin(object):
@@ -478,7 +510,7 @@ class RepositoryViewSet(
             return Response(request.json())  # pragma: no cover
 
         response = None  # pragma: no cover
-        try:
+        try:  # pragma: no cover
             response = request.json()  # pragma: no cover
         except Exception:
             pass
@@ -950,4 +982,17 @@ class RepositoryEntitiesViewSet(
     permission_classes = [
         IsAuthenticated,
         RepositoryEntityHasPermission,
+    ]
+
+
+class RepositoryUpdatesViewSet(
+      mixins.ListModelMixin,
+      GenericViewSet):
+    queryset = RepositoryUpdate.objects.filter(
+        training_started_at__isnull=False)
+    serializer_class = RepositoryUpdateSerializer
+    filter_class = RepositoryUpdatesFilter
+    permission_classes = [
+        IsAuthenticated,
+        RepositoryUpdateHasPermission,
     ]

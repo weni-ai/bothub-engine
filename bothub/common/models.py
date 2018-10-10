@@ -2,6 +2,7 @@ import uuid
 import base64
 import requests
 
+from functools import reduce
 from django.db import models
 from django.utils.translation import gettext as _
 from django.utils import timezone
@@ -98,6 +99,17 @@ class Repository(models.Model):
         validators=[
             languages.validate_language,
         ])
+    use_language_model_featurizer = models.BooleanField(
+        _('Use language model featurizer'),
+        help_text=_('You can use language featurizer to get words ' +
+                    'similarity. You need less examples to create a great ' +
+                    'bot.'),
+        default=True)
+    use_competing_intents = models.BooleanField(
+        _('Use competing intents'),
+        help_text=_('When using competing intents the confidence of the ' +
+                    'prediction is distributed in all the intents.'),
+        default=False)
     categories = models.ManyToManyField(
         RepositoryCategory,
         help_text=CATEGORIES_HELP_TEXT)
@@ -168,19 +180,39 @@ class Repository(models.Model):
             ))
 
     @property
+    def current_updates(self):
+        return map(
+            lambda lang: self.current_update(lang),
+            self.available_languages)
+
+    @property
+    def requirements_to_train(self):
+        return dict(filter(
+            lambda l: l[1],
+            map(
+                lambda u: (u.language, u.requirements_to_train,),
+                self.current_updates)))
+
+    @property
+    def languages_ready_for_train(self):
+        return dict(map(
+                lambda u: (u.language, u.ready_for_train,),
+                self.current_updates))
+
+    @property
     def ready_for_train(self):
-        updates = self.updates.filter(training_started_at=None)
+        return reduce(
+            lambda current, u: u.ready_for_train or current,
+            self.current_updates,
+            False)
 
-        if RepositoryExample.objects.filter(
-                models.Q(repository_update__in=updates) |
-                models.Q(deleted_in__in=updates)).exists():
-            return True
-
-        if RepositoryTranslatedExample.objects.filter(
-                repository_update__in=updates).exists():
-            return True
-
-        return False
+    @property
+    def languages_warnings(self):
+        return dict(filter(
+                lambda w: len(w[1]) > 0,
+                map(
+                    lambda u: (u.language, u.warnings,),
+                    self.current_updates)))
 
     @property
     def votes_sum(self):
@@ -318,6 +350,10 @@ class RepositoryUpdate(models.Model):
         verbose_name_plural = _('repository updates')
         ordering = ['-created_at']
 
+    MIN_EXAMPLES_PER_INTENT = 2
+    MIN_EXAMPLES_PER_ENTITY = 2
+    RECOMMENDED_INTENTS = 2
+
     repository = models.ForeignKey(
         Repository,
         models.CASCADE,
@@ -328,6 +364,8 @@ class RepositoryUpdate(models.Model):
         validators=[
             languages.validate_language,
         ])
+    use_language_model_featurizer = models.BooleanField(default=True)
+    use_competing_intents = models.BooleanField(default=False)
     created_at = models.DateTimeField(
         _('created at'),
         auto_now_add=True)
@@ -352,6 +390,10 @@ class RepositoryUpdate(models.Model):
         _('failed at'),
         blank=True,
         null=True)
+    training_log = models.TextField(
+        _('training log'),
+        blank=True,
+        editable=False)
 
     @property
     def examples(self):
@@ -369,34 +411,117 @@ class RepositoryUpdate(models.Model):
         return examples
 
     @property
+    def requirements_to_train(self):
+        try:
+            self.validate_init_train()
+        except RepositoryUpdateAlreadyTrained as e:
+            return [_('This bot version has already been trained.')]
+        except RepositoryUpdateAlreadyStartedTraining as e:
+            return [_('This bot version is being trained.')]
+
+        r = []
+
+        if not self.added.exists() and \
+           not self.translated_added.exists() and \
+           not self.deleted.exists():
+            r.append(_('There was no change in this bot version. No ' +
+                       'examples or translations for {} have been added or ' +
+                       'removed.').format(
+                           languages.VERBOSE_LANGUAGES.get(self.language)))
+
+        intents = self.examples.values_list('intent', flat=True)
+
+        if '' in intents:
+            r.append(_('All examples need have a intent.'))
+
+        weak_intents = self.examples.values('intent').annotate(
+            intent_count=models.Count('id')).order_by().exclude(
+                intent_count__gte=self.MIN_EXAMPLES_PER_INTENT)
+        if weak_intents.exists():
+            for i in weak_intents:
+                r.append(_('Intent "{}" has only {} examples. ' +
+                           'Minimum is {}.').format(
+                        i.get('intent'),
+                        i.get('intent_count'),
+                        self.MIN_EXAMPLES_PER_INTENT))
+
+        weak_entities = self.examples.annotate(
+            es_count=models.Count('entities')).filter(
+                es_count__gte=1).values(
+                    'entities__entity__value').annotate(
+                        entities_count=models.Count('id')).order_by().exclude(
+                            entities_count__gte=self.MIN_EXAMPLES_PER_ENTITY)
+        if weak_entities.exists():
+            for e in weak_entities:
+                r.append(_('Entity "{}" has only {} examples. ' +
+                           'Minimum is {}.').format(
+                        e.get('entities__entity__value'),
+                        e.get('entities_count'),
+                        self.MIN_EXAMPLES_PER_ENTITY))
+
+        return r
+
+    @property
     def ready_for_train(self):
-        if self.added.exists():
-            return True
-        if self.translated_added.exists():
-            return True
-        if self.deleted.exists():
-            return True
-        return False
+        if self.training_started_at:
+            return False
+
+        previous_update = self.repository.updates.filter(
+            language=self.language,
+            by__isnull=False,
+            training_started_at__isnull=False,
+            created_at__lt=self.created_at).first()
+
+        if previous_update:
+            if previous_update.use_language_model_featurizer is not \
+               self.repository.use_language_model_featurizer:
+                return True
+            if previous_update.use_competing_intents is not \
+               self.repository.use_competing_intents:
+                return True
+            if previous_update.failed_at:
+                return True
+        return len(self.requirements_to_train) is 0
+
+    @property
+    def intents(self):
+        return list(set(self.examples.values_list('intent', flat=True)))
+
+    @property
+    def warnings(self):
+        w = []
+        if 0 < len(self.intents) < self.RECOMMENDED_INTENTS:
+            w.append(_('You need to have at least {} intents for the ' +
+                       'algorithm to identify intents.').format(
+                           self.RECOMMENDED_INTENTS))
+        return w
 
     def __str__(self):
         return 'Repository Update #{}'.format(self.id)
 
-    def start_training(self, by):
+    def validate_init_train(self, by=None):
         if self.trained_at:
             raise RepositoryUpdateAlreadyTrained()
         if self.training_started_at:
             raise RepositoryUpdateAlreadyStartedTraining()
+        if by:
+            authorization = self.repository.get_user_authorization(by)
+            if not authorization.can_write:
+                raise TrainingNotAllowed()
 
-        authorization = self.repository.get_user_authorization(by)
-        if not authorization.can_write:
-            raise TrainingNotAllowed()
-
+    def start_training(self, by):
+        self.validate_init_train(by)
         self.by = by
         self.training_started_at = timezone.now()
+        self.use_language_model_featurizer = self.repository \
+            .use_language_model_featurizer
+        self.use_competing_intents = self.repository.use_competing_intents
         self.save(
             update_fields=[
                 'by',
                 'training_started_at',
+                'use_language_model_featurizer',
+                'use_competing_intents',
             ])
 
     def save_training(self, bot_data):
@@ -445,7 +570,7 @@ class RepositoryExample(models.Model):
     intent = models.CharField(
         _('intent'),
         max_length=64,
-        blank=True,
+        default='no_intent',
         help_text=_('Example intent reference'),
         validators=[validate_item_key])
     created_at = models.DateTimeField(

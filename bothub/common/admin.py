@@ -13,11 +13,14 @@ class RepositoryUpdateInline(admin.TabularInline):
 
     fields = [
         'language',
+        'use_language_model_featurizer',
+        'use_competing_intents',
         'created_at',
         'by',
         'training_started_at',
         'trained_at',
         'failed_at',
+        'training_log',
         'download_bot_data',
     ]
     readonly_fields = fields

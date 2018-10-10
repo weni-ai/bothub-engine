@@ -2,9 +2,9 @@ from setuptools import setup, find_packages
 
 
 setup(
-    name='bothub',
-    version='1.15.5',
-    description='bothub',
+    name='bothub-engine',
+    version='1.16.0',
+    description='Bothub Engine',
     packages=find_packages(),
     install_requires=[
         'python-decouple==3.1',
