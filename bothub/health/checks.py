@@ -29,11 +29,11 @@ def check_database_connection(**kwargs):
 
 def check_accessible_api(request, **kwargs):
     import requests
-    logger.info('requesting {}'.format(CHECK_ACCESSIBLE_API_URL))
     if CHECK_ACCESSIBLE_API_URL:
+        logger.info('requesting {}'.format(CHECK_ACCESSIBLE_API_URL))
         response = requests.get(CHECK_ACCESSIBLE_API_URL)
     else:
-        url = 'http://{}/api/repositories/'.format(
+        url = 'http://{}/200/'.format(
             request.META.get('HTTP_HOST'))
         logger.info('requesting to {}'.format(url))
         response = requests.get(url)
