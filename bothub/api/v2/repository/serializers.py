@@ -111,6 +111,7 @@ class RepositorySerializer(serializers.ModelSerializer):
             'languages_ready_for_train',
             'request_authorization',
             'available_request_authorization',
+            'languages_warnings',
         ]
         read_only = [
             'uuid',
