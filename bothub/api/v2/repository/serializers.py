@@ -6,6 +6,7 @@ from bothub.common.models import RepositoryEntityLabel
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RequestRepositoryAuthorization
 from bothub.common.languages import LANGUAGE_CHOICES
+from ..request.serializers import RequestRepositoryAuthorizationSerializer
 
 
 class RepositoryCategorySerializer(serializers.ModelSerializer):
@@ -108,6 +109,7 @@ class RepositorySerializer(serializers.ModelSerializer):
             'ready_for_train',
             'requirements_to_train',
             'languages_ready_for_train',
+            'request_authorization',
             'available_request_authorization',
         ]
         read_only = [
@@ -148,6 +150,7 @@ class RepositorySerializer(serializers.ModelSerializer):
     examples__count = serializers.SerializerMethodField()
     absolute_url = serializers.SerializerMethodField()
     authorization = serializers.SerializerMethodField()
+    request_authorization = serializers.SerializerMethodField()
     available_request_authorization = serializers.SerializerMethodField()
 
     def get_intents(self, obj):
@@ -183,6 +186,19 @@ class RepositorySerializer(serializers.ModelSerializer):
             return None
         return RepositoryAuthorizationSerializer(
             obj.get_user_authorization(request.user)).data
+
+    def get_request_authorization(self, obj):
+        request = self.context.get('request')
+        if not request or not request.user.is_authenticated:
+            return None
+        try:
+            request_authorization = RequestRepositoryAuthorization.objects.get(
+                user=request.user,
+                repository=obj)
+            return RequestRepositoryAuthorizationSerializer(
+                request_authorization).data
+        except RequestRepositoryAuthorization.DoesNotExist:
+            return None
 
     def get_available_request_authorization(self, obj):
         request = self.context.get('request')
