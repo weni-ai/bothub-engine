@@ -7,6 +7,7 @@ from rest_framework import status
 
 from bothub.common.models import RepositoryCategory
 from bothub.common.models import Repository
+from bothub.common.models import RequestRepositoryAuthorization
 from bothub.common import languages
 
 from ..tests.utils import create_user_and_token
@@ -303,3 +304,61 @@ class RepositoryAuthorizationTestCase(TestCase):
             self.assertEqual(
                 authorization.get('uuid'),
                 str(repository.get_user_authorization(user).uuid))
+
+
+class RepositoryAvailableRequestAuthorizationTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.user, self.user_token = create_user_and_token()
+        self.owner, self.owner_token = create_user_and_token('owner')
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name='Testing',
+            slug='test',
+            language=languages.LANGUAGE_EN)
+
+    def request(self, repository, token=None):
+        authorization_header = {
+            'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
+        } if token else {}
+
+        request = self.factory.get(
+            '/api/v2/repository/{}/'.format(repository.uuid),
+            **authorization_header)
+
+        response = RepositoryViewSet.as_view({'get': 'retrieve'})(
+            request,
+            uuid=repository.uuid)
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data,)
+
+    def test_owner_ever_false(self):
+        response, content_data = self.request(
+            self.repository,
+            self.owner_token)
+        available_request_authorization = content_data.get(
+            'available_request_authorization')
+        self.assertFalse(available_request_authorization)
+
+    def test_user_available(self):
+        response, content_data = self.request(
+            self.repository,
+            self.user_token)
+        available_request_authorization = content_data.get(
+            'available_request_authorization')
+        self.assertTrue(available_request_authorization)
+
+    def test_false_when_request(self):
+        RequestRepositoryAuthorization.objects.create(
+            user=self.user,
+            repository=self.repository,
+            text='r')
+        response, content_data = self.request(
+            self.repository,
+            self.user_token)
+        available_request_authorization = content_data.get(
+            'available_request_authorization')
+        self.assertFalse(available_request_authorization)
