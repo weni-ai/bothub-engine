@@ -423,14 +423,6 @@ class RepositoryUpdate(models.Model):
 
         r = []
 
-        if not self.added.exists() and \
-           not self.translated_added.exists() and \
-           not self.deleted.exists():
-            r.append(_('There was no change in this bot version. No ' +
-                       'examples or translations for {} have been added or ' +
-                       'removed.').format(
-                           languages.VERBOSE_LANGUAGES.get(self.language)))
-
         intents = self.examples.values_list('intent', flat=True)
 
         if '' in intents:
@@ -483,6 +475,12 @@ class RepositoryUpdate(models.Model):
                 return True
             if previous_update.failed_at:
                 return True
+
+        if not self.added.exists() and \
+           not self.translated_added.exists() and \
+           not self.deleted.exists():
+            return False
+
         return len(self.requirements_to_train) is 0
 
     @property
