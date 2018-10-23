@@ -3,7 +3,8 @@ from django.urls import path, include
 from django.conf import settings
 from rest_framework.documentation import include_docs_urls
 
-from bothub.api.routers import router as bothub_api_routers
+from bothub.api.v1.routers import router as bothub_api_routers
+from bothub.api.v2 import urls as bothub_api_v2_urls
 from bothub.health.views import ping
 from bothub.health.views import r200
 from bothub.common.views import download_bot_data
@@ -12,6 +13,7 @@ from bothub.common.views import download_bot_data
 urlpatterns = [
     path('', include(bothub_api_routers.urls)),
     path('api/', include(bothub_api_routers.urls)),
+    path('api/v2/', include(bothub_api_v2_urls)),
     path('docs/', include_docs_urls(title='API Documentation')),
     path('admin/', admin.site.urls),
     path('ping/', ping, name='ping'),

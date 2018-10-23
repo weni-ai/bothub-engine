@@ -1053,6 +1053,43 @@ class RepositoryEntityLabelTestCase(TestCase):
         self.assertIsNone(name_entity.label)
 
 
+class RepositoryOtherEntitiesTest(TestCase):
+    def setUp(self):
+        self.owner = User.objects.create_user('owner@user.com', 'user')
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name='Test',
+            slug='test',
+            language=languages.LANGUAGE_EN)
+
+        self.example = RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(),
+            text='my name is Douglas')
+
+        self.example_entity_1 = RepositoryExampleEntity.objects.create(
+            repository_example=self.example,
+            start=11,
+            end=18,
+            entity='douglas')
+        entity = self.example_entity_1.entity
+        entity.set_label('name')
+        entity.save()
+
+        self.example_entity_2 = RepositoryExampleEntity.objects.create(
+            repository_example=self.example,
+            start=0,
+            end=2,
+            entity='object')
+
+    def test_ok(self):
+        other_entities = self.repository.other_entities
+        self.assertEqual(
+            other_entities.count(),
+            1)
+        self.assertIn(self.example_entity_2.entity, other_entities)
+
+
 class UseLanguageModelFeaturizerTestCase(TestCase):
     def setUp(self):
         self.language = languages.LANGUAGE_EN
