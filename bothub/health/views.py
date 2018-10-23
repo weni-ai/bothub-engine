@@ -32,3 +32,7 @@ def ping(request):
         content=content,
         content_type='text/plain',
         status=status_code)
+
+
+def r200(request):
+    return HttpResponse()
