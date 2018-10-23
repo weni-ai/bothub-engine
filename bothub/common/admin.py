@@ -13,6 +13,8 @@ class RepositoryUpdateInline(admin.TabularInline):
 
     fields = [
         'language',
+        'use_language_model_featurizer',
+        'use_competing_intents',
         'created_at',
         'by',
         'training_started_at',
@@ -21,6 +23,7 @@ class RepositoryUpdateInline(admin.TabularInline):
         'training_log',
         'download_bot_data',
     ]
+    readonly_fields = fields
 
     def download_bot_data(self, obj):
         if not obj.trained_at:
