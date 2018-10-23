@@ -82,7 +82,8 @@ class Repository(models.Model):
         editable=False)
     owner = models.ForeignKey(
         User,
-        models.CASCADE)
+        models.CASCADE,
+        related_name='repositories')
     name = models.CharField(
         _('name'),
         max_length=64,
@@ -243,17 +244,18 @@ class Repository(models.Model):
 
     @property
     def current_labels(self):
-        return self.labels.filter(entities__value__in=self.examples(
-            exclude_deleted=True).exclude(
-                entities__entity__value__isnull=True).values_list(
-                    'entities__entity__value',
-                    flat=True).distinct())
+        return self.labels.filter(
+            entities__value__in=self.entities_list).distinct()
 
     @property
     def labels_list(self):
         return self.current_labels.values_list(
             'value',
             flat=True).distinct()
+
+    @property
+    def other_entities(self):
+        return self.current_entities.filter(label__isnull=True)
 
     @property
     def admins(self):
@@ -421,14 +423,6 @@ class RepositoryUpdate(models.Model):
 
         r = []
 
-        if not self.added.exists() and \
-           not self.translated_added.exists() and \
-           not self.deleted.exists():
-            r.append(_('There was no change in this bot version. No ' +
-                       'examples or translations for {} have been added or ' +
-                       'removed.').format(
-                           languages.VERBOSE_LANGUAGES.get(self.language)))
-
         intents = self.examples.values_list('intent', flat=True)
 
         if '' in intents:
@@ -481,6 +475,12 @@ class RepositoryUpdate(models.Model):
                 return True
             if previous_update.failed_at:
                 return True
+
+        if not self.added.exists() and \
+           not self.translated_added.exists() and \
+           not self.deleted.exists():
+            return False
+
         return len(self.requirements_to_train) is 0
 
     @property
@@ -730,6 +730,11 @@ class RepositoryEntityLabel(models.Model):
         auto_now_add=True)
 
     objects = RepositoryEntityLabelManager()
+
+    def examples(self, exclude_deleted=True):
+        return self.repository.examples(
+            exclude_deleted=exclude_deleted).filter(
+                entities__entity__label=self)
 
 
 class RepositoryEntityQueryset(models.QuerySet):
