@@ -13,6 +13,7 @@ from bothub.common.views import download_bot_data
 urlpatterns = [
     path('', include(bothub_api_routers.urls)),
     path('api/', include(bothub_api_routers.urls)),
+    path('v2/', include(bothub_api_v2_urls)),
     path('api/v2/', include(bothub_api_v2_urls)),
     path('docs/', include_docs_urls(title='API Documentation')),
     path('admin/', admin.site.urls),
