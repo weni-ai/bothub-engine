@@ -460,6 +460,9 @@ class RepositoryUpdate(models.Model):
         if self.training_started_at:
             return False
 
+        if len(self.requirements_to_train) > 0:
+            return False
+
         previous_update = self.repository.updates.filter(
             language=self.language,
             by__isnull=False,
@@ -481,7 +484,7 @@ class RepositoryUpdate(models.Model):
            not self.deleted.exists():
             return False
 
-        return len(self.requirements_to_train) is 0
+        return True
 
     @property
     def intents(self):
