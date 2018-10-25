@@ -481,6 +481,9 @@ class RepositoryUpdate(models.Model):
            not self.deleted.exists():
             return False
 
+        if self.examples.count() == 0:
+            return False
+
         return len(self.requirements_to_train) is 0
 
     @property

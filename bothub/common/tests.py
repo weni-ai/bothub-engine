@@ -871,6 +871,15 @@ class RepositoryUpdateReadyForTrain(TestCase):
             entity='hi')
         self.assertTrue(self.repository.current_update().ready_for_train)
 
+    def test_no_examples(self):
+        example = RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(),
+            text='hi',
+            intent='greet')
+        self.repository.current_update().start_training(self.owner)
+        example.delete()
+        self.assertFalse(self.repository.current_update().ready_for_train)
+
 
 class RequestRepositoryAuthorizationTestCase(TestCase):
     def setUp(self):
