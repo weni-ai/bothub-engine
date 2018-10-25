@@ -162,7 +162,7 @@ class RepositorySerializer(serializers.ModelSerializer):
                 lambda intent: {
                     'value': intent,
                     'examples__count': obj.examples(
-                        exclude_deleted=False).filter(
+                        exclude_deleted=True).filter(
                             intent=intent).count(),
                 },
                 obj.intents),
