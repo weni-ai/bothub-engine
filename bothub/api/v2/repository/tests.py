@@ -8,11 +8,13 @@ from rest_framework import status
 from bothub.common.models import RepositoryCategory
 from bothub.common.models import Repository
 from bothub.common.models import RequestRepositoryAuthorization
+from bothub.common.models import RepositoryExample
 from bothub.common import languages
 
 from ..tests.utils import create_user_and_token
 
 from .views import RepositoryViewSet
+from .serializers import RepositorySerializer
 
 
 def get_valid_mockups(categories):
@@ -362,3 +364,36 @@ class RepositoryAvailableRequestAuthorizationTestCase(TestCase):
         available_request_authorization = content_data.get(
             'available_request_authorization')
         self.assertFalse(available_request_authorization)
+
+
+class IntentsInRepositorySerializer(TestCase):
+    def setUp(self):
+        self.owner, self.owner_token = create_user_and_token('owner')
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name='Testing',
+            slug='test',
+            language=languages.LANGUAGE_EN)
+        RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(),
+            text='hi',
+            intent='greet')
+
+    def test_count_1(self):
+        repository_data = RepositorySerializer(self.repository).data
+        intent = repository_data.get('intents')[0]
+        self.assertEqual(intent.get('examples__count'), 1)
+
+    def test_example_deleted(self):
+        example = RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(),
+            text='hi',
+            intent='greet')
+        repository_data = RepositorySerializer(self.repository).data
+        intent = repository_data.get('intents')[0]
+        self.assertEqual(intent.get('examples__count'), 2)
+        example.delete()
+        repository_data = RepositorySerializer(self.repository).data
+        intent = repository_data.get('intents')[0]
+        self.assertEqual(intent.get('examples__count'), 1)
