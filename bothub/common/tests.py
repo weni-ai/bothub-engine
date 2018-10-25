@@ -767,7 +767,8 @@ class RepositoryUpdateReadyForTrain(TestCase):
             owner=self.owner,
             name='Test',
             slug='test',
-            language=languages.LANGUAGE_EN)
+            language=languages.LANGUAGE_EN,
+            use_language_model_featurizer=False)
 
     def test_be_true(self):
         RepositoryExample.objects.create(
@@ -870,6 +871,19 @@ class RepositoryUpdateReadyForTrain(TestCase):
             end=2,
             entity='hi')
         self.assertTrue(self.repository.current_update().ready_for_train)
+
+    def test_settings_change_exists_requirements(self):
+        self.repository.current_update().start_training(self.owner)
+        self.repository.use_language_model_featurizer = True
+        self.repository.save()
+        RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(),
+            text='hello',
+            intent='greet')
+        self.assertEqual(
+            len(self.repository.current_update().requirements_to_train),
+            1)
+        self.assertFalse(self.repository.current_update().ready_for_train)
 
     def test_no_examples(self):
         example = RepositoryExample.objects.create(

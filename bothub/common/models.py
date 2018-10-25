@@ -460,6 +460,9 @@ class RepositoryUpdate(models.Model):
         if self.training_started_at:
             return False
 
+        if len(self.requirements_to_train) > 0:
+            return False
+
         previous_update = self.repository.updates.filter(
             language=self.language,
             by__isnull=False,
