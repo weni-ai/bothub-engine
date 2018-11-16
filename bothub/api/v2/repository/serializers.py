@@ -230,6 +230,8 @@ class ShortRepositorySerializer(serializers.ModelSerializer):
             'slug',
             'description',
             'is_private',
+            'categories',
+            'categories_list',
             'language',
             'available_languages',
             'created_at',
@@ -239,6 +241,14 @@ class ShortRepositorySerializer(serializers.ModelSerializer):
         ]
         read_only = fields
 
+    categories = RepositoryCategorySerializer(
+        many=True,
+        read_only=True)
+    categories_list = serializers.SlugRelatedField(
+        source='categories',
+        slug_field='name',
+        many=True,
+        read_only=True)
     owner__nickname = serializers.SlugRelatedField(
         source='owner',
         slug_field='nickname',
