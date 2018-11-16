@@ -219,3 +219,31 @@ class RepositorySerializer(serializers.ModelSerializer):
             return False
         except RequestRepositoryAuthorization.DoesNotExist:
             return True
+
+
+class ShortRepositorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Repository
+        fields = [
+            'uuid',
+            'name',
+            'slug',
+            'description',
+            'is_private',
+            'language',
+            'available_languages',
+            'created_at',
+            'owner',
+            'owner__nickname',
+            'absolute_url',
+        ]
+        read_only = fields
+
+    owner__nickname = serializers.SlugRelatedField(
+        source='owner',
+        slug_field='nickname',
+        read_only=True)
+    absolute_url = serializers.SerializerMethodField()
+
+    def get_absolute_url(self, obj):
+        return obj.get_absolute_url()
