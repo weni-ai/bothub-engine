@@ -1230,3 +1230,53 @@ class RepositoryUpdateWarnings(TestCase):
         self.assertEqual(
             len(self.repository.current_update().warnings),
             0)
+
+
+class RepositorySupportedLanguageQueryTestCase(TestCase):
+    def setUp(self):
+        self.owner = User.objects.create_user('owner@user.com', 'user')
+        self.uid = 0
+
+    def _create_repository(self, language):
+        self.uid += 1
+        return Repository.objects.create(
+            owner=self.owner,
+            name='Test {}'.format(language),
+            slug='test-{}-{}'.format(self.uid, language),
+            language=language)
+
+    def test_main_language(self):
+        language = languages.LANGUAGE_EN
+        repository_en = self._create_repository(language)
+        q = Repository.objects.all().supported_language(language)
+        self.assertEqual(
+            q.count(),
+            1,
+        )
+        self.assertIn(repository_en, q)
+        q = Repository.objects.all().supported_language(language)
+        repository_pt = self._create_repository(languages.LANGUAGE_PT)
+        self.assertEqual(
+            q.count(),
+            1,
+        )
+        self.assertNotIn(repository_pt, q)
+
+    def test_has_translation(self):
+        language = languages.LANGUAGE_EN
+        t_language = languages.LANGUAGE_PT
+        repository_en = self._create_repository(language)
+        example = RepositoryExample.objects.create(
+            repository_update=repository_en.current_update(),
+            text='bye',
+            intent='bye')
+        RepositoryTranslatedExample.objects.create(
+            original_example=example,
+            language=t_language,
+            text='tchau')
+        q = Repository.objects.all().supported_language(t_language)
+        self.assertEqual(
+            q.count(),
+            1,
+        )
+        self.assertIn(repository_en, q)
