@@ -19,7 +19,6 @@ install_requirements:
 
 lint:
 	@make development_mode_guard
-	@make check_environment
 	@PIPENV_DONT_LOAD_ENV=1 pipenv run flake8
 	@echo "${SUCCESS}✔${NC} The code is following the PEP8"
 

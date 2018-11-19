@@ -14,6 +14,7 @@ from bothub.common import languages
 from ..tests.utils import create_user_and_token
 
 from .views import RepositoryViewSet
+from .views import RepositoriesViewSet
 from .serializers import RepositorySerializer
 
 
@@ -366,7 +367,7 @@ class RepositoryAvailableRequestAuthorizationTestCase(TestCase):
         self.assertFalse(available_request_authorization)
 
 
-class IntentsInRepositorySerializer(TestCase):
+class IntentsInRepositorySerializerTestCase(TestCase):
     def setUp(self):
         self.owner, self.owner_token = create_user_and_token('owner')
 
@@ -397,3 +398,79 @@ class IntentsInRepositorySerializer(TestCase):
         repository_data = RepositorySerializer(self.repository).data
         intent = repository_data.get('intents')[0]
         self.assertEqual(intent.get('examples__count'), 1)
+
+
+class RepositoriesViewSetTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.owner, self.owner_token = create_user_and_token('owner')
+        self.category_1 = RepositoryCategory.objects.create(name='Category 1')
+        self.category_2 = RepositoryCategory.objects.create(name='Category 2')
+        self.repositories = [
+            create_repository_from_mockup(self.owner, **mockup)
+            for mockup in get_valid_mockups([self.category_1])
+        ]
+        self.public_repositories = list(
+            filter(
+                lambda r: not r.is_private,
+                self.repositories,
+            )
+        )
+
+    def request(self, data={}, token=None):
+        authorization_header = {
+            'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
+        } if token else {}
+        request = self.factory.get(
+            '/api/v2/repositories/',
+            data,
+            **authorization_header,
+        )
+        response = RepositoriesViewSet.as_view({'get': 'list'})(request)
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data,)
+
+    def test_count(self):
+        public_repositories_length = len(self.public_repositories)
+        response, content_data = self.request()
+        self.assertEqual(
+            content_data.get('count'),
+            public_repositories_length,
+        )
+
+    def test_name_filter(self):
+        response, content_data = self.request({
+            'name': self.public_repositories[0].name,
+        })
+        self.assertEqual(
+            content_data.get('count'),
+            1,
+        )
+        response, content_data = self.request({
+            'name': 'abc',
+        })
+        self.assertEqual(
+            content_data.get('count'),
+            0,
+        )
+
+    def test_category_filter(self):
+        response, content_data = self.request({
+            'categories': [
+                self.category_1.id,
+            ],
+        })
+        self.assertEqual(
+            content_data.get('count'),
+            1,
+        )
+        response, content_data = self.request({
+            'categories': [
+                self.category_2.id,
+            ],
+        })
+        self.assertEqual(
+            content_data.get('count'),
+            0,
+        )
