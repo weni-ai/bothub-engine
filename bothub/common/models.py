@@ -59,6 +59,25 @@ class RepositoryQuerySet(models.QuerySet):
             .annotate(examples_sum=models.Sum('updates__added')) \
             .order_by('-votes_summ', '-examples_sum', '-created_at')
 
+    def supported_language(self, language):
+        valid_examples = RepositoryExample.objects.filter(
+            deleted_in__isnull=True,
+        )
+        valid_updates = RepositoryUpdate.objects.filter(
+            added__in=valid_examples,
+        )
+        return self.filter(
+            models.Q(language=language)
+            | models.Q(
+                updates__in=valid_updates,
+                updates__language=language,
+            )
+            | models.Q(
+                updates__in=valid_updates,
+                updates__added__translations__language=language,
+            )
+        )
+
 
 class RepositoryManager(models.Manager):
     def get_queryset(self):
