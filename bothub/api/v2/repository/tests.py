@@ -9,6 +9,7 @@ from bothub.common.models import RepositoryCategory
 from bothub.common.models import Repository
 from bothub.common.models import RequestRepositoryAuthorization
 from bothub.common.models import RepositoryExample
+from bothub.common.models import RepositoryTranslatedExample
 from bothub.common import languages
 
 from ..tests.utils import create_user_and_token
@@ -470,6 +471,131 @@ class RepositoriesViewSetTestCase(TestCase):
                 self.category_2.id,
             ],
         })
+        self.assertEqual(
+            content_data.get('count'),
+            0,
+        )
+
+
+class RepositoriesLanguageFilterTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.owner, self.owner_token = create_user_and_token('owner')
+
+        self.repository_en_1 = Repository.objects.create(
+            owner=self.owner,
+            name='Testing en_1',
+            slug='test en_1',
+            language=languages.LANGUAGE_EN)
+        self.repository_en_2 = Repository.objects.create(
+            owner=self.owner,
+            name='Testing en_2',
+            slug='en_2',
+            language=languages.LANGUAGE_EN)
+        self.repository_pt = Repository.objects.create(
+            owner=self.owner,
+            name='Testing pt',
+            slug='pt',
+            language=languages.LANGUAGE_PT)
+
+    def request(self, data={}, token=None):
+        authorization_header = {
+            'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
+        } if token else {}
+        request = self.factory.get(
+            '/api/v2/repositories/',
+            data,
+            **authorization_header,
+        )
+        response = RepositoriesViewSet.as_view({'get': 'list'})(request)
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data,)
+
+    def test_main_language(self):
+        response, content_data = self.request({
+            'language': languages.LANGUAGE_EN,
+        })
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+        )
+        self.assertEqual(
+            content_data.get('count'),
+            2,
+        )
+        response, content_data = self.request({
+            'language': languages.LANGUAGE_PT,
+        })
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+        )
+        self.assertEqual(
+            content_data.get('count'),
+            1,
+        )
+
+    def test_example_language(self):
+        language = languages.LANGUAGE_ES
+        example = RepositoryExample.objects.create(
+            repository_update=self.repository_en_1.current_update(language),
+            text='hi',
+            intent='greet')
+        response, content_data = self.request({
+            'language': language,
+        })
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+        )
+        self.assertEqual(
+            content_data.get('count'),
+            1,
+        )
+        example.delete()
+        response, content_data = self.request({
+            'language': language,
+        })
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+        )
+        self.assertEqual(
+            content_data.get('count'),
+            0,
+        )
+
+    def test_translated_example(self):
+        language = languages.LANGUAGE_ES
+        example = RepositoryExample.objects.create(
+            repository_update=self.repository_en_1.current_update(),
+            text='hi',
+            intent='greet')
+        translated = RepositoryTranslatedExample.objects.create(
+            original_example=example,
+            language=language,
+            text='hola'
+        )
+        response, content_data = self.request({
+            'language': language,
+        })
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+        )
+        self.assertEqual(
+            content_data.get('count'),
+            1,
+        )
+        translated.delete()
+        response, content_data = self.request({
+            'language': language,
+        })
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+        )
         self.assertEqual(
             content_data.get('count'),
             0,
