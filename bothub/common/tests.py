@@ -1280,3 +1280,24 @@ class RepositorySupportedLanguageQueryTestCase(TestCase):
             1,
         )
         self.assertIn(repository_en, q)
+
+    def test_has_example(self):
+        language = languages.LANGUAGE_EN
+        e_language = languages.LANGUAGE_PT
+        repository_en = self._create_repository(language)
+        example = RepositoryExample.objects.create(
+            repository_update=repository_en.current_update(e_language),
+            text='bye',
+            intent='bye')
+        q = Repository.objects.all().supported_language(e_language)
+        self.assertEqual(
+            q.count(),
+            1,
+        )
+        self.assertIn(repository_en, q)
+        example.delete()
+        q = Repository.objects.all().supported_language(e_language)
+        self.assertEqual(
+            q.count(),
+            0,
+        )

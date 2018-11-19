@@ -60,9 +60,22 @@ class RepositoryQuerySet(models.QuerySet):
             .order_by('-votes_summ', '-examples_sum', '-created_at')
 
     def supported_language(self, language):
+        valid_examples = RepositoryExample.objects.filter(
+            deleted_in__isnull=True,
+        )
+        valid_updates = RepositoryUpdate.objects.filter(
+            added__in=valid_examples,
+        )
         return self.filter(
             models.Q(language=language)
-            | models.Q(updates__translated_added__language=language),
+            | models.Q(
+                updates__in=valid_updates,
+                updates__language=language,
+            )
+            | models.Q(
+                updates__in=valid_updates,
+                updates__added__translations__language=language,
+            )
         )
 
 
