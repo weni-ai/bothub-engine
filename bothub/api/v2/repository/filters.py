@@ -15,7 +15,7 @@ class RepositoriesFilter(filters.FilterSet):
     language = filters.CharFilter(
         field_name='language',
         method='filter_language',
-        help_text=_('Repository\'s UUID'))
+        help_text=_('Language'))
 
     def filter_language(self, queryset, name, value):
         return queryset.supported_language(value)
