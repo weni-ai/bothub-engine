@@ -33,17 +33,19 @@ class Router(routers.SimpleRouter):
         # Dynamically generated list routes.
         # Generated using @list_route decorator
         # on methods of the viewset.
-        routers.DynamicListRoute(
-            url=r'^{prefix}/{methodname}{trailing_slash}$',
-            name='{basename}-{methodnamehyphen}',
-            initkwargs={}
+        routers.DynamicRoute(
+            url=r'^{prefix}/{url_path}{trailing_slash}$',
+            name='{basename}-{url_name}',
+            detail=True,
+            initkwargs={},
         ),
         # Dynamically generated detail routes.
         # Generated using @detail_route decorator on methods of the viewset.
-        routers.DynamicDetailRoute(
-            url=r'^{prefix}/{lookup}/{methodname}{trailing_slash}$',
-            name='{basename}-{methodnamehyphen}',
-            initkwargs={}
+        routers.DynamicRoute(
+            url=r'^{prefix}/{lookup}/{url_path}{trailing_slash}$',
+            name='{basename}-{url_name}',
+            detail=True,
+            initkwargs={},
         ),
     ]
 
@@ -60,7 +62,8 @@ class Router(routers.SimpleRouter):
                     'post': 'create'
                 },
                 name='{basename}-list',
-                initkwargs={'suffix': 'List'}
+                detail=False,
+                initkwargs={'suffix': 'List'},
             ))
 
         detail_url_regex = r'^{prefix}/{lookup}{trailing_slash}$'
@@ -76,6 +79,7 @@ class Router(routers.SimpleRouter):
                 'delete': 'destroy'
             },
             name='{basename}-detail',
+            detail=True,
             initkwargs={'suffix': 'Instance'}
         ))
 

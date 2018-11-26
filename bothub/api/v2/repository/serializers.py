@@ -128,9 +128,7 @@ class RepositorySerializer(serializers.ModelSerializer):
     language = serializers.ChoiceField(
         LANGUAGE_CHOICES,
         label=Repository._meta.get_field('language').verbose_name)
-    owner = serializers.PrimaryKeyRelatedField(
-        default=serializers.CurrentUserDefault(),
-        read_only=True)
+    owner = serializers.PrimaryKeyRelatedField(read_only=True)
     owner__nickname = serializers.SlugRelatedField(
         source='owner',
         slug_field='nickname',
@@ -155,6 +153,12 @@ class RepositorySerializer(serializers.ModelSerializer):
     authorization = serializers.SerializerMethodField()
     request_authorization = serializers.SerializerMethodField()
     available_request_authorization = serializers.SerializerMethodField()
+
+    def create(self, validated_data):
+        validated_data.update({
+            'owner': self.context['request'].user,
+        })
+        return super().create(validated_data)
 
     def get_intents(self, obj):
         return IntentSerializer(

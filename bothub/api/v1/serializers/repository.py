@@ -35,10 +35,7 @@ class NewRepositorySerializer(serializers.ModelSerializer):
 
     uuid = serializers.ReadOnlyField(
         style={'show': False})
-    owner = serializers.PrimaryKeyRelatedField(
-        read_only=True,
-        default=serializers.CurrentUserDefault(),
-        style={'show': False})
+    owner = serializers.HiddenField(default=serializers.CurrentUserDefault())
     language = serializers.ChoiceField(
         LANGUAGE_CHOICES,
         label=_('Language'))
