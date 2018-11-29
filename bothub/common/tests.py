@@ -971,7 +971,7 @@ class RepositoryEntityTestCase(TestCase):
             value='name')
         self.assertEqual(
             name_entity.pk,
-            self.example_entity_1.pk)
+            self.example_entity_1.entity.pk)
 
     def test_dont_duplicate_entity(self):
         name_entity = RepositoryEntity.objects.get(
@@ -986,7 +986,7 @@ class RepositoryEntityTestCase(TestCase):
 
         self.assertEqual(
             name_entity.pk,
-            self.example_entity_1.pk)
+            self.example_entity_1.entity.pk)
         self.assertEqual(
             name_entity.pk,
             new_example_entity.entity.pk)
