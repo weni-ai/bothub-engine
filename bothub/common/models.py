@@ -435,9 +435,9 @@ class RepositoryUpdate(models.Model):
     def requirements_to_train(self):
         try:
             self.validate_init_train()
-        except RepositoryUpdateAlreadyTrained as e:
+        except RepositoryUpdateAlreadyTrained:
             return [_('This bot version has already been trained.')]
-        except RepositoryUpdateAlreadyStartedTraining as e:
+        except RepositoryUpdateAlreadyStartedTraining:
             return [_('This bot version is being trained.')]
 
         r = []
@@ -723,7 +723,7 @@ class RepositoryEntityLabelQueryset(models.QuerySet):
             return super().get(
                 repository=repository,
                 value=value)
-        except self.model.DoesNotExist as e:
+        except self.model.DoesNotExist:
             return super().create(
                 repository=repository,
                 value=value)
@@ -768,7 +768,7 @@ class RepositoryEntityQueryset(models.QuerySet):
             return super().get(
                 repository=repository,
                 value=value)
-        except self.model.DoesNotExist as e:
+        except self.model.DoesNotExist:
             return super().create(
                 repository=repository,
                 value=value)
@@ -1160,7 +1160,7 @@ def set_user_role_on_approved(instance, **kwargs):
     current = None
     try:
         current = RequestRepositoryAuthorization.objects.get(pk=instance.pk)
-    except RequestRepositoryAuthorization.DoesNotExist as e:
+    except RequestRepositoryAuthorization.DoesNotExist:
         pass
 
     if not current:

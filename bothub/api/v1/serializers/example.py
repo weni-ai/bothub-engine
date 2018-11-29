@@ -164,7 +164,7 @@ class NewRepositoryExampleSerializer(serializers.ModelSerializer):
         repository = validated_data.pop('repository')
         try:
             language = validated_data.pop('language')
-        except KeyError as e:
+        except KeyError:
             language = None
         repository_update = repository.current_update(language or None)
         validated_data.update({'repository_update': repository_update})

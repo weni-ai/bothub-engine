@@ -21,7 +21,7 @@ def check_database_connection(**kwargs):
         try:
             conn.cursor()
             logger.info('#{} db connection OKAY'.format(i))
-        except OperationalError as e:
+        except OperationalError:
             logger.warning('#{} db connection ERROR'.format(i))
             return False
     return True
