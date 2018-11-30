@@ -767,7 +767,8 @@ class RepositoryUpdateReadyForTrain(TestCase):
             owner=self.owner,
             name='Test',
             slug='test',
-            language=languages.LANGUAGE_EN)
+            language=languages.LANGUAGE_EN,
+            use_language_model_featurizer=False)
 
     def test_be_true(self):
         RepositoryExample.objects.create(
@@ -871,6 +872,28 @@ class RepositoryUpdateReadyForTrain(TestCase):
             entity='hi')
         self.assertTrue(self.repository.current_update().ready_for_train)
 
+    def test_settings_change_exists_requirements(self):
+        self.repository.current_update().start_training(self.owner)
+        self.repository.use_language_model_featurizer = True
+        self.repository.save()
+        RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(),
+            text='hello',
+            intent='greet')
+        self.assertEqual(
+            len(self.repository.current_update().requirements_to_train),
+            1)
+        self.assertFalse(self.repository.current_update().ready_for_train)
+
+    def test_no_examples(self):
+        example = RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(),
+            text='hi',
+            intent='greet')
+        self.repository.current_update().start_training(self.owner)
+        example.delete()
+        self.assertFalse(self.repository.current_update().ready_for_train)
+
 
 class RequestRepositoryAuthorizationTestCase(TestCase):
     def setUp(self):
@@ -948,7 +971,7 @@ class RepositoryEntityTestCase(TestCase):
             value='name')
         self.assertEqual(
             name_entity.pk,
-            self.example_entity_1.pk)
+            self.example_entity_1.entity.pk)
 
     def test_dont_duplicate_entity(self):
         name_entity = RepositoryEntity.objects.get(
@@ -963,7 +986,7 @@ class RepositoryEntityTestCase(TestCase):
 
         self.assertEqual(
             name_entity.pk,
-            self.example_entity_1.pk)
+            self.example_entity_1.entity.pk)
         self.assertEqual(
             name_entity.pk,
             new_example_entity.entity.pk)
@@ -1051,6 +1074,43 @@ class RepositoryEntityLabelTestCase(TestCase):
         name_entity.set_label(None)
 
         self.assertIsNone(name_entity.label)
+
+
+class RepositoryOtherEntitiesTest(TestCase):
+    def setUp(self):
+        self.owner = User.objects.create_user('owner@user.com', 'user')
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name='Test',
+            slug='test',
+            language=languages.LANGUAGE_EN)
+
+        self.example = RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(),
+            text='my name is Douglas')
+
+        self.example_entity_1 = RepositoryExampleEntity.objects.create(
+            repository_example=self.example,
+            start=11,
+            end=18,
+            entity='douglas')
+        entity = self.example_entity_1.entity
+        entity.set_label('name')
+        entity.save()
+
+        self.example_entity_2 = RepositoryExampleEntity.objects.create(
+            repository_example=self.example,
+            start=0,
+            end=2,
+            entity='object')
+
+    def test_ok(self):
+        other_entities = self.repository.other_entities
+        self.assertEqual(
+            other_entities.count(),
+            1)
+        self.assertIn(self.example_entity_2.entity, other_entities)
 
 
 class UseLanguageModelFeaturizerTestCase(TestCase):
@@ -1170,3 +1230,74 @@ class RepositoryUpdateWarnings(TestCase):
         self.assertEqual(
             len(self.repository.current_update().warnings),
             0)
+
+
+class RepositorySupportedLanguageQueryTestCase(TestCase):
+    def setUp(self):
+        self.owner = User.objects.create_user('owner@user.com', 'user')
+        self.uid = 0
+
+    def _create_repository(self, language):
+        self.uid += 1
+        return Repository.objects.create(
+            owner=self.owner,
+            name='Test {}'.format(language),
+            slug='test-{}-{}'.format(self.uid, language),
+            language=language)
+
+    def test_main_language(self):
+        language = languages.LANGUAGE_EN
+        repository_en = self._create_repository(language)
+        q = Repository.objects.all().supported_language(language)
+        self.assertEqual(
+            q.count(),
+            1,
+        )
+        self.assertIn(repository_en, q)
+        q = Repository.objects.all().supported_language(language)
+        repository_pt = self._create_repository(languages.LANGUAGE_PT)
+        self.assertEqual(
+            q.count(),
+            1,
+        )
+        self.assertNotIn(repository_pt, q)
+
+    def test_has_translation(self):
+        language = languages.LANGUAGE_EN
+        t_language = languages.LANGUAGE_PT
+        repository_en = self._create_repository(language)
+        example = RepositoryExample.objects.create(
+            repository_update=repository_en.current_update(),
+            text='bye',
+            intent='bye')
+        RepositoryTranslatedExample.objects.create(
+            original_example=example,
+            language=t_language,
+            text='tchau')
+        q = Repository.objects.all().supported_language(t_language)
+        self.assertEqual(
+            q.count(),
+            1,
+        )
+        self.assertIn(repository_en, q)
+
+    def test_has_example(self):
+        language = languages.LANGUAGE_EN
+        e_language = languages.LANGUAGE_PT
+        repository_en = self._create_repository(language)
+        example = RepositoryExample.objects.create(
+            repository_update=repository_en.current_update(e_language),
+            text='bye',
+            intent='bye')
+        q = Repository.objects.all().supported_language(e_language)
+        self.assertEqual(
+            q.count(),
+            1,
+        )
+        self.assertIn(repository_en, q)
+        example.delete()
+        q = Repository.objects.all().supported_language(e_language)
+        self.assertEqual(
+            q.count(),
+            0,
+        )

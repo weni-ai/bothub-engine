@@ -59,6 +59,25 @@ class RepositoryQuerySet(models.QuerySet):
             .annotate(examples_sum=models.Sum('updates__added')) \
             .order_by('-votes_summ', '-examples_sum', '-created_at')
 
+    def supported_language(self, language):
+        valid_examples = RepositoryExample.objects.filter(
+            deleted_in__isnull=True,
+        )
+        valid_updates = RepositoryUpdate.objects.filter(
+            added__in=valid_examples,
+        )
+        return self.filter(
+            models.Q(language=language)
+            | models.Q(
+                updates__in=valid_updates,
+                updates__language=language,
+            )
+            | models.Q(
+                updates__in=valid_updates,
+                updates__added__translations__language=language,
+            )
+        )
+
 
 class RepositoryManager(models.Manager):
     def get_queryset(self):
@@ -82,7 +101,8 @@ class Repository(models.Model):
         editable=False)
     owner = models.ForeignKey(
         User,
-        models.CASCADE)
+        models.CASCADE,
+        related_name='repositories')
     name = models.CharField(
         _('name'),
         max_length=64,
@@ -243,17 +263,18 @@ class Repository(models.Model):
 
     @property
     def current_labels(self):
-        return self.labels.filter(entities__value__in=self.examples(
-            exclude_deleted=True).exclude(
-                entities__entity__value__isnull=True).values_list(
-                    'entities__entity__value',
-                    flat=True).distinct())
+        return self.labels.filter(
+            entities__value__in=self.entities_list).distinct()
 
     @property
     def labels_list(self):
         return self.current_labels.values_list(
             'value',
             flat=True).distinct()
+
+    @property
+    def other_entities(self):
+        return self.current_entities.filter(label__isnull=True)
 
     @property
     def admins(self):
@@ -414,20 +435,12 @@ class RepositoryUpdate(models.Model):
     def requirements_to_train(self):
         try:
             self.validate_init_train()
-        except RepositoryUpdateAlreadyTrained as e:
+        except RepositoryUpdateAlreadyTrained:
             return [_('This bot version has already been trained.')]
-        except RepositoryUpdateAlreadyStartedTraining as e:
+        except RepositoryUpdateAlreadyStartedTraining:
             return [_('This bot version is being trained.')]
 
         r = []
-
-        if not self.added.exists() and \
-           not self.translated_added.exists() and \
-           not self.deleted.exists():
-            r.append(_('There was no change in this bot version. No ' +
-                       'examples or translations for {} have been added or ' +
-                       'removed.').format(
-                           languages.VERBOSE_LANGUAGES.get(self.language)))
 
         intents = self.examples.values_list('intent', flat=True)
 
@@ -466,6 +479,9 @@ class RepositoryUpdate(models.Model):
         if self.training_started_at:
             return False
 
+        if len(self.requirements_to_train) > 0:
+            return False
+
         previous_update = self.repository.updates.filter(
             language=self.language,
             by__isnull=False,
@@ -481,6 +497,15 @@ class RepositoryUpdate(models.Model):
                 return True
             if previous_update.failed_at:
                 return True
+
+        if not self.added.exists() and \
+           not self.translated_added.exists() and \
+           not self.deleted.exists():
+            return False
+
+        if self.examples.count() == 0:
+            return False
+
         return len(self.requirements_to_train) is 0
 
     @property
@@ -698,7 +723,7 @@ class RepositoryEntityLabelQueryset(models.QuerySet):
             return super().get(
                 repository=repository,
                 value=value)
-        except self.model.DoesNotExist as e:
+        except self.model.DoesNotExist:
             return super().create(
                 repository=repository,
                 value=value)
@@ -731,6 +756,11 @@ class RepositoryEntityLabel(models.Model):
 
     objects = RepositoryEntityLabelManager()
 
+    def examples(self, exclude_deleted=True):
+        return self.repository.examples(
+            exclude_deleted=exclude_deleted).filter(
+                entities__entity__label=self)
+
 
 class RepositoryEntityQueryset(models.QuerySet):
     def get(self, repository, value):
@@ -738,7 +768,7 @@ class RepositoryEntityQueryset(models.QuerySet):
             return super().get(
                 repository=repository,
                 value=value)
-        except self.model.DoesNotExist as e:
+        except self.model.DoesNotExist:
             return super().create(
                 repository=repository,
                 value=value)
@@ -1130,7 +1160,7 @@ def set_user_role_on_approved(instance, **kwargs):
     current = None
     try:
         current = RequestRepositoryAuthorization.objects.get(pk=instance.pk)
-    except RequestRepositoryAuthorization.DoesNotExist as e:
+    except RequestRepositoryAuthorization.DoesNotExist:
         pass
 
     if not current:

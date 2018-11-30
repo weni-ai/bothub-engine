@@ -18,8 +18,7 @@ class NewRequestRepositoryAuthorizationSerializer(serializers.ModelSerializer):
     repository = serializers.PrimaryKeyRelatedField(
         queryset=Repository.objects,
         style={'show': False})
-    user = serializers.PrimaryKeyRelatedField(
-        read_only=True,
+    user = serializers.HiddenField(
         default=serializers.CurrentUserDefault(),
         style={'show': False})
     text = TextField(
@@ -62,5 +61,10 @@ class ReviewAuthorizationRequestSerializer(serializers.ModelSerializer):
 
     approved_by = serializers.PrimaryKeyRelatedField(
         read_only=True,
-        default=serializers.CurrentUserDefault(),
         style={'show': False})
+
+    def update(self, instance, validated_data):
+        validated_data.update({
+            'approved_by': self.context['request'].user,
+        })
+        return super().update(instance, validated_data)

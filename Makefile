@@ -19,17 +19,19 @@ install_requirements:
 
 lint:
 	@make development_mode_guard
-	@make check_environment
 	@PIPENV_DONT_LOAD_ENV=1 pipenv run flake8
 	@echo "${SUCCESS}✔${NC} The code is following the PEP8"
 
-test:
-	@make development_mode_guard
-	@make check_environment
+ifeq (test,$(firstword $(MAKECMDGOALS)))
+  RUN_ARGS := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
+  $(eval $(RUN_ARGS):;@:)
+endif
+
+test: development_mode_guard check_environment
 	@make migrate CHECK_ENVIRONMENT=false
 	@make collectstatic CHECK_ENVIRONMENT=false
-	@PIPENV_DONT_LOAD_ENV=1 SECRET_KEY=SK SUPPORTED_LANGUAGES="en|pt" pipenv run coverage run manage.py test
-	@PIPENV_DONT_LOAD_ENV=1 pipenv run coverage report -m
+	@PIPENV_DONT_LOAD_ENV=1 SECRET_KEY=SK SUPPORTED_LANGUAGES="en|pt" pipenv run coverage run manage.py test $(RUN_ARGS)
+	@if [ ! $(RUN_ARGS) ]; then PIPENV_DONT_LOAD_ENV=1 pipenv run coverage report -m; fi;
 
 migrate:
 	@make check_environment
