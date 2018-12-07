@@ -59,6 +59,7 @@ class RepositoryAdmin(admin.ModelAdmin):
         RepositoryUpdateInline,
     ]
 
+
 @admin.register(RepositoryCategory)
 class RepositoryCategoryAdmin(admin.ModelAdmin):
     list_display = [
