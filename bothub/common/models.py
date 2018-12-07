@@ -44,6 +44,10 @@ class RepositoryCategory(models.Model):
     name = models.CharField(
         _('name'),
         max_length=32)
+    icon = models.CharField(
+        _('icon'),
+        max_length=16,
+        default='botinho')
 
     def __str__(self):
         return self.name  # pragma: no cover
