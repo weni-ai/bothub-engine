@@ -5,6 +5,8 @@ services:
       image: postgres
       ports:
         - 5432:5432
+      networks:
+        - bothub
       environment:
         - POSTGRES_USER=${POSTGRES_USER:-bothub}
         - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-bothub}
@@ -39,3 +41,8 @@ services:
       - CHECK_ACCESSIBLE_API_URL=${CHECK_ACCESSIBLE_API_URL}
       - SEND_EMAILS=${SEND_EMAILS:-true}
       - SUPPORTED_LANGUAGES=${SUPPORTED_LANGUAGES:-en|pt}
+
+
+networks:
+  bothub:
+    external: true
