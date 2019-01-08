@@ -1,4 +1,9 @@
-version: '3.3'
+# Attention:
+# Use this docker-compose to:
+# - Up development environment: docker-compose up
+# - Build docker images: docker-compose build
+
+version: '3.6'
 
 services:
   database:
@@ -6,6 +11,7 @@ services:
       ports:
         - 5432:5432
       networks:
+        - default
         - bothub
       environment:
         - POSTGRES_USER=${POSTGRES_USER:-bothub}
