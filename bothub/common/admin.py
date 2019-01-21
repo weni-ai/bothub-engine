@@ -14,7 +14,7 @@ class RepositoryUpdateInline(admin.TabularInline):
 
     fields = [
         'language',
-        'use_language_model_featurizer',
+        'algorithm',
         'use_competing_intents',
         'created_at',
         'by',

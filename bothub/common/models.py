@@ -98,6 +98,24 @@ class Repository(models.Model):
                              'the same purpose')
     DESCRIPTION_HELP_TEXT = _('Tell what your bot do!')
 
+    ALGORITHM_STATISTICAL_MODEL = 'statistical_model'
+    ALGORITHM_NEURAL_NETWORK_INTERNAL = 'neural_network_internal'
+    ALGORITHM_NEURAL_NETWORK_EXTERNAL = 'neural_network_external'
+    ALGORITHM_CHOICES = [
+        (
+            ALGORITHM_STATISTICAL_MODEL,
+            _('Statistical Model'),
+        ),
+        (
+            ALGORITHM_NEURAL_NETWORK_INTERNAL,
+            _('Neural Network with internal vocabulary'),
+        ),
+        (
+            ALGORITHM_NEURAL_NETWORK_EXTERNAL,
+            _('Neural Network with external vocabulary (BETA)'),
+        ),
+    ]
+
     uuid = models.UUIDField(
         _('UUID'),
         primary_key=True,
@@ -123,12 +141,12 @@ class Repository(models.Model):
         validators=[
             languages.validate_language,
         ])
-    use_language_model_featurizer = models.BooleanField(
-        _('Use language model featurizer'),
-        help_text=_('You can use language featurizer to get words ' +
-                    'similarity. You need less examples to create a great ' +
-                    'bot.'),
-        default=True)
+    algorithm = models.CharField(
+        _('algorithm'),
+        max_length=24,
+        choices=ALGORITHM_CHOICES,
+        default=ALGORITHM_STATISTICAL_MODEL,
+    )
     use_competing_intents = models.BooleanField(
         _('Use competing intents'),
         help_text=_('When using competing intents the confidence of the ' +
@@ -288,6 +306,10 @@ class Repository(models.Model):
         ]
         return list(set(admins))
 
+    @property
+    def use_language_model_featurizer(self):
+        return self.algorithm != Repository.ALGORITHM_NEURAL_NETWORK_INTERNAL
+
     def __str__(self):
         return 'Repository {} - {}/{}'.format(
             self.name,
@@ -389,7 +411,12 @@ class RepositoryUpdate(models.Model):
         validators=[
             languages.validate_language,
         ])
-    use_language_model_featurizer = models.BooleanField(default=True)
+    algorithm = models.CharField(
+        _('algorithm'),
+        max_length=24,
+        choices=Repository.ALGORITHM_CHOICES,
+        default=Repository.ALGORITHM_STATISTICAL_MODEL,
+    )
     use_competing_intents = models.BooleanField(default=False)
     created_at = models.DateTimeField(
         _('created at'),
@@ -525,6 +552,10 @@ class RepositoryUpdate(models.Model):
                            self.RECOMMENDED_INTENTS))
         return w
 
+    @property
+    def use_language_model_featurizer(self):
+        return self.algorithm != Repository.ALGORITHM_NEURAL_NETWORK_INTERNAL
+
     def __str__(self):
         return 'Repository Update #{}'.format(self.id)
 
@@ -542,14 +573,13 @@ class RepositoryUpdate(models.Model):
         self.validate_init_train(by)
         self.by = by
         self.training_started_at = timezone.now()
-        self.use_language_model_featurizer = self.repository \
-            .use_language_model_featurizer
+        self.algorithm = self.repository.algorithm
         self.use_competing_intents = self.repository.use_competing_intents
         self.save(
             update_fields=[
                 'by',
                 'training_started_at',
-                'use_language_model_featurizer',
+                'algorithm',
                 'use_competing_intents',
             ])
 
