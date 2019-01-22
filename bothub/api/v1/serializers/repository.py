@@ -27,7 +27,6 @@ class NewRepositorySerializer(serializers.ModelSerializer):
             'slug',
             'language',
             'algorithm',
-            'use_language_model_featurizer',
             'use_competing_intents',
             'categories',
             'description',
