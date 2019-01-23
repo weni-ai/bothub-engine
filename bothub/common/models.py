@@ -520,8 +520,7 @@ class RepositoryUpdate(models.Model):
             created_at__lt=self.created_at).first()
 
         if previous_update:
-            if previous_update.use_language_model_featurizer is not \
-               self.repository.use_language_model_featurizer:
+            if previous_update.algorithm != self.repository.algorithm:
                 return True
             if previous_update.use_competing_intents is not \
                self.repository.use_competing_intents:
