@@ -758,6 +758,22 @@ class RepositoryReadyForTrain(TestCase):
         current_update.train_fail()
         self.assertTrue(self.repository.current_update().ready_for_train)
 
+    def test_change_algorithm(self):
+        self.assertTrue(self.repository.ready_for_train)
+        for (val_current, verb_current) in Repository.ALGORITHM_CHOICES:
+            for (val_next, verb_next) in Repository.ALGORITHM_CHOICES:
+                if val_current == val_next:
+                    continue
+                self.repository.algorithm = val_current
+                self.repository.save()
+                current_update = self.repository.current_update()
+                current_update.start_training(self.owner)
+                current_update.save_training(b'')
+                self.assertFalse(self.repository.ready_for_train)
+                self.repository.algorithm = val_next
+                self.repository.save()
+                self.assertTrue(self.repository.ready_for_train)
+
 
 class RepositoryUpdateReadyForTrain(TestCase):
     def setUp(self):
@@ -768,7 +784,7 @@ class RepositoryUpdateReadyForTrain(TestCase):
             name='Test',
             slug='test',
             language=languages.LANGUAGE_EN,
-            use_language_model_featurizer=False)
+            algorithm=Repository.ALGORITHM_NEURAL_NETWORK_INTERNAL)
 
     def test_be_true(self):
         RepositoryExample.objects.create(
@@ -874,7 +890,8 @@ class RepositoryUpdateReadyForTrain(TestCase):
 
     def test_settings_change_exists_requirements(self):
         self.repository.current_update().start_training(self.owner)
-        self.repository.use_language_model_featurizer = True
+        self.repository.algorithm = Repository \
+            .ALGORITHM_NEURAL_NETWORK_EXTERNAL
         self.repository.save()
         RepositoryExample.objects.create(
             repository_update=self.repository.current_update(),
@@ -1124,7 +1141,7 @@ class UseLanguageModelFeaturizerTestCase(TestCase):
             name='Test',
             slug='test',
             language=self.language,
-            use_language_model_featurizer=True)
+            algorithm=Repository.ALGORITHM_NEURAL_NETWORK_EXTERNAL)
 
         RepositoryExample.objects.create(
             repository_update=self.repository.current_update(),
@@ -1135,22 +1152,10 @@ class UseLanguageModelFeaturizerTestCase(TestCase):
             text='my name is John',
             intent='greet')
 
-    def test_change_ready_for_train(self):
-        self.assertTrue(self.repository.ready_for_train)
-        current_update = self.repository.current_update()
-        current_update.start_training(self.owner)
-        current_update.save_training(b'')
-        self.assertFalse(self.repository.ready_for_train)
-        self.repository.use_language_model_featurizer = False
-        self.repository.save()
-        self.assertTrue(self.repository.ready_for_train)
-        self.repository.use_language_model_featurizer = True
-        self.repository.save()
-        self.assertFalse(self.repository.ready_for_train)
-
     def test_equal_repository_value_after_train(self):
         current_update = self.repository.current_update()
-        self.repository.use_language_model_featurizer = False
+        self.repository.algorithm = Repository \
+            .ALGORITHM_NEURAL_NETWORK_INTERNAL
         self.repository.save()
         current_update.start_training(self.owner)
         current_update.save_training(b'')
