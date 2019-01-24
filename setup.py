@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='bothub-engine',
-    version='1.19.0b',
+    version='1.19.0',
     description='Bothub Engine',
     packages=find_packages(),
     install_requires=[
