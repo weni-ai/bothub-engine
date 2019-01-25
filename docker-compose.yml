@@ -1,10 +1,18 @@
-version: '3.3'
+# Attention:
+# Use this docker-compose to:
+# - Up development environment: docker-compose up
+# - Build docker images: docker-compose build
+
+version: '3.6'
 
 services:
   database:
       image: postgres
       ports:
         - 5432:5432
+      networks:
+        - default
+        - bothub
       environment:
         - POSTGRES_USER=${POSTGRES_USER:-bothub}
         - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-bothub}
@@ -16,6 +24,9 @@ services:
       dockerfile: Dockerfile
     ports:
       - 80:80
+    networks:
+      - default
+      - bothub
     environment:
       - SECRET_KEY=${SECRET_KEY:-SK}
       - DEBUG=${DEBUG:-true}
@@ -35,7 +46,12 @@ services:
       - CSRF_COOKIE_DOMAIN=${CSRF_COOKIE_DOMAIN}
       - CSRF_COOKIE_SECURE=${CSRF_COOKIE_SECURE:-false}
       - BOTHUB_WEBAPP_BASE_URL=${BOTHUB_WEBAPP_BASE_URL:-http://localhost/}
-      - BOTHUB_NLP_BASE_URL=${BOTHUB_NLP_BASE_URL:-http://localhost:2657/}
+      - BOTHUB_NLP_BASE_URL=${BOTHUB_NLP_BASE_URL:-http://bothub-nlp-api:2657/}
       - CHECK_ACCESSIBLE_API_URL=${CHECK_ACCESSIBLE_API_URL}
       - SEND_EMAILS=${SEND_EMAILS:-true}
       - SUPPORTED_LANGUAGES=${SUPPORTED_LANGUAGES:-en|pt}
+
+
+networks:
+  bothub:
+    external: true

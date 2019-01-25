@@ -113,6 +113,7 @@ class RepositorySerializer(serializers.ModelSerializer):
             'request_authorization',
             'available_request_authorization',
             'languages_warnings',
+            'algorithm',
             'use_language_model_featurizer',
             'use_competing_intents',
         ]
