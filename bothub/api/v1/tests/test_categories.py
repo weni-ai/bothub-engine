@@ -15,8 +15,7 @@ class CategoriesTestCase(TestCase):
         self.category = RepositoryCategory.objects.create(name='Category 1')
         self.business_category = RepositoryCategory.objects.create(
             name='Business',
-            icon='business'
-        )
+            icon='business')
 
     def request(self):
         request = self.factory.get('/api/categories/')
