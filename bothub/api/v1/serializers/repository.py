@@ -94,6 +94,9 @@ class RepositorySerializer(serializers.ModelSerializer):
         source='owner',
         slug_field='nickname',
         read_only=True)
+    categories = RepositoryCategorySerializer(
+        many=True,
+        read_only=True)
     categories_list = serializers.SerializerMethodField()
     entities = serializers.SerializerMethodField()
     labels = RepositoryEntityLabelSerializer(many=True)
