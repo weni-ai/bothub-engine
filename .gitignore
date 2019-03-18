@@ -109,6 +109,7 @@ settings.ini
 
 # IDEs
 .vscode/
+.idea/
 
 # db and staticfiles
 db.sqlite3
