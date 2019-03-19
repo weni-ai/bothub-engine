@@ -605,6 +605,66 @@ class RepositoryUpdate(models.Model):
             ])
 
 
+class RepositoryValidation(models.Model):
+    class Meta:
+        verbose_name = _('repository validation test')
+        verbose_name_plural = _('repository validation tests')
+        ordering = ['-created_at']
+
+    repository_update = models.ForeignKey(
+        RepositoryUpdate,
+        models.CASCADE,
+        related_name='added_validation',
+        editable=False)
+    deleted_in = models.ForeignKey(
+        RepositoryUpdate,
+        models.CASCADE,
+        related_name='deleted_validation',
+        blank=True,
+        null=True)
+    text = models.TextField(
+        _('text'),
+        help_text=_('Validation test text'))
+    intent = models.CharField(
+        _('intent'),
+        max_length=64,
+        default='no_intent',
+        help_text=_('Validation intent reference'),
+        validators=[validate_item_key])
+    created_at = models.DateTimeField(
+        _('created at'),
+        auto_now_add=True)
+
+    @property
+    def language(self):
+        return self.repository_update.language
+
+    def has_valid_entities(self, language=None):
+        if not language or language == self.repository_update.language:
+            return True
+        return self.get_translation(language).has_valid_entities
+
+    def get_translation(self, language):
+        try:
+            return self.translations.get(language=language)
+        except RepositoryTranslatedExample.DoesNotExist:
+            raise DoesNotHaveTranslation()
+
+    def get_text(self, language=None):
+        if not language or language == self.repository_update.language:
+            return self.text
+        return self.get_translation(language).text
+
+    def get_entities(self, language):
+        if not language or language == self.repository_update.language:
+            return self.entities.all()
+        return self.get_translation(language).entities.all()
+
+    def delete(self):
+        self.deleted_in = self.repository_update.repository.current_update(
+            self.repository_update.language)
+        self.save(update_fields=['deleted_in'])
+
 class RepositoryExample(models.Model):
     class Meta:
         verbose_name = _('repository example')
