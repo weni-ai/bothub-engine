@@ -7,12 +7,12 @@ from rest_framework.exceptions import NotFound
 from django_filters import rest_framework as filters
 
 from bothub.common.models import Repository
-from bothub.common.models import RepositoryExample
+from bothub.common.models import RepositoryValidation
 
 
 class ValidationFilter(filters.FilterSet):
     class Meta:
-        model = RepositoryExample
+        model = RepositoryValidation
         fields = [
             'text',
             'language',
@@ -31,22 +31,22 @@ class ValidationFilter(filters.FilterSet):
     has_translation = filters.BooleanFilter(
         field_name='has_translation',
         method='filter_has_translation',
-        help_text=_('Filter for examples with or without translation'))
+        help_text=_('Filter for validations with or without translation'))
     has_not_translation_to = filters.CharFilter(
         field_name='has_not_translation_to',
         method='filter_has_not_translation_to')
     order_by_translation = filters.CharFilter(
         field_name='order_by_translation',
         method='filter_order_by_translation',
-        help_text=_('Order examples with translation by language'))
+        help_text=_('Order validations with translation by language'))
     label = filters.CharFilter(
         field_name='label',
         method='filter_label',
-        help_text=_('Filter for examples with entities with specific label.'))
+        help_text=_('Filter for validations with entities with specific label.'))
     entity = filters.CharFilter(
         field_name='entity',
         method='filter_entity',
-        help_text=_('Filter for examples with entity.'))
+        help_text=_('Filter for validations with entity.'))
 
     def filter_repository_uuid(self, queryset, name, value):
         request = self.request
@@ -55,7 +55,7 @@ class ValidationFilter(filters.FilterSet):
             authorization = repository.get_user_authorization(request.user)
             if not authorization.can_read:
                 raise PermissionDenied()
-            return repository.examples(queryset=queryset)
+            return repository.validations(queryset=queryset)
         except Repository.DoesNotExist:
             raise NotFound(
                 _('Repository {} does not exist').format(value))

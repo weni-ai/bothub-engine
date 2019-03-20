@@ -7,11 +7,11 @@ from django_filters.rest_framework import DjangoFilterBackend
 from bothub.common.models import RepositoryValidation
 
 from .serializers import RepositoryValidationSerializer
-from .permissions import RepositoryValidationPermissions
+from .permissions import RepositoryValidationPermission
 from .filters import ValidationFilter
 
 
-class ExamplesViewSet(
+class ValidationViewSet(
         mixins.ListModelMixin,
         GenericViewSet):
     queryset = RepositoryValidation.objects
@@ -31,5 +31,5 @@ class ExamplesViewSet(
         'created_at',
     ]
     permission_classes = [
-        RepositoryValidationPermissions,
+        RepositoryValidationPermission,
     ]

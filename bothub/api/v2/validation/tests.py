@@ -5,13 +5,13 @@ from django.test import RequestFactory
 from rest_framework import status
 
 from bothub.common.models import Repository
-from bothub.common.models import RepositoryExample
-from bothub.common.models import RepositoryTranslatedExample
-from bothub.common.models import RepositoryExampleEntity
+from bothub.common.models import RepositoryValidation
+from bothub.common.models import RepositoryTranslatedValidation
+from bothub.common.models import RepositoryValidationEntity
 from bothub.common import languages
 
 from ..tests.utils import create_user_and_token
-from .views import ExamplesViewSet
+from .views import ValidationViewSet
 
 
 class ListExamplesAPITestCase(TestCase):
@@ -25,26 +25,26 @@ class ListExamplesAPITestCase(TestCase):
             name='Repository 1',
             slug='repo',
             language=languages.LANGUAGE_EN)
-        self.example_1 = RepositoryExample.objects.create(
+        self.example_1 = RepositoryValidation.objects.create(
             repository_update=self.repository.current_update(),
             text='hi',
             intent='greet')
-        entity_1 = RepositoryExampleEntity.objects.create(
-            repository_example=self.example_1,
+        entity_1 = RepositoryValidationEntity.objects.create(
+            repository_validation=self.example_1,
             start=0,
             end=0,
             entity='hi')
         entity_1.entity.set_label('greet')
         entity_1.entity.save()
-        self.example_2 = RepositoryExample.objects.create(
+        self.example_2 = RepositoryValidation.objects.create(
             repository_update=self.repository.current_update(),
             text='hello',
             intent='greet')
-        self.example_3 = RepositoryExample.objects.create(
+        self.example_3 = RepositoryValidation.objects.create(
             repository_update=self.repository.current_update(),
             text='bye',
             intent='farewell')
-        self.example_4 = RepositoryExample.objects.create(
+        self.example_4 = RepositoryValidation.objects.create(
             repository_update=self.repository.current_update(),
             text='bye bye',
             intent='farewell')
@@ -54,17 +54,17 @@ class ListExamplesAPITestCase(TestCase):
             name='Repository 2',
             slug='repo2',
             language=languages.LANGUAGE_EN)
-        self.example_5 = RepositoryExample.objects.create(
+        self.example_5 = RepositoryValidation.objects.create(
             repository_update=self.repository_2.current_update(),
             text='hi',
             intent='greet')
-        self.example_6 = RepositoryExample.objects.create(
+        self.example_6 = RepositoryValidation.objects.create(
             repository_update=self.repository_2.current_update(
                 languages.LANGUAGE_PT),
             text='oi',
             intent='greet')
-        self.translation_6 = RepositoryTranslatedExample.objects.create(
-            original_example=self.example_6,
+        self.translation_6 = RepositoryTranslatedValidation.objects.create(
+            original_validation=self.example_6,
             language=languages.LANGUAGE_EN,
             text='hi')
 
@@ -74,11 +74,11 @@ class ListExamplesAPITestCase(TestCase):
         } if token else {}
 
         request = self.factory.get(
-            '/api/v2/examples/',
+            '/api/v2/validations/',
             data,
             **authorization_header)
 
-        response = ExamplesViewSet.as_view({'get': 'list'})(request)
+        response = ValidationViewSet.as_view({'get': 'list'})(request)
         response.render()
         content_data = json.loads(response.content)
         return (response, content_data,)
@@ -116,7 +116,7 @@ class ListExamplesAPITestCase(TestCase):
             content_data.get('count'),
             3)
 
-    def test_withuout_repository_uuid(self):
+    def test_without_repository_uuid(self):
         response, content_data = self.request()
         self.assertEqual(
             response.status_code,
