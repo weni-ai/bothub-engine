@@ -329,6 +329,18 @@ class Repository(models.Model):
             return query.exclude(deleted_in__isnull=False)
         return query
 
+    def validations(self, language=None, exclude_deleted=True, queryset=None):
+        if queryset is None:
+            queryset = RepositoryValidation.objects
+        query = queryset.filter(
+            repository_update__repository=self)
+        if language:
+            query = query.filter(
+                repository_update__language=language)
+        if exclude_deleted:
+            return query.exclude(deleted_in__isnull=False)
+        return query
+
     def language_status(self, language):
         is_base_language = self.language == language
         examples = self.examples(language)
@@ -647,7 +659,7 @@ class RepositoryValidation(models.Model):
     def get_translation(self, language):
         try:
             return self.translations.get(language=language)
-        except RepositoryTranslatedExample.DoesNotExist:
+        except RepositoryTranslatedValidation.DoesNotExist:
             raise DoesNotHaveTranslation()
 
     def get_text(self, language=None):
@@ -664,6 +676,90 @@ class RepositoryValidation(models.Model):
         self.deleted_in = self.repository_update.repository.current_update(
             self.repository_update.language)
         self.save(update_fields=['deleted_in'])
+
+
+class RepositoryTranslatedValidationManager(models.Manager):
+    def create(self, *args, original_validation=None, language=None, **kwargs):
+        repository = original_validation.repository_update.repository
+        return super().create(
+            *args,
+            repository_update=repository.current_update(language),
+            original_validation=original_validation,
+            language=language,
+            **kwargs)
+
+
+class RepositoryTranslatedValidation(models.Model):
+    class Meta:
+        verbose_name = _('repository translated validation')
+        verbose_name_plural = _('repository translated validations')
+        unique_together = ['original_validation', 'language']
+        ordering = ['-created_at']
+
+    repository_update = models.ForeignKey(
+        RepositoryUpdate,
+        models.CASCADE,
+        related_name='translated_validation_added',
+        editable=False)
+    original_validation = models.ForeignKey(
+        RepositoryValidation,
+        models.CASCADE,
+        related_name='translations',
+        editable=False,
+        help_text=_('Validation object'))
+    language = models.CharField(
+        _('language'),
+        max_length=5,
+        help_text=_('Translation language'),
+        validators=[
+            languages.validate_language,
+        ])
+    text = models.TextField(
+        _('text'),
+        help_text=_('Translation text'))
+    created_at = models.DateTimeField(
+        _('created at'),
+        auto_now_add=True)
+
+    objects = RepositoryTranslatedValidationManager()
+
+    def entities_list_lambda_sort(item):
+        return item.get('entity')
+
+    @classmethod
+    def same_entities_validator(cls, a, b):
+        a_len = len(a)
+        if a_len != len(b):
+            return False
+        a_sorted = sorted(
+            a,
+            key=cls.entities_list_lambda_sort)
+        b_sorted = sorted(
+            b,
+            key=cls.entities_list_lambda_sort)
+        for i in range(a_len):
+            if a_sorted[i].get('entity') != b_sorted[i].get('entity'):
+                return False
+        return True
+
+    @classmethod
+    def count_entities(cls, entities_list, to_str=False):
+        r = {}
+        for e in entities_list:
+            r.update({e.get('entity'): r.get('entity', 0) + 1})
+        if to_str:
+            r = ', '.join(map(
+                lambda x: '{} {}'.format(x[1], x[0]),
+                r.items())) if entities_list else 'no entities'
+        return r
+
+    @property
+    def has_valid_entities(self):
+        original_entities = self.original_validation.entities.all()
+        my_entities = self.entities.all()
+        return RepositoryTranslatedValidation.same_entities_validator(
+            list(map(lambda x: x.to_dict, original_entities)),
+            list(map(lambda x: x.to_dict, my_entities)))
 
 class RepositoryExample(models.Model):
     class Meta:
@@ -910,7 +1006,10 @@ class EntityBaseQueryset(models.QuerySet):
     def create(self, entity, **kwargs):
         if type(entity) is not RepositoryEntity:
             instance = self.model(**kwargs)
-            repository = instance.example.repository_update.repository
+            if instance.example:
+                repository = instance.example.repository_update.repository
+            else:
+                repository = instance.validation.repository_update.repository
             entity = RepositoryEntity.objects.get(
                 repository=repository,
                 value=entity)
@@ -950,6 +1049,10 @@ class EntityBase(models.Model):
         return self.get_example()
 
     @property
+    def validation(self):
+        return self.get_validation()
+
+    @property
     def value(self):
         return self.example.text[self.start:self.end]
 
@@ -969,6 +1072,9 @@ class EntityBase(models.Model):
     def get_example(self):
         pass  # pragma: no cover
 
+    def get_validation(self):
+        pass  # pragma: no cover
+
     def get_rasa_nlu_data(self, label_as_entity=False):
         return {
             'start': self.start,
@@ -976,6 +1082,30 @@ class EntityBase(models.Model):
             'entity': self.entity.label.value
             if label_as_entity else self.entity.value,
         }
+
+
+class RepositoryValidationEntity(EntityBase):
+    repository_validation = models.ForeignKey(
+        RepositoryValidation,
+        models.CASCADE,
+        related_name='entities',
+        editable=False,
+        help_text=_('Validation object'))
+
+    def get_validation(self):
+        return self.repository_validation
+
+
+class RepositoryTranslatedValidationEntity(EntityBase):
+    repository_translated_validation = models.ForeignKey(
+        RepositoryTranslatedValidation,
+        models.CASCADE,
+        related_name='entities',
+        editable=False,
+        help_text=_('Translated validation object'))
+
+    def get_validation(self):
+        return self.repository_translated_validation
 
 
 class RepositoryExampleEntity(EntityBase):
