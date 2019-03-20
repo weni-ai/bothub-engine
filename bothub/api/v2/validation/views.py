@@ -3,6 +3,7 @@ from rest_framework.viewsets import GenericViewSet
 from rest_framework.filters import OrderingFilter
 from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
 from bothub.common.models import RepositoryValidation
 
@@ -12,6 +13,23 @@ from .filters import ValidationFilter
 
 
 class ValidationViewSet(
+        mixins.CreateModelMixin,
+        mixins.RetrieveModelMixin,
+        mixins.UpdateModelMixin,
+        mixins.DestroyModelMixin,
+        GenericViewSet):
+    """
+    Manager repository (bot).
+    """
+    queryset = RepositoryValidation.objects
+    serializer_class = RepositoryValidationSerializer
+    permission_classes = [
+        IsAuthenticatedOrReadOnly,
+        RepositoryValidationPermission,
+    ]
+
+
+class ValidationsViewSet(
         mixins.ListModelMixin,
         GenericViewSet):
     queryset = RepositoryValidation.objects
