@@ -28,17 +28,6 @@ class ValidationFilter(filters.FilterSet):
         field_name='language',
         method='filter_language',
         help_text='Filter by language, default is repository base language')
-    has_translation = filters.BooleanFilter(
-        field_name='has_translation',
-        method='filter_has_translation',
-        help_text=_('Filter for validations with or without translation'))
-    has_not_translation_to = filters.CharFilter(
-        field_name='has_not_translation_to',
-        method='filter_has_not_translation_to')
-    order_by_translation = filters.CharFilter(
-        field_name='order_by_translation',
-        method='filter_order_by_translation',
-        help_text=_('Order validations with translation by language'))
     label = filters.CharFilter(
         field_name='label',
         method='filter_label',
@@ -64,34 +53,6 @@ class ValidationFilter(filters.FilterSet):
 
     def filter_language(self, queryset, name, value):
         return queryset.filter(repository_update__language=value)
-
-    def filter_has_translation(self, queryset, name, value):
-        annotated_queryset = queryset.annotate(
-            translation_count=Count('translations'))
-        if value:
-            return annotated_queryset.filter(
-                translation_count__gt=0)
-        else:
-            return annotated_queryset.filter(
-                translation_count=0)
-
-    def filter_has_not_translation_to(self, queryset, name, value):
-        annotated_queryset = queryset.annotate(
-            translation_count=Count(
-                'translations',
-                filter=Q(translations__language=value)))
-        return annotated_queryset.filter(translation_count=0)
-
-    def filter_order_by_translation(self, queryset, name, value):
-        inverted = value[0] == '-'
-        language = value[1:] if inverted else value
-        result_queryset = queryset.annotate(
-            translation_count=Count(
-                'translations',
-                filter=Q(translations__language=language)))
-        result_queryset = result_queryset.order_by(
-            '-translation_count' if inverted else 'translation_count')
-        return result_queryset
 
     def filter_label(self, queryset, name, value):
         if value == 'other':

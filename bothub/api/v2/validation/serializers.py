@@ -99,7 +99,6 @@ class RepositoryValidationSerializer(serializers.ModelSerializer):
             'language',
             'created_at',
             'entities',
-            'translations',
         ]
         read_only_fields = [
             'repository_update',

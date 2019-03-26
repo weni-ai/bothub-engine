@@ -8,7 +8,6 @@ from rest_framework import status
 from bothub.common.models import Repository
 from bothub.common.models import RepositoryUpdate
 from bothub.common.models import RepositoryValidation
-from bothub.common.models import RepositoryTranslatedValidation
 from bothub.common.models import RepositoryValidationEntity
 from bothub.common import languages
 
@@ -18,7 +17,6 @@ from .views import ListValidationViewSet
 from .views import ListValidationsViewSet
 
 from bothub.api.v1.views import NewRepositoryExampleViewSet
-
 
 
 class CreateValidationAPITestCase(TestCase):
@@ -647,10 +645,6 @@ class ListValidationsAPITestCase(TestCase):
                 languages.LANGUAGE_PT),
             text='oi',
             intent='greet')
-        self.translation_6 = RepositoryTranslatedValidation.objects.create(
-            original_validation=self.example_6,
-            language=languages.LANGUAGE_EN,
-            text='hi')
 
     def request(self, data={}, token=None):
         authorization_header = {
@@ -744,88 +738,6 @@ class ListValidationsAPITestCase(TestCase):
         self.assertEqual(
             content_data.get('count'),
             1)
-
-    def test_filter_has_translation(self):
-        response, content_data = self.request({
-            'repository_uuid': self.repository_2.uuid,
-            'has_translation': False
-        })
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_200_OK)
-        self.assertEqual(
-            content_data.get('count'),
-            1)
-
-        response, content_data = self.request({
-            'repository_uuid': self.repository_2.uuid,
-            'has_translation': True
-        })
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_200_OK)
-        self.assertEqual(
-            content_data.get('count'),
-            1)
-
-    def test_filter_has_not_translation_to(self):
-        response, content_data = self.request({
-            'repository_uuid': self.repository_2.uuid,
-            'has_not_translation_to': languages.LANGUAGE_ES,
-        })
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_200_OK)
-        self.assertEqual(
-            content_data.get('count'),
-            2)
-
-        response, content_data = self.request({
-            'repository_uuid': self.repository_2.uuid,
-            'has_not_translation_to': languages.LANGUAGE_EN,
-        })
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_200_OK)
-        self.assertEqual(
-            content_data.get('count'),
-            1)
-
-    def test_filter_order_by_translation(self):
-        response, content_data = self.request(
-            {
-                'repository_uuid': self.repository_2.uuid,
-                'order_by_translation': languages.LANGUAGE_EN,
-            },
-            self.owner_token)
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_200_OK)
-        results = content_data.get('results')
-        self.assertEqual(
-            0,
-            len(results[0].get('translations')))
-        self.assertEqual(
-            1,
-            len(results[1].get('translations')))
-
-    def test_filter_order_by_translation_inverted(self):
-        response, content_data = self.request(
-            {
-                'repository_uuid': self.repository_2.uuid,
-                'order_by_translation': '-{}'.format(languages.LANGUAGE_EN),
-            },
-            self.owner_token)
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_200_OK)
-        results = content_data.get('results')
-        self.assertEqual(
-            1,
-            len(results[0].get('translations')))
-        self.assertEqual(
-            0,
-            len(results[1].get('translations')))
 
     def test_filter_intent(self):
         response, content_data = self.request(
