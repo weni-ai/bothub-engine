@@ -1,7 +1,5 @@
 from django.utils.translation import gettext as _
 from django.core.exceptions import ValidationError as DjangoValidationError
-from django.db.models import Q
-from django.db.models import Count
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.exceptions import NotFound
 from django_filters import rest_framework as filters
@@ -31,7 +29,10 @@ class ValidationFilter(filters.FilterSet):
     label = filters.CharFilter(
         field_name='label',
         method='filter_label',
-        help_text=_('Filter for validations with entities with specific label.'))
+        help_text=_(
+            'Filter for validations with entities with specific label.'
+        )
+    )
     entity = filters.CharFilter(
         field_name='entity',
         method='filter_entity',

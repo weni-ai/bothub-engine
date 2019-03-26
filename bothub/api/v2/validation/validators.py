@@ -1,6 +1,5 @@
 from django.utils.translation import gettext as _
 from rest_framework.exceptions import ValidationError
-from rest_framework.validators import qs_exists
 
 from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryExampleEntity
@@ -19,7 +18,6 @@ class DoesIntentExistValidator(object):
             raise ValidationError({'intent': _(
                 'Intent MUST match existing intents for training. '
             )})
-
 
 
 class DoesEntityAndLabelExistValidator(object):
@@ -44,6 +42,7 @@ class DoesEntityAndLabelExistValidator(object):
             raise ValidationError({'entities': _(
                 'Entities MUST match existing entities for training. '
             )})
+
 
 class RepositoryValidationWithIntentOrEntityValidator(object):
     def __call__(self, attrs):

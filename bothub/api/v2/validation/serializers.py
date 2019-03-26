@@ -48,6 +48,7 @@ class RepositoryValidationEntitySerializer(serializers.ModelSerializer):
             return None
         return obj.entity.label.value
 
+
 class NewRepositoryValidationEntitySerializer(serializers.ModelSerializer):
     class Meta:
         model = RepositoryValidationEntity
@@ -75,7 +76,9 @@ class NewRepositoryValidationEntitySerializer(serializers.ModelSerializer):
         self.validators.append(DoesEntityAndLabelExistValidator())
 
     def create(self, validated_data):
-        repository_validation = validated_data.pop('repository_validation', None)
+        repository_validation = validated_data.pop(
+            'repository_validation', None
+        )
         assert repository_validation
         label = validated_data.pop('label', empty)
         validation_entity = self.Meta.model.objects.create(
@@ -157,7 +160,9 @@ class NewRepositoryValidationSerializer(serializers.ModelSerializer):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.validators.append(RepositoryValidationWithIntentOrEntityValidator())
+        self.validators.append(
+            RepositoryValidationWithIntentOrEntityValidator()
+        )
 
     def create(self, validated_data):
         entities_data = validated_data.pop('entities')
