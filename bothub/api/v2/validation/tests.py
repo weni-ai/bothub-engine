@@ -17,6 +17,7 @@ from .views import NewValidationViewSet
 from .views import ListValidationViewSet
 from .views import ListValidationsViewSet
 
+from bothub.api.v1.views import NewRepositoryExampleViewSet
 
 
 
@@ -48,9 +49,43 @@ class CreateValidationAPITestCase(TestCase):
         content_data = json.loads(response.content)
         return (response, content_data,)
 
+    def request_example(self, token, data):
+        authorization_header = {
+            'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
+        }
+        request = self.factory.post(
+            '/api/example/new/',
+            json.dumps(data),
+            content_type='application/json',
+            **authorization_header)
+        response = NewRepositoryExampleViewSet.as_view(
+            {'post': 'create'})(request)
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data,)
+
     def test_okay(self):
         text = 'hi'
         intent = 'greet'
+
+        response, content_data = self.request_example(
+            self.owner_token,
+            {
+                'repository': str(self.repository.uuid),
+                'text': text,
+                'intent': intent,
+                'entities': [],
+            })
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_201_CREATED)
+        self.assertEqual(
+            content_data.get('text'),
+            text)
+        self.assertEqual(
+            content_data.get('intent'),
+            intent)
+
         response, content_data = self.request(
             self.owner_token,
             {
@@ -73,6 +108,26 @@ class CreateValidationAPITestCase(TestCase):
         text = 'hi'
         intent = 'greet'
         language = languages.LANGUAGE_PT
+
+        response, content_data = self.request_example(
+            self.owner_token,
+            {
+                'repository': str(self.repository.uuid),
+                'text': text,
+                'language': language,
+                'intent': intent,
+                'entities': [],
+            })
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_201_CREATED)
+        self.assertEqual(
+            content_data.get('text'),
+            text)
+        self.assertEqual(
+            content_data.get('intent'),
+            intent)
+
         response, content_data = self.request(
             self.owner_token,
             {
@@ -151,6 +206,27 @@ class CreateValidationAPITestCase(TestCase):
             status.HTTP_400_BAD_REQUEST)
 
     def test_with_entities(self):
+        response, content_data = self.request_example(
+            self.owner_token,
+            {
+                'repository': str(self.repository.uuid),
+                'text': 'my name is douglas',
+                'intent': 'greet',
+                'entities': [
+                    {
+                        'start': 11,
+                        'end': 18,
+                        'entity': 'name',
+                    },
+                ],
+            })
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_201_CREATED)
+        self.assertEqual(
+            len(content_data.get('entities')),
+            1)
+
         response, content_data = self.request(
             self.owner_token,
             {
@@ -173,6 +249,28 @@ class CreateValidationAPITestCase(TestCase):
             1)
 
     def test_with_entities_with_label(self):
+        response, content_data = self.request_example(
+            self.owner_token,
+            {
+                'repository': str(self.repository.uuid),
+                'text': 'my name is douglas',
+                'intent': 'greet',
+                'entities': [
+                    {
+                        'start': 11,
+                        'end': 18,
+                        'entity': 'name',
+                        'label': 'subject',
+                    },
+                ],
+            })
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_201_CREATED)
+        self.assertEqual(
+            len(content_data.get('entities')),
+            1)
+
         response, content_data = self.request(
             self.owner_token,
             {
@@ -325,7 +423,6 @@ class RetrieveValidationAPITestCase(TestCase):
             start=11,
             end=18,
             entity='name')
-
         self.private_repository = Repository.objects.create(
             owner=self.owner,
             name='Testing Private',

@@ -12,8 +12,11 @@ from bothub.api.v1.fields import EntityValueField
 from bothub.api.v1.fields import LabelValueField
 
 from bothub.api.v1.validators import CanContributeInRepositoryValidator
-from bothub.api.v1.validators import ExampleWithIntentOrEntityValidator
 from bothub.api.v1.validators import EntityNotEqualLabelValidator
+
+from .validators import DoesIntentExistValidator
+from .validators import DoesEntityAndLabelExistValidator
+from .validators import RepositoryValidationWithIntentOrEntityValidator
 
 
 class RepositoryValidationEntitySerializer(serializers.ModelSerializer):
@@ -61,6 +64,7 @@ class NewRepositoryValidationEntitySerializer(serializers.ModelSerializer):
         required=False)
 
     entity = EntityValueField()
+
     label = LabelValueField(
         allow_blank=True,
         required=False)
@@ -68,6 +72,7 @@ class NewRepositoryValidationEntitySerializer(serializers.ModelSerializer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.validators.append(EntityNotEqualLabelValidator())
+        self.validators.append(DoesEntityAndLabelExistValidator())
 
     def create(self, validated_data):
         repository_validation = validated_data.pop('repository_validation', None)
@@ -145,10 +150,15 @@ class NewRepositoryValidationSerializer(serializers.ModelSerializer):
     entities = NewRepositoryValidationEntitySerializer(
         many=True,
         style={'text_field': 'text'})
+    intent = serializers.CharField(
+        validators=[
+            DoesIntentExistValidator(),
+        ]
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.validators.append(ExampleWithIntentOrEntityValidator())
+        self.validators.append(RepositoryValidationWithIntentOrEntityValidator())
 
     def create(self, validated_data):
         entities_data = validated_data.pop('entities')
