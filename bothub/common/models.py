@@ -152,6 +152,12 @@ class Repository(models.Model):
         help_text=_('When using competing intents the confidence of the ' +
                     'prediction is distributed in all the intents.'),
         default=False)
+    use_name_entities = models.BooleanField(
+        _('Use name entities'),
+        help_text=_('When enabling name entities you will receive name of ' +
+                    'people, companies and places as results of your ' +
+                    'predictions.'),
+        default=False)
     categories = models.ManyToManyField(
         RepositoryCategory,
         help_text=CATEGORIES_HELP_TEXT)
@@ -418,6 +424,7 @@ class RepositoryUpdate(models.Model):
         default=Repository.ALGORITHM_STATISTICAL_MODEL,
     )
     use_competing_intents = models.BooleanField(default=False)
+    use_name_entities = models.BooleanField(default=False)
     created_at = models.DateTimeField(
         _('created at'),
         auto_now_add=True)
@@ -525,6 +532,9 @@ class RepositoryUpdate(models.Model):
             if previous_update.use_competing_intents is not \
                self.repository.use_competing_intents:
                 return True
+            if previous_update.use_name_entities is not \
+               self.repository.use_name_entities:
+                return True
             if previous_update.failed_at:
                 return True
 
@@ -574,12 +584,14 @@ class RepositoryUpdate(models.Model):
         self.training_started_at = timezone.now()
         self.algorithm = self.repository.algorithm
         self.use_competing_intents = self.repository.use_competing_intents
+        self.use_name_entities = self.repository.use_name_entities
         self.save(
             update_fields=[
                 'by',
                 'training_started_at',
                 'algorithm',
                 'use_competing_intents',
+                'use_name_entities',
             ])
 
     def save_training(self, bot_data):
