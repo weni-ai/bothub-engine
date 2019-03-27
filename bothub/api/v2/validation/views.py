@@ -29,6 +29,7 @@ class NewValidationViewSet(
 
 class ListValidationViewSet(
         mixins.RetrieveModelMixin,
+        mixins.UpdateModelMixin,
         mixins.DestroyModelMixin,
         GenericViewSet):
     """
@@ -36,6 +37,12 @@ class ListValidationViewSet(
 
     retrieve:
     Get repository validation data.
+
+    update:
+    Update example translation.
+
+    partial_update:
+    Update, partially, example translation.
 
     delete:
     Delete repository validation.

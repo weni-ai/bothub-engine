@@ -3,6 +3,7 @@ import uuid
 
 from django.test import TestCase
 from django.test import RequestFactory
+from django.test.client import MULTIPART_CONTENT
 from rest_framework import status
 
 from bothub.common.models import Repository
@@ -399,6 +400,58 @@ class CreateValidationAPITestCase(TestCase):
         self.assertEqual(
             len(content_data.get('intent')),
             1)
+
+
+class UpdateValidationAPITestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.owner, self.owner_token = create_user_and_token('owner')
+        self.user, self.user_token = create_user_and_token()
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name='Testing',
+            slug='test',
+            language=languages.LANGUAGE_EN)
+        self.validation = RepositoryValidation.objects.create(
+            repository_update=self.repository.current_update(),
+            text='my name is douglas')
+        self.validation_entity = RepositoryValidationEntity.objects.create(
+            repository_validation=self.validation,
+            start=11,
+            end=18,
+            entity='name')
+
+    def request(self, validation, token, data):
+        authorization_header = {
+            'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
+        }
+        request = self.factory.patch(
+            '/api/v2/validation/{}/'.format(validation.id),
+            self.factory._encode_data(data, MULTIPART_CONTENT),
+            MULTIPART_CONTENT,
+            **authorization_header)
+        response = ListValidationViewSet.as_view({'patch': 'update'})(
+            request,
+            pk=validation.id,
+            partial=True
+        )
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data,)
+
+    def test_okay_update_text(self):
+        response, content_data = self.request(
+            self.validation,
+            self.owner_token,
+            {
+                'text': 'I have no name',
+            }
+        )
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK)
 
 
 class RetrieveValidationAPITestCase(TestCase):
