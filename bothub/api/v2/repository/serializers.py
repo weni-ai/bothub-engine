@@ -116,6 +116,7 @@ class RepositorySerializer(serializers.ModelSerializer):
             'algorithm',
             'use_language_model_featurizer',
             'use_competing_intents',
+            'use_name_entities',
         ]
         read_only = [
             'uuid',

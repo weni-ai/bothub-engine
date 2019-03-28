@@ -1206,6 +1206,50 @@ class UseCompetingIntentsTestCase(TestCase):
         self.assertFalse(current_update.use_competing_intents)
 
 
+class UseNameEntitiesTestCase(TestCase):
+    def setUp(self):
+        self.language = languages.LANGUAGE_EN
+
+        self.owner = User.objects.create_user('owner@user.com', 'user')
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name='Test',
+            slug='test',
+            language=self.language,
+            use_name_entities=True)
+
+        RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(),
+            text='my name is Douglas',
+            intent='greet')
+        RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(),
+            text='my name is John',
+            intent='greet')
+
+    def test_change_ready_for_train(self):
+        self.assertTrue(self.repository.ready_for_train)
+        current_update = self.repository.current_update()
+        current_update.start_training(self.owner)
+        current_update.save_training(b'')
+        self.assertFalse(self.repository.ready_for_train)
+        self.repository.use_name_entities = False
+        self.repository.save()
+        self.assertTrue(self.repository.ready_for_train)
+        self.repository.use_name_entities = True
+        self.repository.save()
+        self.assertFalse(self.repository.ready_for_train)
+
+    def test_equal_repository_value_after_train(self):
+        current_update = self.repository.current_update()
+        self.repository.use_name_entities = False
+        self.repository.save()
+        current_update.start_training(self.owner)
+        current_update.save_training(b'')
+        self.assertFalse(current_update.use_name_entities)
+
+
 class RepositoryUpdateWarnings(TestCase):
     def setUp(self):
         self.language = languages.LANGUAGE_EN
