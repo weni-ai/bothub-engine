@@ -15,9 +15,9 @@ class DoesIntentExistValidator(object):
     def __call__(self, value):
         examples = RepositoryExample.objects.filter(intent=value)
         if not examples.exists():
-            raise ValidationError({'intent': _(
+            raise ValidationError(_(
                 'Intent MUST match existing intents for training. '
-            )})
+            ))
 
 
 class DoesEntityAndLabelExistValidator(object):
