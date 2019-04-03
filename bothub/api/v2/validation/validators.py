@@ -44,7 +44,7 @@ class DoesEntityAndLabelExistValidator(object):
             )})
 
 
-class RepositoryValidationWithIntentOrEntityValidator(object):
+class IntentOrEntityValidator(object):
     def __call__(self, attrs):
         intent = attrs.get('intent')
         entities = attrs.get('entities')
