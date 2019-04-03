@@ -13,8 +13,8 @@ from bothub.common.models import RepositoryValidationEntity
 from bothub.common import languages
 
 from ..tests.utils import create_user_and_token
-from .views import NewValidationViewSet
-from .views import ListValidationViewSet
+
+from .views import ValidationViewSet
 from .views import ListValidationsViewSet
 
 from bothub.api.v1.views import NewRepositoryExampleViewSet
@@ -38,11 +38,11 @@ class CreateValidationAPITestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
         }
         request = self.factory.post(
-            '/api/v2/validation/new/',
+            '/api/v2/validation/',
             json.dumps(data),
             content_type='application/json',
             **authorization_header)
-        response = NewValidationViewSet.as_view(
+        response = ValidationViewSet.as_view(
             {'post': 'create'})(request)
         response.render()
         content_data = json.loads(response.content)
@@ -432,7 +432,7 @@ class UpdateValidationAPITestCase(TestCase):
             self.factory._encode_data(data, MULTIPART_CONTENT),
             MULTIPART_CONTENT,
             **authorization_header)
-        response = ListValidationViewSet.as_view({'patch': 'update'})(
+        response = ValidationViewSet.as_view({'patch': 'update'})(
             request,
             pk=validation.id,
             partial=True
@@ -474,6 +474,7 @@ class RetrieveValidationAPITestCase(TestCase):
             start=11,
             end=18,
             entity='name')
+        self.validation_entity.set_label('personal')
         self.private_repository = Repository.objects.create(
             owner=self.owner,
             name='Testing Private',
@@ -491,7 +492,7 @@ class RetrieveValidationAPITestCase(TestCase):
         request = self.factory.get(
             '/api/v2/validation/{}/'.format(validation.id),
             **authorization_header)
-        response = ListValidationViewSet.as_view(
+        response = ValidationViewSet.as_view(
             {'get': 'retrieve'})(request, pk=validation.id)
         response.render()
         content_data = json.loads(response.content)
@@ -602,7 +603,7 @@ class DestroyValidationAPITestCase(TestCase):
         request = self.factory.delete(
             '/api/v2/validation/{}/'.format(validation.id),
             **authorization_header)
-        response = ListValidationViewSet.as_view(
+        response = ValidationViewSet.as_view(
             {'delete': 'destroy'})(request, pk=validation.id)
         return response
 
