@@ -16,40 +16,10 @@ from bothub.api.v1.validators import EntityNotEqualLabelValidator
 
 from .validators import DoesIntentExistValidator
 from .validators import DoesEntityAndLabelExistValidator
-from .validators import RepositoryValidationWithIntentOrEntityValidator
+from .validators import IntentOrEntityValidator
 
 
 class RepositoryValidationEntitySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = RepositoryValidationEntity
-        fields = [
-            'id',
-            'repository_validation',
-            'start',
-            'end',
-            'entity',
-            'label',
-            'created_at',
-            'value',
-        ]
-
-    repository_validation = serializers.PrimaryKeyRelatedField(
-        queryset=RepositoryValidation.objects,
-        help_text=_('Example\'s ID'))
-
-    entity = serializers.SerializerMethodField()
-    label = serializers.SerializerMethodField()
-
-    def get_entity(self, obj):
-        return obj.entity.value
-
-    def get_label(self, obj):
-        if not obj.entity.label:
-            return None
-        return obj.entity.label.value
-
-
-class NewRepositoryValidationEntitySerializer(serializers.ModelSerializer):
     class Meta:
         model = RepositoryValidationEntity
         fields = [
@@ -89,36 +59,22 @@ class NewRepositoryValidationEntitySerializer(serializers.ModelSerializer):
             validation_entity.entity.save(update_fields=['label'])
         return validation_entity
 
+    def update(self, instance, validated_data):
+        instance.start = validated_data.get('start', instance.start)
+        instance.end = validated_data.get('end', instance.end)
+        instance.entity = validated_data.get('entity', instance.entity)
+
+        label = validated_data.pop('label', instance.label)
+        if label is not empty:
+            instance.entity.set_label(label)
+            instance.entity.save(update_fields=['label'])
+
+        instance.save()
+
+        return instance
+
 
 class RepositoryValidationSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = RepositoryValidation
-        fields = [
-            'id',
-            'repository_update',
-            'deleted_in',
-            'text',
-            'intent',
-            'language',
-            'created_at',
-            'entities',
-        ]
-        read_only_fields = [
-            'repository_update',
-            'deleted_in',
-        ]
-
-    entities = RepositoryValidationEntitySerializer(
-        many=True,
-        read_only=True)
-
-    language = serializers.SerializerMethodField()
-
-    def get_language(self, obj):
-        return obj.language
-
-
-class NewRepositoryValidationSerializer(serializers.ModelSerializer):
     class Meta:
         model = RepositoryValidation
         fields = [
@@ -129,6 +85,10 @@ class NewRepositoryValidationSerializer(serializers.ModelSerializer):
             'language',
             'intent',
             'entities',
+        ]
+        read_only_fields = [
+            'repository_update',
+            'deleted_in',
         ]
 
     id = serializers.PrimaryKeyRelatedField(
@@ -149,7 +109,7 @@ class NewRepositoryValidationSerializer(serializers.ModelSerializer):
         languages.LANGUAGE_CHOICES,
         allow_blank=True,
         required=False)
-    entities = NewRepositoryValidationEntitySerializer(
+    entities = RepositoryValidationEntitySerializer(
         many=True,
         style={'text_field': 'text'})
     intent = serializers.CharField(
@@ -161,7 +121,7 @@ class NewRepositoryValidationSerializer(serializers.ModelSerializer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.validators.append(
-            RepositoryValidationWithIntentOrEntityValidator()
+            IntentOrEntityValidator()
         )
 
     def create(self, validated_data):
@@ -176,7 +136,7 @@ class NewRepositoryValidationSerializer(serializers.ModelSerializer):
         validation = self.Meta.model.objects.create(**validated_data)
         for entity_data in entities_data:
             entity_data.update({'repository_validation': validation.pk})
-            entity_serializer = NewRepositoryValidationEntitySerializer(
+            entity_serializer = RepositoryValidationEntitySerializer(
                 data=entity_data)
             entity_serializer.is_valid(raise_exception=True)
             entity_serializer.save()
