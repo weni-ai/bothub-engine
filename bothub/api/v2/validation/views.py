@@ -11,29 +11,21 @@ from rest_framework.permissions import IsAuthenticated
 from bothub.common.models import RepositoryValidation
 
 from .serializers import RepositoryValidationSerializer
-from .serializers import NewRepositoryValidationSerializer
 from .permissions import RepositoryValidationPermission
 from .filters import ValidationFilter
 
 
-class NewValidationViewSet(
+class ValidationViewSet(
         mixins.CreateModelMixin,
-        GenericViewSet):
-    """
-    Create new repository validation.
-    """
-    queryset = RepositoryValidation.objects
-    serializer_class = NewRepositoryValidationSerializer
-    permission_classes = [IsAuthenticated]
-
-
-class ListValidationViewSet(
         mixins.RetrieveModelMixin,
         mixins.UpdateModelMixin,
         mixins.DestroyModelMixin,
         GenericViewSet):
     """
     Manager repository validation.
+
+    create:
+    Create new repository validation.
 
     retrieve:
     Get repository validation data.
@@ -50,6 +42,7 @@ class ListValidationViewSet(
     queryset = RepositoryValidation.objects
     serializer_class = RepositoryValidationSerializer
     permission_classes = [
+        IsAuthenticated,
         RepositoryValidationPermission,
     ]
 
