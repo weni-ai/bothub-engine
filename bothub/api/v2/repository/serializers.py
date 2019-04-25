@@ -91,6 +91,7 @@ class RepositorySerializer(serializers.ModelSerializer):
             'description',
             'is_private',
             'available_languages',
+            'entities',
             'entities_list',
             'labels_list',
             'ready_for_train',
@@ -121,6 +122,7 @@ class RepositorySerializer(serializers.ModelSerializer):
         read_only = [
             'uuid',
             'available_languages',
+            'entities',
             'entities_list',
             'labels_list',
             'ready_for_train',
@@ -156,12 +158,16 @@ class RepositorySerializer(serializers.ModelSerializer):
     authorization = serializers.SerializerMethodField()
     request_authorization = serializers.SerializerMethodField()
     available_request_authorization = serializers.SerializerMethodField()
+    entities = serializers.SerializerMethodField()
 
     def create(self, validated_data):
         validated_data.update({
             'owner': self.context['request'].user,
         })
         return super().create(validated_data)
+
+    def get_entities(self, obj):
+        return obj.current_entities.values('value', 'id').distinct()
 
     def get_intents(self, obj):
         return IntentSerializer(

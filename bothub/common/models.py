@@ -808,12 +808,15 @@ class RepositoryEntityLabel(models.Model):
 
 
 class RepositoryEntityQueryset(models.QuerySet):
-    def get(self, repository, value):
+    def get(self, repository, value, create_entity=True):
         try:
             return super().get(
                 repository=repository,
                 value=value)
         except self.model.DoesNotExist:
+            if not create_entity:
+                raise self.model.DoesNotExist
+
             return super().create(
                 repository=repository,
                 value=value)
@@ -1198,6 +1201,72 @@ class RequestRepositoryAuthorization(models.Model):
             html_message=render_to_string(
                 'common/emails/request_approved.html',
                 context))
+
+
+class RepositoryEvaluate(models.Model):
+    class Meta:
+        verbose_name = _('repository evaluate test')
+        verbose_name_plural = _('repository evaluate tests')
+        ordering = ['-created_at']
+        db_table = 'common_repository_evaluate'
+
+    repository_update = models.ForeignKey(
+        RepositoryUpdate,
+        models.CASCADE,
+        related_name='added_evaluate',
+        editable=False)
+    deleted_in = models.ForeignKey(
+        RepositoryUpdate,
+        models.CASCADE,
+        related_name='deleted_evaluate',
+        blank=True,
+        null=True)
+    text = models.TextField(
+        _('text'),
+        help_text=_('Evaluate test text'))
+    intent = models.CharField(
+        _('intent'),
+        max_length=64,
+        default='no_intent',
+        help_text=_('Evaluate intent reference'),
+        validators=[validate_item_key])
+    created_at = models.DateTimeField(
+        _('created at'),
+        auto_now_add=True)
+
+    @property
+    def language(self):
+        return self.repository_update.language
+
+    def get_text(self, language=None):
+        if not language or language == self.repository_update.language:
+            return self.text
+        return None
+
+    def get_entities(self, language):
+        if not language or language == self.repository_update.language:
+            return self.entities.all()
+        return None
+
+    def delete(self):
+        self.deleted_in = self.repository_update.repository.current_update(
+            self.repository_update.language)
+        self.save(update_fields=['deleted_in'])
+
+
+class RepositoryEvaluateEntity(EntityBase):
+    class Meta:
+        db_table = 'common_repository_evaluate_entity'
+
+    repository_evaluate = models.ForeignKey(
+        RepositoryEvaluate,
+        models.CASCADE,
+        related_name='entities',
+        editable=False,
+        help_text=_('evaluate object'))
+
+    def get_evaluate(self):
+        return self.repository_evaluate
 
 
 @receiver(models.signals.pre_save, sender=RequestRepositoryAuthorization)
