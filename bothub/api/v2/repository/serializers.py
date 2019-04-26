@@ -106,6 +106,7 @@ class RepositorySerializer(serializers.ModelSerializer):
             'labels',
             'other_label',
             'examples__count',
+            'evaluate_languages_count',
             'absolute_url',
             'authorization',
             'ready_for_train',
@@ -124,6 +125,7 @@ class RepositorySerializer(serializers.ModelSerializer):
             'available_languages',
             'entities',
             'entities_list',
+            'evaluate_languages_count',
             'labels_list',
             'ready_for_train',
             'created_at',
@@ -154,6 +156,7 @@ class RepositorySerializer(serializers.ModelSerializer):
         read_only=True)
     other_label = serializers.SerializerMethodField()
     examples__count = serializers.SerializerMethodField()
+    evaluate_languages_count = serializers.SerializerMethodField()
     absolute_url = serializers.SerializerMethodField()
     authorization = serializers.SerializerMethodField()
     request_authorization = serializers.SerializerMethodField()
@@ -192,6 +195,12 @@ class RepositorySerializer(serializers.ModelSerializer):
 
     def get_examples__count(self, obj):
         return obj.examples().count()
+
+    def get_evaluate_languages_count(self, obj):
+        return dict(map(
+            lambda x: (x, obj.evaluations(language=x).count()
+                       ), obj.available_languages
+        ))
 
     def get_absolute_url(self, obj):
         return obj.get_absolute_url()
