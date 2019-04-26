@@ -865,10 +865,15 @@ class EntityBaseQueryset(models.QuerySet):
     def create(self, entity, **kwargs):
         if type(entity) is not RepositoryEntity:
             instance = self.model(**kwargs)
-            repository = instance.example.repository_update.repository
+            if instance.example:
+                repository = instance.example.repository_update.repository
+            elif instance.repository_evaluate:
+                evaluate = instance.repository_evaluate
+                repository = evaluate.repository_update.repository
             entity = RepositoryEntity.objects.get(
                 repository=repository,
                 value=entity)
+
         return super().create(
             entity=entity,
             **kwargs)

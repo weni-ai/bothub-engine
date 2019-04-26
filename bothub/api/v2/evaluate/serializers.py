@@ -2,7 +2,6 @@ from django.utils.translation import gettext as _
 from rest_framework import serializers
 
 from bothub.common.models import Repository
-from bothub.common.models import RepositoryEntity
 from bothub.common.models import RepositoryEvaluate
 from bothub.common.models import RepositoryEvaluateEntity
 from bothub.common.languages import LANGUAGE_CHOICES
@@ -29,21 +28,6 @@ class RepositoryEvaluateEntitySerializer(serializers.ModelSerializer):
     )
 
     entity = EntityValueField()
-
-    def save(self):
-        repository_evaluate = self.validated_data.get('repository_evaluate')
-        entity = RepositoryEvaluateEntity.objects.create(
-            start=self.validated_data.get('start'),
-            end=self.validated_data.get('end'),
-            repository_evaluate=repository_evaluate,
-            entity=RepositoryEntity.objects.get(
-                repository=repository_evaluate.repository_update.repository,
-                value=self.validated_data.get('entity'),
-                create_entity=False,
-            )
-        )
-
-        return entity
 
 
 class RepositoryEvaluateSerializer(serializers.ModelSerializer):
@@ -94,7 +78,10 @@ class RepositoryEvaluateSerializer(serializers.ModelSerializer):
         validated_data.update({'repository_update': repository_update})
         evaluate = RepositoryEvaluate.objects.create(**validated_data)
 
-        self._update_entities(entities, evaluate)
+        for entity in entities:
+            RepositoryEvaluateEntity.objects.create(
+                repository_evaluate=evaluate, **entity)
+
         return evaluate
 
     def update(self, instance, validated_data):
@@ -107,12 +94,8 @@ class RepositoryEvaluateSerializer(serializers.ModelSerializer):
         instance.save()
         instance.delete_entities()
 
-        self._update_entities(validated_data.pop('entities'), instance)
-        return instance
+        for entity in validated_data.pop('entities'):
+            RepositoryEvaluateEntity.objects.create(
+                repository_evaluate=instance, **entity)
 
-    def _update_entities(self, entities, evaluate):
-        for entity in entities:
-            entity.update({'repository_evaluate': evaluate.pk})
-            entity_serializer = RepositoryEvaluateEntitySerializer(data=entity)
-            entity_serializer.is_valid(raise_exception=True)
-            entity_serializer.save()
+        return instance
