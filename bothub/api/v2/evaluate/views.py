@@ -22,7 +22,6 @@ class EvaluateViewSet(
     Manager evaluate (tests).
     """
     queryset = RepositoryEvaluate.objects
-    lookup_field = 'uuid'
     serializer_class = RepositoryEvaluateSerializer
     permission_classes = [
         IsAuthenticatedOrReadOnly,

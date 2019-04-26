@@ -1253,6 +1253,9 @@ class RepositoryEvaluate(models.Model):
             self.repository_update.language)
         self.save(update_fields=['deleted_in'])
 
+    def delete_entities(self):
+        self.entities.all().delete()
+
 
 class RepositoryEvaluateEntity(EntityBase):
     class Meta:
