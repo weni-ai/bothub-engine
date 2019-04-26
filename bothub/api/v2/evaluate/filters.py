@@ -42,11 +42,6 @@ class EvaluatesFilter(filters.FilterSet):
         method='filter_entity',
         help_text=_('Filter evaluations with an entity.'))
 
-    language = filters.CharFilter(
-        field_name='language',
-        method='filter_language',
-        help_text=_('Language'))
-
     def filter_repository_uuid(self, queryset, name, value):
         request = self.request
         try:
