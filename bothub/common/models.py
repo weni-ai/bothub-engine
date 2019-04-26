@@ -335,6 +335,18 @@ class Repository(models.Model):
             return query.exclude(deleted_in__isnull=False)
         return query
 
+    def evaluations(self, language=None, exclude_deleted=True, queryset=None):
+        if queryset is None:
+            queryset = RepositoryEvaluate.objects
+        query = queryset.filter(
+            repository_update__repository=self)
+        if language:
+            query = query.filter(
+                repository_update__language=language)
+        if exclude_deleted:
+            return query.exclude(deleted_in__isnull=False)
+        return query
+
     def language_status(self, language):
         is_base_language = self.language == language
         examples = self.examples(language)
