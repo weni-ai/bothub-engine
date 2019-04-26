@@ -30,18 +30,22 @@ class EvaluateViewSet(
         IsAuthenticatedOrReadOnly,
         # RepositoryPermission,
     ]
-    filter_class = EvaluatesFilter
-    filter_backends = [
-        OrderingFilter,
-        SearchFilter,
-        DjangoFilterBackend,
-    ]
-    search_fields = [
-        '$text',
-        '^text',
-        '=text',
-    ]
-    ordering_fields = [
-        'created_at',
-    ]
     metadata_class = Metadata
+
+    def list(self, request, *args, **kwargs):
+        self.filter_class = EvaluatesFilter
+        self.filter_backends = [
+            OrderingFilter,
+            SearchFilter,
+            DjangoFilterBackend,
+        ]
+        self.search_fields = [
+            '$text',
+            '^text',
+            '=text',
+        ]
+        self.ordering_fields = [
+            'created_at',
+        ]
+
+        return super().list(request, *args, **kwargs)

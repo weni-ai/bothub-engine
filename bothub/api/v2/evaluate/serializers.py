@@ -95,7 +95,6 @@ class RepositoryEvaluateSerializer(serializers.ModelSerializer):
         instance.delete_entities()
 
         for entity in validated_data.pop('entities'):
-            RepositoryEvaluateEntity.objects.create(
-                repository_evaluate=instance, **entity)
+            RepositoryEvaluateEntity.objects.create(**entity)
 
         return instance
