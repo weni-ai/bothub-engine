@@ -552,7 +552,7 @@ class RepositoryViewSet(
     def get_serializer_class(self):
         if self.request and self.request.method in \
            ['OPTIONS'] + WRITE_METHODS or not self.request:
-                return self.edit_serializer_class
+            return self.edit_serializer_class
         return self.serializer_class
 
     def get_action_permissions_classes(self):

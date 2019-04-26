@@ -546,7 +546,7 @@ class RepositoryUpdate(models.Model):
         if self.examples.count() == 0:
             return False
 
-        return len(self.requirements_to_train) is 0
+        return len(self.requirements_to_train) == 0
 
     @property
     def intents(self):
