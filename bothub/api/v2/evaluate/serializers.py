@@ -16,16 +16,10 @@ class RepositoryEvaluateEntitySerializer(serializers.ModelSerializer):
     class Meta:
         model = RepositoryEvaluateEntity
         fields = [
-            'repository_evaluate',
             'entity',
             'start',
             'end',
         ]
-
-    repository_evaluate = serializers.PrimaryKeyRelatedField(
-        queryset=RepositoryEvaluate.objects,
-        required=False
-    )
 
     entity = EntityValueField()
 
