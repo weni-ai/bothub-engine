@@ -10,8 +10,8 @@ from bothub.common.models import RepositoryEvaluate
 
 from ..metadata import Metadata
 from .serializers import RepositoryEvaluateSerializer
-# from .permissions import RepositoryPermission
 from .filters import EvaluatesFilter
+from .permissions import RepositoryEvaluatePermission
 
 
 class EvaluateViewSet(
@@ -28,7 +28,7 @@ class EvaluateViewSet(
     serializer_class = RepositoryEvaluateSerializer
     permission_classes = [
         IsAuthenticatedOrReadOnly,
-        # RepositoryPermission,
+        RepositoryEvaluatePermission,
     ]
     metadata_class = Metadata
 
