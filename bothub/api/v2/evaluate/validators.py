@@ -18,8 +18,8 @@ class ThereIsEntityValidator(object):
         repository = attrs.get('repository')
 
         if entities:
-            entities_list = list(
-                map(lambda x: x.get('entity'), attrs.get('entities')))
+            entities_list = list(set(
+                map(lambda x: x.get('entity'), attrs.get('entities'))))
             repository_entities_list = repository.entities.filter(
                 value__in=entities_list)
 
