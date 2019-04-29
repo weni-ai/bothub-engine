@@ -12,6 +12,7 @@ from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.dispatch import receiver
 from django.core.exceptions import ValidationError
+from django.contrib.postgres.fields import JSONField
 
 from bothub.authentication.models import User
 
@@ -1287,6 +1288,128 @@ class RepositoryEvaluateEntity(EntityBase):
 
     def get_evaluate(self):
         return self.repository_evaluate
+
+
+class RepositoryEvaluationResultScore(models.Model):
+    class Meta:
+        db_table = 'common_repository_evaluate_result_score'
+        ordering = ['-created_at']
+
+    precision = models.DecimalField(
+        max_digits=3,
+        decimal_places=2)
+
+    f1_score = models.DecimalField(
+        max_digits=3,
+        decimal_places=2)
+
+    accuracy = models.DecimalField(
+        max_digits=3,
+        decimal_places=2)
+
+    recall = models.DecimalField(
+        max_digits=3,
+        decimal_places=2)
+
+    support = models.DecimalField(
+        max_digits=3,
+        decimal_places=2)
+
+    created_at = models.DateTimeField(
+        _('created at'),
+        auto_now_add=True)
+
+
+class RepositoryEvaluateResult(models.Model):
+    class Meta:
+        db_table = 'common_repository_evaluate_result'
+        verbose_name = _('evaluate results')
+        verbose_name_plural = _('evaluate results')
+        ordering = ['-created_at']
+
+    repository_evaluate = models.ForeignKey(
+        RepositoryEvaluate,
+        models.CASCADE,
+        editable=False,
+        related_name='results')
+
+    intent_results = models.ForeignKey(
+        RepositoryEvaluationResultScore,
+        models.CASCADE,
+        editable=False,
+        related_name='intent_results')
+
+    entity_results = models.ForeignKey(
+        RepositoryEvaluationResultScore,
+        models.CASCADE,
+        editable=False,
+        related_name='entity_results')
+
+    intent_chart = models.URLField(
+        verbose_name=_('Intenties chart')
+    )
+
+    entity_chart = models.URLField(
+        verbose_name=_('Entities chart')
+    )
+
+    success_log = JSONField(
+        verbose_name=_('Success Log')
+    )
+
+    error_log = JSONField(
+        verbose_name=_('Error Log')
+    )
+
+    created_at = models.DateTimeField(
+        _('created at'),
+        auto_now_add=True)
+
+
+class RepositoryEvaluateResultIntent(models.Model):
+    class Meta:
+        db_table = 'common_repository_evaluate_result_intent'
+
+    evaluate_result = models.ForeignKey(
+        RepositoryEvaluateResult,
+        models.CASCADE,
+        related_name='evaluate_result_intent'
+    )
+
+    intent = models.CharField(
+        _('intent'),
+        max_length=64,
+        help_text=_('Evaluate intent reference'),
+        validators=[validate_item_key])
+
+    score = models.ForeignKey(
+        RepositoryEvaluationResultScore,
+        models.CASCADE,
+        related_name='evaluation_intenties_score',
+        editable=False)
+
+
+class RepositoryEvaluateResultEntity(models.Model):
+    class Meta:
+        db_table = 'common_repository_evaluate_result_entity'
+
+    evaluate_result = models.ForeignKey(
+        RepositoryEvaluateResult,
+        models.CASCADE,
+        related_name='evaluate_result_entity'
+    )
+
+    entity = models.ForeignKey(
+        RepositoryEntity,
+        models.CASCADE,
+        related_name='entity_results',
+        editable=False)
+
+    score = models.ForeignKey(
+        RepositoryEvaluationResultScore,
+        models.CASCADE,
+        related_name='evaluation_entities_score',
+        editable=False)
 
 
 @receiver(models.signals.pre_save, sender=RequestRepositoryAuthorization)
