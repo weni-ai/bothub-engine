@@ -1,9 +1,16 @@
+import json
+
 from django.utils.translation import gettext as _
 from rest_framework import serializers
 
 from bothub.common.models import Repository
 from bothub.common.models import RepositoryEvaluate
 from bothub.common.models import RepositoryEvaluateEntity
+from bothub.common.models import RepositoryEvaluateResult
+from bothub.common.models import RepositoryEvaluateResultScore
+from bothub.common.models import RepositoryEvaluateResultIntent
+from bothub.common.models import RepositoryEvaluateResultEntity
+
 from bothub.common.languages import LANGUAGE_CHOICES
 
 from ..fields import EntityValueField
@@ -93,3 +100,100 @@ class RepositoryEvaluateSerializer(serializers.ModelSerializer):
                 repository_evaluate=instance, **entity)
 
         return instance
+
+
+class RepositoryEvaluateResultVersionsSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = RepositoryEvaluateResult
+        fields = [
+            'id',
+            'language'
+        ]
+
+    language = serializers.SerializerMethodField()
+
+    def get_language(self, obj):
+        return obj.repository_update.language
+
+
+class RepositoryEvaluateResultScore(serializers.ModelSerializer):
+
+    class Meta:
+        model = RepositoryEvaluateResultScore
+        fields = [
+            'precision',
+            'f1_score',
+            'accuracy',
+            'recall',
+            'support'
+        ]
+
+
+class RepositoryEvaluateResultIntentSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = RepositoryEvaluateResultIntent
+        fields = [
+            'intent',
+            'score',
+        ]
+
+    score = RepositoryEvaluateResultScore(read_only=True)
+
+
+class RepositoryEvaluateResultEntitySerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = RepositoryEvaluateResultEntity
+        fields = [
+            'entity',
+            'score',
+        ]
+
+    score = RepositoryEvaluateResultScore(read_only=True)
+    entity = serializers.SerializerMethodField()
+
+    def get_entity(self, obj):
+        return obj.entity.value
+
+
+class RepositoryEvaluateResultSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = RepositoryEvaluateResult
+        fields = [
+            'id',
+            'created_at',
+            'matrix_chart',
+            'confidence_chart',
+            'success_log',
+            'error_log',
+            'intents_list',
+            'entities_list',
+            'intent_results',
+            'entity_results'
+
+        ]
+
+    success_log = serializers.SerializerMethodField()
+    error_log = serializers.SerializerMethodField()
+    intent_results = RepositoryEvaluateResultScore(read_only=True)
+    entity_results = RepositoryEvaluateResultScore(read_only=True)
+
+    intents_list = serializers.SerializerMethodField()
+    entities_list = serializers.SerializerMethodField()
+
+    def get_intents_list(self, obj):
+        return RepositoryEvaluateResultIntentSerializer(
+            obj.evaluate_result_intent.all(), many=True).data
+
+    def get_entities_list(self, obj):
+        return RepositoryEvaluateResultEntitySerializer(
+            obj.evaluate_result_entity.all(), many=True).data
+
+    def get_success_log(self, obj):
+        return json.loads(obj.success_log)
+
+    def get_error_log(self, obj):
+        return json.loads(obj.error_log)

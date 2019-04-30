@@ -12,7 +12,6 @@ from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.dispatch import receiver
 from django.core.exceptions import ValidationError
-from django.contrib.postgres.fields import JSONField
 
 from bothub.authentication.models import User
 
@@ -346,6 +345,13 @@ class Repository(models.Model):
                 repository_update__language=language)
         if exclude_deleted:
             return query.exclude(deleted_in__isnull=False)
+        return query
+
+    def evaluations_results(self, queryset=None):
+        if queryset is None:
+            queryset = RepositoryEvaluateResult.objects
+        query = queryset.filter(
+            repository_update__repository=self)
         return query
 
     def language_status(self, language):
@@ -878,11 +884,15 @@ class EntityBaseQueryset(models.QuerySet):
     def create(self, entity, **kwargs):
         if type(entity) is not RepositoryEntity:
             instance = self.model(**kwargs)
-            if instance.example:
-                repository = instance.example.repository_update.repository
-            elif instance.repository_evaluate:
+            if 'repository_evaluate_id' in instance.__dict__:
                 evaluate = instance.repository_evaluate
                 repository = evaluate.repository_update.repository
+            elif 'evaluate_result_id' in instance.__dict__:
+                result = instance.evaluate_result
+                repository = result.repository_update.repository
+            else:
+                repository = instance.example.repository_update.repository
+
             entity = RepositoryEntity.objects.get(
                 repository=repository,
                 value=entity)
@@ -1290,30 +1300,33 @@ class RepositoryEvaluateEntity(EntityBase):
         return self.repository_evaluate
 
 
-class RepositoryEvaluationResultScore(models.Model):
+class RepositoryEvaluateResultScore(models.Model):
     class Meta:
         db_table = 'common_repository_evaluate_result_score'
         ordering = ['-created_at']
 
     precision = models.DecimalField(
         max_digits=3,
-        decimal_places=2)
+        decimal_places=2,
+        null=True)
 
     f1_score = models.DecimalField(
         max_digits=3,
-        decimal_places=2)
+        decimal_places=2,
+        null=True)
 
     accuracy = models.DecimalField(
         max_digits=3,
-        decimal_places=2)
+        decimal_places=2,
+        null=True)
 
     recall = models.DecimalField(
         max_digits=3,
-        decimal_places=2)
+        decimal_places=2,
+        null=True)
 
-    support = models.DecimalField(
-        max_digits=3,
-        decimal_places=2)
+    support = models.IntegerField(
+        null=True)
 
     created_at = models.DateTimeField(
         _('created at'),
@@ -1327,38 +1340,44 @@ class RepositoryEvaluateResult(models.Model):
         verbose_name_plural = _('evaluate results')
         ordering = ['-created_at']
 
-    repository_evaluate = models.ForeignKey(
-        RepositoryEvaluate,
+    repository_update = models.ForeignKey(
+        RepositoryUpdate,
         models.CASCADE,
         editable=False,
         related_name='results')
 
     intent_results = models.ForeignKey(
-        RepositoryEvaluationResultScore,
+        RepositoryEvaluateResultScore,
         models.CASCADE,
         editable=False,
         related_name='intent_results')
 
     entity_results = models.ForeignKey(
-        RepositoryEvaluationResultScore,
+        RepositoryEvaluateResultScore,
         models.CASCADE,
         editable=False,
         related_name='entity_results')
 
-    intent_chart = models.URLField(
-        verbose_name=_('Intenties chart')
+    matrix_chart = models.URLField(
+        verbose_name=_('Intent Confusion Matrix Chart'),
+        editable=False,
     )
 
-    entity_chart = models.URLField(
-        verbose_name=_('Entities chart')
+    confidence_chart = models.URLField(
+        verbose_name=_('Intent Prediction Confidence Distribution'),
+        editable=False,
     )
 
-    success_log = JSONField(
-        verbose_name=_('Success Log')
+    success_log = models.TextField(
+        verbose_name=_('Success Log'),
+        blank=True,
+        editable=False,
     )
 
-    error_log = JSONField(
-        verbose_name=_('Error Log')
+    error_log = models.TextField(
+        verbose_name=_('Error Log'),
+        blank=True,
+        editable=False,
     )
 
     created_at = models.DateTimeField(
@@ -1383,7 +1402,7 @@ class RepositoryEvaluateResultIntent(models.Model):
         validators=[validate_item_key])
 
     score = models.ForeignKey(
-        RepositoryEvaluationResultScore,
+        RepositoryEvaluateResultScore,
         models.CASCADE,
         related_name='evaluation_intenties_score',
         editable=False)
@@ -1402,14 +1421,16 @@ class RepositoryEvaluateResultEntity(models.Model):
     entity = models.ForeignKey(
         RepositoryEntity,
         models.CASCADE,
-        related_name='entity_results',
+        related_name='entity',
         editable=False)
 
     score = models.ForeignKey(
-        RepositoryEvaluationResultScore,
+        RepositoryEvaluateResultScore,
         models.CASCADE,
         related_name='evaluation_entities_score',
         editable=False)
+
+    objects = EntityBaseManager()
 
 
 @receiver(models.signals.pre_save, sender=RequestRepositoryAuthorization)
