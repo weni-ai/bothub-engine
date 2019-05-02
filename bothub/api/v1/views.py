@@ -45,6 +45,7 @@ from .serializers import LoginSerializer
 from .serializers import RepositoryCategorySerializer
 from .serializers import NewRepositoryExampleSerializer
 from .serializers import AnalyzeTextSerializer
+from .serializers import EvaluateSerializer
 from .serializers import EditRepositorySerializer
 from .serializers import NewRepositoryTranslatedExampleSerializer
 from .serializers import VoteSerializer
@@ -522,6 +523,28 @@ class RepositoryViewSet(
         error = response.get('error')  # pragma: no cover
         message = error.get('message')  # pragma: no cover
         raise APIException(detail=message)  # pragma: no cover
+
+    @detail_route(
+        methods=['POST'],
+        url_name='repository-evaluate')
+    def evaluate(self, request, **kwargs):
+        """
+        Evaluate repository using Bothub NLP service
+        """
+        repository = self.get_object()
+        user_authorization = repository.get_user_authorization(request.user)
+        if not user_authorization.can_write:
+            raise PermissionDenied()
+        serializer = EvaluateSerializer(
+            data=request.data)  # pragma: no cover
+        serializer.is_valid(raise_exception=True)  # pragma: no cover
+        request = Repository.request_nlp_evaluate(  # pragma: no cover
+            user_authorization, serializer.data)
+        if request.status_code != status.HTTP_200_OK:  # pragma: no cover
+            raise APIException(  # pragma: no cover
+                {'status_code': request.status_code},
+                code=request.status_code)
+        return Response(request.json())  # pragma: no cover
 
     @detail_route(
         methods=['POST'],

@@ -179,6 +179,7 @@ class Repository(models.Model):
 
     nlp_train_url = '{}train/'.format(settings.BOTHUB_NLP_BASE_URL)
     nlp_analyze_url = '{}parse/'.format(settings.BOTHUB_NLP_BASE_URL)
+    nlp_evaluate_url = '{}evaluate/'.format(settings.BOTHUB_NLP_BASE_URL)
 
     @classmethod
     def request_nlp_train(cls, user_authorization):
@@ -195,6 +196,17 @@ class Repository(models.Model):
             cls.nlp_analyze_url,
             data={
                 'text': data.get('text'),
+                'language': data.get('language'),
+            },
+            headers={'Authorization': 'Bearer {}'.format(
+                user_authorization.uuid)})
+        return r  # pragma: no cover
+
+    @classmethod
+    def request_nlp_evaluate(cls, user_authorization, data):
+        r = requests.post(  # pragma: no cover
+            cls.nlp_evaluate_url,
+            data={
                 'language': data.get('language'),
             },
             headers={'Authorization': 'Bearer {}'.format(
