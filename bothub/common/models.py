@@ -1366,13 +1366,8 @@ class RepositoryEvaluateResult(models.Model):
         verbose_name=_('Intent Prediction Confidence Distribution'),
         editable=False)
 
-    success_log = models.TextField(
-        verbose_name=_('Success Log'),
-        blank=True,
-        editable=False)
-
-    error_log = models.TextField(
-        verbose_name=_('Error Log'),
+    log = models.TextField(
+        verbose_name=_('Evaluate Log'),
         blank=True,
         editable=False)
 

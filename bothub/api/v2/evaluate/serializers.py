@@ -169,8 +169,7 @@ class RepositoryEvaluateResultSerializer(serializers.ModelSerializer):
             'created_at',
             'matrix_chart',
             'confidence_chart',
-            'success_log',
-            'error_log',
+            'log',
             'intents_list',
             'entities_list',
             'intent_results',
@@ -178,13 +177,11 @@ class RepositoryEvaluateResultSerializer(serializers.ModelSerializer):
 
         ]
 
-    success_log = serializers.SerializerMethodField()
-    error_log = serializers.SerializerMethodField()
-    intent_results = RepositoryEvaluateResultScore(read_only=True)
-    entity_results = RepositoryEvaluateResultScore(read_only=True)
-
+    log = serializers.SerializerMethodField()
     intents_list = serializers.SerializerMethodField()
     entities_list = serializers.SerializerMethodField()
+    intent_results = RepositoryEvaluateResultScore(read_only=True)
+    entity_results = RepositoryEvaluateResultScore(read_only=True)
 
     def get_intents_list(self, obj):
         return RepositoryEvaluateResultIntentSerializer(
@@ -194,8 +191,5 @@ class RepositoryEvaluateResultSerializer(serializers.ModelSerializer):
         return RepositoryEvaluateResultEntitySerializer(
             obj.evaluate_result_entity.all(), many=True).data
 
-    def get_success_log(self, obj):
-        return json.loads(obj.success_log)
-
-    def get_error_log(self, obj):
-        return json.loads(obj.error_log)
+    def get_log(self, obj):
+        return json.loads(obj.log)

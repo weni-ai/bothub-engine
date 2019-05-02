@@ -199,14 +199,15 @@ class Command(BaseCommand):
                 accuracy=0.978,
             )
 
-            success_log = [
+            evaluate_log = [
                 {
                     "text": "hey",
                     "intent": "greet",
                     "intent_prediction": {
                         "name": "greet",
                         "confidence": 0.9263743763408538
-                    }
+                    },
+                    "status": "success"
                 },
                 {
                     "text": "howdy",
@@ -214,7 +215,8 @@ class Command(BaseCommand):
                     "intent_prediction": {
                         "name": "greet",
                         "confidence": 0.8099720606047796
-                    }
+                    },
+                    "status": "success"
                 },
                 {
                     "text": "hey there",
@@ -222,18 +224,17 @@ class Command(BaseCommand):
                     "intent_prediction": {
                         "name": "greet",
                         "confidence": 0.8227075176309955
-                    }
-                }
-            ]
-
-            error_log = [
+                    },
+                    "status": "success"
+                },
                 {
                     "text": "test with nlu",
                     "intent": "restaurant_search",
                     "intent_prediction": {
                         "name": "goodbye",
                         "confidence": 0.3875259420712092
-                    }
+                    },
+                    "status": "error"
                 }
             ]
 
@@ -244,8 +245,7 @@ class Command(BaseCommand):
                 entity_results=entity_results,
                 matrix_chart='{}/confmat.png'.format(sample_url),
                 confidence_chart='{}/hist.png'.format(sample_url),
-                success_log=json.dumps(success_log),
-                error_log=json.dumps(error_log),
+                log=json.dumps(evaluate_log),
             )
 
             intent_score_1 = RepositoryEvaluateResultScore.objects.create(

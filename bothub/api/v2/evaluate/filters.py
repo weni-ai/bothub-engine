@@ -1,6 +1,5 @@
 from django.utils.translation import gettext as _
 from django.core.exceptions import ValidationError as DjangoValidationError
-from django.db.models import Q
 from django_filters import rest_framework as filters
 
 from rest_framework.exceptions import PermissionDenied
@@ -118,9 +117,7 @@ class EvaluateResultFilter(filters.FilterSet):
         help_text=_('Repository\'s UUID'))
 
     def filter_evaluate_text(self, queryset, name, value):
-        return queryset.filter(
-            Q(success_log__icontains=value) | Q(error_log__contains=value)
-        )
+        return queryset.filter(log__icontains=value)
 
     def filter_repository_uuid(self, queryset, name, value):
         request = self.request
