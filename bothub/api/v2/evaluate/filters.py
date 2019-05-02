@@ -1,5 +1,6 @@
 from django.utils.translation import gettext as _
 from django.core.exceptions import ValidationError as DjangoValidationError
+from django.db.models import Q
 from django_filters import rest_framework as filters
 
 from rest_framework.exceptions import PermissionDenied
@@ -11,6 +12,7 @@ from bothub.common.models import RepositoryEvaluateResult
 
 
 class EvaluatesFilter(filters.FilterSet):
+
     class Meta:
         model = RepositoryEvaluate
         fields = [
@@ -69,7 +71,7 @@ class EvaluatesFilter(filters.FilterSet):
         return queryset.filter(entities__entity__value=value)
 
 
-class ResultsFilter(filters.FilterSet):
+class EvaluateResultsFilter(filters.FilterSet):
 
     class Meta:
         model = RepositoryEvaluateResult
@@ -80,6 +82,45 @@ class ResultsFilter(filters.FilterSet):
         method='filter_repository_uuid',
         required=True,
         help_text=_('Repository\'s UUID'))
+
+    def filter_repository_uuid(self, queryset, name, value):
+        request = self.request
+        try:
+            repository = Repository.objects.get(uuid=value)
+            authorization = repository.get_user_authorization(request.user)
+
+            if not authorization.can_read:
+                raise PermissionDenied()
+            return repository.evaluations_results(queryset=queryset)
+        except Repository.DoesNotExist:
+            raise NotFound(
+                _('Repository {} does not exist').format(value))
+        except DjangoValidationError:
+            raise NotFound(_('Invalid repository_uuid'))
+
+
+class EvaluateResultFilter(filters.FilterSet):
+
+    class Meta:
+        model = RepositoryEvaluateResult
+        fields = []
+
+    text = filters.CharFilter(
+        field_name='text',
+        method='filter_evaluate_text',
+        required=False,
+        help_text=_('Evaluate Text'))
+
+    repository_uuid = filters.CharFilter(
+        field_name='repository_uuid',
+        method='filter_repository_uuid',
+        required=True,
+        help_text=_('Repository\'s UUID'))
+
+    def filter_evaluate_text(self, queryset, name, value):
+        return queryset.filter(
+            Q(success_log__icontains=value) | Q(error_log__contains=value)
+        )
 
     def filter_repository_uuid(self, queryset, name, value):
         request = self.request

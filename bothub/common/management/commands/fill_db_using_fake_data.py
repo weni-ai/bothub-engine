@@ -1,4 +1,5 @@
 import random
+import json
 
 from django.core.management.base import BaseCommand
 from django.conf import settings
@@ -185,20 +186,20 @@ class Command(BaseCommand):
 
         # Evaluate Report
 
-        intent_results = RepositoryEvaluateResultScore.objects.create(
-            f1_score=0.976,
-            precision=0.978,
-            accuracy=0.976,
-        )
+        for x in range(0, 2):
+            intent_results = RepositoryEvaluateResultScore.objects.create(
+                f1_score=0.976,
+                precision=0.978,
+                accuracy=0.976,
+            )
 
-        entity_results = RepositoryEvaluateResultScore.objects.create(
-            f1_score=0.977,
-            precision=0.978,
-            accuracy=0.978,
-        )
+            entity_results = RepositoryEvaluateResultScore.objects.create(
+                f1_score=0.977,
+                precision=0.978,
+                accuracy=0.978,
+            )
 
-        success_log = '''
-            [
+            success_log = [
                 {
                     "text": "hey",
                     "intent": "greet",
@@ -223,11 +224,9 @@ class Command(BaseCommand):
                         "confidence": 0.8227075176309955
                     }
                 }
-        ]
-        '''
+            ]
 
-        error_log = '''
-            [
+            error_log = [
                 {
                     "text": "test with nlu",
                     "intent": "restaurant_search",
@@ -237,92 +236,92 @@ class Command(BaseCommand):
                     }
                 }
             ]
-        '''
 
-        evaluate_result = RepositoryEvaluateResult.objects.create(
-            repository_update=repository_1.current_update(),
-            intent_results=intent_results,
-            entity_results=entity_results,
-            matrix_chart='https://s3.amazonaws.com/bothub-sample/confmat.png',
-            confidence_chart='https://s3.amazonaws.com/bothub-sample/hist.png',
-            success_log=success_log,
-            error_log=error_log,
-        )
+            sample_url = 'https://s3.amazonaws.com/bothub-sample'
+            evaluate_result = RepositoryEvaluateResult.objects.create(
+                repository_update=repository_1.current_update(),
+                intent_results=intent_results,
+                entity_results=entity_results,
+                matrix_chart='{}/confmat.png'.format(sample_url),
+                confidence_chart='{}/hist.png'.format(sample_url),
+                success_log=json.dumps(success_log),
+                error_log=json.dumps(error_log),
+            )
 
-        intent_score_1 = RepositoryEvaluateResultScore.objects.create(
-            precision=1.0,
-            recall=1.0,
-            f1_score=1.0,
-            support=11,
-        )
+            intent_score_1 = RepositoryEvaluateResultScore.objects.create(
+                precision=1.0,
+                recall=1.0,
+                f1_score=1.0,
+                support=11,
+            )
 
-        intent_score_2 = RepositoryEvaluateResultScore.objects.create(
-            precision=0.89,
-            recall=1.0,
-            f1_score=0.94,
-            support=8,
-        )
+            intent_score_2 = RepositoryEvaluateResultScore.objects.create(
+                precision=0.89,
+                recall=1.0,
+                f1_score=0.94,
+                support=8,
+            )
 
-        intent_score_3 = RepositoryEvaluateResultScore.objects.create(
-            precision=1.0,
-            recall=1.0,
-            f1_score=1.0,
-            support=8,
-        )
+            intent_score_3 = RepositoryEvaluateResultScore.objects.create(
+                precision=1.0,
+                recall=1.0,
+                f1_score=1.0,
+                support=8,
+            )
 
-        intent_score_4 = RepositoryEvaluateResultScore.objects.create(
-            precision=1.0,
-            recall=0.93,
-            f1_score=0.97,
-            support=15,
-        )
+            intent_score_4 = RepositoryEvaluateResultScore.objects.create(
+                precision=1.0,
+                recall=0.93,
+                f1_score=0.97,
+                support=15,
+            )
 
-        RepositoryEvaluateResultIntent.objects.create(
-            evaluate_result=evaluate_result,
-            intent='affirm',
-            score=intent_score_1,
-        )
+            RepositoryEvaluateResultIntent.objects.create(
+                evaluate_result=evaluate_result,
+                intent='affirm',
+                score=intent_score_1,
+            )
 
-        RepositoryEvaluateResultIntent.objects.create(
-            evaluate_result=evaluate_result,
-            intent='goodbye',
-            score=intent_score_2,
-        )
+            RepositoryEvaluateResultIntent.objects.create(
+                evaluate_result=evaluate_result,
+                intent='goodbye',
+                score=intent_score_2,
+            )
 
-        RepositoryEvaluateResultIntent.objects.create(
-            evaluate_result=evaluate_result,
-            intent='greet',
-            score=intent_score_3,
-        )
+            RepositoryEvaluateResultIntent.objects.create(
+                evaluate_result=evaluate_result,
+                intent='greet',
+                score=intent_score_3,
+            )
 
-        RepositoryEvaluateResultIntent.objects.create(
-            evaluate_result=evaluate_result,
-            intent='restaurant_search',
-            score=intent_score_4,
-        )
+            RepositoryEvaluateResultIntent.objects.create(
+                evaluate_result=evaluate_result,
+                intent='restaurant_search',
+                score=intent_score_4,
+            )
 
-        entity_score_1 = RepositoryEvaluateResultScore.objects.create(
-            precision=1.0,
-            recall=0.90,
-            f1_score=0.95,
-            support=10,
-        )
+            entity_score_1 = RepositoryEvaluateResultScore.objects.create(
+                precision=1.0,
+                recall=0.90,
+                f1_score=0.95,
+                support=10,
+            )
 
-        entity_score_2 = RepositoryEvaluateResultScore.objects.create(
-            precision=1.0,
-            recall=0.75,
-            f1_score=0.86,
-            support=8,
-        )
+            entity_score_2 = RepositoryEvaluateResultScore.objects.create(
+                precision=1.0,
+                recall=0.75,
+                f1_score=0.86,
+                support=8,
+            )
 
-        RepositoryEvaluateResultEntity.objects.create(
-            evaluate_result=evaluate_result,
-            entity='cuisine',
-            score=entity_score_1,
-        )
+            RepositoryEvaluateResultEntity.objects.create(
+                evaluate_result=evaluate_result,
+                entity='cuisine',
+                score=entity_score_1,
+            )
 
-        RepositoryEvaluateResultEntity.objects.create(
-            evaluate_result=evaluate_result,
-            entity='greet',
-            score=entity_score_2,
-        )
+            RepositoryEvaluateResultEntity.objects.create(
+                evaluate_result=evaluate_result,
+                entity='greet',
+                score=entity_score_2,
+            )

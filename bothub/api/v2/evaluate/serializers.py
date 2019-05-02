@@ -108,7 +108,9 @@ class RepositoryEvaluateResultVersionsSerializer(serializers.ModelSerializer):
         model = RepositoryEvaluateResult
         fields = [
             'id',
-            'language'
+            'language',
+            'created_at',
+            'version',
         ]
 
     language = serializers.SerializerMethodField()

@@ -1360,29 +1360,38 @@ class RepositoryEvaluateResult(models.Model):
 
     matrix_chart = models.URLField(
         verbose_name=_('Intent Confusion Matrix Chart'),
-        editable=False,
-    )
+        editable=False)
 
     confidence_chart = models.URLField(
         verbose_name=_('Intent Prediction Confidence Distribution'),
-        editable=False,
-    )
+        editable=False)
 
     success_log = models.TextField(
         verbose_name=_('Success Log'),
         blank=True,
-        editable=False,
-    )
+        editable=False)
 
     error_log = models.TextField(
         verbose_name=_('Error Log'),
         blank=True,
-        editable=False,
-    )
+        editable=False)
+
+    version = models.IntegerField(
+        verbose_name=_('Version'),
+        blank=False,
+        default=0,
+        editable=False)
 
     created_at = models.DateTimeField(
         _('created at'),
         auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        version_number = RepositoryEvaluateResult.objects.filter(
+            repository_update=self.repository_update
+        ).count()
+        self.version = version_number + 1
+        return super().save(*args, **kwargs)
 
 
 class RepositoryEvaluateResultIntent(models.Model):

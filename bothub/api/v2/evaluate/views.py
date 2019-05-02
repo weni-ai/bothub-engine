@@ -15,7 +15,8 @@ from .serializers import RepositoryEvaluateResultVersionsSerializer
 from .serializers import RepositoryEvaluateResultSerializer
 
 from .filters import EvaluatesFilter
-from .filters import ResultsFilter
+from .filters import EvaluateResultsFilter
+from .filters import EvaluateResultFilter
 
 from .permissions import RepositoryEvaluatePermission
 from .permissions import RepositoryEvaluateResultPermission
@@ -64,24 +65,21 @@ class ResultsListViewSet(
         GenericViewSet):
 
     queryset = RepositoryEvaluateResult.objects
+    serializer_class = RepositoryEvaluateResultVersionsSerializer
     permission_classes = [
         IsAuthenticatedOrReadOnly,
         RepositoryEvaluateResultPermission,
     ]
-
-    def list(self, request, *args, **kwargs):
-        self.serializer_class = RepositoryEvaluateResultVersionsSerializer
-        self.filter_class = ResultsFilter
-        self.filter_backends = [
-            OrderingFilter,
-            DjangoFilterBackend,
-        ]
-        self.ordering_fields = [
-            'created_at',
-        ]
-
-        return super().list(request, *args, **kwargs)
+    filter_class = EvaluateResultsFilter
+    filter_backends = [
+        OrderingFilter,
+        DjangoFilterBackend,
+    ]
+    ordering_fields = [
+        'created_at',
+    ]
 
     def retrieve(self, request, *args, **kwargs):
         self.serializer_class = RepositoryEvaluateResultSerializer
+        self.filter_class = EvaluateResultFilter
         return super().retrieve(request, *args, **kwargs)
