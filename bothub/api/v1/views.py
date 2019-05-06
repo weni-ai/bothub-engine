@@ -545,6 +545,11 @@ class RepositoryViewSet(
                 detail=_('You need to have at least ' +
                          'one registered test phrase'))  # pragma: no cover
 
+        if len(repository.intents) <= 1:
+            raise APIException(
+                detail=_('You need to have at least ' +
+                         'two registered intents'))  # pragma: no cover
+
         request = Repository.request_nlp_evaluate(  # pragma: no cover
             user_authorization, serializer.data)
         if request.status_code != status.HTTP_200_OK:  # pragma: no cover
