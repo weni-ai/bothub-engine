@@ -1394,10 +1394,8 @@ class RepositoryEvaluateResult(models.Model):
         auto_now_add=True)
 
     def save(self, *args, **kwargs):
-        version_number = RepositoryEvaluateResult.objects.filter(
-            repository_update=self.repository_update
-        ).count()
-        self.version = version_number + 1
+        repository = self.repository_update.repository
+        self.version = repository.evaluations_results().count() + 1
         return super().save(*args, **kwargs)
 
 
