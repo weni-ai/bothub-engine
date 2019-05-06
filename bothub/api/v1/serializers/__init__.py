@@ -3,6 +3,7 @@ from .repository import (  # noqa: F401
     RepositorySerializer,
     RepositoryAuthorizationSerializer,
     AnalyzeTextSerializer,
+    EvaluateSerializer,
     EditRepositorySerializer,
     VoteSerializer,
     RepositoryAuthorizationRoleSerializer,

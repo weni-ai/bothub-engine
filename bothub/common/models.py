@@ -179,6 +179,7 @@ class Repository(models.Model):
 
     nlp_train_url = '{}train/'.format(settings.BOTHUB_NLP_BASE_URL)
     nlp_analyze_url = '{}parse/'.format(settings.BOTHUB_NLP_BASE_URL)
+    nlp_evaluate_url = '{}evaluate/'.format(settings.BOTHUB_NLP_BASE_URL)
 
     @classmethod
     def request_nlp_train(cls, user_authorization):
@@ -195,6 +196,17 @@ class Repository(models.Model):
             cls.nlp_analyze_url,
             data={
                 'text': data.get('text'),
+                'language': data.get('language'),
+            },
+            headers={'Authorization': 'Bearer {}'.format(
+                user_authorization.uuid)})
+        return r  # pragma: no cover
+
+    @classmethod
+    def request_nlp_evaluate(cls, user_authorization, data):
+        r = requests.post(  # pragma: no cover
+            cls.nlp_evaluate_url,
+            data={
                 'language': data.get('language'),
             },
             headers={'Authorization': 'Bearer {}'.format(
@@ -333,6 +345,25 @@ class Repository(models.Model):
                 repository_update__language=language)
         if exclude_deleted:
             return query.exclude(deleted_in__isnull=False)
+        return query
+
+    def evaluations(self, language=None, exclude_deleted=True, queryset=None):
+        if queryset is None:
+            queryset = RepositoryEvaluate.objects
+        query = queryset.filter(
+            repository_update__repository=self)
+        if language:
+            query = query.filter(
+                repository_update__language=language)
+        if exclude_deleted:
+            return query.exclude(deleted_in__isnull=False)
+        return query
+
+    def evaluations_results(self, queryset=None):
+        if queryset is None:
+            queryset = RepositoryEvaluateResult.objects
+        query = queryset.filter(
+            repository_update__repository=self)
         return query
 
     def language_status(self, language):
@@ -546,7 +577,7 @@ class RepositoryUpdate(models.Model):
         if self.examples.count() == 0:
             return False
 
-        return len(self.requirements_to_train) is 0
+        return len(self.requirements_to_train) == 0
 
     @property
     def intents(self):
@@ -808,12 +839,15 @@ class RepositoryEntityLabel(models.Model):
 
 
 class RepositoryEntityQueryset(models.QuerySet):
-    def get(self, repository, value):
+    def get(self, repository, value, create_entity=True):
         try:
             return super().get(
                 repository=repository,
                 value=value)
         except self.model.DoesNotExist:
+            if not create_entity:
+                raise self.model.DoesNotExist
+
             return super().create(
                 repository=repository,
                 value=value)
@@ -862,10 +896,19 @@ class EntityBaseQueryset(models.QuerySet):
     def create(self, entity, **kwargs):
         if type(entity) is not RepositoryEntity:
             instance = self.model(**kwargs)
-            repository = instance.example.repository_update.repository
+            if 'repository_evaluate_id' in instance.__dict__:
+                evaluate = instance.repository_evaluate
+                repository = evaluate.repository_update.repository
+            elif 'evaluate_result_id' in instance.__dict__:
+                result = instance.evaluate_result
+                repository = result.repository_update.repository
+            else:
+                repository = instance.example.repository_update.repository
+
             entity = RepositoryEntity.objects.get(
                 repository=repository,
                 value=entity)
+
         return super().create(
             entity=entity,
             **kwargs)
@@ -1198,6 +1241,210 @@ class RequestRepositoryAuthorization(models.Model):
             html_message=render_to_string(
                 'common/emails/request_approved.html',
                 context))
+
+
+class RepositoryEvaluate(models.Model):
+    class Meta:
+        verbose_name = _('repository evaluate test')
+        verbose_name_plural = _('repository evaluate tests')
+        ordering = ['-created_at']
+        db_table = 'common_repository_evaluate'
+
+    repository_update = models.ForeignKey(
+        RepositoryUpdate,
+        models.CASCADE,
+        related_name='added_evaluate',
+        editable=False)
+    deleted_in = models.ForeignKey(
+        RepositoryUpdate,
+        models.CASCADE,
+        related_name='deleted_evaluate',
+        blank=True,
+        null=True)
+    text = models.TextField(
+        _('text'),
+        help_text=_('Evaluate test text'))
+    intent = models.CharField(
+        _('intent'),
+        max_length=64,
+        default='no_intent',
+        help_text=_('Evaluate intent reference'),
+        validators=[validate_item_key])
+    created_at = models.DateTimeField(
+        _('created at'),
+        auto_now_add=True)
+
+    @property
+    def language(self):
+        return self.repository_update.language
+
+    def get_text(self, language=None):
+        if not language or language == self.repository_update.language:
+            return self.text
+        return None
+
+    def get_entities(self, language):
+        if not language or language == self.repository_update.language:
+            return self.entities.all()
+        return None
+
+    def delete(self):
+        self.deleted_in = self.repository_update.repository.current_update(
+            self.repository_update.language)
+        self.save(update_fields=['deleted_in'])
+
+    def delete_entities(self):
+        self.entities.all().delete()
+
+
+class RepositoryEvaluateEntity(EntityBase):
+    class Meta:
+        db_table = 'common_repository_evaluate_entity'
+
+    repository_evaluate = models.ForeignKey(
+        RepositoryEvaluate,
+        models.CASCADE,
+        related_name='entities',
+        editable=False,
+        help_text=_('evaluate object'))
+
+    def get_evaluate(self):
+        return self.repository_evaluate
+
+
+class RepositoryEvaluateResultScore(models.Model):
+    class Meta:
+        db_table = 'common_repository_evaluate_result_score'
+        ordering = ['-created_at']
+
+    precision = models.DecimalField(
+        max_digits=3,
+        decimal_places=2,
+        null=True)
+
+    f1_score = models.DecimalField(
+        max_digits=3,
+        decimal_places=2,
+        null=True)
+
+    accuracy = models.DecimalField(
+        max_digits=3,
+        decimal_places=2,
+        null=True)
+
+    recall = models.DecimalField(
+        max_digits=3,
+        decimal_places=2,
+        null=True)
+
+    support = models.IntegerField(
+        null=True)
+
+    created_at = models.DateTimeField(
+        _('created at'),
+        auto_now_add=True)
+
+
+class RepositoryEvaluateResult(models.Model):
+    class Meta:
+        db_table = 'common_repository_evaluate_result'
+        verbose_name = _('evaluate results')
+        verbose_name_plural = _('evaluate results')
+        ordering = ['-created_at']
+
+    repository_update = models.ForeignKey(
+        RepositoryUpdate,
+        models.CASCADE,
+        editable=False,
+        related_name='results')
+
+    intent_results = models.ForeignKey(
+        RepositoryEvaluateResultScore,
+        models.CASCADE,
+        editable=False,
+        related_name='intent_results')
+
+    entity_results = models.ForeignKey(
+        RepositoryEvaluateResultScore,
+        models.CASCADE,
+        editable=False,
+        related_name='entity_results')
+
+    matrix_chart = models.URLField(
+        verbose_name=_('Intent Confusion Matrix Chart'),
+        editable=False)
+
+    confidence_chart = models.URLField(
+        verbose_name=_('Intent Prediction Confidence Distribution'),
+        editable=False)
+
+    log = models.TextField(
+        verbose_name=_('Evaluate Log'),
+        blank=True,
+        editable=False)
+
+    version = models.IntegerField(
+        verbose_name=_('Version'),
+        blank=False,
+        default=0,
+        editable=False)
+
+    created_at = models.DateTimeField(
+        _('created at'),
+        auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        repository = self.repository_update.repository
+        self.version = repository.evaluations_results().count() + 1
+        return super().save(*args, **kwargs)
+
+
+class RepositoryEvaluateResultIntent(models.Model):
+    class Meta:
+        db_table = 'common_repository_evaluate_result_intent'
+
+    evaluate_result = models.ForeignKey(
+        RepositoryEvaluateResult,
+        models.CASCADE,
+        related_name='evaluate_result_intent'
+    )
+
+    intent = models.CharField(
+        _('intent'),
+        max_length=64,
+        help_text=_('Evaluate intent reference'),
+        validators=[validate_item_key])
+
+    score = models.ForeignKey(
+        RepositoryEvaluateResultScore,
+        models.CASCADE,
+        related_name='evaluation_intenties_score',
+        editable=False)
+
+
+class RepositoryEvaluateResultEntity(models.Model):
+    class Meta:
+        db_table = 'common_repository_evaluate_result_entity'
+
+    evaluate_result = models.ForeignKey(
+        RepositoryEvaluateResult,
+        models.CASCADE,
+        related_name='evaluate_result_entity'
+    )
+
+    entity = models.ForeignKey(
+        RepositoryEntity,
+        models.CASCADE,
+        related_name='entity',
+        editable=False)
+
+    score = models.ForeignKey(
+        RepositoryEvaluateResultScore,
+        models.CASCADE,
+        related_name='evaluation_entities_score',
+        editable=False)
+
+    objects = EntityBaseManager()
 
 
 @receiver(models.signals.pre_save, sender=RequestRepositoryAuthorization)

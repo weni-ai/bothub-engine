@@ -19,6 +19,7 @@ pytz = "==2018.7"
 "flake8" = "*"
 coverage = "*"
 ipython = "*"
+autopep8 = "*"
 
 [requires]
 python_version = "3.6"
