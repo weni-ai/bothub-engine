@@ -538,6 +538,13 @@ class RepositoryViewSet(
         serializer = EvaluateSerializer(
             data=request.data)  # pragma: no cover
         serializer.is_valid(raise_exception=True)  # pragma: no cover
+
+        if not repository.evaluations(
+           language=request.data.get('language')).count():
+            raise APIException(
+                detail=_('You need to have at least ' +
+                         'one registered test phrase'))  # pragma: no cover
+
         request = Repository.request_nlp_evaluate(  # pragma: no cover
             user_authorization, serializer.data)
         if request.status_code != status.HTTP_200_OK:  # pragma: no cover
