@@ -20,7 +20,6 @@ pytz = "==2018.7"
 coverage = "*"
 ipython = "*"
 autopep8 = "*"
-django-extensions = "*"
 
 [requires]
 python_version = "3.6"
