@@ -206,7 +206,8 @@ class RepositoryEvaluateResultSerializer(serializers.ModelSerializer):
 
     def get_intents_list(self, obj):
         return RepositoryEvaluateResultIntentSerializer(
-            obj.evaluate_result_intent.all().exclude(intent__exact=''), many=True).data
+            obj.evaluate_result_intent.all().exclude(intent__exact=''),
+            many=True).data
 
     def get_entities_list(self, obj):
         return RepositoryEvaluateResultEntitySerializer(
