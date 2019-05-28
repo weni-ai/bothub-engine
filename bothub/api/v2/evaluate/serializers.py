@@ -131,6 +131,27 @@ class RepositoryEvaluateResultScore(serializers.ModelSerializer):
             'support'
         ]
 
+    precision = serializers.SerializerMethodField()
+    f1_score = serializers.SerializerMethodField()
+    accuracy = serializers.SerializerMethodField()
+    recall = serializers.SerializerMethodField()
+    support = serializers.SerializerMethodField()
+
+    def get_precision(self, obj):
+        return obj.precision if obj.precision else 0
+
+    def get_f1_score(self, obj):
+        return obj.f1_score if obj.f1_score else 0
+
+    def get_accuracy(self, obj):
+        return obj.accuracy if obj.accuracy else 0
+
+    def get_recall(self, obj):
+        return obj.recall if obj.recall else 0
+
+    def get_support(self, obj):
+        return obj.support if obj.support else 0
+
 
 class RepositoryEvaluateResultIntentSerializer(serializers.ModelSerializer):
 
@@ -166,6 +187,7 @@ class RepositoryEvaluateResultSerializer(serializers.ModelSerializer):
         model = RepositoryEvaluateResult
         fields = [
             'id',
+            'version',
             'created_at',
             'matrix_chart',
             'confidence_chart',
@@ -173,8 +195,7 @@ class RepositoryEvaluateResultSerializer(serializers.ModelSerializer):
             'intents_list',
             'entities_list',
             'intent_results',
-            'entity_results'
-
+            'entity_results',
         ]
 
     log = serializers.SerializerMethodField()
@@ -185,7 +206,8 @@ class RepositoryEvaluateResultSerializer(serializers.ModelSerializer):
 
     def get_intents_list(self, obj):
         return RepositoryEvaluateResultIntentSerializer(
-            obj.evaluate_result_intent.all(), many=True).data
+            obj.evaluate_result_intent.all().exclude(intent__exact=''),
+            many=True).data
 
     def get_entities_list(self, obj):
         return RepositoryEvaluateResultEntitySerializer(
