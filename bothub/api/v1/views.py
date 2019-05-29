@@ -45,6 +45,7 @@ from .serializers import LoginSerializer
 from .serializers import RepositoryCategorySerializer
 from .serializers import NewRepositoryExampleSerializer
 from .serializers import AnalyzeTextSerializer
+from .serializers import EvaluateSerializer
 from .serializers import EditRepositorySerializer
 from .serializers import NewRepositoryTranslatedExampleSerializer
 from .serializers import VoteSerializer
@@ -525,6 +526,40 @@ class RepositoryViewSet(
 
     @detail_route(
         methods=['POST'],
+        url_name='repository-evaluate')
+    def evaluate(self, request, **kwargs):
+        """
+        Evaluate repository using Bothub NLP service
+        """
+        repository = self.get_object()
+        user_authorization = repository.get_user_authorization(request.user)
+        if not user_authorization.can_write:
+            raise PermissionDenied()
+        serializer = EvaluateSerializer(
+            data=request.data)  # pragma: no cover
+        serializer.is_valid(raise_exception=True)  # pragma: no cover
+
+        if not repository.evaluations(
+           language=request.data.get('language')).count():
+            raise APIException(
+                detail=_('You need to have at least ' +
+                         'one registered test phrase'))  # pragma: no cover
+
+        if len(repository.intents) <= 1:
+            raise APIException(
+                detail=_('You need to have at least ' +
+                         'two registered intents'))  # pragma: no cover
+
+        request = Repository.request_nlp_evaluate(  # pragma: no cover
+            user_authorization, serializer.data)
+        if request.status_code != status.HTTP_200_OK:  # pragma: no cover
+            raise APIException(  # pragma: no cover
+                {'status_code': request.status_code},
+                code=request.status_code)
+        return Response(request.json())  # pragma: no cover
+
+    @detail_route(
+        methods=['POST'],
         url_name='repository-vote',
         permission_classes=[
             IsAuthenticated,
@@ -552,7 +587,7 @@ class RepositoryViewSet(
     def get_serializer_class(self):
         if self.request and self.request.method in \
            ['OPTIONS'] + WRITE_METHODS or not self.request:
-                return self.edit_serializer_class
+            return self.edit_serializer_class
         return self.serializer_class
 
     def get_action_permissions_classes(self):

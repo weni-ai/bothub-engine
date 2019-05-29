@@ -14,7 +14,7 @@ CHECK_ACCESSIBLE_API_URL = config(
 def check_database_connection(**kwargs):
     from django.db import connections
     from django.db.utils import OperationalError
-    if len(connections.all()) is 0:
+    if len(connections.all()) == 0:
         return False
     logger.info('found {} database connection'.format(len(connections.all())))
     for i, conn in enumerate(connections.all(), 1):

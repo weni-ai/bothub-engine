@@ -186,6 +186,10 @@ class AnalyzeTextSerializer(serializers.Serializer):
     text = serializers.CharField(allow_blank=False)
 
 
+class EvaluateSerializer(serializers.Serializer):
+    language = serializers.ChoiceField(LANGUAGE_CHOICES, required=True)
+
+
 class VoteSerializer(serializers.ModelSerializer):
     class Meta:
         model = RepositoryVote
