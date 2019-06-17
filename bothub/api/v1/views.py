@@ -627,6 +627,7 @@ class NewRepositoryExampleViewSet(
 class RepositoryExampleViewSet(
         mixins.RetrieveModelMixin,
         mixins.DestroyModelMixin,
+        mixins.UpdateModelMixin,
         GenericViewSet):
     """
     Manager repository example.
@@ -636,12 +637,19 @@ class RepositoryExampleViewSet(
 
     delete:
     Delete repository example.
+
+    update:
+    Update repository example.
+
     """
     queryset = RepositoryExample.objects
     serializer_class = RepositoryExampleSerializer
     permission_classes = [
         RepositoryExamplePermission,
     ]
+
+    def perform_update(self, serializer):
+        serializer.save()
 
     def perform_destroy(self, obj):
         if obj.deleted_in:
