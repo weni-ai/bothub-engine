@@ -29,7 +29,6 @@ if settings.DEBUG:
     def render_template(template_name, **kwargs):
         def wrapper(request):
             from django.shortcuts import render
-            print(request)
             return render(request, template_name, kwargs)
         return wrapper
 
