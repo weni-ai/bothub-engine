@@ -648,9 +648,6 @@ class RepositoryExampleViewSet(
         RepositoryExamplePermission,
     ]
 
-    def perform_update(self, serializer):
-        serializer.save()
-
     def perform_destroy(self, obj):
         if obj.deleted_in:
             raise APIException(_('Example already deleted'))
