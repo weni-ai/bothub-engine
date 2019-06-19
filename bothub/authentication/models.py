@@ -107,6 +107,7 @@ class User(AbstractBaseUser, PermissionsMixin):
             return False
         context = {
             'name': self.name,
+            'base_url': settings.BASE_URL,
         }
         send_mail(
             _('Welcome to Bothub'),
@@ -131,6 +132,7 @@ class User(AbstractBaseUser, PermissionsMixin):
             self.nickname,
             token)
         context = {
+            'base_url': settings.BASE_URL,
             'reset_url': reset_url,
         }
         send_mail(

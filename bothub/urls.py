@@ -29,6 +29,7 @@ if settings.DEBUG:
     def render_template(template_name, **kwargs):
         def wrapper(request):
             from django.shortcuts import render
+            print(request)
             return render(request, template_name, kwargs)
         return wrapper
 
@@ -38,11 +39,13 @@ if settings.DEBUG:
                 'welcome/',
                 render_template(
                     'authentication/emails/welcome.html',
+                    base_url=settings.BASE_URL,
                     name='Douglas')),
             path(
                 'new-role/',
                 render_template(
                     'common/emails/new_role.html',
+                    base_url=settings.BASE_URL,
                     responsible_name='Douglas',
                     user_name='Michael',
                     repository_name='Repository 1',
@@ -52,6 +55,7 @@ if settings.DEBUG:
                 'new-request/',
                 render_template(
                     'common/emails/new_request.html',
+                    base_url=settings.BASE_URL,
                     user_name='Michael',
                     repository_name='Repository 1',
                     text='Lorem ipsum dolor sit amet, consectetur ' +
@@ -64,11 +68,13 @@ if settings.DEBUG:
                 'request-rejected/',
                 render_template(
                     'common/emails/request_rejected.html',
+                    base_url=settings.BASE_URL,
                     repository_name='Repository 1')),
             path(
                 'request-approved/',
                 render_template(
                     'common/emails/request_approved.html',
+                    base_url=settings.BASE_URL,
                     admin_name='Douglas',
                     repository_name='Repository 1',
                     repository_url='http://localhost:8080/douglas/repo1/')),

@@ -23,6 +23,7 @@ ALLOWED_HOSTS = config(
     default='*',
     cast=lambda v: [s.strip() for s in v.split(',')])
 
+BASE_URL = config('BASE_URL', default='')
 
 # Application definition
 

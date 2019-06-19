@@ -1109,6 +1109,7 @@ class RepositoryAuthorization(models.Model):
         responsible_name = responsible and responsible.name \
             or self.repository.owner.name
         context = {
+            'base_url': settings.BASE_URL,
             'responsible_name': responsible_name,
             'user_name': self.user.name,
             'repository_name': self.repository.name,
@@ -1187,6 +1188,7 @@ class RequestRepositoryAuthorization(models.Model):
         if not settings.SEND_EMAILS:
             return False
         context = {
+            'base_url': settings.BASE_URL,
             'user_name': self.user.name,
             'repository_name': self.repository.name,
             'text': self.text,
@@ -1209,6 +1211,7 @@ class RequestRepositoryAuthorization(models.Model):
         if not settings.SEND_EMAILS:
             return False
         context = {
+            'base_url': settings.BASE_URL,
             'repository_name': self.repository.name,
         }
         send_mail(
@@ -1227,6 +1230,7 @@ class RequestRepositoryAuthorization(models.Model):
         if not settings.SEND_EMAILS:
             return False
         context = {
+            'base_url': settings.BASE_URL,
             'admin_name': self.approved_by.name,
             'repository_name': self.repository.name,
         }
