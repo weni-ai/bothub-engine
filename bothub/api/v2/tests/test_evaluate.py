@@ -5,8 +5,8 @@ from django.test import TestCase
 from rest_framework import status
 
 from bothub.api.v2.evaluate.views import EvaluateViewSet
-from bothub.common.models import Repository
-from bothub.common.models import RepositoryExample, RepositoryUpdate
+from bothub.common import languages
+from bothub.common.models import RepositoryExample, RepositoryUpdate, Repository, RepositoryEvaluate
 from .utils import create_user_and_token
 
 
@@ -26,18 +26,18 @@ class NewEvaluateTestCase(TestCase):
             owner=self.owner,
             name='Testing',
             slug='test',
-            language='en'
+            language=languages.LANGUAGE_EN
         )
 
         self.repository_update = RepositoryUpdate.objects.create(
             repository=self.repository,
-            language='en',
+            language=languages.LANGUAGE_EN,
             algorithm='statistical_model',
         )
 
         self.example_1 = RepositoryExample.objects.create(
             repository_update=self.repository_update,
-            text="teste",
+            text="test",
             intent="greet",
         )
 
@@ -57,7 +57,7 @@ class NewEvaluateTestCase(TestCase):
             {
                 'repository': str(self.repository.uuid),
                 'text': 'haha',
-                'language': 'en',
+                'language': languages.LANGUAGE_EN,
                 'intent': 'greet',
                 'entities': []
             }
@@ -72,7 +72,7 @@ class NewEvaluateTestCase(TestCase):
             {
                 'repository': str(self.repository.uuid),
                 'text': 'haha',
-                'language': 'en',
+                'language': languages.LANGUAGE_EN,
                 'intent': '',
                 'entities': []
             }
@@ -88,7 +88,7 @@ class NewEvaluateTestCase(TestCase):
             {
                 'repository': str(self.repository.uuid),
                 'text': 'haha',
-                'language': 'en',
+                'language': languages.LANGUAGE_EN,
                 'intent': 'greet',
                 'entities': [{"entity": "hello", "start": 0, "end": 3}]
             }
@@ -98,3 +98,72 @@ class NewEvaluateTestCase(TestCase):
             status.HTTP_400_BAD_REQUEST)
 
         self.assertIn('entities', content_data)
+
+
+class EvaluateDestroyTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.owner, self.owner_token = create_user_and_token('owner')
+        self.user, self.token = create_user_and_token()
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name='Testing',
+            slug='test',
+            language=languages.LANGUAGE_EN
+        )
+
+        self.repository_update = RepositoryUpdate.objects.create(
+            repository=self.repository,
+            language='en',
+            algorithm='statistical_model',
+        )
+
+        self.example_1 = RepositoryExample.objects.create(
+            repository_update=self.repository_update,
+            text="test",
+            intent="greet",
+        )
+
+        self.repository_evaluate = RepositoryEvaluate.objects.create(
+            repository_update=self.repository_update,
+            text="test",
+            intent="greet"
+        )
+
+    def request(self, token):
+        authorization_header = {
+            'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
+        }
+
+        request = self.factory.delete(
+            '/api/v2/evaluate/{}/'.format(self.repository_evaluate.id),
+            **authorization_header)
+        response = EvaluateViewSet.as_view(
+            {'delete': 'destroy'})(request, pk=self.repository_evaluate.id)
+        return response
+
+    def test_okay(self):
+        response = self.request(self.owner_token)
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_204_NO_CONTENT)
+
+    def test_private_okay(self):
+        response = self.request(self.token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_403_FORBIDDEN)
+
+    def test_already_deleted(self):
+        self.repository_evaluate.delete()
+        response = self.request(self.owner_token)
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_204_NO_CONTENT)
+        self.assertIsNotNone(
+            self.repository_evaluate.deleted_in
+        )
