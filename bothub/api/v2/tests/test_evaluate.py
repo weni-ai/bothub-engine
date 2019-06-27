@@ -18,9 +18,6 @@ class NewEvaluateTestCase(TestCase):
 
         self.owner, self.owner_token = create_user_and_token('owner')
         self.user, self.token = create_user_and_token()
-        self.authorization_header = {
-            'HTTP_AUTHORIZATION': 'Token {}'.format(self.token.key),
-        }
 
         self.repository = Repository.objects.create(
             owner=self.owner,
@@ -41,12 +38,15 @@ class NewEvaluateTestCase(TestCase):
             intent="greet",
         )
 
-    def request(self, data):
+    def request(self, data, token):
+        authorization_header = {
+            'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
+        }
         request = self.factory.post(
-            '/api/v2/evaluate/',
+            '/api/v2/evaluate/?repository_uuid={}'.format(self.repository.uuid),
             json.dumps(data),
             content_type='application/json',
-            **self.authorization_header)
+            **authorization_header)
         response = EvaluateViewSet.as_view({'post': 'create'})(request)
         response.render()
         content_data = json.loads(response.content)
@@ -60,7 +60,7 @@ class NewEvaluateTestCase(TestCase):
                 'language': languages.LANGUAGE_EN,
                 'intent': 'greet',
                 'entities': []
-            }
+            }, self.owner_token
         )
 
         self.assertEqual(
@@ -75,7 +75,7 @@ class NewEvaluateTestCase(TestCase):
                 'language': languages.LANGUAGE_EN,
                 'intent': '',
                 'entities': []
-            }
+            }, self.owner_token
         )
 
         self.assertEqual(
@@ -91,13 +91,27 @@ class NewEvaluateTestCase(TestCase):
                 'language': languages.LANGUAGE_EN,
                 'intent': 'greet',
                 'entities': [{"entity": "hello", "start": 0, "end": 3}]
-            }
+            }, self.owner_token
         )
         self.assertEqual(
             response.status_code,
             status.HTTP_400_BAD_REQUEST)
 
         self.assertIn('entities', content_data)
+
+    def test_private_okay(self):
+        response, content_data = self.request(
+            {
+                'repository': str(self.repository.uuid),
+                'text': 'haha',
+                'language': languages.LANGUAGE_EN,
+                'intent': 'greet',
+                'entities': []
+            }, self.token
+        )
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_403_FORBIDDEN)
 
 
 class EvaluateDestroyTestCase(TestCase):
@@ -136,12 +150,11 @@ class EvaluateDestroyTestCase(TestCase):
         authorization_header = {
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
         }
-
         request = self.factory.delete(
-            '/api/v2/evaluate/{}/'.format(self.repository_evaluate.id),
+            '/api/v2/evaluate/{}/?repository_uuid={}'.format(self.repository_evaluate.id, self.repository.uuid),
             **authorization_header)
         response = EvaluateViewSet.as_view(
-            {'delete': 'destroy'})(request, pk=self.repository_evaluate.id)
+            {'delete': 'destroy'})(request, pk=self.repository_evaluate.id, repository_uuid=self.repository.uuid)
         return response
 
     def test_okay(self):
