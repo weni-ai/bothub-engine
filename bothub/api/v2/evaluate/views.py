@@ -66,6 +66,7 @@ class ResultsListViewSet(
         GenericViewSet):
 
     queryset = RepositoryEvaluateResult.objects
+    lookup_fields = ('repository_uuid',)
     serializer_class = RepositoryEvaluateResultVersionsSerializer
     permission_classes = [
         IsAuthenticated,
