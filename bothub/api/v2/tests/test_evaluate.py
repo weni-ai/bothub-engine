@@ -6,8 +6,9 @@ from rest_framework import status
 
 from bothub.api.v2.evaluate.views import EvaluateViewSet, ResultsListViewSet
 from bothub.common import languages
-from bothub.common.models import RepositoryExample, RepositoryUpdate, Repository, RepositoryEvaluate, \
-    RepositoryEvaluateResultScore, RepositoryEvaluateResult, RepositoryEvaluateResultIntent, \
+from bothub.common.models import RepositoryExample, RepositoryUpdate, \
+    Repository, RepositoryEvaluate, RepositoryEvaluateResultScore, \
+    RepositoryEvaluateResult, RepositoryEvaluateResultIntent, \
     RepositoryEvaluateResultEntity
 from .utils import create_user_and_token
 
@@ -51,9 +52,14 @@ class ListEvaluateTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
         }
         request = self.factory.get(
-            '/api/v2/evaluate/?repository_uuid={}'.format(self.repository.uuid),
-            **authorization_header)
-        response = EvaluateViewSet.as_view({'get': 'list'})(request, repository_uuid=self.repository.uuid)
+            '/api/v2/evaluate/?repository_uuid={}'.format(
+                self.repository.uuid
+            ), **authorization_header
+        )
+        response = EvaluateViewSet.as_view({'get': 'list'})(
+            request,
+            repository_uuid=self.repository.uuid
+        )
         response.render()
         content_data = json.loads(response.content)
         return (response, content_data,)
@@ -99,10 +105,13 @@ class NewEvaluateTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
         }
         request = self.factory.post(
-            '/api/v2/evaluate/?repository_uuid={}'.format(self.repository.uuid),
+            '/api/v2/evaluate/?repository_uuid={}'.format(
+                self.repository.uuid
+            ),
             json.dumps(data),
             content_type='application/json',
-            **authorization_header)
+            **authorization_header
+        )
         response = EvaluateViewSet.as_view({'post': 'create'})(request)
         response.render()
         content_data = json.loads(response.content)
@@ -207,10 +216,17 @@ class EvaluateDestroyTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
         }
         request = self.factory.delete(
-            '/api/v2/evaluate/{}/?repository_uuid={}'.format(self.repository_evaluate.id, self.repository.uuid),
-            **authorization_header)
+            '/api/v2/evaluate/{}/?repository_uuid={}'.format(
+                self.repository_evaluate.id,
+                self.repository.uuid
+            ), **authorization_header
+        )
         response = EvaluateViewSet.as_view(
-            {'delete': 'destroy'})(request, pk=self.repository_evaluate.id, repository_uuid=self.repository.uuid)
+            {'delete': 'destroy'})(
+            request,
+            pk=self.repository_evaluate.id,
+            repository_uuid=self.repository.uuid
+        )
         return response
 
     def test_okay(self):
@@ -275,12 +291,20 @@ class EvaluateUpdateTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
         }
         request = self.factory.patch(
-            '/api/v2/evaluate/{}/?repository_uuid={}'.format(self.repository_evaluate.id, self.repository.uuid),
+            '/api/v2/evaluate/{}/?repository_uuid={}'.format(
+                self.repository_evaluate.id,
+                self.repository.uuid
+            ),
             json.dumps(data),
             content_type='application/json',
-            **authorization_header)
+            **authorization_header
+        )
         response = EvaluateViewSet.as_view(
-            {'patch': 'update'})(request, pk=self.repository_evaluate.id, repository_uuid=self.repository.uuid)
+            {'patch': 'update'})(
+            request,
+            pk=self.repository_evaluate.id,
+            repository_uuid=self.repository.uuid
+        )
         response.render()
         content_data = json.loads(response.content)
 
@@ -475,9 +499,14 @@ class ListEvaluateResultTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
         }
         request = self.factory.get(
-            '/api/v2/evaluate/results/?repository_uuid={}'.format(self.repository.uuid),
-            **authorization_header)
-        response = ResultsListViewSet.as_view({'get': 'list'})(request, repository_uuid=self.repository.uuid)
+            '/api/v2/evaluate/results/?repository_uuid={}'.format(
+                self.repository.uuid
+            ), **authorization_header
+        )
+        response = ResultsListViewSet.as_view({'get': 'list'})(
+            request,
+            repository_uuid=self.repository.uuid
+        )
         response.render()
         content_data = json.loads(response.content)
         return (response, content_data,)

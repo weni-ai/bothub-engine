@@ -9,10 +9,13 @@ class RepositoryEvaluatePermission(permissions.BasePermission):
 
     def has_permission(self, request, view):
         try:
-            repository = Repository.objects.get(uuid=request.GET.get('repository_uuid'))
+            repository = Repository.objects.get(
+                uuid=request.GET.get('repository_uuid')
+            )
             authorization = repository.get_user_authorization(request.user)
 
-            if request.method in READ_METHODS and not request.user.is_authenticated:
+            if request.method in READ_METHODS and \
+                    not request.user.is_authenticated:
                 return authorization.can_read
 
             if request.user.is_authenticated:
@@ -30,7 +33,9 @@ class RepositoryEvaluateResultPermission(permissions.BasePermission):
 
     def has_permission(self, request, view):
         try:
-            repository = Repository.objects.get(uuid=request.GET.get('repository_uuid'))
+            repository = Repository.objects.get(
+                uuid=request.GET.get('repository_uuid')
+            )
             authorization = repository.get_user_authorization(request.user)
 
             if request.method in READ_METHODS:
