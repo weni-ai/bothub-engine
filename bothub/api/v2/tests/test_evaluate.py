@@ -14,6 +14,60 @@ from .utils import create_user_and_token
 
 # TestCases
 
+class ListEvaluateTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.owner, self.owner_token = create_user_and_token('owner')
+        self.user, self.token = create_user_and_token()
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name='Testing',
+            slug='test',
+            language=languages.LANGUAGE_EN
+        )
+
+        self.repository_update = RepositoryUpdate.objects.create(
+            repository=self.repository,
+            language=languages.LANGUAGE_EN,
+            algorithm='statistical_model',
+        )
+
+        self.example_1 = RepositoryExample.objects.create(
+            repository_update=self.repository_update,
+            text="test",
+            intent="greet",
+        )
+
+        self.repository_evaluate = RepositoryEvaluate.objects.create(
+            repository_update=self.repository_update,
+            text="test",
+            intent="greet"
+        )
+
+    def request(self, token):
+        authorization_header = {
+            'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
+        }
+        request = self.factory.get(
+            '/api/v2/evaluate/?repository_uuid={}'.format(self.repository.uuid),
+            **authorization_header)
+        response = EvaluateViewSet.as_view({'get': 'list'})(request, repository_uuid=self.repository.uuid)
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data,)
+
+    def test_okay(self):
+        response, content_data = self.request(self.owner_token)
+
+        self.assertEqual(content_data['count'], 1)
+        self.assertEqual(len(content_data['results']), 1)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK)
+
+
 class NewEvaluateTestCase(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
