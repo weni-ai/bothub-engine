@@ -262,7 +262,7 @@ class EvaluateUpdateTestCase(TestCase):
             status.HTTP_403_FORBIDDEN)
 
 
-class GetEvaluateResultTestCase(TestCase):
+class ListEvaluateResultTestCase(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
 
