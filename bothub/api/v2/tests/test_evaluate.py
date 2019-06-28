@@ -470,7 +470,6 @@ class ListEvaluateResultTestCase(TestCase):
                 score=entity_score_2,
             )
 
-
     def request(self, token):
         authorization_header = {
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
