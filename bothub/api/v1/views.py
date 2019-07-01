@@ -404,7 +404,7 @@ class NewRepositoryViewSet(
             headers=headers)
 
 
-class MyRepositoriesViewSet(
+class SearchRepositoriesViewSet(
         mixins.ListModelMixin,
         GenericViewSet):
     """
@@ -415,7 +415,15 @@ class MyRepositoriesViewSet(
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self, *args, **kwargs):
-        return self.queryset.filter(owner=self.request.user)
+        if self.request.query_params.get('nickname', None):
+            return self.queryset.filter(
+                owner__nickname=self.request.query_params.get(
+                    'nickname',
+                    self.request.user
+                )
+            )
+        else:
+            return self.queryset.filter(owner=self.request.user)
 
 
 class RepositoryViewSet(
