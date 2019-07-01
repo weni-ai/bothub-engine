@@ -412,6 +412,7 @@ class SearchRepositoriesViewSet(
     """
     queryset = Repository.objects
     serializer_class = RepositorySerializer
+    lookup_field = 'nickname'
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self, *args, **kwargs):
