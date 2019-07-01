@@ -17,7 +17,7 @@ from bothub.common.models import RequestRepositoryAuthorization
 
 from ..views import NewRepositoryViewSet
 from ..views import RepositoryViewSet
-from ..views import MyRepositoriesViewSet
+from ..views import SearchRepositoriesViewSet
 from ..views import RepositoriesViewSet
 
 from .utils import create_user_and_token
@@ -447,7 +447,7 @@ class DestroyRepositoryTestCase(TestCase):
             status.HTTP_403_FORBIDDEN)
 
 
-class MyRepositoriesTestCase(TestCase):
+class SearchRepositoriesTestCase(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
 
@@ -464,20 +464,19 @@ class MyRepositoriesTestCase(TestCase):
             language=languages.LANGUAGE_EN)
         self.repository.categories.add(self.category)
 
-    def request(self, token):
-        authorization_header = {
-            'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
-        }
+    def request(self, nickname):
         request = self.factory.get(
-            '/api/my-repositories/',
-            **authorization_header)
-        response = MyRepositoriesViewSet.as_view({'get': 'list'})(request)
+            '/api/search-repositories/?nickname={}'.format(nickname)
+        )
+        response = SearchRepositoriesViewSet.as_view(
+            {'get': 'list'}
+        )(request, nickname=nickname)
         response.render()
         content_data = json.loads(response.content)
         return (response, content_data,)
 
     def test_okay(self):
-        response, content_data = self.request(self.owner_token)
+        response, content_data = self.request('owner')
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
             content_data.get('count'),
@@ -486,8 +485,15 @@ class MyRepositoriesTestCase(TestCase):
             uuid.UUID(content_data.get('results')[0].get('uuid')),
             self.repository.uuid)
 
-    def test_empty_okay(self):
-        response, content_data = self.request(self.user_token)
+    def test_empty_with_user_okay(self):
+        response, content_data = self.request('fake')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            content_data.get('count'),
+            0)
+
+    def test_empty_without_user_okay(self):
+        response, content_data = self.request('')
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
             content_data.get('count'),
