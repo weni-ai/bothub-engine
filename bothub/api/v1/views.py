@@ -413,18 +413,20 @@ class SearchRepositoriesViewSet(
     queryset = Repository.objects
     serializer_class = RepositorySerializer
     lookup_field = 'nickname'
-    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self, *args, **kwargs):
-        if self.request.query_params.get('nickname', None):
-            return self.queryset.filter(
-                owner__nickname=self.request.query_params.get(
-                    'nickname',
-                    self.request.user
+        try:
+            if self.request.query_params.get('nickname', None):
+                return self.queryset.filter(
+                    owner__nickname=self.request.query_params.get(
+                        'nickname',
+                        self.request.user
+                    )
                 )
-            )
-        else:
-            return self.queryset.filter(owner=self.request.user)
+            else:
+                return self.queryset.filter(owner=self.request.user)
+        except TypeError:
+            return self.queryset.none()
 
 
 class RepositoryViewSet(
