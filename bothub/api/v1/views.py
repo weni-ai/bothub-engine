@@ -24,7 +24,6 @@ from bothub.common.models import Repository
 from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryTranslatedExample
 from bothub.common.models import RepositoryCategory
-from bothub.common.models import RepositoryVote
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RequestRepositoryAuthorization
 from bothub.common.models import RepositoryEntity
@@ -48,7 +47,6 @@ from .serializers import AnalyzeTextSerializer
 from .serializers import EvaluateSerializer
 from .serializers import EditRepositorySerializer
 from .serializers import NewRepositoryTranslatedExampleSerializer
-from .serializers import VoteSerializer
 from .serializers import RepositoryAuthorizationRoleSerializer
 from .serializers import NewRequestRepositoryAuthorizationSerializer
 from .serializers import RequestRepositoryAuthorizationSerializer
@@ -568,32 +566,6 @@ class RepositoryViewSet(
                 {'status_code': request.status_code},
                 code=request.status_code)
         return Response(request.json())  # pragma: no cover
-
-    @detail_route(
-        methods=['POST'],
-        url_name='repository-vote',
-        permission_classes=[
-            IsAuthenticated,
-        ])
-    def vote(self, request, **kwargs):
-        user = request.user
-        repository = self.get_object()
-        instance, created = RepositoryVote.objects.get_or_create(
-            user=user,
-            repository=repository,
-            defaults={
-                'vote': RepositoryVote.NEUTRAL_VOTE,
-            })
-        serializer = VoteSerializer(
-            data=request.data,
-            instance=instance)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(
-            {
-                'votes_sum': repository.votes_sum,
-            },
-            status=status.HTTP_201_CREATED)
 
     def get_serializer_class(self):
         if self.request and self.request.method in \

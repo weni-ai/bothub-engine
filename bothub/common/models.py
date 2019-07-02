@@ -4,6 +4,7 @@ import requests
 
 from functools import reduce
 from django.db import models
+from django.utils.datetime_safe import datetime
 from django.utils.translation import gettext as _
 from django.utils import timezone
 from django.conf import settings
@@ -58,10 +59,14 @@ class RepositoryQuerySet(models.QuerySet):
         return self.filter(is_private=False)
 
     def order_by_relevance(self):
+        # return self \
+        #     .annotate(votes_summ=models.Sum('votes__vote')) \
+        #     .annotate(examples_sum=models.Sum('updates__added')) \
+        #     .order_by('-votes_summ', '-examples_sum', '-created_at')
+
         return self \
-            .annotate(votes_summ=models.Sum('votes__vote')) \
             .annotate(examples_sum=models.Sum('updates__added')) \
-            .order_by('-votes_summ', '-examples_sum', '-created_at')
+            .order_by('-examples_sum', '-created_at')
 
     def supported_language(self, language):
         valid_examples = RepositoryExample.objects.filter(
@@ -1128,15 +1133,6 @@ class RepositoryAuthorization(models.Model):
 
 
 class RepositoryVote(models.Model):
-    UP_VOTE = 1
-    DOWN_VOTE = -1
-    NEUTRAL_VOTE = 0
-    VOTE_CHOICES = [
-        (UP_VOTE, _('Up'),),
-        (DOWN_VOTE, _('Down')),
-        (NEUTRAL_VOTE, _('Neutral')),
-    ]
-
     class Meta:
         verbose_name = _('repository vote')
         verbose_name_plural = _('repository votes')
@@ -1153,9 +1149,10 @@ class RepositoryVote(models.Model):
         Repository,
         models.CASCADE,
         related_name='votes')
-    vote = models.IntegerField(
-        _('vote'),
-        choices=VOTE_CHOICES)
+    created = models.DateTimeField(
+        editable=False,
+        default=datetime.now
+    )
 
 
 class RequestRepositoryAuthorization(models.Model):

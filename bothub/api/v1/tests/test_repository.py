@@ -11,7 +11,7 @@ from bothub.common.models import RepositoryCategory
 from bothub.common.models import Repository
 from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryExampleEntity
-from bothub.common.models import RepositoryVote
+# from bothub.common.models import RepositoryVote
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RequestRepositoryAuthorization
 
@@ -765,95 +765,3 @@ class LanguagesStatusTestCase(TestCase):
             for entity in language_status.get('examples').get('entities'):
                 self.failIfEqual(entity, None)
 
-
-class RepositoryVoteTestCase(TestCase):
-    def setUp(self):
-        self.factory = RequestFactory()
-
-        self.owner, self.owner_token = create_user_and_token('owner')
-        self.user, self.user_token = create_user_and_token()
-
-        self.repository = Repository.objects.create(
-            owner=self.owner,
-            name='Testing',
-            slug='test',
-            language=languages.LANGUAGE_EN)
-
-    def request(self, repository, data={}, token=None):
-        authorization_header = {
-            'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
-        } if token else {}
-        request = self.factory.post(
-            '/api/repository/{}/{}/vote/'.format(
-                repository.owner.nickname,
-                repository.slug),
-            data,
-            **authorization_header)
-        response = RepositoryViewSet.as_view(
-            {'post': 'vote'})(request)
-        response.render()
-        content_data = json.loads(response.content)
-        return (response, content_data,)
-
-    def test_unauthorized(self):
-        response, content_data = self.request(self.repository)
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_401_UNAUTHORIZED)
-
-    def test_invalid_vote(self):
-        response, content_data = self.request(
-            self.repository,
-            {
-                'vote': 2,
-            },
-            self.user_token)
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_400_BAD_REQUEST)
-        self.assertIn(
-            'vote',
-            content_data.keys())
-
-    def test_vote_up(self):
-        response, content_data = self.request(
-            self.repository,
-            {
-                'vote': RepositoryVote.UP_VOTE,
-            },
-            self.user_token)
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_201_CREATED)
-        vote = RepositoryVote.objects.get(
-            repository=self.repository,
-            user=self.user)
-        self.assertEqual(
-            vote.vote,
-            RepositoryVote.UP_VOTE)
-        self.assertEqual(
-            self.repository.votes_sum,
-            1)
-        self.assertEqual(
-            content_data.get('votes_sum'),
-            1)
-
-    def test_vote_down(self):
-        response, content_data = self.request(
-            self.repository,
-            {
-                'vote': RepositoryVote.DOWN_VOTE,
-            },
-            self.user_token)
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_201_CREATED)
-        vote = RepositoryVote.objects.get(
-            repository=self.repository,
-            user=self.user)
-        self.assertEqual(
-            vote.vote,
-            RepositoryVote.DOWN_VOTE)
-        self.assertEqual(
-            self.repository.votes_sum,
-            -1)
