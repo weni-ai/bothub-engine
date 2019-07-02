@@ -5,7 +5,7 @@ from django.test import RequestFactory
 from django.test.client import MULTIPART_CONTENT
 from rest_framework import status
 
-from bothub.common.models import RepositoryCategory
+from bothub.common.models import RepositoryCategory, RepositoryVote
 from bothub.common.models import Repository
 from bothub.common.models import RequestRepositoryAuthorization
 from bothub.common.models import RepositoryExample
@@ -16,6 +16,7 @@ from ..tests.utils import create_user_and_token
 
 from .views import RepositoryViewSet
 from .views import RepositoriesViewSet
+from .views import RepositoryVotesViewSet
 from .serializers import RepositorySerializer
 
 
@@ -603,94 +604,47 @@ class RepositoriesLanguageFilterTestCase(TestCase):
 
 
 
-# class RepositoryVoteTestCase(TestCase):
-#     def setUp(self):
-#         self.factory = RequestFactory()
-#
-#         self.owner, self.owner_token = create_user_and_token('owner')
-#         self.user, self.user_token = create_user_and_token()
-#
-#         self.repository = Repository.objects.create(
-#             owner=self.owner,
-#             name='Testing',
-#             slug='test',
-#             language=languages.LANGUAGE_EN)
-#
-#     def request(self, repository, data={}, token=None):
-#         authorization_header = {
-#             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
-#         } if token else {}
-#         request = self.factory.post(
-#             '/api/repository/{}/{}/vote/'.format(
-#                 repository.owner.nickname,
-#                 repository.slug),
-#             data,
-#             **authorization_header)
-#         response = RepositoryViewSet.as_view(
-#             {'post': 'vote'})(request)
-#         response.render()
-#         content_data = json.loads(response.content)
-#         return (response, content_data,)
-#
-#     def test_unauthorized(self):
-#         response, content_data = self.request(self.repository)
-#         self.assertEqual(
-#             response.status_code,
-#             status.HTTP_401_UNAUTHORIZED)
-#
-#     def test_invalid_vote(self):
-#         response, content_data = self.request(
-#             self.repository,
-#             {
-#                 'vote': 2,
-#             },
-#             self.user_token)
-#         self.assertEqual(
-#             response.status_code,
-#             status.HTTP_400_BAD_REQUEST)
-#         self.assertIn(
-#             'vote',
-#             content_data.keys())
-#
-#     def test_vote_up(self):
-#         response, content_data = self.request(
-#             self.repository,
-#             {
-#                 'vote': RepositoryVote.UP_VOTE,
-#             },
-#             self.user_token)
-#         self.assertEqual(
-#             response.status_code,
-#             status.HTTP_201_CREATED)
-#         vote = RepositoryVote.objects.get(
-#             repository=self.repository,
-#             user=self.user)
-#         self.assertEqual(
-#             vote.vote,
-#             RepositoryVote.UP_VOTE)
-#         self.assertEqual(
-#             self.repository.votes_sum,
-#             1)
-#         self.assertEqual(
-#             content_data.get('votes_sum'),
-#             1)
-#
-#     def test_vote_down(self):
-#         response, content_data = self.request(
-#             self.repository,
-#             {
-#                 'vote': RepositoryVote.DOWN_VOTE,
-#             },
-#             self.user_token)
-#         self.assertEqual(
-#             response.status_code,
-#             status.HTTP_201_CREATED)
-#         vote = RepositoryVote.objects.get(
-#             repository=self.repository,
-#             user=self.user)
-#         self.assertEqual(
-#             vote.vote,
-#             RepositoryVote.DOWN_VOTE)
-#         self.assertEqual(
-#             self.repository.votes_sum,
-#             -1)
+class ListRepositoryVoteTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.owner, self.owner_token = create_user_and_token('owner')
+        self.user, self.token = create_user_and_token()
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name='Testing',
+            slug='test',
+            language=languages.LANGUAGE_EN
+        )
+
+        self.repository_votes = RepositoryVote.objects.create(
+            user=self.owner,
+            repository=self.repository
+        )
+
+    def request(self, token):
+        authorization_header = {
+            'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
+        }
+        request = self.factory.get(
+            '/api/v2/repository-votes/?repository={}'.format(
+                self.repository.uuid
+            ), **authorization_header
+        )
+        response = RepositoryVotesViewSet.as_view({'get': 'list'})(
+            request,
+            repository=self.repository.uuid
+        )
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data,)
+
+    def test_okay(self):
+        response, content_data = self.request(self.owner_token)
+
+        self.assertEqual(content_data['count'], 1)
+        self.assertEqual(len(content_data['results']), 1)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK)
