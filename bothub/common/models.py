@@ -4,7 +4,6 @@ import requests
 
 from functools import reduce
 from django.db import models
-from django.utils.datetime_safe import datetime
 from django.utils.translation import gettext as _
 from django.utils import timezone
 from django.conf import settings
@@ -59,11 +58,6 @@ class RepositoryQuerySet(models.QuerySet):
         return self.filter(is_private=False)
 
     def order_by_relevance(self):
-        # return self \
-        #     .annotate(votes_summ=models.Sum('votes__vote')) \
-        #     .annotate(examples_sum=models.Sum('updates__added')) \
-        #     .order_by('-votes_summ', '-examples_sum', '-created_at')
-
         return self \
             .annotate(examples_sum=models.Sum('updates__added')) \
             .order_by('-examples_sum', '-created_at')
@@ -1151,7 +1145,7 @@ class RepositoryVote(models.Model):
         related_name='votes')
     created = models.DateTimeField(
         editable=False,
-        default=datetime.now
+        auto_now_add=True
     )
 
 

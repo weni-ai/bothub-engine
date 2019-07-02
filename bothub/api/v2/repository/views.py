@@ -1,15 +1,16 @@
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from rest_framework import mixins, status
-from rest_framework.permissions import IsAuthenticatedOrReadOnly, \
-    IsAuthenticated
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter
 
 from bothub.common.models import Repository, RepositoryVote
 
 from ..metadata import Metadata
-from .serializers import RepositorySerializer, RepositoryVotesSerializer
+from .serializers import RepositorySerializer
+from .serializers import RepositoryVotesSerializer
 from .serializers import ShortRepositorySerializer
 from .permissions import RepositoryPermission
 from .filters import RepositoriesFilter

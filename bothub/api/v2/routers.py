@@ -1,6 +1,7 @@
 from rest_framework import routers
 
-from .repository.views import RepositoryViewSet, RepositoryVotesViewSet
+from .repository.views import RepositoryViewSet
+from .repository.views import RepositoryVotesViewSet
 from .repository.views import RepositoriesViewSet
 from .examples.views import ExamplesViewSet
 from .evaluate.views import EvaluateViewSet

@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
-from bothub.common.models import Repository, RepositoryVote
+from bothub.common.models import Repository
+from bothub.common.models import RepositoryVote
 from bothub.common.models import RepositoryCategory
 from bothub.common.models import RepositoryEntityLabel
 from bothub.common.models import RepositoryAuthorization
@@ -296,7 +297,7 @@ class RepositoryVotesSerializer(serializers.ModelSerializer):
         ]
 
     def create(self, validated_data):
-        user = self.context.get("request").user
+        user = self.context.get('request').user
         repository = validated_data.pop('repository')
         vote, created = RepositoryVote.objects.get_or_create(
             repository=repository,
