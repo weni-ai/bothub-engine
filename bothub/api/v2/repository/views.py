@@ -60,6 +60,13 @@ class RepositoryVotesViewSet(
                     None
                 )
             )
+        elif self.request.query_params.get('user', None):
+            return self.queryset.filter(
+                user__nickname=self.request.query_params.get(
+                    'user',
+                    None
+                )
+            )
         else:
             return self.queryset.all()
 
