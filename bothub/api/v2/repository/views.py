@@ -48,7 +48,7 @@ class RepositoryVotesViewSet(
     lookup_fields = ['user', 'repository']
     serializer_class = RepositoryVotesSerializer
     permission_classes = [
-        IsAuthenticated
+        IsAuthenticatedOrReadOnly
     ]
     metadata_class = Metadata
 
