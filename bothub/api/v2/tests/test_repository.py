@@ -12,12 +12,12 @@ from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryTranslatedExample
 from bothub.common import languages
 
-from ..tests.utils import create_user_and_token
+from bothub.api.v2.tests.utils import create_user_and_token
 
-from .views import RepositoryViewSet
-from .views import RepositoriesViewSet
-from .views import RepositoryVotesViewSet
-from .serializers import RepositorySerializer
+from bothub.api.v2.repository.views import RepositoryViewSet
+from bothub.api.v2.repository.views import RepositoriesViewSet
+from bothub.api.v2.repository.views import RepositoryVotesViewSet
+from bothub.api.v2.repository.serializers import RepositorySerializer
 
 
 def get_valid_mockups(categories):
@@ -692,8 +692,7 @@ class NewRepositoryVoteTestCase(TestCase):
             {
                 'repository': str(self.repository.uuid)
             }, self.owner_token.key)
-
-        self.assertEqual(content_data['user'], 1)
+        self.assertEqual(content_data['user'], self.owner.id)
         self.assertEqual(
             content_data['repository'],
             str(self.repository.uuid)
