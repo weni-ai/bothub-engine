@@ -274,11 +274,6 @@ class Repository(models.Model):
                     self.current_updates)))
 
     @property
-    def votes_sum(self):
-        return self.votes.aggregate(
-            votes_sum=models.Sum('vote')).get('votes_sum')
-
-    @property
     def intents(self):
         return list(set(self.examples(
             exclude_deleted=True).exclude(
