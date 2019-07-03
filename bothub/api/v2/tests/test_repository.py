@@ -622,13 +622,14 @@ class ListRepositoryVoteTestCase(TestCase):
             repository=self.repository
         )
 
-    def request(self, token):
+    def request(self, param, value, token):
         authorization_header = {
             'HTTP_AUTHORIZATION': 'Token {}'.format(token),
         }
         request = self.factory.get(
-            '/api/v2/repository-votes/?repository={}'.format(
-                self.repository.uuid
+            '/api/v2/repository-votes/?{}={}'.format(
+                param,
+                value
             ), **authorization_header
         )
         response = RepositoryVotesViewSet.as_view({'get': 'list'})(
@@ -639,8 +640,12 @@ class ListRepositoryVoteTestCase(TestCase):
         content_data = json.loads(response.content)
         return (response, content_data,)
 
-    def test_okay(self):
-        response, content_data = self.request(self.owner_token.key)
+    def test_repository_okay(self):
+        response, content_data = self.request(
+            'repository',
+            self.repository.uuid,
+            self.owner_token.key
+        )
 
         self.assertEqual(content_data['count'], 1)
         self.assertEqual(len(content_data['results']), 1)
@@ -648,8 +653,35 @@ class ListRepositoryVoteTestCase(TestCase):
             response.status_code,
             status.HTTP_200_OK)
 
-    def test_private_okay(self):
-        response, content_data = self.request('')
+    def test_private_repository_okay(self):
+        response, content_data = self.request(
+            'repository',
+            self.repository.uuid,
+            ''
+        )
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_401_UNAUTHORIZED)
+
+    def test_user_okay(self):
+        response, content_data = self.request(
+            'user',
+            self.owner.nickname,
+            self.owner_token.key
+        )
+
+        self.assertEqual(content_data['count'], 1)
+        self.assertEqual(len(content_data['results']), 1)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK)
+
+    def test_private_user_okay(self):
+        response, content_data = self.request(
+            'user',
+            self.owner.nickname,
+            ''
+        )
         self.assertEqual(
             response.status_code,
             status.HTTP_401_UNAUTHORIZED)
