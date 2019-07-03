@@ -603,7 +603,6 @@ class RepositoriesLanguageFilterTestCase(TestCase):
         )
 
 
-
 class ListRepositoryVoteTestCase(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
@@ -625,7 +624,7 @@ class ListRepositoryVoteTestCase(TestCase):
 
     def request(self, token):
         authorization_header = {
-            'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
+            'HTTP_AUTHORIZATION': 'Token {}'.format(token),
         }
         request = self.factory.get(
             '/api/v2/repository-votes/?repository={}'.format(
@@ -641,10 +640,126 @@ class ListRepositoryVoteTestCase(TestCase):
         return (response, content_data,)
 
     def test_okay(self):
-        response, content_data = self.request(self.owner_token)
+        response, content_data = self.request(self.owner_token.key)
 
         self.assertEqual(content_data['count'], 1)
         self.assertEqual(len(content_data['results']), 1)
         self.assertEqual(
             response.status_code,
             status.HTTP_200_OK)
+
+    def test_private_okay(self):
+        response, content_data = self.request('')
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_401_UNAUTHORIZED)
+
+
+class NewRepositoryVoteTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.owner, self.owner_token = create_user_and_token('owner')
+        self.user, self.token = create_user_and_token()
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name='Testing',
+            slug='test',
+            language=languages.LANGUAGE_EN
+        )
+
+    def request(self, data, token):
+        authorization_header = {
+            'HTTP_AUTHORIZATION': 'Token {}'.format(token),
+        }
+        request = self.factory.post(
+            '/api/v2/repository-votes/',
+            json.dumps(data),
+            content_type='application/json',
+            **authorization_header
+        )
+        response = RepositoryVotesViewSet.as_view({'post': 'create'})(
+            request,
+            repository=self.repository.uuid
+        )
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data,)
+
+    def test_okay(self):
+        response, content_data = self.request(
+            {
+                'repository': str(self.repository.uuid)
+            }, self.owner_token.key)
+
+        self.assertEqual(content_data['user'], 1)
+        self.assertEqual(
+            content_data['repository'],
+            str(self.repository.uuid)
+        )
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_201_CREATED
+        )
+
+    def test_private_okay(self):
+        response, content_data = self.request(
+            {
+                'repository': str(self.repository.uuid)
+            }, '')
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_401_UNAUTHORIZED
+        )
+
+
+class DestroyRepositoryVoteTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.owner, self.owner_token = create_user_and_token('owner')
+        self.user, self.token = create_user_and_token()
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name='Testing',
+            slug='test',
+            language=languages.LANGUAGE_EN
+        )
+
+        self.repository_votes = RepositoryVote.objects.create(
+            user=self.owner,
+            repository=self.repository
+        )
+
+    def request(self, token):
+        authorization_header = {
+            'HTTP_AUTHORIZATION': 'Token {}'.format(token),
+        }
+        request = self.factory.delete(
+            '/api/v2/repository-votes/{}/'.format(str(self.repository.uuid)),
+            **authorization_header
+        )
+        response = RepositoryVotesViewSet.as_view({'delete': 'destroy'})(
+            request,
+            repository=self.repository.uuid
+        )
+        response.render()
+        return response
+
+    def test_okay(self):
+        response = self.request(self.owner_token.key)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_204_NO_CONTENT
+        )
+
+    def test_private_okay(self):
+        response = self.request('')
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_401_UNAUTHORIZED
+        )
