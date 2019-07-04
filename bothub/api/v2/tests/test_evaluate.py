@@ -1,3 +1,4 @@
+import json
 from django.test import RequestFactory
 from django.test import TestCase
 from rest_framework import status
@@ -12,7 +13,6 @@ from bothub.common.models import RepositoryEvaluateResult
 from bothub.common.models import RepositoryEvaluateResultIntent
 from bothub.common.models import RepositoryEvaluateResultEntity
 from .utils import create_user_and_token
-import json
 
 
 # TestCases
