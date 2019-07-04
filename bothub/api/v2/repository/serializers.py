@@ -306,3 +306,18 @@ class RepositoryVotesSerializer(serializers.ModelSerializer):
         return vote
 
 
+class RepositoryContributionsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RepositoryAuthorization
+        fields = [
+            'user',
+            'repository',
+            'role',
+            'created_at',
+        ]
+
+        read_only_fields = [
+            'user',
+            'role',
+            'created_at',
+        ]

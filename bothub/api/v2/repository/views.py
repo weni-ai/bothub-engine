@@ -2,14 +2,16 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from rest_framework import mixins, status
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
-from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter
 
-from bothub.common.models import Repository, RepositoryVote
+from bothub.common.models import Repository
+from bothub.common.models import RepositoryVote
+from bothub.common.models import RepositoryAuthorization
 
 from ..metadata import Metadata
 from .serializers import RepositorySerializer
+from .serializers import RepositoryContributionsSerializer
 from .serializers import RepositoryVotesSerializer
 from .serializers import ShortRepositorySerializer
 from .permissions import RepositoryPermission
@@ -100,3 +102,28 @@ class RepositoriesViewSet(
         '^name',
         '=name',
     ]
+
+
+class RepositoriesContributionsViewSet(
+        mixins.ListModelMixin,
+        GenericViewSet):
+    """
+    List Repositories Contributions by user, ?nickname=nickname.
+    """
+    serializer_class = RepositoryContributionsSerializer
+    queryset = RepositoryAuthorization.objects.all()
+    permission_classes = [
+        IsAuthenticatedOrReadOnly
+    ]
+    lookup_field = 'nickname'
+
+    def get_queryset(self):
+        if self.request.query_params.get('nickname', None):
+            return self.queryset.filter(
+                user__nickname=self.request.query_params.get(
+                    'nickname',
+                    None
+                )
+            )
+        else:
+            return self.queryset.none()
