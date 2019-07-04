@@ -1,7 +1,7 @@
 from rest_framework.viewsets import GenericViewSet
 from rest_framework import mixins
-from rest_framework.permissions import \
-    IsAuthenticatedOrReadOnly, IsAuthenticated
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.filters import SearchFilter
 from rest_framework.filters import OrderingFilter
 
@@ -67,7 +67,7 @@ class ResultsListViewSet(
         GenericViewSet):
 
     queryset = RepositoryEvaluateResult.objects
-    lookup_fields = ('repository_uuid',)
+    lookup_fields = ['repository_uuid']
     serializer_class = RepositoryEvaluateResultVersionsSerializer
     permission_classes = [
         IsAuthenticated,

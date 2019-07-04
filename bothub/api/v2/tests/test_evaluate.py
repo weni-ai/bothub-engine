@@ -1,16 +1,18 @@
-import json
-
 from django.test import RequestFactory
 from django.test import TestCase
 from rest_framework import status
-
 from bothub.api.v2.evaluate.views import EvaluateViewSet, ResultsListViewSet
 from bothub.common import languages
-from bothub.common.models import RepositoryExample, RepositoryUpdate, \
-    Repository, RepositoryEvaluate, RepositoryEvaluateResultScore, \
-    RepositoryEvaluateResult, RepositoryEvaluateResultIntent, \
-    RepositoryEvaluateResultEntity
+from bothub.common.models import RepositoryExample
+from bothub.common.models import RepositoryUpdate
+from bothub.common.models import Repository
+from bothub.common.models import RepositoryEvaluate
+from bothub.common.models import RepositoryEvaluateResultScore
+from bothub.common.models import RepositoryEvaluateResult
+from bothub.common.models import RepositoryEvaluateResultIntent
+from bothub.common.models import RepositoryEvaluateResultEntity
 from .utils import create_user_and_token
+import json
 
 
 # TestCases
