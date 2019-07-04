@@ -5,7 +5,9 @@ from django.test import RequestFactory
 from django.test.client import MULTIPART_CONTENT
 from rest_framework import status
 
-from bothub.common.models import RepositoryCategory, RepositoryVote
+from bothub.common.models import RepositoryCategory
+from bothub.common.models import RepositoryVote
+from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import Repository
 from bothub.common.models import RequestRepositoryAuthorization
 from bothub.common.models import RepositoryExample
@@ -15,6 +17,7 @@ from bothub.common import languages
 from bothub.api.v2.tests.utils import create_user_and_token
 
 from bothub.api.v2.repository.views import RepositoryViewSet
+from bothub.api.v2.repository.views import RepositoriesContributionsViewSet
 from bothub.api.v2.repository.views import RepositoriesViewSet
 from bothub.api.v2.repository.views import RepositoryVotesViewSet
 from bothub.api.v2.repository.serializers import RepositorySerializer
@@ -794,3 +797,63 @@ class DestroyRepositoryVoteTestCase(TestCase):
             response.status_code,
             status.HTTP_401_UNAUTHORIZED
         )
+
+
+class ListRepositoryContributionsTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.owner, self.owner_token = create_user_and_token('owner')
+        self.user, self.token = create_user_and_token()
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name='Testing',
+            slug='test',
+            language=languages.LANGUAGE_EN
+        )
+
+        text = 'I can contribute'
+        self.repository_request_auth = \
+            RequestRepositoryAuthorization.objects.create(
+                user=self.user,
+                repository=self.repository,
+                approved_by=self.owner,
+                text=text
+            )
+
+        self.repository_auth = RepositoryAuthorization.objects.create(
+            user=self.user,
+            repository=self.repository,
+            role=0
+        )
+
+    def request(self):
+        request = self.factory.get(
+            '/api/v2/repositories-contributions/?nickname={}'.format(
+                self.user.nickname
+            )
+        )
+        response = RepositoriesContributionsViewSet.as_view({'get': 'list'})(
+            request,
+            nickname=self.user.nickname
+        )
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data,)
+
+    def test_okay(self):
+        response, content_data = self.request()
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK
+        )
+        self.assertEqual(
+            content_data['count'],
+            1
+        )
+        self.assertEqual(
+            len(content_data['results']),
+            1
+        )
+
