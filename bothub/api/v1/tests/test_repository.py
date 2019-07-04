@@ -763,4 +763,3 @@ class LanguagesStatusTestCase(TestCase):
             language_status = languages_status.get(language)
             for entity in language_status.get('examples').get('entities'):
                 self.failIfEqual(entity, None)
-

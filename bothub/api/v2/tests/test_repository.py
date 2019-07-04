@@ -856,4 +856,3 @@ class ListRepositoryContributionsTestCase(TestCase):
             len(content_data['results']),
             1
         )
-
