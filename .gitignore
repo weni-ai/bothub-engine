@@ -116,3 +116,6 @@ staticfiles/
 
 # OS
 .DS_Store
+
+#Pycharm
+.idea/
