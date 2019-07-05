@@ -499,6 +499,78 @@ class RepositoryExampleDestroyTestCase(TestCase):
             status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+class RepositoryExampleUpdateTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.owner, self.owner_token = create_user_and_token('owner')
+        self.user, self.user_token = create_user_and_token()
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name='Testing',
+            slug='test',
+            language=languages.LANGUAGE_EN)
+        self.example = RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(),
+            text='hi')
+
+        self.private_repository = Repository.objects.create(
+            owner=self.owner,
+            name='Testing Private',
+            slug='private',
+            language=languages.LANGUAGE_EN,
+            is_private=True)
+        self.private_example = RepositoryExample.objects.create(
+            repository_update=self.private_repository.current_update(),
+            text='hi')
+
+    def request(self, example, token, data):
+        authorization_header = {
+            'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
+        }
+        request = self.factory.patch(
+            '/api/example/{}/'.format(example.id),
+            json.dumps(data),
+            content_type='application/json',
+            **authorization_header)
+        response = RepositoryExampleViewSet.as_view(
+            {'patch': 'update'})(request, pk=example.id)
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data,)
+
+    def test_okay(self):
+        text = 'teste'
+        intent = 'teste1234'
+
+        response, content_data = self.request(
+            self.example,
+            self.owner_token,
+            {"text": text, "intent": intent}
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK)
+        self.assertEqual(
+            content_data.get('text'),
+            text)
+        self.assertEqual(
+            content_data.get('intent'),
+            intent)
+
+    def test_private_forbidden(self):
+        response, content_data = self.request(
+            self.private_example,
+            self.user_token,
+            {"text": 'teste', "intent": 'teste1234'})
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_403_FORBIDDEN)
+
+
 class RepositoryEntitiesTestCase(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
