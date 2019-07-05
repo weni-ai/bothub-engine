@@ -11,13 +11,12 @@ from bothub.common.models import RepositoryCategory
 from bothub.common.models import Repository
 from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryExampleEntity
-from bothub.common.models import RepositoryVote
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RequestRepositoryAuthorization
 
 from ..views import NewRepositoryViewSet
 from ..views import RepositoryViewSet
-from ..views import MyRepositoriesViewSet
+from ..views import SearchRepositoriesViewSet
 from ..views import RepositoriesViewSet
 
 from .utils import create_user_and_token
@@ -447,7 +446,7 @@ class DestroyRepositoryTestCase(TestCase):
             status.HTTP_403_FORBIDDEN)
 
 
-class MyRepositoriesTestCase(TestCase):
+class SearchRepositoriesTestCase(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
 
@@ -464,20 +463,19 @@ class MyRepositoriesTestCase(TestCase):
             language=languages.LANGUAGE_EN)
         self.repository.categories.add(self.category)
 
-    def request(self, token):
-        authorization_header = {
-            'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
-        }
+    def request(self, nickname):
         request = self.factory.get(
-            '/api/my-repositories/',
-            **authorization_header)
-        response = MyRepositoriesViewSet.as_view({'get': 'list'})(request)
+            '/api/search-repositories/?nickname={}'.format(nickname)
+        )
+        response = SearchRepositoriesViewSet.as_view(
+            {'get': 'list'}
+        )(request, nickname=nickname)
         response.render()
         content_data = json.loads(response.content)
         return (response, content_data,)
 
     def test_okay(self):
-        response, content_data = self.request(self.owner_token)
+        response, content_data = self.request('owner')
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
             content_data.get('count'),
@@ -486,8 +484,15 @@ class MyRepositoriesTestCase(TestCase):
             uuid.UUID(content_data.get('results')[0].get('uuid')),
             self.repository.uuid)
 
-    def test_empty_okay(self):
-        response, content_data = self.request(self.user_token)
+    def test_empty_with_user_okay(self):
+        response, content_data = self.request('fake')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            content_data.get('count'),
+            0)
+
+    def test_empty_without_user_okay(self):
+        response, content_data = self.request('')
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
             content_data.get('count'),
@@ -758,96 +763,3 @@ class LanguagesStatusTestCase(TestCase):
             language_status = languages_status.get(language)
             for entity in language_status.get('examples').get('entities'):
                 self.failIfEqual(entity, None)
-
-
-class RepositoryVoteTestCase(TestCase):
-    def setUp(self):
-        self.factory = RequestFactory()
-
-        self.owner, self.owner_token = create_user_and_token('owner')
-        self.user, self.user_token = create_user_and_token()
-
-        self.repository = Repository.objects.create(
-            owner=self.owner,
-            name='Testing',
-            slug='test',
-            language=languages.LANGUAGE_EN)
-
-    def request(self, repository, data={}, token=None):
-        authorization_header = {
-            'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
-        } if token else {}
-        request = self.factory.post(
-            '/api/repository/{}/{}/vote/'.format(
-                repository.owner.nickname,
-                repository.slug),
-            data,
-            **authorization_header)
-        response = RepositoryViewSet.as_view(
-            {'post': 'vote'})(request)
-        response.render()
-        content_data = json.loads(response.content)
-        return (response, content_data,)
-
-    def test_unauthorized(self):
-        response, content_data = self.request(self.repository)
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_401_UNAUTHORIZED)
-
-    def test_invalid_vote(self):
-        response, content_data = self.request(
-            self.repository,
-            {
-                'vote': 2,
-            },
-            self.user_token)
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_400_BAD_REQUEST)
-        self.assertIn(
-            'vote',
-            content_data.keys())
-
-    def test_vote_up(self):
-        response, content_data = self.request(
-            self.repository,
-            {
-                'vote': RepositoryVote.UP_VOTE,
-            },
-            self.user_token)
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_201_CREATED)
-        vote = RepositoryVote.objects.get(
-            repository=self.repository,
-            user=self.user)
-        self.assertEqual(
-            vote.vote,
-            RepositoryVote.UP_VOTE)
-        self.assertEqual(
-            self.repository.votes_sum,
-            1)
-        self.assertEqual(
-            content_data.get('votes_sum'),
-            1)
-
-    def test_vote_down(self):
-        response, content_data = self.request(
-            self.repository,
-            {
-                'vote': RepositoryVote.DOWN_VOTE,
-            },
-            self.user_token)
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_201_CREATED)
-        vote = RepositoryVote.objects.get(
-            repository=self.repository,
-            user=self.user)
-        self.assertEqual(
-            vote.vote,
-            RepositoryVote.DOWN_VOTE)
-        self.assertEqual(
-            self.repository.votes_sum,
-            -1)

@@ -5,7 +5,6 @@ from django.utils.translation import gettext as _
 from bothub.common.models import Repository
 from bothub.common.models import RepositoryCategory
 from bothub.common.models import RepositoryAuthorization
-from bothub.common.models import RepositoryVote
 from bothub.common.models import RequestRepositoryAuthorization
 from bothub.common.languages import LANGUAGE_CHOICES
 
@@ -85,7 +84,6 @@ class RepositorySerializer(serializers.ModelSerializer):
             'requirements_to_train',
             'languages_ready_for_train',
             'languages_warnings',
-            'votes_sum',
             'created_at',
         ]
 
@@ -188,14 +186,6 @@ class AnalyzeTextSerializer(serializers.Serializer):
 
 class EvaluateSerializer(serializers.Serializer):
     language = serializers.ChoiceField(LANGUAGE_CHOICES, required=True)
-
-
-class VoteSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = RepositoryVote
-        fields = [
-            'vote',
-        ]
 
 
 class RepositoryAuthorizationRoleSerializer(serializers.ModelSerializer):

@@ -59,9 +59,8 @@ class RepositoryQuerySet(models.QuerySet):
 
     def order_by_relevance(self):
         return self \
-            .annotate(votes_summ=models.Sum('votes__vote')) \
             .annotate(examples_sum=models.Sum('updates__added')) \
-            .order_by('-votes_summ', '-examples_sum', '-created_at')
+            .order_by('-examples_sum', '-created_at')
 
     def supported_language(self, language):
         valid_examples = RepositoryExample.objects.filter(
@@ -273,11 +272,6 @@ class Repository(models.Model):
                 map(
                     lambda u: (u.language, u.warnings,),
                     self.current_updates)))
-
-    @property
-    def votes_sum(self):
-        return self.votes.aggregate(
-            votes_sum=models.Sum('vote')).get('votes_sum')
 
     @property
     def intents(self):
@@ -1128,15 +1122,6 @@ class RepositoryAuthorization(models.Model):
 
 
 class RepositoryVote(models.Model):
-    UP_VOTE = 1
-    DOWN_VOTE = -1
-    NEUTRAL_VOTE = 0
-    VOTE_CHOICES = [
-        (UP_VOTE, _('Up'),),
-        (DOWN_VOTE, _('Down')),
-        (NEUTRAL_VOTE, _('Neutral')),
-    ]
-
     class Meta:
         verbose_name = _('repository vote')
         verbose_name_plural = _('repository votes')
@@ -1153,9 +1138,10 @@ class RepositoryVote(models.Model):
         Repository,
         models.CASCADE,
         related_name='votes')
-    vote = models.IntegerField(
-        _('vote'),
-        choices=VOTE_CHOICES)
+    created = models.DateTimeField(
+        editable=False,
+        auto_now_add=True
+    )
 
 
 class RequestRepositoryAuthorization(models.Model):

@@ -10,8 +10,8 @@ from bothub.common.models import RepositoryTranslatedExample
 from bothub.common.models import RepositoryExampleEntity
 from bothub.common import languages
 
-from ..tests.utils import create_user_and_token
-from .views import ExamplesViewSet
+from bothub.api.v2.tests.utils import create_user_and_token
+from bothub.api.v2.examples.views import ExamplesViewSet
 
 
 class ListExamplesAPITestCase(TestCase):

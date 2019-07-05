@@ -1,7 +1,7 @@
 from rest_framework.viewsets import GenericViewSet
 from rest_framework import mixins
 from rest_framework import permissions
-from rest_framework.decorators import detail_route
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.exceptions import APIException
 from rest_framework.exceptions import NotFound
@@ -24,7 +24,6 @@ from bothub.common.models import Repository
 from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryTranslatedExample
 from bothub.common.models import RepositoryCategory
-from bothub.common.models import RepositoryVote
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RequestRepositoryAuthorization
 from bothub.common.models import RepositoryEntity
@@ -48,7 +47,6 @@ from .serializers import AnalyzeTextSerializer
 from .serializers import EvaluateSerializer
 from .serializers import EditRepositorySerializer
 from .serializers import NewRepositoryTranslatedExampleSerializer
-from .serializers import VoteSerializer
 from .serializers import RepositoryAuthorizationRoleSerializer
 from .serializers import NewRequestRepositoryAuthorizationSerializer
 from .serializers import RequestRepositoryAuthorizationSerializer
@@ -404,7 +402,7 @@ class NewRepositoryViewSet(
             headers=headers)
 
 
-class MyRepositoriesViewSet(
+class SearchRepositoriesViewSet(
         mixins.ListModelMixin,
         GenericViewSet):
     """
@@ -412,10 +410,21 @@ class MyRepositoriesViewSet(
     """
     queryset = Repository.objects
     serializer_class = RepositorySerializer
-    permission_classes = [permissions.IsAuthenticated]
+    lookup_field = 'nickname'
 
     def get_queryset(self, *args, **kwargs):
-        return self.queryset.filter(owner=self.request.user)
+        try:
+            if self.request.query_params.get('nickname', None):
+                return self.queryset.filter(
+                    owner__nickname=self.request.query_params.get(
+                        'nickname',
+                        self.request.user
+                    )
+                )
+            else:
+                return self.queryset.filter(owner=self.request.user)
+        except TypeError:
+            return self.queryset.none()
 
 
 class RepositoryViewSet(
@@ -448,7 +457,8 @@ class RepositoryViewSet(
         RepositoryPermission,
     ]
 
-    @detail_route(
+    @action(
+        detail=True,
         methods=['GET'],
         url_name='repository-languages-status')
     def languagesstatus(self, request, **kwargs):
@@ -460,7 +470,8 @@ class RepositoryViewSet(
             'languages_status': repository.languages_status,
         })
 
-    @detail_route(
+    @action(
+        detail=True,
         methods=['GET'],
         url_name='repository-authorization')
     def authorization(self, request, **kwargs):
@@ -474,7 +485,8 @@ class RepositoryViewSet(
         serializer = RepositoryAuthorizationSerializer(user_authorization)
         return Response(serializer.data)
 
-    @detail_route(
+    @action(
+        detail=True,
         methods=['GET'],
         url_name='repository-train')
     def train(self, request, **kwargs):
@@ -493,7 +505,8 @@ class RepositoryViewSet(
                 code=request.status_code)
         return Response(request.json())  # pragma: no cover
 
-    @detail_route(
+    @action(
+        detail=True,
         methods=['POST'],
         url_name='repository-analyze',
         permission_classes=[])
@@ -524,7 +537,8 @@ class RepositoryViewSet(
         message = error.get('message')  # pragma: no cover
         raise APIException(detail=message)  # pragma: no cover
 
-    @detail_route(
+    @action(
+        detail=True,
         methods=['POST'],
         url_name='repository-evaluate')
     def evaluate(self, request, **kwargs):
@@ -557,32 +571,6 @@ class RepositoryViewSet(
                 {'status_code': request.status_code},
                 code=request.status_code)
         return Response(request.json())  # pragma: no cover
-
-    @detail_route(
-        methods=['POST'],
-        url_name='repository-vote',
-        permission_classes=[
-            IsAuthenticated,
-        ])
-    def vote(self, request, **kwargs):
-        user = request.user
-        repository = self.get_object()
-        instance, created = RepositoryVote.objects.get_or_create(
-            user=user,
-            repository=repository,
-            defaults={
-                'vote': RepositoryVote.NEUTRAL_VOTE,
-            })
-        serializer = VoteSerializer(
-            data=request.data,
-            instance=instance)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(
-            {
-                'votes_sum': repository.votes_sum,
-            },
-            status=status.HTTP_201_CREATED)
 
     def get_serializer_class(self):
         if self.request and self.request.method in \
