@@ -1144,6 +1144,30 @@ class RepositoryVote(models.Model):
     )
 
 
+class RepositoryMigrate(models.Model):
+    class Meta:
+        verbose_name = _('repository migrate')
+        verbose_name_plural = _('repository migrates')
+        unique_together = [
+            'user',
+            'repository',
+        ]
+
+    user = models.ForeignKey(
+        User,
+        models.CASCADE,
+        related_name='repository_migrate')
+    repository = models.ForeignKey(
+        Repository,
+        models.CASCADE,
+        related_name='migrate')
+    auth_token = models.TextField()
+    created = models.DateTimeField(
+        editable=False,
+        auto_now_add=True
+    )
+
+
 class RequestRepositoryAuthorization(models.Model):
     class Meta:
         unique_together = ['user', 'repository']

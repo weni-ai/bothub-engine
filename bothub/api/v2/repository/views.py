@@ -2,17 +2,20 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from rest_framework import mixins, status
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter
 
 from bothub.common.models import Repository
 from bothub.common.models import RepositoryVote
+from bothub.common.models import RepositoryMigrate
 from bothub.common.models import RepositoryAuthorization
 
 from ..metadata import Metadata
 from .serializers import RepositorySerializer
 from .serializers import RepositoryContributionsSerializer
 from .serializers import RepositoryVotesSerializer
+from .serializers import RepositoryMigrateSerializer
 from .serializers import ShortRepositorySerializer
 from .permissions import RepositoryPermission
 from .filters import RepositoriesFilter
@@ -82,6 +85,22 @@ class RepositoryVotesViewSet(
         ).delete()
 
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class RepositoryMigrateViewSet(
+        mixins.CreateModelMixin,
+        GenericViewSet):
+    """
+    Manager repository migrate (bot).
+    """
+    queryset = RepositoryMigrate.objects.all()
+    lookup_field = 'repository'
+    lookup_fields = ['user', 'repository']
+    serializer_class = RepositoryMigrateSerializer
+    permission_classes = [
+        IsAuthenticated
+    ]
+    metadata_class = Metadata
 
 
 class RepositoriesViewSet(

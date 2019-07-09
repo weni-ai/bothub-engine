@@ -2,11 +2,13 @@ from rest_framework import serializers
 
 from bothub.common.models import Repository
 from bothub.common.models import RepositoryVote
+from bothub.common.models import RepositoryMigrate
 from bothub.common.models import RepositoryCategory
 from bothub.common.models import RepositoryEntityLabel
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RequestRepositoryAuthorization
 from bothub.common.languages import LANGUAGE_CHOICES
+from bothub.common.tasks import migrate_repository_wit
 from ..request.serializers import RequestRepositoryAuthorizationSerializer
 
 
@@ -304,6 +306,38 @@ class RepositoryVotesSerializer(serializers.ModelSerializer):
             user=user
         )
         return vote
+
+
+class RepositoryMigrateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RepositoryMigrate
+        fields = [
+            'user',
+            'repository',
+            'auth_token',
+            'created',
+        ]
+
+        read_only_fields = [
+            'user',
+            'created_at',
+        ]
+
+    def create(self, validated_data):
+        user = self.context.get('request').user
+        repository = validated_data.pop('repository')
+        auth_token = validated_data.pop('auth_token')
+        migrate, created = RepositoryMigrate.objects.get_or_create(
+            repository=repository,
+            user=user,
+            auth_token=auth_token
+        )
+
+        migrate_repository_wit.delay(
+            auth_token=auth_token
+        )
+
+        return migrate
 
 
 class RepositoryContributionsSerializer(serializers.ModelSerializer):
