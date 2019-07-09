@@ -56,6 +56,7 @@ class RepositoryTranslatedExampleSerializer(serializers.ModelSerializer):
             'entities',
             'created_at',
         ]
+        ref_name = None
 
     original_example = serializers.PrimaryKeyRelatedField(
         queryset=RepositoryExample.objects,
@@ -100,6 +101,7 @@ class NewRepositoryTranslatedExampleSerializer(serializers.ModelSerializer):
             'has_valid_entities',
             'entities',
         ]
+        ref_name = None
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

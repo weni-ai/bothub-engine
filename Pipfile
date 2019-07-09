@@ -14,7 +14,8 @@ requests = "==2.20.1"
 coreapi = "==2.3.3"
 whitenoise = "==4.1.2"
 pytz = "==2018.7"
-django-rest-swagger = "*"
+django-rest-swagger = "==2.1.2"
+drf-yasg = "==1.16.0"
 
 [dev-packages]
 "flake8" = "*"

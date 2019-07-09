@@ -18,6 +18,7 @@ class RepositoryExampleEntitySerializer(serializers.ModelSerializer):
             'created_at',
             'value',
         ]
+        ref_name = None
 
     repository_example = serializers.PrimaryKeyRelatedField(
         queryset=RepositoryExample.objects,
@@ -53,6 +54,7 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
             'deleted_in',
             'translations',
         ]
+        ref_name = None
 
     entities = RepositoryExampleEntitySerializer(
         many=True,

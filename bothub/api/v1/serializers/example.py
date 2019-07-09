@@ -33,6 +33,7 @@ class RepositoryExampleEntitySerializer(serializers.ModelSerializer):
             'created_at',
             'value',
         ]
+        ref_name = None
 
     repository_example = serializers.PrimaryKeyRelatedField(
         queryset=RepositoryExample.objects,
@@ -62,6 +63,7 @@ class NewRepositoryExampleEntitySerializer(serializers.ModelSerializer):
             'entity',
             'label',
         ]
+        ref_name = None
 
     repository_example = serializers.PrimaryKeyRelatedField(
         queryset=RepositoryExample.objects,
@@ -107,6 +109,7 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
             'repository_update',
             'deleted_in',
         ]
+        ref_name = None
 
     entities = RepositoryExampleEntitySerializer(
         many=True,
@@ -132,6 +135,7 @@ class NewRepositoryExampleSerializer(serializers.ModelSerializer):
             'intent',
             'entities',
         ]
+        ref_name = None
 
     id = serializers.PrimaryKeyRelatedField(
         read_only=True,
@@ -186,6 +190,7 @@ class RepositoryEntitySerializer(serializers.ModelSerializer):
             'value',
             'label',
         ]
+        ref_name = None
 
     label = serializers.SerializerMethodField()
 
@@ -203,6 +208,7 @@ class RepositoryEntityLabelSerializer(serializers.ModelSerializer):
             'value',
             'entities',
         ]
+        ref_name = None
 
     repository = serializers.StringRelatedField(read_only=True)
     entities = serializers.SlugRelatedField(

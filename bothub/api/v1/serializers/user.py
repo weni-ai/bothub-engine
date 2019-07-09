@@ -19,6 +19,7 @@ class RegisterUserSerializer(serializers.ModelSerializer):
             'nickname',
             'password',
         ]
+        ref_name = None
 
     password = PasswordField(
         write_only=True,
@@ -38,6 +39,7 @@ class UserSerializer(serializers.ModelSerializer):
             'name',
             'locale',
         ]
+        ref_name = None
 
 
 class ChangePasswordSerializer(serializers.Serializer):

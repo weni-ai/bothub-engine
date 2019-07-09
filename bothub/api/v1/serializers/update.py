@@ -17,6 +17,7 @@ class RepositoryUpdateSerializer(serializers.ModelSerializer):
             'trained_at',
             'failed_at',
         ]
+        ref_name = None
 
     by__nickname = serializers.SlugRelatedField(
         source='by',

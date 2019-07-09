@@ -14,6 +14,7 @@ class NewRequestRepositoryAuthorizationSerializer(serializers.ModelSerializer):
             'repository',
             'text',
         ]
+        ref_name = None
 
     repository = serializers.PrimaryKeyRelatedField(
         queryset=Repository.objects,
@@ -41,6 +42,7 @@ class RequestRepositoryAuthorizationSerializer(serializers.ModelSerializer):
             'approved_by__nickname',
             'created_at',
         ]
+        ref_name = None
 
     user__nickname = serializers.SlugRelatedField(
         source='user',
@@ -58,6 +60,7 @@ class ReviewAuthorizationRequestSerializer(serializers.ModelSerializer):
         fields = [
             'approved_by'
         ]
+        ref_name = None
 
     approved_by = serializers.PrimaryKeyRelatedField(
         read_only=True,

@@ -710,6 +710,11 @@ class RegisterUserViewSet(
 
 
 class LoginViewSet(GenericViewSet):
+
+    """
+    Login Users
+    """
+
     queryset = User.objects
     serializer_class = LoginSerializer
 

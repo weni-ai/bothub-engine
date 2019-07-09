@@ -16,6 +16,7 @@ class RequestRepositoryAuthorizationSerializer(serializers.ModelSerializer):
             'approved_by__nickname',
             'created_at',
         ]
+        ref_name = None
 
     user__nickname = serializers.SlugRelatedField(
         source='user',
