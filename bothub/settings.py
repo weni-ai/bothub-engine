@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework.authtoken',
+    'rest_framework_swagger',
     'django_filters',
     'corsheaders',
     'bothub.authentication',
@@ -244,3 +245,30 @@ SUPPORTED_LANGUAGES = config(
 # SECURE PROXY SSL HEADER
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+
+# Swagger
+
+SWAGGER_SETTINGS = {
+    # 'LOGIN_URL': 'rest_framework:login',
+    # 'LOGOUT_URL': 'rest_framework:logout',
+    'USE_SESSION_AUTH': False,
+    'DOC_EXPANSION': 'list',
+    'APIS_SORTER': 'alpha',
+    'JSON_EDITOR': True,
+    'api_version': '0.1',
+    'SUPPORTED_SUBMIT_METHODS': [
+        'get',
+        'post',
+        'put',
+        'delete',
+    ],
+    # 'SECURITY_DEFINITIONS': {
+    #     "api_key": {
+    #         "type": "apiKey",
+    #         "name": "Authorization",
+    #         "in": "header",
+    #         "description": "JWT authorization"
+    #     },
+    # },
+}

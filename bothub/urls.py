@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from rest_framework.documentation import include_docs_urls
+from rest_framework_swagger.views import get_swagger_view
 
 from bothub.api.v1.routers import router as bothub_api_routers
 from bothub.api.v2 import urls as bothub_api_v2_urls
@@ -16,6 +17,7 @@ urlpatterns = [
     path('v2/', include(bothub_api_v2_urls)),
     path('api/v2/', include(bothub_api_v2_urls)),
     path('docs/', include_docs_urls(title='API Documentation')),
+    path('docs/swagger/', get_swagger_view(title='API Documentation')),
     path('admin/', admin.site.urls),
     path('ping/', ping, name='ping'),
     path('200/', r200, name='200'),
