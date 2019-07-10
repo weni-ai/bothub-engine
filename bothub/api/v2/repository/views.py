@@ -127,11 +127,25 @@ class RepositoriesViewSet(
     ]
 
 
+@method_decorator(
+    name='list',
+    decorator=swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                'nickname',
+                openapi.IN_QUERY,
+                description="Nickname User",
+                type=openapi.TYPE_STRING,
+                required=True
+            ),
+        ]
+    )
+)
 class RepositoriesContributionsViewSet(
         mixins.ListModelMixin,
         GenericViewSet):
     """
-    List Repositories Contributions by user, ?nickname=nickname.
+    List Repositories Contributions by user.
     """
     serializer_class = RepositoryContributionsSerializer
     queryset = RepositoryAuthorization.objects.all()
