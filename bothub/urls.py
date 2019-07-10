@@ -1,5 +1,5 @@
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, include, re_path
 from django.conf import settings
 from rest_framework.documentation import include_docs_urls
 
@@ -40,7 +40,7 @@ urlpatterns = [
         'downloadbotdata/<int:update_id>/',
         download_bot_data,
         name='download_bot_data'),
-    path(r'^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui()),
+    re_path(r'^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui()),
     path('swagger/', schema_view.with_ui('swagger')),
     path('redoc/', schema_view.with_ui('redoc'))
 ]
