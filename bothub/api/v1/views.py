@@ -486,6 +486,12 @@ class RepositoryViewSet(
             'languages_status': repository.languages_status,
         })
 
+    @method_decorator(
+        name='list',
+        decorator=swagger_auto_schema(
+            deprecated=True,
+        )
+    )
     @action(
         detail=True,
         methods=['GET'],
@@ -501,6 +507,12 @@ class RepositoryViewSet(
         serializer = RepositoryAuthorizationSerializer(user_authorization)
         return Response(serializer.data)
 
+    @method_decorator(
+        name='list',
+        decorator=swagger_auto_schema(
+            deprecated=True,
+        )
+    )
     @action(
         detail=True,
         methods=['GET'],
@@ -553,6 +565,12 @@ class RepositoryViewSet(
         message = error.get('message')  # pragma: no cover
         raise APIException(detail=message)  # pragma: no cover
 
+    @method_decorator(
+        name='create',
+        decorator=swagger_auto_schema(
+            deprecated=True,
+        )
+    )
     @action(
         detail=True,
         methods=['POST'],
@@ -628,6 +646,12 @@ class NewRepositoryExampleViewSet(
     permission_classes = [permissions.IsAuthenticated]
 
 
+@method_decorator(
+    name='retrieve',
+    decorator=swagger_auto_schema(
+        deprecated=True,
+    )
+)
 class RepositoryExampleViewSet(
         mixins.RetrieveModelMixin,
         mixins.DestroyModelMixin,
@@ -697,6 +721,12 @@ class RepositoryTranslatedExampleViewSet(
     ]
 
 
+@method_decorator(
+    name='list',
+    decorator=swagger_auto_schema(
+        deprecated=True,
+    )
+)
 class RepositoryExamplesViewSet(
         mixins.ListModelMixin,
         GenericViewSet):
@@ -878,6 +908,12 @@ class Categories(
     pagination_class = None
 
 
+@method_decorator(
+    name='list',
+    decorator=swagger_auto_schema(
+        deprecated=True,
+    )
+)
 class RepositoriesViewSet(
         mixins.ListModelMixin,
         GenericViewSet):
@@ -921,6 +957,48 @@ class RepositoryAuthorizationViewSet(
     ]
 
 
+@method_decorator(
+    name='update',
+    decorator=swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                'repository__uuid',
+                openapi.IN_PATH,
+                description="Repository UUID",
+                type=openapi.TYPE_STRING,
+                required=True
+            ),
+            openapi.Parameter(
+                'user__nickname',
+                openapi.IN_QUERY,
+                description="Nickname User",
+                type=openapi.TYPE_STRING,
+                required=True
+            ),
+        ]
+    )
+)
+@method_decorator(
+    name='partial_update',
+    decorator=swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                'repository__uuid',
+                openapi.IN_PATH,
+                description="Repository UUID",
+                type=openapi.TYPE_STRING,
+                required=True
+            ),
+            openapi.Parameter(
+                'user__nickname',
+                openapi.IN_QUERY,
+                description="Nickname User",
+                type=openapi.TYPE_STRING,
+                required=True
+            ),
+        ]
+    )
+)
 class RepositoryAuthorizationRoleViewSet(
         MultipleFieldLookupMixin,
         mixins.UpdateModelMixin,
@@ -1022,6 +1100,12 @@ class ReviewAuthorizationRequestViewSet(
             raise ValidationError(e.message)
 
 
+@method_decorator(
+    name='list',
+    decorator=swagger_auto_schema(
+        deprecated=True,
+    )
+)
 class RepositoryEntitiesViewSet(
         mixins.ListModelMixin,
         GenericViewSet):
