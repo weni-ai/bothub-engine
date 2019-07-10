@@ -1,3 +1,6 @@
+from django.utils.decorators import method_decorator
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework.viewsets import GenericViewSet
 from rest_framework import mixins
 from rest_framework import permissions
@@ -402,6 +405,19 @@ class NewRepositoryViewSet(
             headers=headers)
 
 
+@method_decorator(
+    name='list',
+    decorator=swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                'nickname',
+                openapi.IN_QUERY,
+                description="Nickname User to find repositories",
+                type=openapi.TYPE_STRING
+            ),
+        ]
+    )
+)
 class SearchRepositoriesViewSet(
         mixins.ListModelMixin,
         GenericViewSet):

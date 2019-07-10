@@ -1,3 +1,6 @@
+from django.utils.decorators import method_decorator
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework.viewsets import GenericViewSet
 from rest_framework import mixins
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
@@ -23,6 +26,96 @@ from .permissions import RepositoryEvaluatePermission
 from .permissions import RepositoryEvaluateResultPermission
 
 
+@method_decorator(
+    name='list',
+    decorator=swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                'repository_uuid',
+                openapi.IN_QUERY,
+                description="Repository UUID, calling "
+                            "the parameter through url",
+                type=openapi.TYPE_STRING,
+                required=True
+            ),
+        ]
+    )
+)
+@method_decorator(
+    name='create',
+    decorator=swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                'repository_uuid',
+                openapi.IN_QUERY,
+                description="Repository UUID, calling "
+                            "the parameter through url",
+                type=openapi.TYPE_STRING,
+                required=True
+            ),
+        ]
+    )
+)
+@method_decorator(
+    name='retrieve',
+    decorator=swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                'repository_uuid',
+                openapi.IN_QUERY,
+                description="Repository UUID, calling "
+                            "the parameter through url",
+                type=openapi.TYPE_STRING,
+                required=True
+            ),
+        ]
+    )
+)
+@method_decorator(
+    name='update',
+    decorator=swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                'repository_uuid',
+                openapi.IN_QUERY,
+                description="Repository UUID, calling "
+                            "the parameter through url",
+                type=openapi.TYPE_STRING,
+                required=True
+            ),
+        ]
+    )
+)
+@method_decorator(
+    name='partial_update',
+    decorator=swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                'repository_uuid',
+                openapi.IN_QUERY,
+                description="Repository UUID, calling "
+                            "the parameter through url",
+                type=openapi.TYPE_STRING,
+                required=True
+            ),
+        ]
+    )
+)
+@method_decorator(
+    name='destroy',
+    decorator=swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                'repository_uuid',
+                openapi.IN_QUERY,
+                description="Repository UUID, calling "
+                            "the parameter through url",
+                type=openapi.TYPE_STRING,
+                required=True
+            ),
+        ]
+    )
+)
 class EvaluateViewSet(
         mixins.ListModelMixin,
         mixins.CreateModelMixin,
@@ -41,6 +134,7 @@ class EvaluateViewSet(
         RepositoryEvaluatePermission,
     ]
     metadata_class = Metadata
+
 
     def list(self, request, *args, **kwargs):
         self.filter_class = EvaluatesFilter

@@ -1,3 +1,6 @@
+from django.utils.decorators import method_decorator
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from rest_framework import mixins, status
@@ -37,6 +40,26 @@ class RepositoryViewSet(
     metadata_class = Metadata
 
 
+@method_decorator(
+    name='list',
+    decorator=swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                'user',
+                openapi.IN_QUERY,
+                description="Nickname User to find repositories votes",
+                type=openapi.TYPE_STRING
+            ),
+            openapi.Parameter(
+                'repository',
+                openapi.IN_QUERY,
+                description="Repository UUID, returns a list of "
+                            "users who voted for this repository",
+                type=openapi.TYPE_STRING
+            ),
+        ]
+    )
+)
 class RepositoryVotesViewSet(
         mixins.CreateModelMixin,
         mixins.DestroyModelMixin,
