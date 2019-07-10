@@ -135,7 +135,6 @@ class EvaluateViewSet(
     ]
     metadata_class = Metadata
 
-
     def list(self, request, *args, **kwargs):
         self.filter_class = EvaluatesFilter
         self.filter_backends = [
