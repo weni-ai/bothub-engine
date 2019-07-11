@@ -16,6 +16,7 @@ from ..fields import LabelValueField
 from ..validators import CanContributeInRepositoryExampleValidator
 from ..validators import CanContributeInRepositoryValidator
 from ..validators import ExampleWithIntentOrEntityValidator
+from ..validators import IntentAndSentenceNotExistsValidator
 from ..validators import EntityNotEqualLabelValidator
 from .translate import RepositoryTranslatedExampleSerializer
 
@@ -158,23 +159,11 @@ class NewRepositoryExampleSerializer(serializers.ModelSerializer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.validators.append(ExampleWithIntentOrEntityValidator())
+        self.validators.append(IntentAndSentenceNotExistsValidator())
 
     def create(self, validated_data):
         entities_data = validated_data.pop('entities')
         repository = validated_data.pop('repository')
-        sentence = validated_data.get('text')
-        intent = validated_data.get('intent')
-
-        check_exist = self.Meta.model.objects.filter(
-            text=sentence,
-            intent=intent,
-            repository_update__repository=repository
-        )
-
-        if check_exist:
-            raise serializers.ValidationError(
-                {"detail": "Intention and Sentence already exists"}
-            )
 
         try:
             language = validated_data.pop('language')
