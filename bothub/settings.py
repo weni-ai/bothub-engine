@@ -251,7 +251,7 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 SWAGGER_SETTINGS = {
     'USE_SESSION_AUTH': False,
-    'DOC_EXPANSION': 'none',
+    'DOC_EXPANSION': 'list',
     'APIS_SORTER': 'alpha',
     'SECURITY_DEFINITIONS': {
         "api_key": {

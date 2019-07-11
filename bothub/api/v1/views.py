@@ -1063,6 +1063,9 @@ class SearchUserViewSet(
 class RequestAuthorizationViewSet(
         mixins.CreateModelMixin,
         GenericViewSet):
+    """
+    Request authorization in the repository
+    """
     serializer_class = NewRequestRepositoryAuthorizationSerializer
     queryset = RequestRepositoryAuthorization.objects
     permission_classes = [
@@ -1073,6 +1076,9 @@ class RequestAuthorizationViewSet(
 class RepositoryAuthorizationRequestsViewSet(
         mixins.ListModelMixin,
         GenericViewSet):
+    """
+    List of all authorization requests for a repository
+    """
     queryset = RequestRepositoryAuthorization.objects.exclude(
         approved_by__isnull=False)
     serializer_class = RequestRepositoryAuthorizationSerializer
@@ -1086,6 +1092,10 @@ class ReviewAuthorizationRequestViewSet(
         mixins.UpdateModelMixin,
         mixins.DestroyModelMixin,
         GenericViewSet):
+    """
+    Authorizes or Removes the user who requested
+    authorization from a repository
+    """
     queryset = RequestRepositoryAuthorization.objects
     serializer_class = ReviewAuthorizationRequestSerializer
     permission_classes = [
