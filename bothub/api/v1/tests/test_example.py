@@ -170,10 +170,10 @@ class NewRepositoryExampleTestCase(TestCase):
             len(content_data.get('entities')),
             1)
 
-    def test_exists_registry(self):
+    def test_exists_example(self):
         text = 'hi'
         intent = 'greet'
-        self.request(
+        response_created, content_data_created = self.request(
             self.owner_token,
             {
                 'repository': str(self.repository.uuid),
@@ -181,6 +181,10 @@ class NewRepositoryExampleTestCase(TestCase):
                 'intent': intent,
                 'entities': [],
             })
+
+        self.assertEqual(
+            response_created.status_code,
+            status.HTTP_201_CREATED)
 
         response, content_data = self.request(
             self.owner_token,
