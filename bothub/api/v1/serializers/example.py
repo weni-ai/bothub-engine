@@ -162,6 +162,20 @@ class NewRepositoryExampleSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         entities_data = validated_data.pop('entities')
         repository = validated_data.pop('repository')
+        sentence = validated_data.get('text')
+        intent = validated_data.get('intent')
+
+        check_exist = self.Meta.model.objects.filter(
+            text=sentence,
+            intent=intent,
+            repository_update__repository=repository
+        )
+
+        if check_exist:
+            raise serializers.ValidationError(
+                {"detail": "Intention and Sentence already exists"}
+            )
+
         try:
             language = validated_data.pop('language')
         except KeyError:
