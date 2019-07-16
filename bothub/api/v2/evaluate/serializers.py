@@ -214,42 +214,40 @@ class RepositoryEvaluateResultSerializer(serializers.ModelSerializer):
             obj.evaluate_result_entity.all(), many=True).data
 
     def get_log(self, obj):
-        intent = self.context.get('request').\
-            query_params.get('intent', None)
-        min_confidence = self.context.get('request').\
-            query_params.get('min', None)
-        max_confidence = self.context.get('request').\
-            query_params.get('max', None)
+        intent = self.context.get('request'). \
+            query_params.get('intent')
+        min_confidence = self.context.get('request'). \
+            query_params.get('min')
+        max_confidence = self.context.get('request'). \
+            query_params.get('max')
 
-        def check(obj_log, intent, min_per, max_per):
-            if intent or min_per or max_per:
-                min_confidence = float(
-                    min_per if min_per is not None else 0
-                ) / 100
-                max_confidence = float(
-                    max_per if max_per is not None else 100
-                ) / 100
-                status = True
-                if not obj_log['intent'] == intent:
-                    status = False
+        def check(log, intent, min_per, max_per):
+            if not intent and not min_per and not max_per:
+                return log
 
-                if min_per and max_per:
-                    confidence = obj_log['intent_prediction']['confidence']
-                    if not min_confidence <= confidence <= max_confidence:
-                        status = False
+            confidence = round(log.get('intent_prediction').get('confidence'), 2)
 
-                if status:
-                    return obj_log
-            else:
-                return obj_log
+            has_intent = False
+
+            if log.get('intent') == intent:
+                has_intent = True
+
+            if min_per and max_per:
+                min_confidence = round(float(min_per) / 100, 2)
+                max_confidence = round(float(max_per) / 100, 2)
+
+                has_intent = True if min_confidence <= confidence <= max_confidence else False
+
+            if has_intent:
+                return log
 
         results = filter(
             None,
             list(
                 map(
-                    lambda obj_log:
+                    lambda log:
                     check(
-                        obj_log,
+                        log,
                         intent,
                         min_confidence,
                         max_confidence
