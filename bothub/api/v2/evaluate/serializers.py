@@ -214,4 +214,53 @@ class RepositoryEvaluateResultSerializer(serializers.ModelSerializer):
             obj.evaluate_result_entity.all(), many=True).data
 
     def get_log(self, obj):
-        return json.loads(obj.log)
+        intent = self.context.get('request').query_params.get('intent', None)
+        min_c = self.context.get('request').query_params.get('min', 0)
+        max_c = self.context.get('request').query_params.get('max', 100)
+        obj_log = json.loads(obj.log)
+        b_filter = None
+
+        def check(i, value):
+            if i['intent'] == value:
+                return i
+
+        def check_conf(confidence, _min, _max):
+            min_conf = float(_min) / 100
+            max_conf = float(_max) / 100
+
+            if min_conf <= confidence <= max_conf:
+                return confidence
+
+        if intent:
+            b_filter = filter(
+                None,
+                list(
+                    map(
+                        lambda x:
+                        check(
+                            x,
+                            intent
+                        ),
+                        obj_log
+                    )
+                )
+            )
+
+        if min_c or max_c:
+            b_filter = filter(
+                None,
+                list(
+                    map(
+                        lambda x:
+                        check_conf(
+                            x['intent_prediction']['confidence'],
+                            min_c,
+                            max_c
+                        ),
+                        b_filter if b_filter is not None else obj_log
+                    )
+                )
+            )
+
+            return b_filter
+        return obj_log
