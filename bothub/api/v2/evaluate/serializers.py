@@ -221,47 +221,38 @@ class RepositoryEvaluateResultSerializer(serializers.ModelSerializer):
         max_confidence = self.context.get('request').\
             query_params.get('max', None)
 
-        if intent or min_confidence or max_confidence:
-            start_filter = True
-        else:
-            start_filter = False
-
-        def check(result, value, min_per, max_per, filter_start):
-            min_confidence = float(
-                min_per if min_per is not None else 0
-            ) / 100
-            max_confidence = float(
-                max_per if max_per is not None else 100
-            ) / 100
-
-            if filter_start:
-                status = False
-                if result['intent'] == value:
-                    status = True
+        def check(obj_log, intent, min_per, max_per):
+            if intent or min_per or max_per:
+                min_confidence = float(
+                    min_per if min_per is not None else 0
+                ) / 100
+                max_confidence = float(
+                    max_per if max_per is not None else 100
+                ) / 100
+                status = True
+                if not obj_log['intent'] == intent:
+                    status = False
 
                 if min_per and max_per:
-                    confidence = result['intent_prediction']['confidence']
-                    if min_confidence <= confidence <= max_confidence:
-                        status = True
-                    else:
+                    confidence = obj_log['intent_prediction']['confidence']
+                    if not min_confidence <= confidence <= max_confidence:
                         status = False
 
                 if status:
-                    return result
+                    return obj_log
             else:
-                return result
+                return obj_log
 
         results = filter(
             None,
             list(
                 map(
-                    lambda result:
+                    lambda obj_log:
                     check(
-                        result,
+                        obj_log,
                         intent,
                         min_confidence,
-                        max_confidence,
-                        start_filter
+                        max_confidence
                     ),
                     json.loads(obj.log)
                 )
