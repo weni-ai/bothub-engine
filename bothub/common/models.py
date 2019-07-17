@@ -1159,7 +1159,7 @@ class RepositoryMigrate(models.Model):
         related_name='repository_migrate')
     repository = models.ForeignKey(
         Repository,
-        models.CASCADE,
+        models.DO_NOTHING,
         related_name='migrate')
     auth_token = models.TextField()
     created = models.DateTimeField(

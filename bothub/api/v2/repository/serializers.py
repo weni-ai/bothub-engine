@@ -332,10 +332,12 @@ class RepositoryMigrateSerializer(serializers.ModelSerializer):
             user=user,
             auth_token=auth_token
         )
-
         migrate_repository_wit.delay(
+            repository=repository.uuid,
             auth_token=auth_token
         )
+
+        migrate.delete()##Test
 
         return migrate
 
