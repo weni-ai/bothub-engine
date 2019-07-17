@@ -239,8 +239,17 @@ class RepositoryEvaluateResultSerializer(serializers.ModelSerializer):
             has_intent = False
 
             if min_confidence and max_confidence:
-                min_confidence = float(str(float(log.get('intent_prediction').get('confidence')) / 100)[:4:])
-                max_confidence = float(str(float(max_confidence) / 100)[:4:])
+                min_confidence = float(
+                    str(
+                        float(
+                            log.get('intent_prediction').get('confidence')
+                        ) / 100
+                    )[:4:]
+                )
+                max_confidence = float(
+                    str(
+                        float(max_confidence) / 100)[:4:]
+                )
 
                 has_intent = True if \
                     min_confidence <= \
