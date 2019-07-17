@@ -520,3 +520,236 @@ class ListEvaluateResultTestCase(TestCase):
         self.assertEqual(
             response.status_code,
             status.HTTP_200_OK)
+
+
+class ListEvaluateResultTestFilterCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.owner, self.owner_token = create_user_and_token('owner')
+        self.user, self.token = create_user_and_token()
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name='Testing',
+            slug='test',
+            language=languages.LANGUAGE_EN
+        )
+
+        intent_results = RepositoryEvaluateResultScore.objects.create(
+            f1_score=0.976,
+            precision=0.978,
+            accuracy=0.976,
+        )
+
+        entity_results = RepositoryEvaluateResultScore.objects.create(
+            f1_score=0.977,
+            precision=0.978,
+            accuracy=0.978,
+        )
+
+        evaluate_log = [
+            {
+                "text": "hey",
+                "intent": "greet",
+                "intent_prediction": {
+                    "name": "greet",
+                    "confidence": 0.9263743763408538
+                },
+                "status": "success"
+            },
+            {
+                "text": "howdy",
+                "intent": "greet",
+                "intent_prediction": {
+                    "name": "greet",
+                    "confidence": 0.8099720606047796
+                },
+                "status": "success"
+            },
+            {
+                "text": "hey there",
+                "intent": "greet",
+                "intent_prediction": {
+                    "name": "greet",
+                    "confidence": 0.8227075176309955
+                },
+                "status": "success"
+            },
+            {
+                "text": "test with nlu",
+                "intent": "restaurant_search",
+                "intent_prediction": {
+                    "name": "goodbye",
+                    "confidence": 0.3875259420712092
+                },
+                "status": "error"
+            }
+        ]
+
+        sample_url = 'https://s3.amazonaws.com/bothub-sample'
+        self.evaluate_result = RepositoryEvaluateResult.objects.create(
+            repository_update=self.repository.current_update(),
+            intent_results=intent_results,
+            entity_results=entity_results,
+            matrix_chart='{}/confmat.png'.format(sample_url),
+            confidence_chart='{}/hist.png'.format(sample_url),
+            log=json.dumps(evaluate_log),
+        )
+
+        intent_score_1 = RepositoryEvaluateResultScore.objects.create(
+            precision=1.0,
+            recall=1.0,
+            f1_score=1.0,
+            support=11,
+        )
+
+        intent_score_2 = RepositoryEvaluateResultScore.objects.create(
+            precision=0.89,
+            recall=1.0,
+            f1_score=0.94,
+            support=8,
+        )
+
+        intent_score_3 = RepositoryEvaluateResultScore.objects.create(
+            precision=1.0,
+            recall=1.0,
+            f1_score=1.0,
+            support=8,
+        )
+
+        intent_score_4 = RepositoryEvaluateResultScore.objects.create(
+            precision=1.0,
+            recall=0.93,
+            f1_score=0.97,
+            support=15,
+        )
+
+        RepositoryEvaluateResultIntent.objects.create(
+            evaluate_result=self.evaluate_result,
+            intent='affirm',
+            score=intent_score_1,
+        )
+
+        RepositoryEvaluateResultIntent.objects.create(
+            evaluate_result=self.evaluate_result,
+            intent='goodbye',
+            score=intent_score_2,
+        )
+
+        RepositoryEvaluateResultIntent.objects.create(
+            evaluate_result=self.evaluate_result,
+            intent='greet',
+            score=intent_score_3,
+        )
+
+        RepositoryEvaluateResultIntent.objects.create(
+            evaluate_result=self.evaluate_result,
+            intent='restaurant_search',
+            score=intent_score_4,
+        )
+
+        entity_score_1 = RepositoryEvaluateResultScore.objects.create(
+            precision=1.0,
+            recall=0.90,
+            f1_score=0.95,
+            support=10,
+        )
+
+        entity_score_2 = RepositoryEvaluateResultScore.objects.create(
+            precision=1.0,
+            recall=0.75,
+            f1_score=0.86,
+            support=8,
+        )
+
+        RepositoryEvaluateResultEntity.objects.create(
+            evaluate_result=self.evaluate_result,
+            entity='cuisine',
+            score=entity_score_1,
+        )
+
+        RepositoryEvaluateResultEntity.objects.create(
+            evaluate_result=self.evaluate_result,
+            entity='greet',
+            score=entity_score_2,
+        )
+
+    def request(self, token, params):
+        authorization_header = {
+            'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
+        }
+        request = self.factory.get(
+            '/api/v2/evaluate/results/{}/{}'.format(
+                self.evaluate_result.id,
+                params
+            ), **authorization_header
+        )
+        response = ResultsListViewSet.as_view({'get': 'retrieve'})(
+            request,
+            pk=self.evaluate_result.id,
+            repository_uuid=self.repository.uuid
+        )
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data,)
+
+    def test_okay(self):
+        response, content_data = self.request(
+            self.owner_token,
+            '?repository_uuid={}'.format(
+                self.repository.uuid
+            )
+        )
+        self.assertEqual(len(content_data['log']), 4)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK)
+
+    def test_okay_intent_filter(self):
+        response, content_data = self.request(
+            self.owner_token,
+            '?repository_uuid={}&intent=greet&min=0&max=100'.format(
+                self.repository.uuid
+            )
+        )
+        self.assertEqual(len(content_data['log']), 3)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK)
+
+    def test_okay_without_intent_filter(self):
+        response, content_data = self.request(
+            self.owner_token,
+            '?repository_uuid={}&min=0&max=100'.format(
+                self.repository.uuid
+            )
+        )
+        self.assertEqual(len(content_data['log']), 4)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK)
+
+    def test_okay_range_without_intent_filter(self):
+        response, content_data = self.request(
+            self.owner_token,
+            '?repository_uuid={}&min=50&max=80'.format(
+                self.repository.uuid
+            )
+        )
+        self.assertEqual(len(content_data['log']), 2)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK)
+
+    def test_okay_range_with_intent_filter(self):
+        response, content_data = self.request(
+            self.owner_token,
+            '?repository_uuid={}&intent=greet&min=50&max=80'.format(
+                self.repository.uuid
+            )
+        )
+        self.assertEqual(len(content_data['log']), 1)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK)
