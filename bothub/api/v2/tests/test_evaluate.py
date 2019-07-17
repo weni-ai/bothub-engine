@@ -737,7 +737,7 @@ class ListEvaluateResultTestFilterCase(TestCase):
                 self.repository.uuid
             )
         )
-        self.assertEqual(len(content_data['log']), 2)
+        self.assertEqual(len(content_data['log']), 1)
         self.assertEqual(
             response.status_code,
             status.HTTP_200_OK)

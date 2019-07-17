@@ -1,5 +1,5 @@
 import json
-import decimal
+from decimal import Decimal, ROUND_DOWN
 
 from django.utils.translation import gettext as _
 from rest_framework import serializers
@@ -226,30 +226,17 @@ class RepositoryEvaluateResultSerializer(serializers.ModelSerializer):
             if not intent and not min_confidence and not max_confidence:
                 return log
 
-            decimal.getcontext().rounding = decimal.ROUND_DOWN
-
             confidence = float(
-                round(
-                    decimal.Decimal(
-                        log.get('intent_prediction').get('confidence')
-                    ), 2
-                )
+                Decimal(
+                    log.get('intent_prediction').get('confidence')
+                ).quantize(Decimal('0.00'), rounding=ROUND_DOWN)
             )
 
             has_intent = False
 
             if min_confidence and max_confidence:
-                min_confidence = float(
-                    str(
-                        float(
-                            log.get('intent_prediction').get('confidence')
-                        ) / 100
-                    )[:4:]
-                )
-                max_confidence = float(
-                    str(
-                        float(max_confidence) / 100)[:4:]
-                )
+                min_confidence = float(min_confidence) / 100
+                max_confidence = float(max_confidence) / 100
 
                 has_intent = True if \
                     min_confidence <= \
