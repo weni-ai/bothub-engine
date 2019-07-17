@@ -154,6 +154,42 @@ class EvaluateViewSet(
         return super().list(request, *args, **kwargs)
 
 
+@method_decorator(
+    name='retrieve',
+    decorator=swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                'intent',
+                openapi.IN_QUERY,
+                description="Filter a desired intent",
+                type=openapi.TYPE_STRING,
+                required=False
+            ),
+            openapi.Parameter(
+                'min',
+                openapi.IN_QUERY,
+                description="Filter Confidence Percentage",
+                type=openapi.TYPE_INTEGER,
+                required=False
+            ),
+            openapi.Parameter(
+                'max',
+                openapi.IN_QUERY,
+                description="Filter Confidence Percentage",
+                type=openapi.TYPE_INTEGER,
+                required=False
+            ),
+            openapi.Parameter(
+                'repository_uuid',
+                openapi.IN_QUERY,
+                description="Repository UUID, calling "
+                            "the parameter through url",
+                type=openapi.TYPE_STRING,
+                required=True
+            ),
+        ]
+    )
+)
 class ResultsListViewSet(
         mixins.ListModelMixin,
         mixins.RetrieveModelMixin,
