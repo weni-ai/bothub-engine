@@ -1,4 +1,5 @@
 import json
+import decimal
 
 from django.utils.translation import gettext as _
 from rest_framework import serializers
@@ -221,22 +222,33 @@ class RepositoryEvaluateResultSerializer(serializers.ModelSerializer):
         max_confidence = self.context.get('request'). \
             query_params.get('max')
 
-        def check(log, intent, min_per, max_per):
-            if not intent and not min_per and not max_per:
+        def filter_intent(log, intent, min_confidence, max_confidence):
+            if not intent and not min_confidence and not max_confidence:
                 return log
 
-            confidence = round(log.get('intent_prediction').get('confidence'), 2)
+            decimal.getcontext().rounding = decimal.ROUND_DOWN
+
+            confidence = float(
+                round(
+                    decimal.Decimal(
+                        log.get('intent_prediction').get('confidence')
+                    ), 2
+                )
+            )
 
             has_intent = False
 
-            if log.get('intent') == intent:
-                has_intent = True
+            if min_confidence and max_confidence:
+                min_confidence = float(str(float(log.get('intent_prediction').get('confidence')) / 100)[:4:])
+                max_confidence = float(str(float(max_confidence) / 100)[:4:])
 
-            if min_per and max_per:
-                min_confidence = round(float(min_per) / 100, 2)
-                max_confidence = round(float(max_per) / 100, 2)
+                has_intent = True if \
+                    min_confidence <= \
+                    confidence <= \
+                    max_confidence else False
 
-                has_intent = True if min_confidence <= confidence <= max_confidence else False
+            if log.get('intent') != intent and intent is not None:
+                has_intent = False
 
             if has_intent:
                 return log
@@ -246,7 +258,7 @@ class RepositoryEvaluateResultSerializer(serializers.ModelSerializer):
             list(
                 map(
                     lambda log:
-                    check(
+                    filter_intent(
                         log,
                         intent,
                         min_confidence,
