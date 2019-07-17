@@ -243,7 +243,7 @@ class RepositoryEvaluateResultSerializer(serializers.ModelSerializer):
                     confidence <= \
                     max_confidence else False
 
-            if log.get('intent') != intent and intent is not None:
+            if intent and log.get('intent') != intent:
                 has_intent = False
 
             if has_intent:
