@@ -7051,12 +7051,10 @@ def migrate_repository_wit(repository, auth_token):
 
     for data in json_dump['data']:
         text = data['text']
-        print(str(text).encode('utf8', 'replace'))
 
         count = 0
         intent_position = None
         while count < len(data['entities']):
-            print(data['entities'][count]['entity'])
             if data['entities'][count]['entity'] == 'intent':
                 intent_position = count
                 break
@@ -7069,10 +7067,8 @@ def migrate_repository_wit(repository, auth_token):
         repository_ = Repository.objects.get(uuid=repository)
 
         repository_update = repository_.current_update(None)
-        print(intent_position)
-        print(data['entities'][intent_position])
         example = RepositoryExample.objects.create(
-            text=text.encode('utf-8', 'replace'),
+            text=str(text.encode('utf-8', 'replace').decode('utf-8')),
             intent=data['entities'][intent_position]['value'],
             repository_update=repository_update
 
@@ -7085,8 +7081,6 @@ def migrate_repository_wit(repository, auth_token):
                 start = entities['start']
                 end = entities['end']
 
-                print(value.lower())
-                print(entity.lower())
                 entity_serializer = NewRepositoryExampleEntitySerializer(
                     data={
                         'repository_example': example.pk,
