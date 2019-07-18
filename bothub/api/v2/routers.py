@@ -7,6 +7,7 @@ from .repository.views import RepositoriesContributionsViewSet
 from .examples.views import ExamplesViewSet
 from .evaluate.views import EvaluateViewSet
 from .evaluate.views import ResultsListViewSet
+from .account.views import LoginViewSet
 
 
 router = routers.SimpleRouter()
@@ -17,3 +18,4 @@ router.register('repositories-contributions', RepositoriesContributionsViewSet)
 router.register('examples', ExamplesViewSet)
 router.register('evaluate/results', ResultsListViewSet)
 router.register('evaluate', EvaluateViewSet)
+router.register('account/login', LoginViewSet)

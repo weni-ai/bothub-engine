@@ -5,6 +5,11 @@ from rest_framework.metadata import BaseMetadata
 from rest_framework import serializers
 from rest_framework.utils.field_mapping import ClassLookupDict
 
+from bothub.api.v2.fields import PasswordField
+from bothub.api.v2.fields import ModelMultipleChoiceField
+from bothub.api.v2.fields import TextField
+from bothub.api.v2.fields import EntityText
+
 
 class Metadata(BaseMetadata):
     label_lookup = ClassLookupDict({
@@ -30,6 +35,11 @@ class Metadata(BaseMetadata):
         serializers.DictField: 'nested object',
         serializers.Serializer: 'nested object',
         serializers.ManyRelatedField: 'multiple choice',
+        serializers.HiddenField: 'hidden',
+        PasswordField: 'password',
+        ModelMultipleChoiceField: 'multiple choice',
+        TextField: 'text',
+        EntityText: 'entity text',
     })
 
     def determine_metadata(self, request, view):
@@ -52,7 +62,7 @@ class Metadata(BaseMetadata):
 
     def determine_actions(self, request, view):
         actions = {}
-        for method in ['PUT', 'POST']:
+        for method in {'PUT', 'POST'} & set(view.allowed_methods):
             serializer = view.get_serializer()
             actions[method] = self.get_serializer_info(serializer)
             view.request = request

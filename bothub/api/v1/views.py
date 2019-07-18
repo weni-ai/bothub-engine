@@ -755,6 +755,13 @@ class RegisterUserViewSet(
     serializer_class = RegisterUserSerializer
 
 
+@method_decorator(
+    name='create',
+    decorator=swagger_auto_schema(
+        responses={201: '{"token":"TOKEN"}'},
+        deprecated=True
+    ),
+)
 class LoginViewSet(GenericViewSet):
 
     """
