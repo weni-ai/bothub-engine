@@ -1,4 +1,5 @@
 import json
+from decimal import Decimal, ROUND_DOWN
 
 from django.utils.translation import gettext as _
 from rest_framework import serializers
@@ -214,4 +215,54 @@ class RepositoryEvaluateResultSerializer(serializers.ModelSerializer):
             obj.evaluate_result_entity.all(), many=True).data
 
     def get_log(self, obj):
-        return json.loads(obj.log)
+        intent = self.context.get('request'). \
+            query_params.get('intent')
+        min_confidence = self.context.get('request'). \
+            query_params.get('min')
+        max_confidence = self.context.get('request'). \
+            query_params.get('max')
+
+        def filter_intent(log, intent, min_confidence, max_confidence):
+            if not intent and not min_confidence and not max_confidence:
+                return log
+
+            confidence = float(
+                Decimal(
+                    log.get('intent_prediction').get('confidence')
+                ).quantize(Decimal('0.00'), rounding=ROUND_DOWN)
+            )
+
+            has_intent = False
+
+            if min_confidence and max_confidence:
+                min_confidence = float(min_confidence) / 100
+                max_confidence = float(max_confidence) / 100
+
+                has_intent = True if \
+                    min_confidence <= \
+                    confidence <= \
+                    max_confidence else False
+
+            if intent and log.get('intent') != intent:
+                has_intent = False
+
+            if has_intent:
+                return log
+
+        results = filter(
+            None,
+            list(
+                map(
+                    lambda log:
+                    filter_intent(
+                        log,
+                        intent,
+                        min_confidence,
+                        max_confidence
+                    ),
+                    json.loads(obj.log)
+                )
+            )
+        )
+
+        return results
