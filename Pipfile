@@ -14,12 +14,14 @@ requests = "==2.20.1"
 coreapi = "==2.3.3"
 whitenoise = "==4.1.2"
 pytz = "==2018.7"
+drf-yasg = "*"
 
 [dev-packages]
 "flake8" = "*"
 coverage = "*"
 ipython = "*"
 autopep8 = "*"
+packaging = "*"
 
 [requires]
 python_version = "3.6"
