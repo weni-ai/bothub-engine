@@ -134,7 +134,7 @@ class RepositoriesViewSet(
             openapi.Parameter(
                 'nickname',
                 openapi.IN_QUERY,
-                description="Nickname User",
+                description='Nickname User',
                 type=openapi.TYPE_STRING,
                 required=True
             ),

@@ -21,7 +21,7 @@ schema_view = get_schema_view(
       description='Documentation',
       terms_of_service='https://www.google.com/policies/terms/',
       contact=openapi.Contact(email='bothub@ilhasoft.com.br'),
-      license=openapi.License(name="GPL-3.0"),
+      license=openapi.License(name='GPL-3.0'),
    ),
    public=True,
    permission_classes=(permissions.AllowAny,),
