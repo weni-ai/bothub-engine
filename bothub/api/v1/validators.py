@@ -3,6 +3,7 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.exceptions import ValidationError
 
 from bothub.common.models import RepositoryTranslatedExample
+from bothub.common.models import RepositoryExample
 
 
 class CanContributeInRepositoryValidator(object):
@@ -82,6 +83,20 @@ class ExampleWithIntentOrEntityValidator(object):
 
         if not intent and not entities:
             raise ValidationError(_('Define a intent or one entity'))
+
+
+class IntentAndSentenceNotExistsValidator(object):
+    def __call__(self, attrs):
+        repository = attrs.get('repository')
+        intent = attrs.get('intent')
+        sentence = attrs.get('text')
+
+        if RepositoryExample.objects.filter(
+            text=sentence,
+            intent=intent,
+            repository_update__repository=repository
+        ).count():
+            raise ValidationError(_('Intention and Sentence already exists'))
 
 
 class EntityNotEqualLabelValidator(object):

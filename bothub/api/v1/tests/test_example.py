@@ -170,6 +170,40 @@ class NewRepositoryExampleTestCase(TestCase):
             len(content_data.get('entities')),
             1)
 
+    def test_exists_example(self):
+        text = 'hi'
+        intent = 'greet'
+        response_created, content_data_created = self.request(
+            self.owner_token,
+            {
+                'repository': str(self.repository.uuid),
+                'text': text,
+                'intent': intent,
+                'entities': [],
+            })
+
+        self.assertEqual(
+            response_created.status_code,
+            status.HTTP_201_CREATED)
+
+        response, content_data = self.request(
+            self.owner_token,
+            {
+                'repository': str(self.repository.uuid),
+                'text': text,
+                'intent': intent,
+                'entities': [],
+            })
+
+        self.assertEqual(
+            content_data.get('non_field_errors')[0],
+            'Intention and Sentence already exists'
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST)
+
     def test_with_entities_with_label(self):
         response, content_data = self.request(
             self.owner_token,
