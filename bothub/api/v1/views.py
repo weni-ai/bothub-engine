@@ -412,7 +412,7 @@ class NewRepositoryViewSet(
             openapi.Parameter(
                 'nickname',
                 openapi.IN_QUERY,
-                description="Nickname User to find repositories",
+                description='Nickname User to find repositories',
                 type=openapi.TYPE_STRING
             ),
         ]
@@ -964,14 +964,14 @@ class RepositoryAuthorizationViewSet(
             openapi.Parameter(
                 'repository__uuid',
                 openapi.IN_PATH,
-                description="Repository UUID",
+                description='Repository UUID',
                 type=openapi.TYPE_STRING,
                 required=True
             ),
             openapi.Parameter(
                 'user__nickname',
                 openapi.IN_QUERY,
-                description="Nickname User",
+                description='Nickname User',
                 type=openapi.TYPE_STRING,
                 required=True
             ),
@@ -985,14 +985,14 @@ class RepositoryAuthorizationViewSet(
             openapi.Parameter(
                 'repository__uuid',
                 openapi.IN_PATH,
-                description="Repository UUID",
+                description='Repository UUID',
                 type=openapi.TYPE_STRING,
                 required=True
             ),
             openapi.Parameter(
                 'user__nickname',
                 openapi.IN_QUERY,
-                description="Nickname User",
+                description='Nickname User',
                 type=openapi.TYPE_STRING,
                 required=True
             ),

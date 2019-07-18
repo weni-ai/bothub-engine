@@ -47,14 +47,14 @@ class RepositoryViewSet(
             openapi.Parameter(
                 'user',
                 openapi.IN_QUERY,
-                description="Nickname User to find repositories votes",
+                description='Nickname User to find repositories votes',
                 type=openapi.TYPE_STRING
             ),
             openapi.Parameter(
                 'repository',
                 openapi.IN_QUERY,
-                description="Repository UUID, returns a list of "
-                            "users who voted for this repository",
+                description='Repository UUID, returns a list of '
+                            'users who voted for this repository',
                 type=openapi.TYPE_STRING
             ),
         ]

@@ -254,10 +254,10 @@ SWAGGER_SETTINGS = {
     'DOC_EXPANSION': 'list',
     'APIS_SORTER': 'alpha',
     'SECURITY_DEFINITIONS': {
-        "api_key": {
-            "type": "apiKey",
-            "name": "Authorization",
-            "in": "header"
+        'api_key': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header'
           },
     },
 }

@@ -16,11 +16,11 @@ from bothub.common.views import download_bot_data
 
 schema_view = get_schema_view(
    openapi.Info(
-      title="API Documentation",
+      title='API Documentation',
       default_version='v1.0.1',
-      description="Documentation",
-      terms_of_service="https://www.google.com/policies/terms/",
-      contact=openapi.Contact(email="bothub@ilhasoft.com.br"),
+      description='Documentation',
+      terms_of_service='https://www.google.com/policies/terms/',
+      contact=openapi.Contact(email='bothub@ilhasoft.com.br'),
       license=openapi.License(name="GPL-3.0"),
    ),
    public=True,
@@ -41,8 +41,7 @@ urlpatterns = [
         download_bot_data,
         name='download_bot_data'),
     re_path(r'^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui()),
-    path('swagger/', schema_view.with_ui('swagger')),
-    path('redoc/', schema_view.with_ui('redoc'))
+    path('swagger/', schema_view.with_ui('swagger'))
 ]
 
 if settings.DEBUG:

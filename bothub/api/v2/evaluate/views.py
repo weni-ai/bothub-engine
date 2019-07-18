@@ -33,8 +33,8 @@ from .permissions import RepositoryEvaluateResultPermission
             openapi.Parameter(
                 'repository_uuid',
                 openapi.IN_QUERY,
-                description="Repository UUID, calling "
-                            "the parameter through url",
+                description='Repository UUID, calling '
+                            'the parameter through url',
                 type=openapi.TYPE_STRING,
                 required=True
             ),
@@ -48,8 +48,8 @@ from .permissions import RepositoryEvaluateResultPermission
             openapi.Parameter(
                 'repository_uuid',
                 openapi.IN_QUERY,
-                description="Repository UUID, calling "
-                            "the parameter through url",
+                description='Repository UUID, calling '
+                            'the parameter through url',
                 type=openapi.TYPE_STRING,
                 required=True
             ),
@@ -63,8 +63,8 @@ from .permissions import RepositoryEvaluateResultPermission
             openapi.Parameter(
                 'repository_uuid',
                 openapi.IN_QUERY,
-                description="Repository UUID, calling "
-                            "the parameter through url",
+                description='Repository UUID, calling '
+                            'the parameter through url',
                 type=openapi.TYPE_STRING,
                 required=True
             ),
@@ -78,8 +78,8 @@ from .permissions import RepositoryEvaluateResultPermission
             openapi.Parameter(
                 'repository_uuid',
                 openapi.IN_QUERY,
-                description="Repository UUID, calling "
-                            "the parameter through url",
+                description='Repository UUID, calling '
+                            'the parameter through url',
                 type=openapi.TYPE_STRING,
                 required=True
             ),
@@ -93,8 +93,8 @@ from .permissions import RepositoryEvaluateResultPermission
             openapi.Parameter(
                 'repository_uuid',
                 openapi.IN_QUERY,
-                description="Repository UUID, calling "
-                            "the parameter through url",
+                description='Repository UUID, calling '
+                            'the parameter through url',
                 type=openapi.TYPE_STRING,
                 required=True
             ),
@@ -108,8 +108,8 @@ from .permissions import RepositoryEvaluateResultPermission
             openapi.Parameter(
                 'repository_uuid',
                 openapi.IN_QUERY,
-                description="Repository UUID, calling "
-                            "the parameter through url",
+                description='Repository UUID, calling '
+                            'the parameter through url',
                 type=openapi.TYPE_STRING,
                 required=True
             ),
@@ -161,29 +161,29 @@ class EvaluateViewSet(
             openapi.Parameter(
                 'intent',
                 openapi.IN_QUERY,
-                description="Filter a desired intent",
+                description='Filter a desired intent',
                 type=openapi.TYPE_STRING,
                 required=False
             ),
             openapi.Parameter(
                 'min',
                 openapi.IN_QUERY,
-                description="Filter Confidence Percentage",
+                description='Filter Confidence Percentage',
                 type=openapi.TYPE_INTEGER,
                 required=False
             ),
             openapi.Parameter(
                 'max',
                 openapi.IN_QUERY,
-                description="Filter Confidence Percentage",
+                description='Filter Confidence Percentage',
                 type=openapi.TYPE_INTEGER,
                 required=False
             ),
             openapi.Parameter(
                 'repository_uuid',
                 openapi.IN_QUERY,
-                description="Repository UUID, calling "
-                            "the parameter through url",
+                description='Repository UUID, calling '
+                            'the parameter through url',
                 type=openapi.TYPE_STRING,
                 required=True
             ),
