@@ -1148,10 +1148,6 @@ class RepositoryMigrate(models.Model):
     class Meta:
         verbose_name = _('repository migrate')
         verbose_name_plural = _('repository migrates')
-        unique_together = [
-            'user',
-            'repository',
-        ]
 
     user = models.ForeignKey(
         User,
@@ -1161,6 +1157,12 @@ class RepositoryMigrate(models.Model):
         Repository,
         models.DO_NOTHING,
         related_name='migrate')
+    language = models.CharField(
+        _('language'),
+        max_length=5,
+        validators=[
+            languages.validate_language,
+        ])
     auth_token = models.TextField()
     created = models.DateTimeField(
         editable=False,

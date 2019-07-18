@@ -315,6 +315,7 @@ class RepositoryMigrateSerializer(serializers.ModelSerializer):
             'user',
             'repository',
             'auth_token',
+            'language',
             'created',
         ]
 
@@ -327,17 +328,18 @@ class RepositoryMigrateSerializer(serializers.ModelSerializer):
         user = self.context.get('request').user
         repository = validated_data.pop('repository')
         auth_token = validated_data.pop('auth_token')
-        migrate, created = RepositoryMigrate.objects.get_or_create(
+        language = validated_data.pop('language')
+        migrate = RepositoryMigrate.objects.create(
             repository=repository,
             user=user,
-            auth_token=auth_token
+            auth_token=auth_token,
+            language=language
         )
         migrate_repository_wit.delay(
             repository=repository.uuid,
-            auth_token=auth_token
+            auth_token=auth_token,
+            language=language
         )
-
-        migrate.delete()##Test
 
         return migrate
 
