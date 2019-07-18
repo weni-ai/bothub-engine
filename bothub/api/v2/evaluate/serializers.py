@@ -28,6 +28,7 @@ class RepositoryEvaluateEntitySerializer(serializers.ModelSerializer):
             'start',
             'end',
         ]
+        ref_name = None
 
     entity = EntityValueField()
 
@@ -49,6 +50,7 @@ class RepositoryEvaluateSerializer(serializers.ModelSerializer):
             'deleted_in',
             'created_at',
         ]
+        ref_name = None
 
     entities = RepositoryEvaluateEntitySerializer(
         many=True,
@@ -113,6 +115,7 @@ class RepositoryEvaluateResultVersionsSerializer(serializers.ModelSerializer):
             'created_at',
             'version',
         ]
+        ref_name = None
 
     language = serializers.SerializerMethodField()
 
@@ -162,6 +165,7 @@ class RepositoryEvaluateResultIntentSerializer(serializers.ModelSerializer):
             'intent',
             'score',
         ]
+        ref_name = None
 
     score = RepositoryEvaluateResultScore(read_only=True)
 
@@ -174,6 +178,7 @@ class RepositoryEvaluateResultEntitySerializer(serializers.ModelSerializer):
             'entity',
             'score',
         ]
+        ref_name = None
 
     score = RepositoryEvaluateResultScore(read_only=True)
     entity = serializers.SerializerMethodField()
@@ -198,6 +203,7 @@ class RepositoryEvaluateResultSerializer(serializers.ModelSerializer):
             'intent_results',
             'entity_results',
         ]
+        ref_name = None
 
     log = serializers.SerializerMethodField()
     intents_list = serializers.SerializerMethodField()

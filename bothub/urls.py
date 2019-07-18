@@ -1,7 +1,11 @@
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, include, re_path
 from django.conf import settings
 from rest_framework.documentation import include_docs_urls
+
+from rest_framework import permissions
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
 
 from bothub.api.v1.routers import router as bothub_api_routers
 from bothub.api.v2 import urls as bothub_api_v2_urls
@@ -9,6 +13,19 @@ from bothub.health.views import ping
 from bothub.health.views import r200
 from bothub.common.views import download_bot_data
 
+
+schema_view = get_schema_view(
+   openapi.Info(
+      title='API Documentation',
+      default_version='v1.0.1',
+      description='Documentation',
+      terms_of_service='https://www.google.com/policies/terms/',
+      contact=openapi.Contact(email='bothub@ilhasoft.com.br'),
+      license=openapi.License(name='GPL-3.0'),
+   ),
+   public=True,
+   permission_classes=[permissions.AllowAny],
+)
 
 urlpatterns = [
     path('', include(bothub_api_routers.urls)),
@@ -22,7 +39,9 @@ urlpatterns = [
     path(
         'downloadbotdata/<int:update_id>/',
         download_bot_data,
-        name='download_bot_data')
+        name='download_bot_data'),
+    re_path(r'^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui()),
+    path('swagger/', schema_view.with_ui('swagger'))
 ]
 
 if settings.DEBUG:

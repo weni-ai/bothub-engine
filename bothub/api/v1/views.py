@@ -1,3 +1,6 @@
+from django.utils.decorators import method_decorator
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework.viewsets import GenericViewSet
 from rest_framework import mixins
 from rest_framework import permissions
@@ -402,6 +405,19 @@ class NewRepositoryViewSet(
             headers=headers)
 
 
+@method_decorator(
+    name='list',
+    decorator=swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                'nickname',
+                openapi.IN_QUERY,
+                description='Nickname User to find repositories',
+                type=openapi.TYPE_STRING
+            ),
+        ]
+    )
+)
 class SearchRepositoriesViewSet(
         mixins.ListModelMixin,
         GenericViewSet):
@@ -470,6 +486,12 @@ class RepositoryViewSet(
             'languages_status': repository.languages_status,
         })
 
+    @method_decorator(
+        name='list',
+        decorator=swagger_auto_schema(
+            deprecated=True,
+        )
+    )
     @action(
         detail=True,
         methods=['GET'],
@@ -485,6 +507,12 @@ class RepositoryViewSet(
         serializer = RepositoryAuthorizationSerializer(user_authorization)
         return Response(serializer.data)
 
+    @method_decorator(
+        name='list',
+        decorator=swagger_auto_schema(
+            deprecated=True,
+        )
+    )
     @action(
         detail=True,
         methods=['GET'],
@@ -537,6 +565,12 @@ class RepositoryViewSet(
         message = error.get('message')  # pragma: no cover
         raise APIException(detail=message)  # pragma: no cover
 
+    @method_decorator(
+        name='create',
+        decorator=swagger_auto_schema(
+            deprecated=True,
+        )
+    )
     @action(
         detail=True,
         methods=['POST'],
@@ -612,6 +646,12 @@ class NewRepositoryExampleViewSet(
     permission_classes = [permissions.IsAuthenticated]
 
 
+@method_decorator(
+    name='retrieve',
+    decorator=swagger_auto_schema(
+        deprecated=True,
+    )
+)
 class RepositoryExampleViewSet(
         mixins.RetrieveModelMixin,
         mixins.DestroyModelMixin,
@@ -681,6 +721,12 @@ class RepositoryTranslatedExampleViewSet(
     ]
 
 
+@method_decorator(
+    name='list',
+    decorator=swagger_auto_schema(
+        deprecated=True,
+    )
+)
 class RepositoryExamplesViewSet(
         mixins.ListModelMixin,
         GenericViewSet):
@@ -710,6 +756,11 @@ class RegisterUserViewSet(
 
 
 class LoginViewSet(GenericViewSet):
+
+    """
+    Login Users
+    """
+
     queryset = User.objects
     serializer_class = LoginSerializer
 
@@ -857,6 +908,12 @@ class Categories(
     pagination_class = None
 
 
+@method_decorator(
+    name='list',
+    decorator=swagger_auto_schema(
+        deprecated=True,
+    )
+)
 class RepositoriesViewSet(
         mixins.ListModelMixin,
         GenericViewSet):
@@ -900,6 +957,48 @@ class RepositoryAuthorizationViewSet(
     ]
 
 
+@method_decorator(
+    name='update',
+    decorator=swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                'repository__uuid',
+                openapi.IN_PATH,
+                description='Repository UUID',
+                type=openapi.TYPE_STRING,
+                required=True
+            ),
+            openapi.Parameter(
+                'user__nickname',
+                openapi.IN_QUERY,
+                description='Nickname User',
+                type=openapi.TYPE_STRING,
+                required=True
+            ),
+        ]
+    )
+)
+@method_decorator(
+    name='partial_update',
+    decorator=swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                'repository__uuid',
+                openapi.IN_PATH,
+                description='Repository UUID',
+                type=openapi.TYPE_STRING,
+                required=True
+            ),
+            openapi.Parameter(
+                'user__nickname',
+                openapi.IN_QUERY,
+                description='Nickname User',
+                type=openapi.TYPE_STRING,
+                required=True
+            ),
+        ]
+    )
+)
 class RepositoryAuthorizationRoleViewSet(
         MultipleFieldLookupMixin,
         mixins.UpdateModelMixin,
@@ -964,6 +1063,9 @@ class SearchUserViewSet(
 class RequestAuthorizationViewSet(
         mixins.CreateModelMixin,
         GenericViewSet):
+    """
+    Request authorization in the repository
+    """
     serializer_class = NewRequestRepositoryAuthorizationSerializer
     queryset = RequestRepositoryAuthorization.objects
     permission_classes = [
@@ -974,6 +1076,9 @@ class RequestAuthorizationViewSet(
 class RepositoryAuthorizationRequestsViewSet(
         mixins.ListModelMixin,
         GenericViewSet):
+    """
+    List of all authorization requests for a repository
+    """
     queryset = RequestRepositoryAuthorization.objects.exclude(
         approved_by__isnull=False)
     serializer_class = RequestRepositoryAuthorizationSerializer
@@ -987,6 +1092,10 @@ class ReviewAuthorizationRequestViewSet(
         mixins.UpdateModelMixin,
         mixins.DestroyModelMixin,
         GenericViewSet):
+    """
+    Authorizes or Removes the user who requested
+    authorization from a repository
+    """
     queryset = RequestRepositoryAuthorization.objects
     serializer_class = ReviewAuthorizationRequestSerializer
     permission_classes = [
@@ -1001,6 +1110,12 @@ class ReviewAuthorizationRequestViewSet(
             raise ValidationError(e.message)
 
 
+@method_decorator(
+    name='list',
+    decorator=swagger_auto_schema(
+        deprecated=True,
+    )
+)
 class RepositoryEntitiesViewSet(
         mixins.ListModelMixin,
         GenericViewSet):

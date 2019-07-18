@@ -32,6 +32,7 @@ class NewRepositorySerializer(serializers.ModelSerializer):
             'description',
             'is_private',
         ]
+        ref_name = None
 
     uuid = serializers.ReadOnlyField(
         style={'show': False})
@@ -86,6 +87,7 @@ class RepositorySerializer(serializers.ModelSerializer):
             'languages_warnings',
             'created_at',
         ]
+        ref_name = None
 
     owner = serializers.PrimaryKeyRelatedField(
         read_only=True,
@@ -172,6 +174,7 @@ class RepositoryAuthorizationSerializer(serializers.ModelSerializer):
             'is_admin',
             'created_at',
         ]
+        ref_name = None
 
     user__nickname = serializers.SlugRelatedField(
         source='user',
@@ -194,6 +197,7 @@ class RepositoryAuthorizationRoleSerializer(serializers.ModelSerializer):
         fields = [
             'role',
         ]
+        ref_name = None
 
     def validate(self, data):
         if self.instance.user == self.instance.repository.owner:

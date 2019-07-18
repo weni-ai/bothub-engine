@@ -11,3 +11,4 @@ class RepositoryCategorySerializer(serializers.ModelSerializer):
             'name',
             'icon',
         ]
+        ref_name = None

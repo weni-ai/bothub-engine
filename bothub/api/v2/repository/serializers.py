@@ -20,6 +20,7 @@ class RepositoryCategorySerializer(serializers.ModelSerializer):
             'name',
             'icon',
         ]
+        ref_name = None
 
 
 class RepositoryEntityLabelSerializer(serializers.ModelSerializer):
@@ -31,6 +32,7 @@ class RepositoryEntityLabelSerializer(serializers.ModelSerializer):
             'entities',
             'examples__count',
         ]
+        ref_name = None
 
     entities = serializers.SerializerMethodField()
     examples__count = serializers.SerializerMethodField()
@@ -77,6 +79,7 @@ class RepositoryAuthorizationSerializer(serializers.ModelSerializer):
             'role',
             'created_at',
         ]
+        ref_name = None
 
     user__nickname = serializers.SlugRelatedField(
         source='user',
@@ -134,6 +137,7 @@ class RepositorySerializer(serializers.ModelSerializer):
             'created_at',
             'authorization',
         ]
+        ref_name = None
 
     language = serializers.ChoiceField(
         LANGUAGE_CHOICES,
@@ -265,6 +269,7 @@ class ShortRepositorySerializer(serializers.ModelSerializer):
             'absolute_url',
         ]
         read_only = fields
+        ref_name = None
 
     categories = RepositoryCategorySerializer(
         many=True,
@@ -297,6 +302,7 @@ class RepositoryVotesSerializer(serializers.ModelSerializer):
             'user',
             'created_at',
         ]
+        ref_name = None
 
     def create(self, validated_data):
         user = self.context.get('request').user
@@ -359,3 +365,4 @@ class RepositoryContributionsSerializer(serializers.ModelSerializer):
             'role',
             'created_at',
         ]
+        ref_name = None
