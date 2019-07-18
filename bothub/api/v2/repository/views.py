@@ -114,7 +114,7 @@ class RepositoryMigrateViewSet(
         mixins.CreateModelMixin,
         GenericViewSet):
     """
-    Manager repository migrate (bot).
+    Repository migrate all senteces wit.
     """
     queryset = RepositoryMigrate.objects.all()
     lookup_field = 'repository'

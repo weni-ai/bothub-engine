@@ -28,10 +28,10 @@ schema_view = get_schema_view(
 )
 
 urlpatterns = [
-    path('', include(bothub_api_routers.urls)),
-    path('api/', include(bothub_api_routers.urls)),
+    path('api/', include(bothub_api_routers.urls)),#Test webapp
+    path('v1/', include(bothub_api_routers.urls)),
     path('v2/', include(bothub_api_v2_urls)),
-    path('api/v2/', include(bothub_api_v2_urls)),
+    path('api/v2/', include(bothub_api_v2_urls)),#test webapp
     path('docs/', include_docs_urls(title='API Documentation')),
     path('admin/', admin.site.urls),
     path('ping/', ping, name='ping'),
@@ -41,7 +41,7 @@ urlpatterns = [
         download_bot_data,
         name='download_bot_data'),
     re_path(r'^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui()),
-    path('swagger/', schema_view.with_ui('swagger'))
+    path('', schema_view.with_ui('swagger'))
 ]
 
 if settings.DEBUG:
