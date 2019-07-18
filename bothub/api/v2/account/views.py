@@ -8,6 +8,7 @@ from bothub.api.v2.metadata import Metadata
 from bothub.authentication.models import User
 
 from .serializers import LoginSerializer
+from .serializers import RegisterUserSerializer
 
 
 @method_decorator(
@@ -39,3 +40,15 @@ class LoginViewSet(mixins.CreateModelMixin, GenericViewSet):
                 'token': token.key,
             },
             status.HTTP_201_CREATED if created else status.HTTP_200_OK)
+
+
+class RegisterUserViewSet(
+        mixins.CreateModelMixin,
+        GenericViewSet):
+    """
+    Register new user
+    """
+    queryset = User.objects
+    serializer_class = RegisterUserSerializer
+    lookup_field = ('email', 'name', 'nickname', 'password')
+    metadata_class = Metadata

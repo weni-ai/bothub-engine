@@ -745,6 +745,12 @@ class RepositoryExamplesViewSet(
     ]
 
 
+@method_decorator(
+    name='create',
+    decorator=swagger_auto_schema(
+        deprecated=True
+    ),
+)
 class RegisterUserViewSet(
         mixins.CreateModelMixin,
         GenericViewSet):
