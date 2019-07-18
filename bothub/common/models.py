@@ -12,6 +12,8 @@ from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.dispatch import receiver
 from django.core.exceptions import ValidationError
+from rest_framework import status
+from rest_framework.exceptions import APIException
 
 from bothub.authentication.models import User
 
@@ -182,35 +184,50 @@ class Repository(models.Model):
 
     @classmethod
     def request_nlp_train(cls, user_authorization):
-        r = requests.post(  # pragma: no cover
-            cls.nlp_train_url,
-            data={},
-            headers={'Authorization': 'Bearer {}'.format(
-                user_authorization.uuid)})
-        return r  # pragma: no cover
+        try:
+            r = requests.post(  # pragma: no cover
+                cls.nlp_train_url,
+                data={},
+                headers={'Authorization': 'Bearer {}'.format(
+                    user_authorization.uuid)})
+            return r  # pragma: no cover
+        except requests.exceptions.ConnectionError:  # pragma: no cover
+            raise APIException(  # pragma: no cover
+                {'status_code': status.HTTP_503_SERVICE_UNAVAILABLE},
+                code=status.HTTP_503_SERVICE_UNAVAILABLE)
 
     @classmethod
     def request_nlp_analyze(cls, user_authorization, data):
-        r = requests.post(  # pragma: no cover
-            cls.nlp_analyze_url,
-            data={
-                'text': data.get('text'),
-                'language': data.get('language'),
-            },
-            headers={'Authorization': 'Bearer {}'.format(
-                user_authorization.uuid)})
-        return r  # pragma: no cover
+        try:
+            r = requests.post(  # pragma: no cover
+                cls.nlp_analyze_url,
+                data={
+                    'text': data.get('text'),
+                    'language': data.get('language'),
+                },
+                headers={'Authorization': 'Bearer {}'.format(
+                    user_authorization.uuid)})
+            return r  # pragma: no cover
+        except requests.exceptions.ConnectionError:  # pragma: no cover
+            raise APIException(  # pragma: no cover
+                {'status_code': status.HTTP_503_SERVICE_UNAVAILABLE},
+                code=status.HTTP_503_SERVICE_UNAVAILABLE)
 
     @classmethod
     def request_nlp_evaluate(cls, user_authorization, data):
-        r = requests.post(  # pragma: no cover
-            cls.nlp_evaluate_url,
-            data={
-                'language': data.get('language'),
-            },
-            headers={'Authorization': 'Bearer {}'.format(
-                user_authorization.uuid)})
-        return r  # pragma: no cover
+        try:  # pragma: no cover
+            r = requests.post(  # pragma: no cover
+                cls.nlp_evaluate_url,
+                data={
+                    'language': data.get('language'),
+                },
+                headers={'Authorization': 'Bearer {}'.format(
+                    user_authorization.uuid)})
+            return r  # pragma: no cover
+        except requests.exceptions.ConnectionError:  # pragma: no cover
+            raise APIException(  # pragma: no cover
+                {'status_code': status.HTTP_503_SERVICE_UNAVAILABLE},
+                code=status.HTTP_503_SERVICE_UNAVAILABLE)
 
     @property
     def available_languages(self):
