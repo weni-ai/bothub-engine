@@ -831,6 +831,12 @@ class ChangePasswordViewSet(GenericViewSet):
             status=status.HTTP_400_BAD_REQUEST)
 
 
+@method_decorator(
+    name='create',
+    decorator=swagger_auto_schema(
+        deprecated=True
+    ),
+)
 class RequestResetPassword(GenericViewSet):
     """
     Request reset password

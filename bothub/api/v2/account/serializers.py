@@ -26,6 +26,12 @@ class LoginSerializer(AuthTokenSerializer, serializers.ModelSerializer):
 
 
 class RegisterUserSerializer(serializers.ModelSerializer):
+    password = PasswordField(
+        write_only=True,
+        validators=[
+            validate_password,
+        ])
+
     class Meta:
         model = User
         fields = [
@@ -36,18 +42,19 @@ class RegisterUserSerializer(serializers.ModelSerializer):
         ]
         ref_name = None
 
-    password = PasswordField(
-        write_only=True,
-        validators=[
-            validate_password,
-        ])
-
     @staticmethod
     def validate_password(value):
         return make_password(value)
 
 
 class ChangePasswordSerializer(serializers.ModelSerializer):
+    current_password = PasswordField(
+        required=True
+    )
+    password = PasswordField(
+        required=True
+    )
+
     class Meta:
         model = User
         fields = [
@@ -55,9 +62,17 @@ class ChangePasswordSerializer(serializers.ModelSerializer):
             'password'
         ]
         ref_name = None
-    current_password = PasswordField(
+
+
+class RequestResetPasswordSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(
+        label=_('Email'),
         required=True
     )
-    password = PasswordField(
-        required=True
-    )
+
+    class Meta:
+        model = User
+        fields = [
+            'email'
+        ]
+        ref_name = None

@@ -7,12 +7,14 @@ from rest_framework import permissions
 from drf_yasg.utils import swagger_auto_schema
 
 from bothub.api.v2.account.permissions import ChangePasswordPermission
+from bothub.api.v2.account.permissions import RequestResetPasswordPermission
 from bothub.api.v2.metadata import Metadata
 from bothub.authentication.models import User
 
 from .serializers import LoginSerializer
 from .serializers import RegisterUserSerializer
 from .serializers import ChangePasswordSerializer
+from .serializers import RequestResetPasswordSerializer
 
 
 @method_decorator(
@@ -95,3 +97,36 @@ class ChangePasswordViewSet(mixins.UpdateModelMixin, GenericViewSet):
         return Response(
             serializer.errors,
             status=status.HTTP_400_BAD_REQUEST)
+
+
+class RequestResetPasswordViewSet(mixins.CreateModelMixin, GenericViewSet):
+    """
+    Request reset password
+    """
+    serializer_class = RequestResetPasswordSerializer
+    queryset = User.objects
+    lookup_field = ['email']
+    permission_classes = [
+        permissions.AllowAny,
+        RequestResetPasswordPermission
+    ]
+    metadata_class = Metadata
+
+    def permission_denied(self, request, message=None):
+        raise exceptions.PermissionDenied(
+            detail='No user registered with this email'
+        )
+
+    def get_object(self):
+        return self.queryset.get(email=self.request.data.get('email'))
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            self.object = self.get_object()
+            self.object.send_reset_password_email()
+            return Response({})
+        return Response(
+            serializer.errors,
+            status=status.HTTP_400_BAD_REQUEST)
+
