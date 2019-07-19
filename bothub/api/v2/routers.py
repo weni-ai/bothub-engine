@@ -9,6 +9,7 @@ from .evaluate.views import EvaluateViewSet
 from .evaluate.views import ResultsListViewSet
 from .account.views import LoginViewSet
 from .account.views import RegisterUserViewSet
+from .account.views import ChangePasswordViewSet
 
 
 class Router(routers.SimpleRouter):
@@ -90,3 +91,4 @@ router.register('evaluate/results', ResultsListViewSet)
 router.register('evaluate', EvaluateViewSet)
 router.register('account/login', LoginViewSet)
 router.register('account/register', RegisterUserViewSet)
+router.register('account/change-password', ChangePasswordViewSet)

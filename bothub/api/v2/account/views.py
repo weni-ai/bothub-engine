@@ -2,13 +2,17 @@ from django.utils.decorators import method_decorator
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
-from rest_framework import status, mixins
+from rest_framework import status, mixins, exceptions
+from rest_framework import permissions
 from drf_yasg.utils import swagger_auto_schema
+
+from bothub.api.v2.account.permissions import ChangePasswordPermission
 from bothub.api.v2.metadata import Metadata
 from bothub.authentication.models import User
 
 from .serializers import LoginSerializer
 from .serializers import RegisterUserSerializer
+from .serializers import ChangePasswordSerializer
 
 
 @method_decorator(
@@ -52,3 +56,42 @@ class RegisterUserViewSet(
     serializer_class = RegisterUserSerializer
     lookup_field = ('email', 'name', 'nickname', 'password')
     metadata_class = Metadata
+
+
+class ChangePasswordViewSet(mixins.UpdateModelMixin, GenericViewSet):
+    """
+    Change current user password.
+    """
+    serializer_class = ChangePasswordSerializer
+    queryset = User.objects
+    lookup_field = None
+    permission_classes = [
+        permissions.IsAuthenticated,
+        ChangePasswordPermission
+    ]
+    metadata_class = Metadata
+
+    def permission_denied(self, request, message=None):
+        raise exceptions.PermissionDenied(detail='Wrong password')
+
+    def get_object(self, *args, **kwargs):
+        request = self.request
+        user = request.user
+
+        # May raise a permission denied
+        self.check_object_permissions(self.request, user)
+
+        return user
+
+    def update(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        serializer = self.get_serializer(data=request.data)
+
+        if serializer.is_valid():
+            self.object.set_password(serializer.data.get('password'))
+            self.object.save()
+            return Response({}, status=status.HTTP_200_OK)
+
+        return Response(
+            serializer.errors,
+            status=status.HTTP_400_BAD_REQUEST)

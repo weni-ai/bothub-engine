@@ -791,6 +791,12 @@ class LoginViewSet(GenericViewSet):
             status.HTTP_201_CREATED if created else status.HTTP_200_OK)
 
 
+@method_decorator(
+    name='update',
+    decorator=swagger_auto_schema(
+        deprecated=True
+    ),
+)
 class ChangePasswordViewSet(GenericViewSet):
     """
     Change current user password.

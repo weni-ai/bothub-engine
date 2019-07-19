@@ -45,3 +45,19 @@ class RegisterUserSerializer(serializers.ModelSerializer):
     @staticmethod
     def validate_password(value):
         return make_password(value)
+
+
+class ChangePasswordSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = [
+            'current_password',
+            'password'
+        ]
+        ref_name = None
+    current_password = PasswordField(
+        required=True
+    )
+    password = PasswordField(
+        required=True
+    )
