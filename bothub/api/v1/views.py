@@ -1082,6 +1082,12 @@ class RepositoryAuthorizationRoleViewSet(
         return response
 
 
+@method_decorator(
+    name='list',
+    decorator=swagger_auto_schema(
+        deprecated=True,
+    )
+)
 class SearchUserViewSet(
         mixins.ListModelMixin,
         GenericViewSet):

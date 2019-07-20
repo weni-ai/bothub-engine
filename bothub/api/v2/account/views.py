@@ -1,4 +1,6 @@
 from django.utils.decorators import method_decorator
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import SearchFilter
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
@@ -131,3 +133,30 @@ class UserProfileViewSet(
     permission_classes = [
         permissions.IsAuthenticatedOrReadOnly
     ]
+
+
+class SearchUserViewSet(
+        mixins.ListModelMixin,
+        GenericViewSet):
+    serializer_class = UserSerializer
+    queryset = User.objects.all()
+    filter_backends = [
+        DjangoFilterBackend,
+        SearchFilter,
+    ]
+    search_fields = [
+        '=name',
+        '^name',
+        '$name',
+        '=nickname',
+        '^nickname',
+        '$nickname',
+        '=email',
+    ]
+    pagination_class = None
+    limit = 5
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())[:self.limit]
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
