@@ -291,7 +291,7 @@ class ListUserProfileTestCase(TestCase):
             '/v2/account/user-profile/{}/'.format(self.user.nickname)
         )
         response = UserProfileViewSet.as_view(
-            {'get': 'retrieve'})(request)
+            {'get': 'retrieve'})(request, nickname=self.user.nickname)
         response.render()
         content_data = json.loads(response.content)
         return (response, content_data,)
