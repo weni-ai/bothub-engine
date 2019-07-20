@@ -2,12 +2,9 @@ from django.utils.decorators import method_decorator
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
-from rest_framework import status, mixins, exceptions
+from rest_framework import status, mixins
 from rest_framework import permissions
 from drf_yasg.utils import swagger_auto_schema
-
-from bothub.api.v2.account.permissions import ChangePasswordPermission
-from bothub.api.v2.account.permissions import RequestResetPasswordPermission
 from bothub.api.v2.metadata import Metadata
 from bothub.authentication.models import User
 
@@ -69,12 +66,9 @@ class ChangePasswordViewSet(mixins.UpdateModelMixin, GenericViewSet):
     lookup_field = None
     permission_classes = [
         permissions.IsAuthenticated,
-        ChangePasswordPermission
+        # ChangePasswordPermission
     ]
     metadata_class = Metadata
-
-    def permission_denied(self, request, message=None):
-        raise exceptions.PermissionDenied(detail='Wrong password')
 
     def get_object(self, *args, **kwargs):
         request = self.request
@@ -106,16 +100,8 @@ class RequestResetPasswordViewSet(mixins.CreateModelMixin, GenericViewSet):
     serializer_class = RequestResetPasswordSerializer
     queryset = User.objects
     lookup_field = ['email']
-    permission_classes = [
-        permissions.AllowAny,
-        RequestResetPasswordPermission
-    ]
+    permission_classes = [permissions.AllowAny]
     metadata_class = Metadata
-
-    def permission_denied(self, request, message=None):
-        raise exceptions.PermissionDenied(
-            detail='No user registered with this email'
-        )
 
     def get_object(self):
         return self.queryset.get(email=self.request.data.get('email'))
@@ -129,4 +115,3 @@ class RequestResetPasswordViewSet(mixins.CreateModelMixin, GenericViewSet):
         return Response(
             serializer.errors,
             status=status.HTTP_400_BAD_REQUEST)
-

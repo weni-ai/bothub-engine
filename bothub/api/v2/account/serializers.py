@@ -3,6 +3,7 @@ from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.hashers import make_password
 from rest_framework.authtoken.serializers import AuthTokenSerializer
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 
 from bothub.authentication.models import User
 from ..fields import PasswordField
@@ -52,7 +53,10 @@ class ChangePasswordSerializer(serializers.ModelSerializer):
         required=True
     )
     password = PasswordField(
-        required=True
+        required=True,
+        validators=[
+            validate_password,
+        ]
     )
 
     class Meta:
@@ -62,6 +66,12 @@ class ChangePasswordSerializer(serializers.ModelSerializer):
             'password'
         ]
         ref_name = None
+
+    def validate_current_password(self, value):
+        request = self.context.get('request')
+        if not request.user.check_password(value):
+            raise ValidationError(_('Wrong password'))
+        return value
 
 
 class RequestResetPasswordSerializer(serializers.ModelSerializer):
@@ -76,3 +86,10 @@ class RequestResetPasswordSerializer(serializers.ModelSerializer):
             'email'
         ]
         ref_name = None
+
+    def validate_email(self, value):
+        try:
+            User.objects.get(email=value)
+            return value
+        except User.DoesNotExist:
+            raise ValidationError(_('No user registered with this email'))
