@@ -13,6 +13,7 @@ from .account.views import ChangePasswordViewSet
 from .account.views import RequestResetPasswordViewSet
 from .account.views import UserProfileViewSet
 from .account.views import SearchUserViewSet
+from .account.views import ResetPasswordViewSet
 
 
 class Router(routers.SimpleRouter):
@@ -98,3 +99,4 @@ router.register('account/change-password', ChangePasswordViewSet)
 router.register('account/forgot-password', RequestResetPasswordViewSet)
 router.register('account/user-profile', UserProfileViewSet)
 router.register('account/search-user', SearchUserViewSet)
+router.register('account/reset-password', ResetPasswordViewSet)

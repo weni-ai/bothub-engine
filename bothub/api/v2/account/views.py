@@ -15,6 +15,7 @@ from .serializers import RegisterUserSerializer
 from .serializers import ChangePasswordSerializer
 from .serializers import RequestResetPasswordSerializer
 from .serializers import UserSerializer
+from .serializers import ResetPasswordSerializer
 
 
 @method_decorator(
@@ -135,9 +136,7 @@ class UserProfileViewSet(
     ]
 
 
-class SearchUserViewSet(
-        mixins.ListModelMixin,
-        GenericViewSet):
+class SearchUserViewSet(mixins.ListModelMixin, GenericViewSet):
     serializer_class = UserSerializer
     queryset = User.objects.all()
     filter_backends = [
@@ -160,3 +159,23 @@ class SearchUserViewSet(
         queryset = self.filter_queryset(self.get_queryset())[:self.limit]
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+
+
+class ResetPasswordViewSet(GenericViewSet):
+    """
+    Reset password
+    """
+    serializer_class = ResetPasswordSerializer
+    queryset = User.objects
+    lookup_field = 'nickname'
+
+    def update(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            self.object.set_password(serializer.data.get('password'))
+            self.object.save()
+            return Response({})
+        return Response(
+            serializer.errors,
+            status=status.HTTP_400_BAD_REQUEST)

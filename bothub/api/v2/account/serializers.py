@@ -104,3 +104,30 @@ class UserSerializer(serializers.ModelSerializer):
             'locale',
         ]
         ref_name = None
+
+
+class ResetPasswordSerializer(serializers.ModelSerializer):
+    token = serializers.CharField(
+        label=_('Token'),
+        style={'show': False}
+    )
+    password = PasswordField(
+        label=_('New Password'),
+        required=True,
+        validators=[
+            validate_password,
+        ])
+
+    class Meta:
+        model = User
+        fields = [
+            'token',
+            'password',
+        ]
+        ref_name = None
+
+    def validate_token(self, value):
+        user = self.context.get('view').get_object()
+        if not user.check_password_reset_token(value):
+            raise ValidationError(_('Invalid token for this user'))
+        return value
