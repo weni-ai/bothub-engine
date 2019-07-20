@@ -161,7 +161,7 @@ class SearchUserViewSet(mixins.ListModelMixin, GenericViewSet):
         return Response(serializer.data)
 
 
-class ResetPasswordViewSet(GenericViewSet):
+class ResetPasswordViewSet(mixins.UpdateModelMixin, GenericViewSet):
     """
     Reset password
     """
