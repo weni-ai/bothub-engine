@@ -69,8 +69,7 @@ class ChangePasswordViewSet(mixins.UpdateModelMixin, GenericViewSet):
     queryset = User.objects
     lookup_field = None
     permission_classes = [
-        permissions.IsAuthenticated,
-        # ChangePasswordPermission
+        permissions.IsAuthenticated
     ]
     metadata_class = Metadata
 
