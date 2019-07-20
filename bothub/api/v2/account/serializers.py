@@ -93,3 +93,14 @@ class RequestResetPasswordSerializer(serializers.ModelSerializer):
             return value
         except User.DoesNotExist:
             raise ValidationError(_('No user registered with this email'))
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = [
+            'nickname',
+            'name',
+            'locale',
+        ]
+        ref_name = None

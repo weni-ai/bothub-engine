@@ -878,6 +878,24 @@ class ResetPassword(GenericViewSet):
             status=status.HTTP_400_BAD_REQUEST)
 
 
+@method_decorator(
+    name='update',
+    decorator=swagger_auto_schema(
+        deprecated=True
+    ),
+)
+@method_decorator(
+    name='retrieve',
+    decorator=swagger_auto_schema(
+        deprecated=True
+    ),
+)
+@method_decorator(
+    name='partial_update',
+    decorator=swagger_auto_schema(
+        deprecated=True
+    ),
+)
 class MyUserProfileViewSet(
         mixins.RetrieveModelMixin,
         mixins.UpdateModelMixin,
@@ -911,6 +929,12 @@ class MyUserProfileViewSet(
         return user
 
 
+@method_decorator(
+    name='retrieve',
+    decorator=swagger_auto_schema(
+        deprecated=True
+    ),
+)
 class UserProfileViewSet(
         mixins.RetrieveModelMixin,
         GenericViewSet):

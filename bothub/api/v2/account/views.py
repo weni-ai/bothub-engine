@@ -12,6 +12,7 @@ from .serializers import LoginSerializer
 from .serializers import RegisterUserSerializer
 from .serializers import ChangePasswordSerializer
 from .serializers import RequestResetPasswordSerializer
+from .serializers import UserSerializer
 
 
 @method_decorator(
@@ -115,3 +116,18 @@ class RequestResetPasswordViewSet(mixins.CreateModelMixin, GenericViewSet):
         return Response(
             serializer.errors,
             status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserProfileViewSet(
+        mixins.RetrieveModelMixin,
+        mixins.UpdateModelMixin,
+        GenericViewSet):
+    """
+    Get user profile
+    """
+    serializer_class = UserSerializer
+    queryset = User.objects
+    lookup_field = 'nickname'
+    permission_classes = [
+        permissions.IsAuthenticatedOrReadOnly
+    ]
