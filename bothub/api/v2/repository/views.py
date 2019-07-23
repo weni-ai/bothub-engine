@@ -13,6 +13,7 @@ from bothub.common.models import Repository
 from bothub.common.models import RepositoryCategory
 from bothub.common.models import RepositoryVote
 from bothub.common.models import RepositoryAuthorization
+from bothub.common.models import RepositoryTranslatedExample
 
 from ..metadata import Metadata
 from .serializers import RepositorySerializer
@@ -21,7 +22,9 @@ from .serializers import RepositoryVotesSerializer
 from .serializers import RepositoryCategorySerializer
 from .serializers import ShortRepositorySerializer
 from .serializers import NewRepositorySerializer
+from .serializers import RepositoryTranslatedExampleSerializer
 from .permissions import RepositoryPermission
+from .permissions import RepositoryTranslatedExamplePermission
 from .filters import RepositoriesFilter
 
 
@@ -196,3 +199,31 @@ class NewRepositoryViewSet(mixins.CreateModelMixin, GenericViewSet):
             RepositorySerializer(instance).data,
             status=status.HTTP_201_CREATED,
             headers=headers)
+
+
+class RepositoryTranslatedExampleViewSet(
+        mixins.RetrieveModelMixin,
+        mixins.UpdateModelMixin,
+        mixins.DestroyModelMixin,
+        GenericViewSet):
+    """
+    Manager example translation.
+
+    retrieve:
+    Get example translation data.
+
+    update:
+    Update example translation.
+
+    partial_update:
+    Update, partially, example translation.
+
+    delete:
+    Delete example translation.
+    """
+    queryset = RepositoryTranslatedExample.objects
+    serializer_class = RepositoryTranslatedExampleSerializer
+    permission_classes = [
+        IsAuthenticated,
+        RepositoryTranslatedExamplePermission,
+    ]

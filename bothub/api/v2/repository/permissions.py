@@ -18,3 +18,12 @@ class RepositoryPermission(permissions.BasePermission):
                 return authorization.can_write
             return authorization.is_admin
         return False
+
+
+class RepositoryTranslatedExamplePermission(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        repository = obj.original_example.repository_update.repository
+        authorization = repository.get_user_authorization(request.user)
+        if request.method in READ_METHODS:
+            return authorization.can_read
+        return authorization.can_contribute

@@ -1,7 +1,12 @@
 from django.utils.translation import gettext as _
 from rest_framework import serializers
 
+from bothub.api.v1.serializers import \
+    RepositoryTranslatedExampleEntitySeralizer
+from bothub.api.v1.validators import CanContributeInRepositoryExampleValidator
 from bothub.common.models import Repository
+from bothub.common.models import RepositoryTranslatedExample
+from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryVote
 from bothub.common.models import RepositoryCategory
 from bothub.common.models import RepositoryEntityLabel
@@ -376,3 +381,37 @@ class NewRepositorySerializer(serializers.ModelSerializer):
     description = TextField(
         allow_blank=True,
         help_text=Repository.DESCRIPTION_HELP_TEXT)
+
+
+class RepositoryTranslatedExampleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RepositoryTranslatedExample
+        fields = [
+            'id',
+            'original_example',
+            'from_language',
+            'language',
+            'text',
+            'has_valid_entities',
+            'entities',
+            'created_at',
+        ]
+        ref_name = None
+
+    original_example = serializers.PrimaryKeyRelatedField(
+        queryset=RepositoryExample.objects,
+        validators=[
+            CanContributeInRepositoryExampleValidator(),
+        ],
+        help_text=_('Example\'s ID'))
+    from_language = serializers.SerializerMethodField()
+    has_valid_entities = serializers.SerializerMethodField()
+    entities = RepositoryTranslatedExampleEntitySeralizer(
+        many=True,
+        read_only=True)
+
+    def get_from_language(self, obj):
+        return obj.original_example.repository_update.language
+
+    def get_has_valid_entities(self, obj):
+        return obj.has_valid_entities

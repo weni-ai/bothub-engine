@@ -699,6 +699,30 @@ class NewRepositoryTranslatedExampleViewSet(
     permission_classes = [permissions.IsAuthenticated]
 
 
+@method_decorator(
+    name='retrieve',
+    decorator=swagger_auto_schema(
+        deprecated=True,
+    )
+)
+@method_decorator(
+    name='update',
+    decorator=swagger_auto_schema(
+        deprecated=True,
+    )
+)
+@method_decorator(
+    name='partial_update',
+    decorator=swagger_auto_schema(
+        deprecated=True,
+    )
+)
+@method_decorator(
+    name='destroy',
+    decorator=swagger_auto_schema(
+        deprecated=True,
+    )
+)
 class RepositoryTranslatedExampleViewSet(
         mixins.RetrieveModelMixin,
         mixins.UpdateModelMixin,
