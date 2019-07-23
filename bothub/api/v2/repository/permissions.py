@@ -4,6 +4,11 @@ from .. import READ_METHODS
 from .. import WRITE_METHODS
 
 
+CUSTOM_READ_METHODS = permissions.SAFE_METHODS
+CUSTOM_WRITE_METHODS = ['POST', 'PUT', 'PATCH']
+CUSTOM_ADMIN_METHODS = ['DELETE']
+
+
 class RepositoryPermission(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         authorization = obj.get_user_authorization(request.user)
