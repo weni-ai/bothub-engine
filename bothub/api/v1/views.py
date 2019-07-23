@@ -384,6 +384,12 @@ class MultipleFieldLookupMixin(object):
 
 # ViewSets
 
+@method_decorator(
+    name='create',
+    decorator=swagger_auto_schema(
+        deprecated=True
+    ),
+)
 class NewRepositoryViewSet(
         mixins.CreateModelMixin,
         GenericViewSet):
@@ -952,6 +958,12 @@ class UserProfileViewSet(
     lookup_field = 'nickname'
 
 
+@method_decorator(
+    name='list',
+    decorator=swagger_auto_schema(
+        deprecated=True
+    ),
+)
 class Categories(
         mixins.ListModelMixin,
         GenericViewSet):
