@@ -23,7 +23,6 @@ from bothub.common.models import RequestRepositoryAuthorization
 from bothub.common.models import RepositoryUpdate
 from bothub.common.models import RepositoryExampleEntity
 from bothub.common.languages import LANGUAGE_CHOICES
-from ..request.serializers import RequestRepositoryAuthorizationSerializer
 from ..fields import ModelMultipleChoiceField
 from ..fields import TextField
 from ..fields import EntityValueField
@@ -33,6 +32,7 @@ from .validators import EntityNotEqualLabelValidator
 from .validators import CanContributeInRepositoryValidator
 from .validators import ExampleWithIntentOrEntityValidator
 from .validators import IntentAndSentenceNotExistsValidator
+
 
 class RepositoryCategorySerializer(serializers.ModelSerializer):
     class Meta:
@@ -76,37 +76,6 @@ class RepositoryEntityLabelSerializer(serializers.ModelSerializer):
 class IntentSerializer(serializers.Serializer):
     value = serializers.CharField()
     examples__count = serializers.IntegerField()
-
-
-class RepositoryAuthorizationSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = RepositoryAuthorization
-        fields = [
-            'uuid',
-            'user',
-            'user__nickname',
-            'repository',
-            'role',
-            'level',
-            'can_read',
-            'can_contribute',
-            'can_write',
-            'is_admin',
-            'created_at',
-        ]
-        read_only = [
-            'user',
-            'user__nickname',
-            'repository',
-            'role',
-            'created_at',
-        ]
-        ref_name = None
-
-    user__nickname = serializers.SlugRelatedField(
-        source='user',
-        slug_field='nickname',
-        read_only=True)
 
 
 class RepositorySerializer(serializers.ModelSerializer):
