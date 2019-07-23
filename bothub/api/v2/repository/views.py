@@ -1,12 +1,14 @@
 from django.utils.decorators import method_decorator
+from django.utils.translation import gettext as _
+from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
+from rest_framework.exceptions import APIException
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from rest_framework import mixins, status
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.permissions import IsAuthenticated
-from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter
 
 from bothub.common.models import Repository
@@ -14,6 +16,7 @@ from bothub.common.models import RepositoryCategory
 from bothub.common.models import RepositoryVote
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryTranslatedExample
+from bothub.common.models import RepositoryExample
 
 from ..metadata import Metadata
 from .serializers import RepositorySerializer
@@ -23,8 +26,10 @@ from .serializers import RepositoryCategorySerializer
 from .serializers import ShortRepositorySerializer
 from .serializers import NewRepositorySerializer
 from .serializers import RepositoryTranslatedExampleSerializer
+from .serializers import RepositoryExampleSerializer
 from .permissions import RepositoryPermission
 from .permissions import RepositoryTranslatedExamplePermission
+from .permissions import RepositoryExamplePermission
 from .filters import RepositoriesFilter
 
 
@@ -227,3 +232,32 @@ class RepositoryTranslatedExampleViewSet(
         IsAuthenticated,
         RepositoryTranslatedExamplePermission,
     ]
+
+
+class RepositoryExampleViewSet(
+        mixins.DestroyModelMixin,
+        mixins.UpdateModelMixin,
+        GenericViewSet):
+    """
+    Manager repository example.
+
+    retrieve:
+    Get repository example data.
+
+    delete:
+    Delete repository example.
+
+    update:
+    Update repository example.
+
+    """
+    queryset = RepositoryExample.objects
+    serializer_class = RepositoryExampleSerializer
+    permission_classes = [
+        RepositoryExamplePermission,
+    ]
+
+    def perform_destroy(self, obj):
+        if obj.deleted_in:
+            raise APIException(_('Example already deleted'))
+        obj.delete()

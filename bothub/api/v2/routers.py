@@ -7,6 +7,7 @@ from .repository.views import RepositoriesContributionsViewSet
 from .repository.views import RepositoryCategoriesViewSet
 from .repository.views import NewRepositoryViewSet
 from .repository.views import RepositoryTranslatedExampleViewSet
+from .repository.views import RepositoryExampleViewSet
 from .examples.views import ExamplesViewSet
 from .evaluate.views import EvaluateViewSet
 from .evaluate.views import ResultsListViewSet
@@ -102,6 +103,7 @@ router.register('repository/new', NewRepositoryViewSet)
 router.register('repository/evaluate/results', ResultsListViewSet)
 router.register('repository/evaluate', EvaluateViewSet)
 router.register('repository/translation', RepositoryTranslatedExampleViewSet)
+router.register('repository/example', RepositoryExampleViewSet)
 router.register('account/login', LoginViewSet)
 router.register('account/register', RegisterUserViewSet)
 router.register('account/change-password', ChangePasswordViewSet)

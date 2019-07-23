@@ -4,6 +4,7 @@ from rest_framework import serializers
 from bothub.api.v1.serializers import \
     RepositoryTranslatedExampleEntitySeralizer
 from bothub.api.v1.validators import CanContributeInRepositoryExampleValidator
+from bothub.api.v2.example.serializers import RepositoryExampleEntitySerializer
 from bothub.common.models import Repository
 from bothub.common.models import RepositoryTranslatedExample
 from bothub.common.models import RepositoryExample
@@ -415,3 +416,35 @@ class RepositoryTranslatedExampleSerializer(serializers.ModelSerializer):
 
     def get_has_valid_entities(self, obj):
         return obj.has_valid_entities
+
+
+class RepositoryExampleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RepositoryExample
+        fields = [
+            'id',
+            'repository_update',
+            'deleted_in',
+            'text',
+            'intent',
+            'language',
+            'created_at',
+            'entities',
+            'translations',
+        ]
+        read_only_fields = [
+            'repository_update',
+            'deleted_in',
+        ]
+        ref_name = None
+
+    entities = RepositoryExampleEntitySerializer(
+        many=True,
+        read_only=True)
+    translations = RepositoryTranslatedExampleSerializer(
+        many=True,
+        read_only=True)
+    language = serializers.SerializerMethodField()
+
+    def get_language(self, obj):
+        return obj.language
