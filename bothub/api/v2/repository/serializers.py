@@ -1,11 +1,16 @@
 from django.utils.translation import gettext as _
 from rest_framework import serializers
 
-from bothub.api.v1.serializers import \
-    RepositoryTranslatedExampleEntitySeralizer
-from bothub.api.v1.validators import CanContributeInRepositoryExampleValidator
 from bothub.api.v2.example.serializers import RepositoryExampleEntitySerializer
-from bothub.common.models import Repository
+from bothub.api.v2.repository.validators import \
+    TranslatedExampleEntitiesValidator
+from bothub.api.v2.repository.validators import \
+    CanContributeInRepositoryTranslatedExampleValidator
+from bothub.api.v2.repository.validators import \
+    TranslatedExampleLanguageValidator
+from bothub.api.v2.repository.validators import \
+    CanContributeInRepositoryExampleValidator
+from bothub.common.models import Repository, RepositoryTranslatedExampleEntity
 from bothub.common.models import RepositoryTranslatedExample
 from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryVote
@@ -17,6 +22,7 @@ from bothub.common.languages import LANGUAGE_CHOICES
 from ..request.serializers import RequestRepositoryAuthorizationSerializer
 from ..fields import ModelMultipleChoiceField
 from ..fields import TextField
+from ..fields import EntityValueField
 
 
 class RepositoryCategorySerializer(serializers.ModelSerializer):
@@ -384,6 +390,35 @@ class NewRepositorySerializer(serializers.ModelSerializer):
         help_text=Repository.DESCRIPTION_HELP_TEXT)
 
 
+class RepositoryTranslatedExampleEntitySeralizer(serializers.ModelSerializer):
+    class Meta:
+        model = RepositoryTranslatedExampleEntity
+        fields = [
+            'id',
+            'repository_translated_example',
+            'start',
+            'end',
+            'entity',
+            'created_at',
+            'value',
+        ]
+
+    repository_translated_example = serializers.PrimaryKeyRelatedField(
+        queryset=RepositoryTranslatedExample.objects,
+        validators=[
+            CanContributeInRepositoryTranslatedExampleValidator(),
+        ],
+        help_text='Example translation ID')
+    entity = serializers.SerializerMethodField()
+    value = serializers.SerializerMethodField()
+
+    def get_entity(self, obj):
+        return obj.entity.value
+
+    def get_value(self, obj):
+        return obj.value
+
+
 class RepositoryTranslatedExampleSerializer(serializers.ModelSerializer):
     class Meta:
         model = RepositoryTranslatedExample
@@ -448,3 +483,62 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
 
     def get_language(self, obj):
         return obj.language
+
+
+class NewRepositoryTranslatedExampleEntitySeralizer(
+        serializers.ModelSerializer):
+    class Meta:
+        model = RepositoryTranslatedExampleEntity
+        fields = [
+            'start',
+            'end',
+            'entity',
+        ]
+
+    entity = EntityValueField()
+
+
+class NewRepositoryTranslatedExampleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RepositoryTranslatedExample
+        fields = [
+            'id',
+            'original_example',
+            'language',
+            'text',
+            'has_valid_entities',
+            'entities',
+        ]
+        ref_name = None
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.validators.append(TranslatedExampleEntitiesValidator())
+        self.validators.append(TranslatedExampleLanguageValidator())
+
+    original_example = serializers.PrimaryKeyRelatedField(
+        queryset=RepositoryExample.objects,
+        validators=[
+            CanContributeInRepositoryExampleValidator(),
+        ],
+        help_text=_('Example\'s ID'))
+    language = serializers.ChoiceField(
+        LANGUAGE_CHOICES,
+        label=_('Language'))
+    has_valid_entities = serializers.SerializerMethodField()
+    entities = NewRepositoryTranslatedExampleEntitySeralizer(
+        many=True,
+        style={'text_field': 'text'})
+
+    def get_has_valid_entities(self, obj):
+        return obj.has_valid_entities
+
+    def create(self, validated_data):
+        entities_data = validated_data.pop('entities')
+
+        translated = self.Meta.model.objects.create(**validated_data)
+        for entity_data in entities_data:
+            RepositoryTranslatedExampleEntity.objects.create(
+                repository_translated_example=translated,
+                **entity_data)
+        return translated

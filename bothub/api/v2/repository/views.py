@@ -27,6 +27,7 @@ from .serializers import ShortRepositorySerializer
 from .serializers import NewRepositorySerializer
 from .serializers import RepositoryTranslatedExampleSerializer
 from .serializers import RepositoryExampleSerializer
+from .serializers import NewRepositoryTranslatedExampleSerializer
 from .permissions import RepositoryPermission
 from .permissions import RepositoryTranslatedExamplePermission
 from .permissions import RepositoryExamplePermission
@@ -299,3 +300,14 @@ class SearchRepositoriesViewSet(
                 return self.queryset.filter(owner=self.request.user)
         except TypeError:
             return self.queryset.none()
+
+
+class NewRepositoryTranslatedExampleViewSet(
+        mixins.CreateModelMixin,
+        GenericViewSet):
+    """
+    Translate example
+    """
+    queryset = RepositoryTranslatedExample.objects
+    serializer_class = NewRepositoryTranslatedExampleSerializer
+    permission_classes = [IsAuthenticated]
