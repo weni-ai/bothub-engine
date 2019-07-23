@@ -328,3 +328,14 @@ class RepositoryContributionsSerializer(serializers.ModelSerializer):
             'created_at',
         ]
         ref_name = None
+
+
+class RepositoryCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RepositoryCategory
+        fields = [
+            'id',
+            'name',
+            'icon',
+        ]
+        ref_name = None

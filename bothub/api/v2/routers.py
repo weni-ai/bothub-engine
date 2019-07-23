@@ -4,6 +4,7 @@ from .repository.views import RepositoryViewSet
 from .repository.views import RepositoryVotesViewSet
 from .repository.views import RepositoriesViewSet
 from .repository.views import RepositoriesContributionsViewSet
+from .repository.views import RepositoryCategoriesViewSet
 from .examples.views import ExamplesViewSet
 from .evaluate.views import EvaluateViewSet
 from .evaluate.views import ResultsListViewSet
@@ -86,13 +87,17 @@ class Router(routers.SimpleRouter):
 
 
 router = Router()
-router.register('repository', RepositoryViewSet)
-router.register('repository-votes', RepositoryVotesViewSet)
-router.register('repositories', RepositoriesViewSet)
-router.register('repositories-contributions', RepositoriesContributionsViewSet)
-router.register('examples', ExamplesViewSet)
-router.register('evaluate/results', ResultsListViewSet)
-router.register('evaluate', EvaluateViewSet)
+router.register('repository/repository', RepositoryViewSet)
+router.register('repository/categories', RepositoryCategoriesViewSet)
+router.register('repository/repository-votes', RepositoryVotesViewSet)
+router.register('repository/repositories', RepositoriesViewSet)
+router.register(
+    'repository/repositories-contributions',
+    RepositoriesContributionsViewSet
+)
+router.register('repository/examples', ExamplesViewSet)
+router.register('repository/evaluate/results', ResultsListViewSet)
+router.register('repository/evaluate', EvaluateViewSet)
 router.register('account/login', LoginViewSet)
 router.register('account/register', RegisterUserViewSet)
 router.register('account/change-password', ChangePasswordViewSet)
