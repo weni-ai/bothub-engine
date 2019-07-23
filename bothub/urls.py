@@ -1,7 +1,6 @@
 from django.contrib import admin
-from django.urls import path, include, re_path
+from django.urls import path, include
 from django.conf import settings
-from rest_framework.documentation import include_docs_urls
 
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
