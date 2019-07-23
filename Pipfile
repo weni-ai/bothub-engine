@@ -17,14 +17,14 @@ pytz = "==2018.7"
 celery = "*"
 django-celery-results = "*"
 drf-yasg = "*"
+packaging = "*"
+redis = "==3.2.1"
 
 [dev-packages]
 "flake8" = "*"
 coverage = "*"
 ipython = "*"
 autopep8 = "*"
-redis = "==3.2.1"
-packaging = "*"
 
 [requires]
 python_version = "3.6"

@@ -265,8 +265,14 @@ SWAGGER_SETTINGS = {
 
 # Celery
 
-CELERY_RESULT_BACKEND = 'django-db'
-CELERY_BROKER_URL = config('CELERY_BROKER_URL', default='redis://localhost:6379')
+CELERY_RESULT_BACKEND = config(
+    'BOTHUB_ENGINE_CELERY_BACKEND_URL',
+    default='django-db'
+)
+CELERY_BROKER_URL = config(
+    'BOTHUB_ENGINE_CELERY_BROKER_URL',
+    default='redis://localhost:6379'
+)
 CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TASK_SERIALIZER = 'json'
