@@ -696,3 +696,22 @@ class NewRequestRepositoryAuthorizationSerializer(serializers.ModelSerializer):
         min_length=5,
         max_length=RequestRepositoryAuthorization._meta.get_field(
             'text').max_length)
+
+
+class ReviewAuthorizationRequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RequestRepositoryAuthorization
+        fields = [
+            'approved_by'
+        ]
+        ref_name = None
+
+    approved_by = serializers.PrimaryKeyRelatedField(
+        read_only=True,
+        style={'show': False})
+
+    def update(self, instance, validated_data):
+        validated_data.update({
+            'approved_by': self.context['request'].user,
+        })
+        return super().update(instance, validated_data)

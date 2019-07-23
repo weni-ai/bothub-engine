@@ -1,9 +1,11 @@
 from django.utils.decorators import method_decorator
 from django.utils.translation import gettext as _
 from django_filters.rest_framework import DjangoFilterBackend
+from django.core.exceptions import ValidationError as DjangoValidationError
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.exceptions import APIException
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from rest_framework import mixins, status
@@ -32,10 +34,12 @@ from .serializers import NewRepositoryTranslatedExampleSerializer
 from .serializers import RepositoryUpdateSerializer
 from .serializers import NewRepositoryExampleSerializer
 from .serializers import NewRequestRepositoryAuthorizationSerializer
+from .serializers import ReviewAuthorizationRequestSerializer
 from .permissions import RepositoryPermission
 from .permissions import RepositoryTranslatedExamplePermission
 from .permissions import RepositoryExamplePermission
 from .permissions import RepositoryUpdateHasPermission
+from .permissions import RepositoryAdminManagerAuthorization
 from .filters import RepositoriesFilter
 from .filters import RepositoryTranslationsFilter
 from .filters import RepositoryUpdatesFilter
@@ -366,3 +370,25 @@ class RequestAuthorizationViewSet(
     permission_classes = [
         IsAuthenticated,
     ]
+
+
+class ReviewAuthorizationRequestViewSet(
+        mixins.UpdateModelMixin,
+        mixins.DestroyModelMixin,
+        GenericViewSet):
+    """
+    Authorizes or Removes the user who requested
+    authorization from a repository
+    """
+    queryset = RequestRepositoryAuthorization.objects
+    serializer_class = ReviewAuthorizationRequestSerializer
+    permission_classes = [
+        IsAuthenticated,
+        RepositoryAdminManagerAuthorization,
+    ]
+
+    def update(self, *args, **kwargs):
+        try:
+            return super().update(*args, **kwargs)
+        except DjangoValidationError as e:
+            raise ValidationError(e.message)
