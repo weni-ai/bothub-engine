@@ -15,6 +15,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.filters import SearchFilter
 
 from bothub.api.v2.mixins import MultipleFieldLookupMixin
+from bothub.authentication.models import User
 from bothub.common.models import Repository
 from bothub.common.models import RepositoryCategory
 from bothub.common.models import RepositoryVote
@@ -40,6 +41,7 @@ from .serializers import NewRequestRepositoryAuthorizationSerializer
 from .serializers import ReviewAuthorizationRequestSerializer
 from .serializers import RepositoryAuthorizationSerializer
 from .serializers import RepositoryAuthorizationRoleSerializer
+from .serializers import RequestRepositoryAuthorizationSerializer
 from .permissions import RepositoryPermission
 from .permissions import RepositoryTranslatedExamplePermission
 from .permissions import RepositoryExamplePermission
@@ -49,6 +51,7 @@ from .filters import RepositoriesFilter
 from .filters import RepositoryTranslationsFilter
 from .filters import RepositoryUpdatesFilter
 from .filters import RepositoryAuthorizationFilter
+from .filters import RepositoryAuthorizationRequestsFilter
 
 
 class RepositoryViewSet(
@@ -486,3 +489,18 @@ class RepositoryAuthorizationRoleViewSet(
         if instance.role is not RepositoryAuthorization.ROLE_NOT_SETTED:
             instance.send_new_role_email(self.request.user)
         return response
+
+
+class RepositoryAuthorizationRequestsViewSet(
+        mixins.ListModelMixin,
+        GenericViewSet):
+    """
+    List of all authorization requests for a repository
+    """
+    queryset = RequestRepositoryAuthorization.objects.exclude(
+        approved_by__isnull=False)
+    serializer_class = RequestRepositoryAuthorizationSerializer
+    filter_class = RepositoryAuthorizationRequestsFilter
+    permission_classes = [
+        IsAuthenticated,
+    ]
