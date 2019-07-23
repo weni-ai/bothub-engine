@@ -73,7 +73,7 @@ class RepositoryVotesViewSet(
     """
     queryset = RepositoryVote.objects.all()
     lookup_field = 'repository'
-    lookup_fields = ['user', 'repository']
+    lookup_fields = ['repository']
     serializer_class = RepositoryVotesSerializer
     permission_classes = [
         IsAuthenticatedOrReadOnly

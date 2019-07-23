@@ -745,6 +745,12 @@ class RepositoryExamplesViewSet(
     ]
 
 
+@method_decorator(
+    name='create',
+    decorator=swagger_auto_schema(
+        deprecated=True
+    ),
+)
 class RegisterUserViewSet(
         mixins.CreateModelMixin,
         GenericViewSet):
@@ -758,8 +764,9 @@ class RegisterUserViewSet(
 @method_decorator(
     name='create',
     decorator=swagger_auto_schema(
-        responses={201: '{"token":"TOKEN"}'}
-    )
+        responses={201: '{"token":"TOKEN"}'},
+        deprecated=True
+    ),
 )
 class LoginViewSet(GenericViewSet):
 
@@ -784,6 +791,12 @@ class LoginViewSet(GenericViewSet):
             status.HTTP_201_CREATED if created else status.HTTP_200_OK)
 
 
+@method_decorator(
+    name='update',
+    decorator=swagger_auto_schema(
+        deprecated=True
+    ),
+)
 class ChangePasswordViewSet(GenericViewSet):
     """
     Change current user password.
@@ -818,6 +831,12 @@ class ChangePasswordViewSet(GenericViewSet):
             status=status.HTTP_400_BAD_REQUEST)
 
 
+@method_decorator(
+    name='create',
+    decorator=swagger_auto_schema(
+        deprecated=True
+    ),
+)
 class RequestResetPassword(GenericViewSet):
     """
     Request reset password
@@ -839,6 +858,12 @@ class RequestResetPassword(GenericViewSet):
             status=status.HTTP_400_BAD_REQUEST)
 
 
+@method_decorator(
+    name='update',
+    decorator=swagger_auto_schema(
+        deprecated=True
+    ),
+)
 class ResetPassword(GenericViewSet):
     """
     Reset password
@@ -859,6 +884,24 @@ class ResetPassword(GenericViewSet):
             status=status.HTTP_400_BAD_REQUEST)
 
 
+@method_decorator(
+    name='update',
+    decorator=swagger_auto_schema(
+        deprecated=True
+    ),
+)
+@method_decorator(
+    name='retrieve',
+    decorator=swagger_auto_schema(
+        deprecated=True
+    ),
+)
+@method_decorator(
+    name='partial_update',
+    decorator=swagger_auto_schema(
+        deprecated=True
+    ),
+)
 class MyUserProfileViewSet(
         mixins.RetrieveModelMixin,
         mixins.UpdateModelMixin,
@@ -892,6 +935,12 @@ class MyUserProfileViewSet(
         return user
 
 
+@method_decorator(
+    name='retrieve',
+    decorator=swagger_auto_schema(
+        deprecated=True
+    ),
+)
 class UserProfileViewSet(
         mixins.RetrieveModelMixin,
         GenericViewSet):
@@ -1039,6 +1088,12 @@ class RepositoryAuthorizationRoleViewSet(
         return response
 
 
+@method_decorator(
+    name='list',
+    decorator=swagger_auto_schema(
+        deprecated=True,
+    )
+)
 class SearchUserViewSet(
         mixins.ListModelMixin,
         GenericViewSet):
