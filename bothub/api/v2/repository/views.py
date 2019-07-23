@@ -48,107 +48,22 @@ from .filters import RepositoryUpdatesFilter
 
 
 class RepositoryViewSet(
-        MultipleFieldLookupMixin,
+        mixins.CreateModelMixin,
         mixins.RetrieveModelMixin,
         mixins.UpdateModelMixin,
         mixins.DestroyModelMixin,
         GenericViewSet):
     """
-    Manager repository.
-
-    retrieve:
-    Get repository data.
-
-    update:
-    Update your repository.
-
-    partial_update:
-    Update, partially, your repository.
-
-    delete:
-    Delete your repository.
+    Manager repository (bot).
     """
     queryset = Repository.objects
-    lookup_field = 'slug'
-    lookup_fields = ['owner__nickname', 'slug']
+    lookup_field = 'uuid'
     serializer_class = RepositorySerializer
-    edit_serializer_class = EditRepositorySerializer
     permission_classes = [
+        IsAuthenticatedOrReadOnly,
         RepositoryPermission,
     ]
-
-    @action(
-        detail=True,
-        methods=['GET'],
-        url_name='repository-languages-status')
-    def languagesstatus(self, request, **kwargs):
-        """
-        Get current language status.
-        """
-        repository = self.get_object()
-        return Response({
-            'languages_status': repository.languages_status,
-        })
-
-    @action(
-        detail=True,
-        methods=['POST'],
-        url_name='repository-analyze',
-        permission_classes=[])
-    def analyze(self, request, **kwargs):
-        repository = self.get_object()
-        user_authorization = repository.get_user_authorization(request.user)
-        serializer = AnalyzeTextSerializer(
-            data=request.data)  # pragma: no cover
-        serializer.is_valid(raise_exception=True)  # pragma: no cover
-        request = Repository.request_nlp_analyze(
-            user_authorization,
-            serializer.data)  # pragma: no cover
-
-        if request.status_code == status.HTTP_200_OK:  # pragma: no cover
-            return Response(request.json())  # pragma: no cover
-
-        response = None  # pragma: no cover
-        try:  # pragma: no cover
-            response = request.json()  # pragma: no cover
-        except Exception:
-            pass
-
-        if not response:  # pragma: no cover
-            raise APIException(  # pragma: no cover
-                detail=_('Something unexpected happened! ' + \
-                         'We couldn\'t analyze your text.'))
-        error = response.get('error')  # pragma: no cover
-        message = error.get('message')  # pragma: no cover
-        raise APIException(detail=message)  # pragma: no cover
-
-    def get_serializer_class(self):
-        if self.request and self.request.method in \
-           ['OPTIONS'] + CUSTOM_WRITE_METHODS or not self.request:
-            return self.edit_serializer_class
-        return self.serializer_class
-
-    def get_action_permissions_classes(self):
-        if not self.action:
-            return None
-        fn = getattr(self, self.action, None)
-        if not fn:
-            return None
-        fn_kwargs = getattr(fn, 'kwargs', None)
-        if not fn_kwargs:
-            return None
-        permission_classes = fn_kwargs.get('permission_classes')
-        if not permission_classes:
-            return None
-        return permission_classes
-
-    def get_permissions(self):
-        action_permissions_classes = self.get_action_permissions_classes()
-        if action_permissions_classes:
-            return [permission()
-                    for permission
-                    in action_permissions_classes]
-        return super().get_permissions()
+    metadata_class = Metadata
 
 
 @method_decorator(
