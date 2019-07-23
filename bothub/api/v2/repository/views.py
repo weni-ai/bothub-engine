@@ -17,6 +17,7 @@ from bothub.common.models import RepositoryVote
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryTranslatedExample
 from bothub.common.models import RepositoryExample
+from bothub.common.models import RepositoryUpdate
 
 from ..metadata import Metadata
 from .serializers import RepositorySerializer
@@ -28,11 +29,14 @@ from .serializers import NewRepositorySerializer
 from .serializers import RepositoryTranslatedExampleSerializer
 from .serializers import RepositoryExampleSerializer
 from .serializers import NewRepositoryTranslatedExampleSerializer
+from .serializers import RepositoryUpdateSerializer
 from .permissions import RepositoryPermission
 from .permissions import RepositoryTranslatedExamplePermission
 from .permissions import RepositoryExamplePermission
+from .permissions import RepositoryUpdateHasPermission
 from .filters import RepositoriesFilter
 from .filters import RepositoryTranslationsFilter
+from .filters import RepositoryUpdatesFilter
 
 
 class RepositoryViewSet(
@@ -323,3 +327,16 @@ class RepositoryTranslationsViewSet(
     serializer_class = RepositoryTranslatedExampleSerializer
     queryset = RepositoryTranslatedExample.objects.all()
     filter_class = RepositoryTranslationsFilter
+
+
+class RepositoryUpdatesViewSet(
+      mixins.ListModelMixin,
+      GenericViewSet):
+    queryset = RepositoryUpdate.objects.filter(
+        training_started_at__isnull=False).order_by('-trained_at')
+    serializer_class = RepositoryUpdateSerializer
+    filter_class = RepositoryUpdatesFilter
+    permission_classes = [
+        IsAuthenticated,
+        RepositoryUpdateHasPermission,
+    ]

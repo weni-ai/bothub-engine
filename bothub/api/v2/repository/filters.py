@@ -6,6 +6,7 @@ from rest_framework.exceptions import NotFound
 
 from bothub.common.models import Repository
 from bothub.common.models import RepositoryTranslatedExample
+from bothub.common.models import RepositoryUpdate
 
 
 class RepositoriesFilter(filters.FilterSet):
@@ -65,3 +66,31 @@ class RepositoryTranslationsFilter(filters.FilterSet):
 
     def filter_to_language(self, queryset, name, value):
         return queryset.filter(language=value)
+
+
+class RepositoryUpdatesFilter(filters.FilterSet):
+    class Meta:
+        model = RepositoryUpdate
+        fields = [
+            'repository_uuid',
+        ]
+
+    repository_uuid = filters.CharFilter(
+        field_name='repository_uuid',
+        required=True,
+        method='filter_repository_uuid',
+        help_text=_('Repository\'s UUID'))
+
+    def filter_repository_uuid(self, queryset, name, value):
+        request = self.request
+        try:
+            repository = Repository.objects.get(uuid=value)
+            authorization = repository.get_user_authorization(request.user)
+            if not authorization.can_read:
+                raise PermissionDenied()
+            return queryset.filter(repository=repository)
+        except Repository.DoesNotExist:
+            raise NotFound(
+                _('Repository {} does not exist').format(value))
+        except DjangoValidationError:
+            raise NotFound(_('Invalid repository UUID'))
