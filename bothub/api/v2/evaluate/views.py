@@ -126,7 +126,6 @@ class EvaluateViewSet(
     """
     Manager evaluate (tests).
     """
-    lookup_fields = ('pk', 'repository_uuid')
     queryset = RepositoryEvaluate.objects
     serializer_class = RepositoryEvaluateSerializer
     permission_classes = [
@@ -196,7 +195,6 @@ class ResultsListViewSet(
         GenericViewSet):
 
     queryset = RepositoryEvaluateResult.objects
-    lookup_fields = ['repository_uuid']
     serializer_class = RepositoryEvaluateResultVersionsSerializer
     permission_classes = [
         IsAuthenticated,
