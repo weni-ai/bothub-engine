@@ -54,7 +54,7 @@ class ListEvaluateTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
         }
         request = self.factory.get(
-            '/v2/evaluate/?repository_uuid={}'.format(
+            '/v2/repository/evaluate/?repository_uuid={}'.format(
                 self.repository.uuid
             ), **authorization_header
         )
@@ -107,7 +107,7 @@ class NewEvaluateTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
         }
         request = self.factory.post(
-            '/v2/evaluate/?repository_uuid={}'.format(
+            '/v2/repository/evaluate/?repository_uuid={}'.format(
                 self.repository.uuid
             ),
             json.dumps(data),
@@ -218,7 +218,7 @@ class EvaluateDestroyTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
         }
         request = self.factory.delete(
-            '/v2/evaluate/{}/?repository_uuid={}'.format(
+            '/v2/repository/evaluate/{}/?repository_uuid={}'.format(
                 self.repository_evaluate.id,
                 self.repository.uuid
             ), **authorization_header
@@ -293,7 +293,7 @@ class EvaluateUpdateTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
         }
         request = self.factory.patch(
-            '/v2/evaluate/{}/?repository_uuid={}'.format(
+            '/v2/repository/evaluate/{}/?repository_uuid={}'.format(
                 self.repository_evaluate.id,
                 self.repository.uuid
             ),
@@ -501,7 +501,7 @@ class ListEvaluateResultTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
         }
         request = self.factory.get(
-            '/v2/evaluate/results/?repository_uuid={}'.format(
+            '/v2/repository/evaluate/results/?repository_uuid={}'.format(
                 self.repository.uuid
             ), **authorization_header
         )
@@ -680,7 +680,7 @@ class ListEvaluateResultTestFilterCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
         }
         request = self.factory.get(
-            '/v2/evaluate/results/{}/{}'.format(
+            '/v2/repository/evaluate/results/{}/{}'.format(
                 self.evaluate_result.id,
                 params
             ), **authorization_header
