@@ -286,24 +286,36 @@ class ListUserProfileTestCase(TestCase):
         self.factory = RequestFactory()
         self.user, self.user_token = create_user_and_token()
 
-    def request(self, token):
+    def request(self, token, nickname):
         request = self.factory.get(
-            '/v2/account/user-profile/{}/'.format(self.user.nickname)
+            '/v2/account/user-profile/{}/'.format(nickname)
         )
         response = UserProfileViewSet.as_view(
-            {'get': 'retrieve'})(request, nickname=self.user.nickname)
+            {'get': 'retrieve'})(request, nickname=nickname)
         response.render()
         content_data = json.loads(response.content)
         return (response, content_data,)
 
     def test_okay(self):
-        response, content_data = self.request(self.user_token)
+        response, content_data = self.request(
+            self.user_token,
+            self.user.nickname
+        )
         self.assertEqual(
             response.status_code,
             status.HTTP_200_OK)
         self.assertEqual(
             content_data.get('nickname'),
             self.user.nickname)
+
+    def test_not_exists(self):
+        response, content_data = self.request(self.user_token, 'no_exists')
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_404_NOT_FOUND)
+        self.assertEqual(
+            content_data.get('detail'),
+            'Not found.')
 
 
 class UserUpdateTestCase(TestCase):
