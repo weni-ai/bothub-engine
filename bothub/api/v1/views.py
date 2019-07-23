@@ -678,6 +678,12 @@ class RepositoryViewSet(
         return super().get_permissions()
 
 
+@method_decorator(
+    name='create',
+    decorator=swagger_auto_schema(
+        deprecated=True,
+    )
+)
 class NewRepositoryExampleViewSet(
         mixins.CreateModelMixin,
         GenericViewSet):

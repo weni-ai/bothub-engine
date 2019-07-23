@@ -339,3 +339,14 @@ class RepositoryUpdatesViewSet(
         IsAuthenticated,
         RepositoryUpdateHasPermission,
     ]
+
+
+class NewRepositoryExampleViewSet(
+        mixins.CreateModelMixin,
+        GenericViewSet):
+    """
+    Create new repository example.
+    """
+    queryset = RepositoryExample.objects
+    serializer_class = NewRepositoryExampleSerializer
+    permission_classes = [IsAuthenticated]
