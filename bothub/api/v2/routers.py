@@ -15,6 +15,7 @@ from .repository.views import RepositoryUpdatesViewSet
 from .repository.views import NewRepositoryExampleViewSet
 from .repository.views import RequestAuthorizationViewSet
 from .repository.views import ReviewAuthorizationRequestViewSet
+from .repository.views import RepositoryAuthorizationViewSet
 from .examples.views import ExamplesViewSet
 from .evaluate.views import EvaluateViewSet
 from .evaluate.views import ResultsListViewSet
@@ -127,6 +128,7 @@ router.register(
     'repository/review-authorization-request',
     ReviewAuthorizationRequestViewSet
 )
+router.register('repository/authorizations', RepositoryAuthorizationViewSet)
 router.register('account/login', LoginViewSet)
 router.register('account/register', RegisterUserViewSet)
 router.register('account/change-password', ChangePasswordViewSet)

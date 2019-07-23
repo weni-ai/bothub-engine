@@ -715,3 +715,27 @@ class ReviewAuthorizationRequestSerializer(serializers.ModelSerializer):
             'approved_by': self.context['request'].user,
         })
         return super().update(instance, validated_data)
+
+
+class RepositoryAuthorizationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RepositoryAuthorization
+        fields = [
+            'uuid',
+            'user',
+            'user__nickname',
+            'repository',
+            'role',
+            'level',
+            'can_read',
+            'can_contribute',
+            'can_write',
+            'is_admin',
+            'created_at',
+        ]
+        ref_name = None
+
+    user__nickname = serializers.SlugRelatedField(
+        source='user',
+        slug_field='nickname',
+        read_only=True)

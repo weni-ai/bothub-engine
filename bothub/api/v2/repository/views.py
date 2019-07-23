@@ -35,6 +35,7 @@ from .serializers import RepositoryUpdateSerializer
 from .serializers import NewRepositoryExampleSerializer
 from .serializers import NewRequestRepositoryAuthorizationSerializer
 from .serializers import ReviewAuthorizationRequestSerializer
+from .serializers import RepositoryAuthorizationSerializer
 from .permissions import RepositoryPermission
 from .permissions import RepositoryTranslatedExamplePermission
 from .permissions import RepositoryExamplePermission
@@ -43,6 +44,7 @@ from .permissions import RepositoryAdminManagerAuthorization
 from .filters import RepositoriesFilter
 from .filters import RepositoryTranslationsFilter
 from .filters import RepositoryUpdatesFilter
+from .filters import RepositoryAuthorizationFilter
 
 
 class RepositoryViewSet(
@@ -392,3 +394,15 @@ class ReviewAuthorizationRequestViewSet(
             return super().update(*args, **kwargs)
         except DjangoValidationError as e:
             raise ValidationError(e.message)
+
+
+class RepositoryAuthorizationViewSet(
+        mixins.ListModelMixin,
+        GenericViewSet):
+    queryset = RepositoryAuthorization.objects.exclude(
+        role=RepositoryAuthorization.ROLE_NOT_SETTED)
+    serializer_class = RepositoryAuthorizationSerializer
+    filter_class = RepositoryAuthorizationFilter
+    permission_classes = [
+        IsAuthenticated,
+    ]
