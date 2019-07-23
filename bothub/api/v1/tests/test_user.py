@@ -23,7 +23,7 @@ class RegisterUserTestCase(TestCase):
 
     def request(self, data):
         request = self.factory.post(
-            '/api/register/',
+            '/v1/register/',
             data)
         response = RegisterUserViewSet.as_view(
             {'post': 'create'})(request)
@@ -109,7 +109,7 @@ class UserUpdateTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
         }
         request = self.factory.patch(
-            '/api/my-profile/',
+            '/v1/my-profile/',
             self.factory._encode_data(data, MULTIPART_CONTENT),
             MULTIPART_CONTENT,
             **authorization_header)
@@ -151,7 +151,7 @@ class LoginTestCase(TestCase):
 
     def request(self, data):
         request = self.factory.post(
-            '/api/login/',
+            '/v1/login/',
             data)
         response = LoginViewSet.as_view(
             {'post': 'create'})(request)
@@ -194,7 +194,7 @@ class ChangePasswordTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
         }
         request = self.factory.post(
-            '/api/',
+            '/v1/',
             data,
             **authorization_header)
         response = ChangePasswordViewSet.as_view(
@@ -243,7 +243,7 @@ class RequestResetPasswordTestCase(TestCase):
 
     def request(self, data):
         request = self.factory.post(
-            '/api/forgot-password/',
+            '/v1/forgot-password/',
             data)
         response = RequestResetPassword.as_view(
             {'post': 'create'})(request)
@@ -280,7 +280,7 @@ class ResetPasswordTestCase(TestCase):
 
     def request(self, nickname, data):
         request = self.factory.post(
-            '/api/reset-password/{}/'.format(nickname),
+            '/v1/reset-password/{}/'.format(nickname),
             data)
         response = ResetPassword.as_view(
             {'post': 'update'})(request, nickname=nickname)
@@ -327,7 +327,7 @@ class MyUserProfileTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
         }
         request = self.factory.get(
-            '/api/my-profile/',
+            '/v1/my-profile/',
             **authorization_header)
         response = MyUserProfileViewSet.as_view(
             {'get': 'retrieve'})(request)

@@ -18,7 +18,7 @@ class CategoriesTestCase(TestCase):
             icon='business')
 
     def request(self):
-        request = self.factory.get('/api/categories/')
+        request = self.factory.get('/v1/categories/')
         response = Categories.as_view(
             {'get': 'list'})(request)
         response.render()

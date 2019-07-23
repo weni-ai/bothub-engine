@@ -38,7 +38,7 @@ class TranslateExampleTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(user_token.key),
         }
         request = self.factory.post(
-            '/api/translate-example/',
+            '/v1/translate-example/',
             json.dumps(data),
             content_type='application/json',
             **authorization_header)
@@ -250,7 +250,7 @@ class RepositoryTranslatedExampleRetrieveTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
         }
         request = self.factory.get(
-            '/api/translation/{}/'.format(translated.id),
+            '/v1/translation/{}/'.format(translated.id),
             **authorization_header)
         response = RepositoryTranslatedExampleViewSet.as_view(
             {'get': 'retrieve'})(request, pk=translated.id)
@@ -315,7 +315,7 @@ class RepositoryTranslatedExampleDestroyTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
         }
         request = self.factory.delete(
-            '/api/translation/{}/'.format(translated.id),
+            '/v1/translation/{}/'.format(translated.id),
             **authorization_header)
         response = RepositoryTranslatedExampleViewSet.as_view(
             {'delete': 'destroy'})(request, pk=translated.id)
@@ -364,7 +364,7 @@ class TranslationsViewTest(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(user_token.key),
         } if user_token else {}
         request = self.factory.get(
-            '/api/translations/',
+            '/v1/translations/',
             data,
             **authorization_header)
         response = TranslationsViewSet.as_view({'get': 'list'})(request)

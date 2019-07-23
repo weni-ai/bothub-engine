@@ -36,7 +36,7 @@ class NewRepositoryExampleTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
         }
         request = self.factory.post(
-            '/api/example/new/',
+            '/v1/example/new/',
             json.dumps(data),
             content_type='application/json',
             **authorization_header)
@@ -373,7 +373,7 @@ class RepositoryExampleRetrieveTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
         }
         request = self.factory.get(
-            '/api/example/{}/'.format(example.id),
+            '/v1/example/{}/'.format(example.id),
             **authorization_header)
         response = RepositoryExampleViewSet.as_view(
             {'get': 'retrieve'})(request, pk=example.id)
@@ -484,7 +484,7 @@ class RepositoryExampleDestroyTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
         }
         request = self.factory.delete(
-            '/api/example/{}/'.format(example.id),
+            '/v1/example/{}/'.format(example.id),
             **authorization_header)
         response = RepositoryExampleViewSet.as_view(
             {'delete': 'destroy'})(request, pk=example.id)
@@ -564,7 +564,7 @@ class RepositoryExampleUpdateTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
         }
         request = self.factory.patch(
-            '/api/example/{}/'.format(example.id),
+            '/v1/example/{}/'.format(example.id),
             json.dumps(data),
             content_type='application/json',
             **authorization_header)
@@ -635,7 +635,7 @@ class RepositoryEntitiesTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
         }
         request = self.factory.get(
-            '/api/entities/',
+            '/v1/entities/',
             data=data,
             **authorization_header)
         response = RepositoryEntitiesViewSet.as_view(
