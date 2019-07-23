@@ -34,7 +34,7 @@ class RequestAuthorizationTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
         } if token else {}
         request = self.factory.post(
-            '/api/request-authorization/',
+            '/v1/request-authorization/',
             data,
             **authorization_header)
         response = RequestAuthorizationViewSet.as_view(
@@ -97,7 +97,7 @@ class RepositoryAuthorizationRequestsTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
         } if token else {}
         request = self.factory.get(
-            '/api/authorization-requests/',
+            '/v1/authorization-requests/',
             data,
             **authorization_header)
         response = RepositoryAuthorizationRequestsViewSet.as_view(
@@ -174,7 +174,7 @@ class ReviewAuthorizationRequestTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
         } if token else {}
         request = self.factory.put(
-            '/api/review-authorization-request/{}/'.format(ra.pk),
+            '/v1/review-authorization-request/{}/'.format(ra.pk),
             self.factory._encode_data({}, MULTIPART_CONTENT),
             MULTIPART_CONTENT,
             **authorization_header)
@@ -189,7 +189,7 @@ class ReviewAuthorizationRequestTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
         } if token else {}
         request = self.factory.delete(
-            '/api/review-authorization-request/{}/'.format(ra.pk),
+            '/v1/review-authorization-request/{}/'.format(ra.pk),
             **authorization_header)
         response = ReviewAuthorizationRequestViewSet.as_view(
             {'delete': 'destroy'})(request, pk=ra.pk)

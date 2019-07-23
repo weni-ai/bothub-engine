@@ -41,7 +41,7 @@ class AuthorizationTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
         }
         request = self.factory.get(
-            '/api/repository/{}/{}/'.format(
+            '/v1/repository/{}/{}/'.format(
                 repository.owner.nickname,
                 repository.slug),
             **authorization_header)
@@ -118,7 +118,7 @@ class ListAuthorizationTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
         }
         request = self.factory.get(
-            '/api/list-authorizations/',
+            '/v1/list-authorizations/',
             {
                 'repository': repository.uuid,
             },
@@ -174,7 +174,7 @@ class UpdateAuthorizationRoleTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
         }
         request = self.factory.patch(
-            '/api/authorization-role/{}/{}/'.format(
+            '/v1/authorization-role/{}/{}/'.format(
                 repository.uuid, user.nickname),
             self.factory._encode_data(data, MULTIPART_CONTENT),
             MULTIPART_CONTENT,

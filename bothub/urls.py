@@ -1,7 +1,6 @@
 from django.contrib import admin
-from django.urls import path, include, re_path
+from django.urls import path, include
 from django.conf import settings
-from rest_framework.documentation import include_docs_urls
 
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
@@ -28,20 +27,16 @@ schema_view = get_schema_view(
 )
 
 urlpatterns = [
-    path('', include(bothub_api_routers.urls)),
-    path('api/', include(bothub_api_routers.urls)),
+    path('', schema_view.with_ui('swagger')),
+    path('v1/', include(bothub_api_routers.urls)),
     path('v2/', include(bothub_api_v2_urls)),
-    path('api/v2/', include(bothub_api_v2_urls)),
-    path('docs/', include_docs_urls(title='API Documentation')),
     path('admin/', admin.site.urls),
     path('ping/', ping, name='ping'),
     path('200/', r200, name='200'),
     path(
         'downloadbotdata/<int:update_id>/',
         download_bot_data,
-        name='download_bot_data'),
-    re_path(r'^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui()),
-    path('swagger/', schema_view.with_ui('swagger'))
+        name='download_bot_data')
 ]
 
 if settings.DEBUG:

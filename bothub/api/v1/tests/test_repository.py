@@ -38,7 +38,7 @@ class NewRepositoryTestCase(TestCase):
 
     def request(self, data):
         request = self.factory.post(
-            '/api/repository/new/',
+            '/v1/repository/new/',
             data,
             **self.authorization_header)
         response = NewRepositoryViewSet.as_view({'post': 'create'})(request)
@@ -160,7 +160,7 @@ class RetrieveRepositoryTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
         }
         request = self.factory.get(
-            '/api/repository/{}/{}/'.format(
+            '/v1/repository/{}/{}/'.format(
                 repository.owner.nickname,
                 repository.slug),
             **authorization_header)
@@ -212,7 +212,7 @@ class RetrieveRepositoryTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(self.user_token.key),
         }
         request = self.factory.get(
-            '/api/repository/{}/{}/languagesstatus/'.format(
+            '/v1/repository/{}/{}/languagesstatus/'.format(
                 self.repository.owner.nickname,
                 self.repository.uuid),
             **authorization_header)
@@ -302,7 +302,7 @@ class UpdateRepositoryTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
         }
         request = self.factory.patch(
-            '/api/repository/{}/{}/'.format(
+            '/v1/repository/{}/{}/'.format(
                 repository.owner.nickname,
                 repository.slug),
             self.factory._encode_data(data, MULTIPART_CONTENT),
@@ -417,7 +417,7 @@ class DestroyRepositoryTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
         }
         request = self.factory.delete(
-            '/api/repository/{}/{}/'.format(
+            '/v1/repository/{}/{}/'.format(
                 repository.owner.nickname,
                 repository.slug),
             **authorization_header)
@@ -465,7 +465,7 @@ class SearchRepositoriesTestCase(TestCase):
 
     def request(self, nickname):
         request = self.factory.get(
-            '/api/search-repositories/?nickname={}'.format(nickname)
+            '/v1/search-repositories/?nickname={}'.format(nickname)
         )
         response = SearchRepositoriesViewSet.as_view(
             {'get': 'list'}
@@ -526,7 +526,7 @@ class RepositoriesTestCase(TestCase):
 
     def request(self, data={}):
         request = self.factory.get(
-            '/api/repositories/',
+            '/v1/repositories/',
             data)
         response = RepositoriesViewSet.as_view({'get': 'list'})(request)
         response.render()
@@ -582,7 +582,7 @@ class TrainRepositoryTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
         }
         request = self.factory.get(
-            '/api/repository/{}/{}/train/'.format(
+            '/v1/repository/{}/{}/train/'.format(
                 repository.owner.nickname,
                 repository.slug),
             **authorization_header)
@@ -622,7 +622,7 @@ class AnalyzeRepositoryTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
         }
         request = self.factory.post(
-            '/api/repository/{}/{}/analyze/'.format(
+            '/v1/repository/{}/{}/analyze/'.format(
                 repository.owner.nickname,
                 repository.slug),
             data,
@@ -708,7 +708,7 @@ class LanguagesStatusTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
         }
         request = self.factory.get(
-            '/api/repository/{}/{}/languagesstatus/'.format(
+            '/v1/repository/{}/{}/languagesstatus/'.format(
                 repository.owner.nickname,
                 repository.slug),
             **authorization_header)

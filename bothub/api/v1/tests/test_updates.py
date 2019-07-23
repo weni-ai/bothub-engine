@@ -38,7 +38,7 @@ class UpdatesTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
         } if token else {}
         request = self.factory.get(
-            '/api/updates/',
+            '/v1/updates/',
             data,
             **authorization_header)
         response = RepositoryUpdatesViewSet.as_view(

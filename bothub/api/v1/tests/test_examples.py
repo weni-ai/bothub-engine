@@ -50,7 +50,7 @@ class ExamplesTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
         }
         request = self.factory.get(
-            '/api/examples/',
+            '/v1/examples/',
             data,
             **authorization_header)
         response = RepositoryExamplesViewSet.as_view(

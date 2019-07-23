@@ -74,7 +74,7 @@ class ListExamplesAPITestCase(TestCase):
         } if token else {}
 
         request = self.factory.get(
-            '/api/v2/examples/',
+            '/v2/examples/',
             data,
             **authorization_header)
 
