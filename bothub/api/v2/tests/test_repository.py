@@ -20,6 +20,9 @@ from bothub.api.v2.repository.views import RepositoryViewSet
 from bothub.api.v2.repository.views import RepositoriesContributionsViewSet
 from bothub.api.v2.repository.views import RepositoriesViewSet
 from bothub.api.v2.repository.views import RepositoryVotesViewSet
+from bothub.api.v2.repository.views import RepositoryCategoriesViewSet
+from bothub.api.v2.repository.views import NewRepositoryViewSet
+from bothub.api.v2.repository.views import RepositoryTranslatedExampleViewSet
 from bothub.api.v2.repository.serializers import RepositorySerializer
 
 
@@ -856,3 +859,278 @@ class ListRepositoryContributionsTestCase(TestCase):
             len(content_data['results']),
             1
         )
+
+
+class ListRepositoryCategoriesTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.category = RepositoryCategory.objects.create(name='Category 1')
+        self.business_category = RepositoryCategory.objects.create(
+            name='Business',
+            icon='business')
+
+    def request(self):
+        request = self.factory.get('/v2/repository/categories/')
+        response = RepositoryCategoriesViewSet.as_view(
+            {'get': 'list'})(request)
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data,)
+
+    def test_default_category_icon(self):
+        response, content_data = self.request()
+        self.assertEqual(
+            content_data[0].get('id'),
+            self.category.id)
+        self.assertEqual(
+            content_data[0].get('icon'),
+            'botinho')
+
+    def test_custom_category_icon(self):
+        response, content_data = self.request()
+        self.assertEqual(
+            content_data[1].get('id'),
+            self.business_category.id)
+        self.assertEqual(
+            content_data[1].get('icon'),
+            self.business_category.icon)
+
+
+class NewRepositoryTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.user, self.token = create_user_and_token()
+        self.authorization_header = {
+            'HTTP_AUTHORIZATION': 'Token {}'.format(self.token.key),
+        }
+
+        self.category = RepositoryCategory.objects.create(
+            name='ID')
+
+    def request(self, data):
+        request = self.factory.post(
+            '/v2/repository/new/',
+            data,
+            **self.authorization_header)
+        response = NewRepositoryViewSet.as_view({'post': 'create'})(request)
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data,)
+
+    def test_okay(self):
+        response, content_data = self.request({
+            'name': 'Testing',
+            'slug': 'test',
+            'language': languages.LANGUAGE_EN,
+            'categories': [self.category.id],
+            'description': '',
+        })
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_201_CREATED)
+
+    def test_fields_required(self):
+        def request_and_check(field, data):
+            response, content_data = self.request(data)
+            self.assertEqual(
+                response.status_code,
+                status.HTTP_400_BAD_REQUEST)
+            self.assertIn(field, content_data.keys())
+
+        request_and_check('name', {
+            'slug': 'test',
+            'language': languages.LANGUAGE_EN,
+            'categories': [self.category.id],
+        })
+
+        request_and_check('slug', {
+            'name': 'Testing',
+            'language': languages.LANGUAGE_EN,
+            'categories': [self.category.id],
+        })
+
+        request_and_check('language', {
+            'name': 'Testing',
+            'slug': 'test',
+            'categories': [self.category.id],
+        })
+
+        request_and_check('categories', {
+            'name': 'Testing',
+            'slug': 'test',
+            'language': languages.LANGUAGE_EN,
+        })
+
+    def test_invalid_slug(self):
+        response, content_data = self.request({
+            'name': 'Testing',
+            'slug': 'invalid slug',
+            'language': languages.LANGUAGE_EN,
+            'categories': [self.category.id],
+        })
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST)
+        self.assertIn('slug', content_data.keys())
+
+    def test_invalid_language(self):
+        response, content_data = self.request({
+            'name': 'Testing',
+            'slug': 'test',
+            'language': 'jj',
+            'categories': [self.category.id],
+            'description': '',
+        })
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST)
+        self.assertIn('language', content_data.keys())
+
+    def test_unique_slug(self):
+        same_slug = 'test'
+        Repository.objects.create(
+            owner=self.user,
+            name='Testing',
+            slug=same_slug,
+            language=languages.LANGUAGE_EN)
+        response, content_data = self.request({
+            'name': 'Testing',
+            'slug': same_slug,
+            'language': languages.LANGUAGE_EN,
+            'categories': [self.category.id],
+            'description': '',
+        })
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST)
+        self.assertIn('non_field_errors', content_data.keys())
+
+
+class RepositoryTranslatedExampleRetrieveTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.owner, self.owner_token = create_user_and_token('owner')
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name='Testing',
+            slug='test',
+            language=languages.LANGUAGE_EN)
+        self.example = RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(),
+            text='hi')
+        self.translated = RepositoryTranslatedExample.objects.create(
+            original_example=self.example,
+            language=languages.LANGUAGE_PT,
+            text='oi')
+
+        self.private_repository = Repository.objects.create(
+            owner=self.owner,
+            name='Private',
+            slug='private',
+            language=languages.LANGUAGE_EN,
+            is_private=True)
+        self.private_example = RepositoryExample.objects.create(
+            repository_update=self.private_repository.current_update(),
+            text='hi')
+        self.private_translated = RepositoryTranslatedExample.objects.create(
+            original_example=self.private_example,
+            language=languages.LANGUAGE_PT,
+            text='oi')
+
+    def request(self, translated, token):
+        authorization_header = {
+            'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
+        }
+        request = self.factory.get(
+            '/v2/repository/translation/{}/'.format(translated.id),
+            **authorization_header)
+        response = RepositoryTranslatedExampleViewSet.as_view(
+            {'get': 'retrieve'})(request, pk=translated.id)
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data,)
+
+    def test_okay(self):
+        response, content_data = self.request(
+            self.translated,
+            self.owner_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK)
+        self.assertEqual(
+            content_data.get('id'),
+            self.translated.id)
+
+    def test_private_okay(self):
+        response, content_data = self.request(
+            self.private_translated,
+            self.owner_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK)
+        self.assertEqual(
+            content_data.get('id'),
+            self.private_translated.id)
+
+    def test_forbidden(self):
+        user, user_token = create_user_and_token()
+
+        response, content_data = self.request(
+            self.private_translated,
+            user_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_403_FORBIDDEN)
+
+
+class RepositoryTranslatedExampleDestroyTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.owner, self.owner_token = create_user_and_token('owner')
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name='Testing',
+            slug='test',
+            language=languages.LANGUAGE_EN)
+        self.example = RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(),
+            text='hi')
+        self.translated = RepositoryTranslatedExample.objects.create(
+            original_example=self.example,
+            language=languages.LANGUAGE_PT,
+            text='oi')
+
+    def request(self, translated, token):
+        authorization_header = {
+            'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
+        }
+        request = self.factory.delete(
+            '/v2/repository/translation/{}/'.format(translated.id),
+            **authorization_header)
+        response = RepositoryTranslatedExampleViewSet.as_view(
+            {'delete': 'destroy'})(request, pk=translated.id)
+        return response
+
+    def test_okay(self):
+        response = self.request(
+            self.translated,
+            self.owner_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_204_NO_CONTENT)
+
+    def test_forbidden(self):
+        user, user_token = create_user_and_token()
+
+        response = self.request(
+            self.translated,
+            user_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_403_FORBIDDEN)
