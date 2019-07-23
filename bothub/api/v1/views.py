@@ -1145,7 +1145,7 @@ class RepositoryAuthorizationViewSet(
                 type=openapi.TYPE_STRING,
                 required=True
             ),
-        ]
+        ], deprecated=True
     )
 )
 @method_decorator(
@@ -1166,7 +1166,8 @@ class RepositoryAuthorizationViewSet(
                 type=openapi.TYPE_STRING,
                 required=True
             ),
-        ]
+        ],
+        deprecated=True
     )
 )
 class RepositoryAuthorizationRoleViewSet(

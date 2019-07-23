@@ -1,6 +1,7 @@
 from django.utils.decorators import method_decorator
 from django.utils.translation import gettext as _
 from django_filters.rest_framework import DjangoFilterBackend
+from django.shortcuts import get_object_or_404
 from django.core.exceptions import ValidationError as DjangoValidationError
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
@@ -12,6 +13,8 @@ from rest_framework import mixins, status
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.filters import SearchFilter
+
+from bothub.api.v2.mixins import MultipleFieldLookupMixin
 from bothub.common.models import Repository
 from bothub.common.models import RepositoryCategory
 from bothub.common.models import RepositoryVote
@@ -36,6 +39,7 @@ from .serializers import NewRepositoryExampleSerializer
 from .serializers import NewRequestRepositoryAuthorizationSerializer
 from .serializers import ReviewAuthorizationRequestSerializer
 from .serializers import RepositoryAuthorizationSerializer
+from .serializers import RepositoryAuthorizationRoleSerializer
 from .permissions import RepositoryPermission
 from .permissions import RepositoryTranslatedExamplePermission
 from .permissions import RepositoryExamplePermission
@@ -406,3 +410,79 @@ class RepositoryAuthorizationViewSet(
     permission_classes = [
         IsAuthenticated,
     ]
+
+
+@method_decorator(
+    name='update',
+    decorator=swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                'repository__uuid',
+                openapi.IN_PATH,
+                description='Repository UUID',
+                type=openapi.TYPE_STRING,
+                required=True
+            ),
+            openapi.Parameter(
+                'user__nickname',
+                openapi.IN_QUERY,
+                description='Nickname User',
+                type=openapi.TYPE_STRING,
+                required=True
+            ),
+        ]
+    )
+)
+@method_decorator(
+    name='partial_update',
+    decorator=swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                'repository__uuid',
+                openapi.IN_PATH,
+                description='Repository UUID',
+                type=openapi.TYPE_STRING,
+                required=True
+            ),
+            openapi.Parameter(
+                'user__nickname',
+                openapi.IN_QUERY,
+                description='Nickname User',
+                type=openapi.TYPE_STRING,
+                required=True
+            ),
+        ]
+    )
+)
+class RepositoryAuthorizationRoleViewSet(
+        MultipleFieldLookupMixin,
+        mixins.UpdateModelMixin,
+        GenericViewSet):
+    queryset = RepositoryAuthorization.objects.exclude(
+        role=RepositoryAuthorization.ROLE_NOT_SETTED)
+    lookup_field = 'user__nickname'
+    lookup_fields = ['repository__uuid', 'user__nickname']
+    serializer_class = RepositoryAuthorizationRoleSerializer
+    permission_classes = [
+        IsAuthenticated,
+        RepositoryAdminManagerAuthorization,
+    ]
+
+    def get_object(self):
+        repository_uuid = self.kwargs.get('repository__uuid')
+        user_nickname = self.kwargs.get('user__nickname')
+
+        repository = get_object_or_404(Repository, uuid=repository_uuid)
+        user = get_object_or_404(User, nickname=user_nickname)
+
+        obj = repository.get_user_authorization(user)
+
+        self.check_object_permissions(self.request, obj)
+        return obj
+
+    def update(self, *args, **kwargs):
+        response = super().update(*args, **kwargs)
+        instance = self.get_object()
+        if instance.role is not RepositoryAuthorization.ROLE_NOT_SETTED:
+            instance.send_new_role_email(self.request.user)
+        return response

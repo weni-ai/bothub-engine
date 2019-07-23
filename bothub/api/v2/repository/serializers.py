@@ -11,6 +11,7 @@ from bothub.api.v2.repository.validators import \
     TranslatedExampleLanguageValidator
 from bothub.api.v2.repository.validators import \
     CanContributeInRepositoryExampleValidator
+from rest_framework.exceptions import PermissionDenied
 from bothub.common.models import Repository, RepositoryTranslatedExampleEntity
 from bothub.common.models import RepositoryTranslatedExample
 from bothub.common.models import RepositoryExample
@@ -739,3 +740,17 @@ class RepositoryAuthorizationSerializer(serializers.ModelSerializer):
         source='user',
         slug_field='nickname',
         read_only=True)
+
+
+class RepositoryAuthorizationRoleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RepositoryAuthorization
+        fields = [
+            'role',
+        ]
+        ref_name = None
+
+    def validate(self, data):
+        if self.instance.user == self.instance.repository.owner:
+            raise PermissionDenied(_('The owner role can\'t be changed.'))
+        return data
