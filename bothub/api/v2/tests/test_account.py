@@ -163,7 +163,7 @@ class RequestResetPasswordTestCase(TestCase):
         response = RequestResetPasswordViewSet.as_view(
             {'post': 'create'})(request)
         response.render()
-        content_data = json.loads(response.content)
+        content_data = json.loads(response.content or 'null')
         return (response, content_data,)
 
     def test_okay(self):
@@ -200,7 +200,7 @@ class ResetPasswordTestCase(TestCase):
         response = ResetPasswordViewSet.as_view(
             {'post': 'update'})(request, nickname=nickname)
         response.render()
-        content_data = json.loads(response.content)
+        content_data = json.loads(response.content or 'null')
         return (response, content_data,)
 
     def test_okay(self):
@@ -251,7 +251,7 @@ class ChangePasswordTestCase(TestCase):
         response = ChangePasswordViewSet.as_view(
             {'post': 'update'})(request)
         response.render()
-        content_data = json.loads(response.content)
+        content_data = json.loads(response.content or 'null')
         return (response, content_data,)
 
     def test_okay(self):
