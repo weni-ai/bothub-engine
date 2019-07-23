@@ -673,3 +673,26 @@ class NewRepositoryExampleSerializer(serializers.ModelSerializer):
             entity_serializer.is_valid(raise_exception=True)
             entity_serializer.save()
         return example
+
+
+class NewRequestRepositoryAuthorizationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RequestRepositoryAuthorization
+        fields = [
+            'user',
+            'repository',
+            'text',
+        ]
+        ref_name = None
+
+    repository = serializers.PrimaryKeyRelatedField(
+        queryset=Repository.objects,
+        style={'show': False})
+    user = serializers.HiddenField(
+        default=serializers.CurrentUserDefault(),
+        style={'show': False})
+    text = TextField(
+        label=_('Leave a message for repository administrators'),
+        min_length=5,
+        max_length=RequestRepositoryAuthorization._meta.get_field(
+            'text').max_length)

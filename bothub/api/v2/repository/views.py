@@ -17,6 +17,7 @@ from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryTranslatedExample
 from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryUpdate
+from bothub.common.models import RequestRepositoryAuthorization
 
 from ..metadata import Metadata
 from .serializers import RepositorySerializer
@@ -29,6 +30,8 @@ from .serializers import RepositoryTranslatedExampleSerializer
 from .serializers import RepositoryExampleSerializer
 from .serializers import NewRepositoryTranslatedExampleSerializer
 from .serializers import RepositoryUpdateSerializer
+from .serializers import NewRepositoryExampleSerializer
+from .serializers import NewRequestRepositoryAuthorizationSerializer
 from .permissions import RepositoryPermission
 from .permissions import RepositoryTranslatedExamplePermission
 from .permissions import RepositoryExamplePermission
@@ -350,3 +353,16 @@ class NewRepositoryExampleViewSet(
     queryset = RepositoryExample.objects
     serializer_class = NewRepositoryExampleSerializer
     permission_classes = [IsAuthenticated]
+
+
+class RequestAuthorizationViewSet(
+        mixins.CreateModelMixin,
+        GenericViewSet):
+    """
+    Request authorization in the repository
+    """
+    serializer_class = NewRequestRepositoryAuthorizationSerializer
+    queryset = RequestRepositoryAuthorization.objects
+    permission_classes = [
+        IsAuthenticated,
+    ]
