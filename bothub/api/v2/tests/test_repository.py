@@ -776,8 +776,9 @@ class DestroyRepositoryVoteTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(token),
         }
         request = self.factory.delete(
-            '/v2/repository/repository-votes/{}/'.format(str(self.repository.uuid)),
-            **authorization_header
+            '/v2/repository/repository-votes/{}/'.format(
+                str(self.repository.uuid)
+            ), **authorization_header
         )
         response = RepositoryVotesViewSet.as_view({'delete': 'destroy'})(
             request,
