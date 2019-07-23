@@ -402,6 +402,7 @@ class RepositoryTranslatedExampleEntitySeralizer(serializers.ModelSerializer):
             'created_at',
             'value',
         ]
+        ref_name = None
 
     repository_translated_example = serializers.PrimaryKeyRelatedField(
         queryset=RepositoryTranslatedExample.objects,
@@ -494,6 +495,7 @@ class NewRepositoryTranslatedExampleEntitySeralizer(
             'end',
             'entity',
         ]
+        ref_name = None
 
     entity = EntityValueField()
 

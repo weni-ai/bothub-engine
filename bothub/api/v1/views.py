@@ -707,6 +707,12 @@ class RepositoryExampleViewSet(
         obj.delete()
 
 
+@method_decorator(
+    name='create',
+    decorator=swagger_auto_schema(
+        deprecated=True,
+    )
+)
 class NewRepositoryTranslatedExampleViewSet(
         mixins.CreateModelMixin,
         GenericViewSet):
@@ -1044,6 +1050,12 @@ class RepositoriesViewSet(
     ]
 
 
+@method_decorator(
+    name='list',
+    decorator=swagger_auto_schema(
+        deprecated=True,
+    )
+)
 class TranslationsViewSet(
         mixins.ListModelMixin,
         GenericViewSet):

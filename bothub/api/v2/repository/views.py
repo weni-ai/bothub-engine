@@ -32,6 +32,7 @@ from .permissions import RepositoryPermission
 from .permissions import RepositoryTranslatedExamplePermission
 from .permissions import RepositoryExamplePermission
 from .filters import RepositoriesFilter
+from .filters import RepositoryTranslationsFilter
 
 
 class RepositoryViewSet(
@@ -311,3 +312,14 @@ class NewRepositoryTranslatedExampleViewSet(
     queryset = RepositoryTranslatedExample.objects
     serializer_class = NewRepositoryTranslatedExampleSerializer
     permission_classes = [IsAuthenticated]
+
+
+class RepositoryTranslationsViewSet(
+        mixins.ListModelMixin,
+        GenericViewSet):
+    """
+    List repository translations.
+    """
+    serializer_class = RepositoryTranslatedExampleSerializer
+    queryset = RepositoryTranslatedExample.objects.all()
+    filter_class = RepositoryTranslationsFilter

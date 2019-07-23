@@ -10,6 +10,7 @@ from .repository.views import RepositoryTranslatedExampleViewSet
 from .repository.views import RepositoryExampleViewSet
 from .repository.views import SearchRepositoriesViewSet
 from .repository.views import NewRepositoryTranslatedExampleViewSet
+from .repository.views import RepositoryTranslationsViewSet
 from .examples.views import ExamplesViewSet
 from .evaluate.views import EvaluateViewSet
 from .evaluate.views import ResultsListViewSet
@@ -111,6 +112,7 @@ router.register(
     'repository/translate-example',
     NewRepositoryTranslatedExampleViewSet
 )
+router.register('repository/translations', RepositoryTranslationsViewSet)
 router.register('account/login', LoginViewSet)
 router.register('account/register', RegisterUserViewSet)
 router.register('account/change-password', ChangePasswordViewSet)
