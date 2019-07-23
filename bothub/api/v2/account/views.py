@@ -89,7 +89,7 @@ class ChangePasswordViewSet(mixins.UpdateModelMixin, GenericViewSet):
         if serializer.is_valid():
             self.object.set_password(serializer.data.get('password'))
             self.object.save()
-            return Response({}, status=status.HTTP_200_OK)
+            return Response(status=status.HTTP_200_OK)
 
         return Response(
             serializer.errors,
@@ -114,7 +114,7 @@ class RequestResetPasswordViewSet(mixins.CreateModelMixin, GenericViewSet):
         if serializer.is_valid():
             self.object = self.get_object()
             self.object.send_reset_password_email()
-            return Response({})
+            return Response(status=status.HTTP_201_CREATED)
         return Response(
             serializer.errors,
             status=status.HTTP_400_BAD_REQUEST)
@@ -174,7 +174,7 @@ class ResetPasswordViewSet(mixins.UpdateModelMixin, GenericViewSet):
         if serializer.is_valid():
             self.object.set_password(serializer.data.get('password'))
             self.object.save()
-            return Response({})
+            return Response(status=status.HTTP_200_OK)
         return Response(
             serializer.errors,
             status=status.HTTP_400_BAD_REQUEST)
