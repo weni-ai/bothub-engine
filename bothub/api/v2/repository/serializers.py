@@ -1,3 +1,4 @@
+from django.utils.translation import gettext as _
 from rest_framework import serializers
 
 from bothub.common.models import Repository
@@ -8,6 +9,8 @@ from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RequestRepositoryAuthorization
 from bothub.common.languages import LANGUAGE_CHOICES
 from ..request.serializers import RequestRepositoryAuthorizationSerializer
+from ..fields import ModelMultipleChoiceField
+from ..fields import TextField
 
 
 class RepositoryCategorySerializer(serializers.ModelSerializer):
@@ -339,3 +342,37 @@ class RepositoryCategorySerializer(serializers.ModelSerializer):
             'icon',
         ]
         ref_name = None
+
+
+class NewRepositorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Repository
+        fields = [
+            'uuid',
+            'owner',
+            'name',
+            'slug',
+            'language',
+            'algorithm',
+            'use_competing_intents',
+            'use_name_entities',
+            'categories',
+            'description',
+            'is_private',
+        ]
+        ref_name = None
+
+    uuid = serializers.ReadOnlyField(
+        style={'show': False})
+    owner = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    language = serializers.ChoiceField(
+        LANGUAGE_CHOICES,
+        label=_('Language'))
+    categories = ModelMultipleChoiceField(
+        child_relation=serializers.PrimaryKeyRelatedField(
+            queryset=RepositoryCategory.objects.all()),
+        allow_empty=False,
+        help_text=Repository.CATEGORIES_HELP_TEXT)
+    description = TextField(
+        allow_blank=True,
+        help_text=Repository.DESCRIPTION_HELP_TEXT)

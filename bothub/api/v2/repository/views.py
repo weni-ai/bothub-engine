@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from rest_framework import mixins, status
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter
 
@@ -19,6 +20,7 @@ from .serializers import RepositoryContributionsSerializer
 from .serializers import RepositoryVotesSerializer
 from .serializers import RepositoryCategorySerializer
 from .serializers import ShortRepositorySerializer
+from .serializers import NewRepositorySerializer
 from .permissions import RepositoryPermission
 from .filters import RepositoriesFilter
 
@@ -175,3 +177,22 @@ class RepositoryCategoriesViewSet(mixins.ListModelMixin, GenericViewSet):
     serializer_class = RepositoryCategorySerializer
     queryset = RepositoryCategory.objects.all()
     pagination_class = None
+
+
+class NewRepositoryViewSet(mixins.CreateModelMixin, GenericViewSet):
+    """
+    Create a new Repository, add examples and train a bot.
+    """
+    queryset = Repository.objects
+    serializer_class = NewRepositorySerializer
+    permission_classes = [IsAuthenticated]
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        instance = serializer.save()
+        headers = self.get_success_headers(serializer.data)
+        return Response(
+            RepositorySerializer(instance).data,
+            status=status.HTTP_201_CREATED,
+            headers=headers)
