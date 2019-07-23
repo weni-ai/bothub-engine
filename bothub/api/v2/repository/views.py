@@ -261,3 +261,28 @@ class RepositoryExampleViewSet(
         if obj.deleted_in:
             raise APIException(_('Example already deleted'))
         obj.delete()
+
+
+class SearchRepositoriesViewSet(
+        mixins.ListModelMixin,
+        GenericViewSet):
+    """
+    List all user's repositories
+    """
+    queryset = Repository.objects
+    serializer_class = RepositorySerializer
+    lookup_field = 'nickname'
+
+    def get_queryset(self, *args, **kwargs):
+        try:
+            if self.request.query_params.get('nickname', None):
+                return self.queryset.filter(
+                    owner__nickname=self.request.query_params.get(
+                        'nickname',
+                        self.request.user
+                    )
+                )
+            else:
+                return self.queryset.filter(owner=self.request.user)
+        except TypeError:
+            return self.queryset.none()
