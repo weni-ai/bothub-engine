@@ -26,8 +26,8 @@ def migrate_repository_wit(repository, auth_token, language):
                 with thezip.open(zipinfo) as thefile:
                     if re.search('expressions.*', thefile.name):
                         for line in thefile.readlines():
-                            expressions += line.decode('utf-8', 'replace').replace(
-                                '\\"', '')
+                            expressions += line.decode('utf-8', 'replace')\
+                                .replace('\\"', '')
 
         for data in json.loads(expressions)['data']:
             text = data['text']

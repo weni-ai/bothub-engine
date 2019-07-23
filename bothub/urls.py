@@ -28,10 +28,8 @@ schema_view = get_schema_view(
 )
 
 urlpatterns = [
-    path('api/', include(bothub_api_routers.urls)),#Test webapp
     path('v1/', include(bothub_api_routers.urls)),
     path('v2/', include(bothub_api_v2_urls)),
-    path('api/v2/', include(bothub_api_v2_urls)),#test webapp
     path('docs/', include_docs_urls(title='API Documentation')),
     path('admin/', admin.site.urls),
     path('ping/', ping, name='ping'),
