@@ -3,7 +3,6 @@ from django.utils.translation import gettext as _
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework.decorators import action
 from rest_framework.exceptions import APIException
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
@@ -11,9 +10,6 @@ from rest_framework import mixins, status
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.filters import SearchFilter
-from rest_framework.exceptions import PermissionDenied
-
-from bothub.api.v2.mixins import MultipleFieldLookupMixin
 from bothub.common.models import Repository
 from bothub.common.models import RepositoryCategory
 from bothub.common.models import RepositoryVote
@@ -33,12 +29,7 @@ from .serializers import RepositoryTranslatedExampleSerializer
 from .serializers import RepositoryExampleSerializer
 from .serializers import NewRepositoryTranslatedExampleSerializer
 from .serializers import RepositoryUpdateSerializer
-from .serializers import EditRepositorySerializer
-from .serializers import RepositoryAuthorizationSerializer
-from .serializers import AnalyzeTextSerializer
-from .serializers import EvaluateSerializer
 from .permissions import RepositoryPermission
-from .permissions import CUSTOM_WRITE_METHODS
 from .permissions import RepositoryTranslatedExamplePermission
 from .permissions import RepositoryExamplePermission
 from .permissions import RepositoryUpdateHasPermission
