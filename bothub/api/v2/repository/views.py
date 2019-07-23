@@ -263,6 +263,19 @@ class RepositoryExampleViewSet(
         obj.delete()
 
 
+@method_decorator(
+    name='list',
+    decorator=swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                'nickname',
+                openapi.IN_QUERY,
+                description='Nickname User to find repositories',
+                type=openapi.TYPE_STRING
+            ),
+        ]
+    )
+)
 class SearchRepositoriesViewSet(
         mixins.ListModelMixin,
         GenericViewSet):
