@@ -639,6 +639,13 @@ class ListRepositoryVoteTestCase(TestCase):
             language=languages.LANGUAGE_EN
         )
 
+        self.repository_empty = Repository.objects.create(
+            owner=self.owner,
+            name='Testing_empty',
+            slug='test_empty',
+            language=languages.LANGUAGE_EN
+        )
+
         self.repository_votes = RepositoryVote.objects.create(
             user=self.owner,
             repository=self.repository
@@ -707,6 +714,18 @@ class ListRepositoryVoteTestCase(TestCase):
         self.assertEqual(
             response.status_code,
             status.HTTP_401_UNAUTHORIZED)
+
+    def test_repository_empty(self):
+        response, content_data = self.request(
+            'repository',
+            self.repository_empty.uuid,
+            self.owner_token.key
+        )
+        self.assertEqual(content_data['count'], 0)
+        self.assertEqual(len(content_data['results']), 0)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK)
 
 
 class NewRepositoryVoteTestCase(TestCase):
