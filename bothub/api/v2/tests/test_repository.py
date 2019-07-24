@@ -883,14 +883,8 @@ class ListRepositoryContributionsTestCase(TestCase):
             response.status_code,
             status.HTTP_200_OK
         )
-        self.assertEqual(
-            content_data['count'],
-            0
-        )
-        self.assertEqual(
-            len(content_data['results']),
-            0
-        )
+        self.assertEqual(content_data['count'], 0)
+        self.assertEqual(len(content_data['results']), 0)
 
 
 class ListRepositoryCategoriesTestCase(TestCase):
