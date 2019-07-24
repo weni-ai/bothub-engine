@@ -848,22 +848,22 @@ class ListRepositoryContributionsTestCase(TestCase):
             role=0
         )
 
-    def request(self):
+    def request(self, nickname):
         request = self.factory.get(
             '/v2/repository/repositories-contributions/?nickname={}'.format(
-                self.user.nickname
+                nickname
             )
         )
         response = RepositoriesContributionsViewSet.as_view({'get': 'list'})(
             request,
-            nickname=self.user.nickname
+            nickname=nickname
         )
         response.render()
         content_data = json.loads(response.content)
         return (response, content_data,)
 
     def test_okay(self):
-        response, content_data = self.request()
+        response, content_data = self.request(self.user.nickname)
         self.assertEqual(
             response.status_code,
             status.HTTP_200_OK
@@ -875,6 +875,21 @@ class ListRepositoryContributionsTestCase(TestCase):
         self.assertEqual(
             len(content_data['results']),
             1
+        )
+
+    def test_without_nickname(self):
+        response, content_data = self.request('')
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK
+        )
+        self.assertEqual(
+            content_data['count'],
+            0
+        )
+        self.assertEqual(
+            len(content_data['results']),
+            0
         )
 
 
