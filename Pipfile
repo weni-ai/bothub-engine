@@ -15,6 +15,7 @@ coreapi = "==2.3.3"
 whitenoise = "==4.1.2"
 pytz = "==2018.7"
 drf-yasg = "*"
+pyparsing = "==2.4.0"
 
 [dev-packages]
 "flake8" = "*"
