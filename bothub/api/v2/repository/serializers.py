@@ -2,7 +2,6 @@ from django.utils.translation import gettext as _
 from rest_framework import serializers
 from rest_framework.fields import empty
 
-from bothub.api.v2.example.serializers import RepositoryExampleEntitySerializer
 from bothub.api.v2.repository.validators import \
     TranslatedExampleEntitiesValidator
 from bothub.api.v2.repository.validators import \
@@ -432,16 +431,56 @@ class RepositoryTranslatedExampleSerializer(serializers.ModelSerializer):
         return obj.has_valid_entities
 
 
+class NewRepositoryExampleEntitySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RepositoryExampleEntity
+        fields = [
+            'repository_example',
+            'start',
+            'end',
+            'entity',
+            'label',
+        ]
+        ref_name = None
+
+    repository_example = serializers.PrimaryKeyRelatedField(
+        queryset=RepositoryExample.objects,
+        required=False)
+
+    entity = EntityValueField()
+    label = LabelValueField(
+        allow_blank=True,
+        required=False)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.validators.append(EntityNotEqualLabelValidator())
+
+    def create(self, validated_data):
+        repository_example = validated_data.pop('repository_example', None)
+        assert repository_example
+        label = validated_data.pop('label', empty)
+        example_entity = self.Meta.model.objects.create(
+            repository_example=repository_example,
+            **validated_data)
+        if label is not empty:
+            example_entity.entity.set_label(label)
+            example_entity.entity.save(update_fields=['label'])
+        return example_entity
+
+
 class RepositoryExampleSerializer(serializers.ModelSerializer):
     class Meta:
         model = RepositoryExample
         fields = [
             'id',
+            'repository',
             'repository_update',
             'deleted_in',
             'text',
             'intent',
             'language',
+            'intent',
             'created_at',
             'entities',
             'translations',
@@ -452,13 +491,55 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
         ]
         ref_name = None
 
-    entities = RepositoryExampleEntitySerializer(
+    id = serializers.PrimaryKeyRelatedField(
+        read_only=True,
+        style={'show': False})
+    text = EntityText(style={'entities_field': 'entities'})
+    repository = serializers.PrimaryKeyRelatedField(
+        queryset=Repository.objects,
+        validators=[
+            CanContributeInRepositoryValidator(),
+        ],
+        write_only=True,
+        style={'show': False})
+    repository_update = serializers.PrimaryKeyRelatedField(
+        read_only=True,
+        style={'show': False})
+    entities = NewRepositoryExampleEntitySerializer(
         many=True,
-        read_only=True)
+        style={'text_field': 'text'})
     translations = RepositoryTranslatedExampleSerializer(
         many=True,
-        read_only=True)
-    language = serializers.SerializerMethodField()
+        read_only=True
+    )
+    language = serializers.ChoiceField(
+        LANGUAGE_CHOICES,
+        allow_blank=True,
+        required=False)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def create(self, validated_data):
+        self.validators.append(ExampleWithIntentOrEntityValidator())
+        self.validators.append(IntentAndSentenceNotExistsValidator())
+        entities_data = validated_data.pop('entities')
+        repository = validated_data.pop('repository')
+
+        try:
+            language = validated_data.pop('language')
+        except KeyError:
+            language = None
+        repository_update = repository.current_update(language or None)
+        validated_data.update({'repository_update': repository_update})
+        example = self.Meta.model.objects.create(**validated_data)
+        for entity_data in entities_data:
+            entity_data.update({'repository_example': example.pk})
+            entity_serializer = NewRepositoryExampleEntitySerializer(
+                data=entity_data)
+            entity_serializer.is_valid(raise_exception=True)
+            entity_serializer.save()
+        return example
 
     def get_language(self, obj):
         return obj.language
@@ -544,105 +625,6 @@ class RepositoryUpdateSerializer(serializers.ModelSerializer):
         source='by',
         slug_field='nickname',
         read_only=True)
-
-
-class NewRepositoryExampleEntitySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = RepositoryExampleEntity
-        fields = [
-            'repository_example',
-            'start',
-            'end',
-            'entity',
-            'label',
-        ]
-        ref_name = None
-
-    repository_example = serializers.PrimaryKeyRelatedField(
-        queryset=RepositoryExample.objects,
-        required=False)
-
-    entity = EntityValueField()
-    label = LabelValueField(
-        allow_blank=True,
-        required=False)
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.validators.append(EntityNotEqualLabelValidator())
-
-    def create(self, validated_data):
-        repository_example = validated_data.pop('repository_example', None)
-        assert repository_example
-        label = validated_data.pop('label', empty)
-        example_entity = self.Meta.model.objects.create(
-            repository_example=repository_example,
-            **validated_data)
-        if label is not empty:
-            example_entity.entity.set_label(label)
-            example_entity.entity.save(update_fields=['label'])
-        return example_entity
-
-
-class NewRepositoryExampleSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = RepositoryExample
-        fields = [
-            'id',
-            'repository',
-            'repository_update',
-            'text',
-            'language',
-            'intent',
-            'entities',
-        ]
-        ref_name = None
-
-    id = serializers.PrimaryKeyRelatedField(
-        read_only=True,
-        style={'show': False})
-    text = EntityText(style={'entities_field': 'entities'})
-    repository = serializers.PrimaryKeyRelatedField(
-        queryset=Repository.objects,
-        validators=[
-            CanContributeInRepositoryValidator(),
-        ],
-        write_only=True,
-        style={'show': False})
-    repository_update = serializers.PrimaryKeyRelatedField(
-        read_only=True,
-        style={'show': False})
-    language = serializers.ChoiceField(
-        LANGUAGE_CHOICES,
-        allow_blank=True,
-        required=False)
-    entities = NewRepositoryExampleEntitySerializer(
-        many=True,
-        style={'text_field': 'text'})
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.validators.append(ExampleWithIntentOrEntityValidator())
-        self.validators.append(IntentAndSentenceNotExistsValidator())
-
-    def create(self, validated_data):
-        entities_data = validated_data.pop('entities')
-        repository = validated_data.pop('repository')
-
-        try:
-            language = validated_data.pop('language')
-        except KeyError:
-            language = None
-        repository_update = repository.current_update(language or None)
-        validated_data.update({'repository_update': repository_update})
-        example = self.Meta.model.objects.create(**validated_data)
-        for entity_data in entities_data:
-            entity_data.update({'repository_example': example.pk})
-            entity_serializer = NewRepositoryExampleEntitySerializer(
-                data=entity_data)
-            entity_serializer.is_valid(raise_exception=True)
-            entity_serializer.save()
-        return example
 
 
 class NewRequestRepositoryAuthorizationSerializer(serializers.ModelSerializer):

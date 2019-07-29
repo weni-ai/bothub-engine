@@ -256,6 +256,7 @@ class RepositoryTranslatedExampleViewSet(
 
 
 class RepositoryExampleViewSet(
+        mixins.CreateModelMixin,
         mixins.DestroyModelMixin,
         mixins.UpdateModelMixin,
         GenericViewSet):
@@ -282,6 +283,10 @@ class RepositoryExampleViewSet(
         if obj.deleted_in:
             raise APIException(_('Example already deleted'))
         obj.delete()
+
+    def create(self, request, *args, **kwargs):
+        self.permission_classes = [IsAuthenticated]
+        return super().create(request, *args, **kwargs)
 
 
 @method_decorator(
@@ -355,17 +360,6 @@ class RepositoryUpdatesViewSet(
         IsAuthenticated,
         RepositoryUpdateHasPermission,
     ]
-
-
-class NewRepositoryExampleViewSet(
-        mixins.CreateModelMixin,
-        GenericViewSet):
-    """
-    Create new repository example.
-    """
-    queryset = RepositoryExample.objects
-    serializer_class = NewRepositoryExampleSerializer
-    permission_classes = [IsAuthenticated]
 
 
 class RequestAuthorizationViewSet(

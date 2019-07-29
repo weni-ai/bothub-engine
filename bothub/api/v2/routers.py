@@ -12,7 +12,6 @@ from .repository.views import SearchRepositoriesViewSet
 from .repository.views import NewRepositoryTranslatedExampleViewSet
 from .repository.views import RepositoryTranslationsViewSet
 from .repository.views import RepositoryUpdatesViewSet
-from .repository.views import NewRepositoryExampleViewSet
 from .repository.views import RequestAuthorizationViewSet
 from .repository.views import ReviewAuthorizationRequestViewSet
 from .repository.views import RepositoryAuthorizationViewSet
@@ -121,7 +120,6 @@ router.register(
 )
 router.register('repository/translations', RepositoryTranslationsViewSet)
 router.register('repository/updates', RepositoryUpdatesViewSet)
-router.register('repository/example/new', NewRepositoryExampleViewSet)
 router.register(
     'repository/request-authorization',
     RequestAuthorizationViewSet
