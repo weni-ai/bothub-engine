@@ -36,7 +36,6 @@ from .serializers import RepositoryTranslatedExampleSerializer
 from .serializers import RepositoryExampleSerializer
 from .serializers import NewRepositoryTranslatedExampleSerializer
 from .serializers import RepositoryUpdateSerializer
-from .serializers import NewRepositoryExampleSerializer
 from .serializers import NewRequestRepositoryAuthorizationSerializer
 from .serializers import ReviewAuthorizationRequestSerializer
 from .serializers import RepositoryAuthorizationSerializer

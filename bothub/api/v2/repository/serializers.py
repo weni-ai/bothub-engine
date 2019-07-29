@@ -488,6 +488,7 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
         read_only_fields = [
             'repository_update',
             'deleted_in',
+            'entities'
         ]
         ref_name = None
 
@@ -507,7 +508,9 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
         style={'show': False})
     entities = NewRepositoryExampleEntitySerializer(
         many=True,
-        style={'text_field': 'text'})
+        style={'text_field': 'text'},
+        read_only=True
+    )
     translations = RepositoryTranslatedExampleSerializer(
         many=True,
         read_only=True
@@ -521,8 +524,7 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
         super().__init__(*args, **kwargs)
 
     def create(self, validated_data):
-        self.validators.append(ExampleWithIntentOrEntityValidator())
-        self.validators.append(IntentAndSentenceNotExistsValidator())
+        print('dasdas')
         entities_data = validated_data.pop('entities')
         repository = validated_data.pop('repository')
 

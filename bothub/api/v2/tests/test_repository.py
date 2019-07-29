@@ -32,7 +32,6 @@ from bothub.api.v2.repository.views import RepositoryExampleViewSet
 from bothub.api.v2.repository.views import SearchRepositoriesViewSet
 from bothub.api.v2.repository.views import RepositoryTranslationsViewSet
 from bothub.api.v2.repository.views import RepositoryUpdatesViewSet
-from bothub.api.v2.repository.views import NewRepositoryExampleViewSet
 from bothub.api.v2.repository.views import RequestAuthorizationViewSet
 from bothub.api.v2.repository.views import ReviewAuthorizationRequestViewSet
 from bothub.api.v2.repository.views import RepositoryAuthorizationViewSet
@@ -1309,8 +1308,14 @@ class RepositoryExampleUpdateTestCase(TestCase):
         response, content_data = self.request(
             self.example,
             self.owner_token,
-            {"text": text, "intent": intent}
+            {
+                "repository": str(self.repository.uuid),
+                "text": text,
+                "intent": intent
+            }
         )
+
+        print(content_data)
 
         self.assertEqual(
             response.status_code,
@@ -1822,11 +1827,11 @@ class NewRepositoryExampleTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
         }
         request = self.factory.post(
-            '/v2/repository/example/new/',
+            '/v2/repository/example/',
             json.dumps(data),
             content_type='application/json',
             **authorization_header)
-        response = NewRepositoryExampleViewSet.as_view(
+        response = RepositoryExampleViewSet.as_view(
             {'post': 'create'})(request)
         response.render()
         content_data = json.loads(response.content)
@@ -2099,6 +2104,7 @@ class NewRepositoryExampleTestCase(TestCase):
                     },
                 ],
             })
+        print(content_data)
         self.assertEqual(
             response.status_code,
             status.HTTP_400_BAD_REQUEST)
