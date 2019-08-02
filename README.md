@@ -37,6 +37,17 @@ Run ```pipenv run python ./manage.py fill_db_using_fake_data``` to fill database
 
 Docker images available in [Bothub's Docker Hub repository](https://hub.docker.com/r/ilha/bothub/).
 
+
+# Deployment
+
+
+## Heroku
+Host your own Bothub Engine ** FREE ** with [One-Click Deploy] (https://heroku.com/deploy).
+
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/Ilhasoft/bothub-engine/tree/master)
+
+
+
 ## Environment Variables
 
 You can set environment variables in your OS, write on ```.env``` file or pass via Docker config.
