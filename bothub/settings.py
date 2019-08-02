@@ -1,6 +1,5 @@
 import os
 import dj_database_url
-import django_heroku
 
 from decouple import config
 from django.utils.log import DEFAULT_LOGGING
@@ -262,6 +261,3 @@ SWAGGER_SETTINGS = {
           },
     },
 }
-
-# Configure Django App for Heroku.
-django_heroku.settings(locals())
