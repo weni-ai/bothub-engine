@@ -42,7 +42,7 @@ Docker images available in [Bothub's Docker Hub repository](https://hub.docker.c
 
 
 ## Heroku
-Host your own Bothub Engine ** FREE ** with [One-Click Deploy] (https://heroku.com/deploy).
+Host your own Bothub Engine with [One-Click Deploy] (https://heroku.com/deploy).
 
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/Ilhasoft/bothub-engine/tree/master)
 
