@@ -25,7 +25,6 @@ packaging = "*"
 coverage = "*"
 ipython = "*"
 autopep8 = "*"
-packaging = "*"
 
 [requires]
 python_version = "3.6"
