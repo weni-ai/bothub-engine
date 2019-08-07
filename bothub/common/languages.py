@@ -89,11 +89,11 @@ LANGUAGE_CHOICES = [
 ]
 
 
-def is_valid_language(value):
+def is_valid_language(value):  # pragma: no cover
     return value in settings.SUPPORTED_LANGUAGES.keys()
 
 
-def validate_language(value):
+def validate_language(value):  # pragma: no cover
     if not is_valid_language(value):
         raise ValidationError(_(
             '{} is not a supported language.').format(value))
