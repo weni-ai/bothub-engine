@@ -177,3 +177,41 @@ class RepositoryCategoriesView(
     serializer_class = RepositoryCategorySerializer
     queryset = RepositoryCategory.objects.all()
     pagination_class = None
+
+
+@method_decorator(
+    name='list',
+    decorator=swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                'nickname',
+                openapi.IN_QUERY,
+                description='Nickname User to find repositories',
+                type=openapi.TYPE_STRING
+            ),
+        ]
+    )
+)
+class SearchRepositoriesViewSet(
+        mixins.ListModelMixin,
+        GenericViewSet):
+    """
+    List all user's repositories
+    """
+    queryset = Repository.objects
+    serializer_class = RepositorySerializer
+    lookup_field = 'nickname'
+
+    def get_queryset(self, *args, **kwargs):
+        try:
+            if self.request.query_params.get('nickname', None):
+                return self.queryset.filter(
+                    owner__nickname=self.request.query_params.get(
+                        'nickname',
+                        self.request.user
+                    )
+                )
+            else:
+                return self.queryset.filter(owner=self.request.user)
+        except TypeError:
+            return self.queryset.none()

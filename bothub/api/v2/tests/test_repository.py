@@ -1,4 +1,5 @@
 import json
+import uuid
 
 from django.test import TestCase
 from django.test import RequestFactory
@@ -21,6 +22,7 @@ from bothub.api.v2.repository.views import RepositoriesContributionsViewSet
 from bothub.api.v2.repository.views import RepositoriesViewSet
 from bothub.api.v2.repository.views import RepositoryVotesViewSet
 from bothub.api.v2.repository.views import RepositoryCategoriesView
+from bothub.api.v2.repository.views import SearchRepositoriesViewSet
 from bothub.api.v2.repository.serializers import RepositorySerializer
 
 
@@ -857,7 +859,7 @@ class ListRepositoryContributionsTestCase(TestCase):
             len(content_data['results']),
             1
         )
-        
+
 
 class CategoriesTestCase(TestCase):
     def setUp(self):
@@ -894,3 +896,55 @@ class CategoriesTestCase(TestCase):
             content_data[1].get('icon'),
             self.business_category.icon)
 
+
+class SearchRepositoriesTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.owner, self.owner_token = create_user_and_token('owner')
+        self.user, self.user_token = create_user_and_token()
+
+        self.category = RepositoryCategory.objects.create(
+            name='ID')
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name='Testing',
+            slug='test',
+            language=languages.LANGUAGE_EN)
+        self.repository.categories.add(self.category)
+
+    def request(self, nickname):
+        request = self.factory.get(
+            '/v2/repository/search-repositories/?nickname={}'.format(nickname)
+        )
+        response = SearchRepositoriesViewSet.as_view(
+            {'get': 'list'}
+        )(request, nickname=nickname)
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data,)
+
+    def test_okay(self):
+        response, content_data = self.request('owner')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            content_data.get('count'),
+            1)
+        self.assertEqual(
+            uuid.UUID(content_data.get('results')[0].get('uuid')),
+            self.repository.uuid)
+
+    def test_empty_with_user_okay(self):
+        response, content_data = self.request('fake')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            content_data.get('count'),
+            0)
+
+    def test_empty_without_user_okay(self):
+        response, content_data = self.request('')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            content_data.get('count'),
+            0)

@@ -415,7 +415,8 @@ class NewRepositoryViewSet(
                 description='Nickname User to find repositories',
                 type=openapi.TYPE_STRING
             ),
-        ]
+        ],
+        deprecated=True
     )
 )
 class SearchRepositoriesViewSet(
