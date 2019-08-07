@@ -952,6 +952,12 @@ class UserProfileViewSet(
     lookup_field = 'nickname'
 
 
+@method_decorator(
+    name='list',
+    decorator=swagger_auto_schema(
+        deprecated=True,
+    )
+)
 class Categories(
         mixins.ListModelMixin,
         GenericViewSet):

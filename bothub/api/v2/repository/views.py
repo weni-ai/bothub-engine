@@ -11,12 +11,14 @@ from rest_framework.filters import SearchFilter
 from bothub.common.models import Repository
 from bothub.common.models import RepositoryVote
 from bothub.common.models import RepositoryAuthorization
+from bothub.common.models import RepositoryCategory
 
 from ..metadata import Metadata
 from .serializers import RepositorySerializer
 from .serializers import RepositoryContributionsSerializer
 from .serializers import RepositoryVotesSerializer
 from .serializers import ShortRepositorySerializer
+from .serializers import RepositoryCategorySerializer
 from .permissions import RepositoryPermission
 from .filters import RepositoriesFilter
 
@@ -164,3 +166,14 @@ class RepositoriesContributionsViewSet(
             )
         else:
             return self.queryset.none()
+
+
+class RepositoryCategoriesView(
+        mixins.ListModelMixin,
+        GenericViewSet):
+    """
+    List all categories.
+    """
+    serializer_class = RepositoryCategorySerializer
+    queryset = RepositoryCategory.objects.all()
+    pagination_class = None
