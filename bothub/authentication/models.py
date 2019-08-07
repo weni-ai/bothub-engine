@@ -104,7 +104,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def send_welcome_email(self):
         if not settings.SEND_EMAILS:
-            return False
+            return False  # pragma: no cover
         context = {
             'name': self.name,
         }
@@ -124,7 +124,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def send_reset_password_email(self):
         if not settings.SEND_EMAILS:
-            return False
+            return False  # pragma: no cover
         token = self.make_password_reset_token()
         reset_url = '{}reset-password/{}/{}/'.format(
             settings.BOTHUB_WEBAPP_BASE_URL,

@@ -28,7 +28,7 @@ class RepositoryUpdateInline(admin.TabularInline):
     readonly_fields = fields
 
     def download_bot_data(self, obj):
-        if not obj.trained_at:
+        if not obj.trained_at:  # pragma: no cover
             return '-'
         return format_html("""
 <a href="{}">Download Bot Data</a>
