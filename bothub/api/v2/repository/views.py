@@ -239,7 +239,7 @@ class RepositoryAuthorizationViewSet(
         IsAuthenticated,
     ]
 
-    def get_object_update(self):
+    def get_object(self):
         repository_uuid = self.kwargs.get('repository__uuid')
         user_nickname = self.kwargs.get('user__nickname')
 
@@ -261,7 +261,7 @@ class RepositoryAuthorizationViewSet(
             RepositoryAdminManagerAuthorization,
         ]
         response = super().update(*args, **kwargs)
-        instance = self.get_object_update()
+        instance = self.get_object()
         if instance.role is not RepositoryAuthorization.ROLE_NOT_SETTED:
             instance.send_new_role_email(self.request.user)
         return response
