@@ -8,7 +8,7 @@ class MultipleFieldLookupMixin(object):
     filtering.
     """
 
-    def get_object(self):
+    def get_object(self):  # pragma: no cover
         queryset = self.get_queryset()
         queryset = self.filter_queryset(queryset)
         filter = {}
