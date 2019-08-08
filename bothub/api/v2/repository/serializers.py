@@ -29,7 +29,8 @@ class RequestRepositoryAuthorizationSerializer(serializers.ModelSerializer):
 
     repository = serializers.PrimaryKeyRelatedField(
         queryset=Repository.objects,
-        style={'show': False})
+        style={'show': False},
+        required=False)
     user = serializers.HiddenField(
         default=serializers.CurrentUserDefault(),
         style={'show': False})
@@ -37,7 +38,7 @@ class RequestRepositoryAuthorizationSerializer(serializers.ModelSerializer):
         label=_('Leave a message for repository administrators'),
         min_length=5,
         max_length=RequestRepositoryAuthorization._meta.get_field(
-            'text').max_length)
+            'text').max_length, required=False)
     user__nickname = serializers.SlugRelatedField(
         source='user',
         slug_field='nickname',
@@ -46,6 +47,15 @@ class RequestRepositoryAuthorizationSerializer(serializers.ModelSerializer):
         source='approved_by',
         slug_field='nickname',
         read_only=True)
+    approved_by = serializers.PrimaryKeyRelatedField(
+        read_only=True,
+        style={'show': False})
+
+    def update(self, instance, validated_data):
+        validated_data.update({
+            'approved_by': self.context['request'].user,
+        })
+        return super().update(instance, validated_data)
 
 
 class RepositoryCategorySerializer(serializers.ModelSerializer):
@@ -380,4 +390,3 @@ class RepositoryAuthorizationRoleSerializer(serializers.ModelSerializer):
         if self.instance.user == self.instance.repository.owner:
             raise PermissionDenied(_('The owner role can\'t be changed.'))
         return data
-

@@ -277,6 +277,8 @@ class RepositoryAuthorizationViewSet(
 class RepositoryAuthorizationRequestsViewSet(
         mixins.ListModelMixin,
         mixins.CreateModelMixin,
+        mixins.UpdateModelMixin,
+        mixins.DestroyModelMixin,
         GenericViewSet):
     """
     List of all authorization requests for a repository
@@ -294,3 +296,20 @@ class RepositoryAuthorizationRequestsViewSet(
         self.filter_class = None
         return super().create(request, *args, **kwargs)
 
+    def update(self, request, *args, **kwargs):
+        self.queryset = RequestRepositoryAuthorization.objects
+        self.filter_class = None
+        self.permission_classes = [
+            IsAuthenticated,
+            RepositoryAdminManagerAuthorization,
+        ]
+        return super().update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        self.queryset = RequestRepositoryAuthorization.objects
+        self.filter_class = None
+        self.permission_classes = [
+            IsAuthenticated,
+            RepositoryAdminManagerAuthorization,
+        ]
+        return super().destroy(request, *args, **kwargs)
