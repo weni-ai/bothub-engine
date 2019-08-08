@@ -709,7 +709,7 @@ class RepositoryExample(models.Model):
             return self.text
         return self.get_translation(language).text
 
-    def get_entities(self, language):
+    def get_entities(self, language):  # pragma: no cover
         if not language or language == self.repository_update.language:
             return self.entities.all()
         return self.get_translation(language).entities.all()
@@ -903,7 +903,7 @@ class RepositoryEntity(models.Model):
                 value=value)
 
 
-class EntityBaseQueryset(models.QuerySet):
+class EntityBaseQueryset(models.QuerySet):  # pragma: no cover
     def create(self, entity, **kwargs):
         if type(entity) is not RepositoryEntity:
             instance = self.model(**kwargs)
@@ -960,7 +960,7 @@ class EntityBase(models.Model):
         return self.example.text[self.start:self.end]
 
     @property
-    def rasa_nlu_data(self):
+    def rasa_nlu_data(self):  # pragma: no cover
         return {
             'start': self.start,
             'end': self.end,
