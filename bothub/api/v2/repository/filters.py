@@ -6,6 +6,7 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 
 from bothub.common.models import Repository
 from bothub.common.models import RepositoryAuthorization
+from bothub.common.models import RequestRepositoryAuthorization
 
 
 class RepositoriesFilter(filters.FilterSet):
@@ -32,6 +33,32 @@ class RepositoryAuthorizationFilter(filters.FilterSet):
 
     repository = filters.CharFilter(
         field_name='repository',
+        method='filter_repository_uuid',
+        help_text=_('Repository\'s UUID'))
+
+    def filter_repository_uuid(self, queryset, name, value):
+        request = self.request
+        try:
+            repository = Repository.objects.get(uuid=value)
+            authorization = repository.get_user_authorization(request.user)
+            if not authorization.is_admin:
+                raise PermissionDenied()
+            return queryset.filter(repository=repository)
+        except Repository.DoesNotExist:
+            raise NotFound(
+                _('Repository {} does not exist').format(value))
+        except DjangoValidationError:
+            raise NotFound(_('Invalid repository UUID'))
+
+
+class RepositoryAuthorizationRequestsFilter(filters.FilterSet):
+    class Meta:
+        model = RequestRepositoryAuthorization
+        fields = ['repository_uuid']
+
+    repository_uuid = filters.CharFilter(
+        field_name='repository_uuid',
+        required=True,
         method='filter_repository_uuid',
         help_text=_('Repository\'s UUID'))
 

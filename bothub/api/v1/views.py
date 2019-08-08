@@ -1136,6 +1136,12 @@ class SearchUserViewSet(
         return Response(serializer.data)
 
 
+@method_decorator(
+    name='create',
+    decorator=swagger_auto_schema(
+        deprecated=True,
+    )
+)
 class RequestAuthorizationViewSet(
         mixins.CreateModelMixin,
         GenericViewSet):
@@ -1149,6 +1155,12 @@ class RequestAuthorizationViewSet(
     ]
 
 
+@method_decorator(
+    name='list',
+    decorator=swagger_auto_schema(
+        deprecated=True,
+    )
+)
 class RepositoryAuthorizationRequestsViewSet(
         mixins.ListModelMixin,
         GenericViewSet):

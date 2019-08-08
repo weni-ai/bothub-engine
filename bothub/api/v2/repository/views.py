@@ -16,6 +16,7 @@ from bothub.common.models import Repository
 from bothub.common.models import RepositoryVote
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryCategory
+from bothub.common.models import RequestRepositoryAuthorization
 
 from ..metadata import Metadata
 from .serializers import RepositorySerializer, \
@@ -25,10 +26,12 @@ from .serializers import RepositoryVotesSerializer
 from .serializers import ShortRepositorySerializer
 from .serializers import RepositoryCategorySerializer
 from .serializers import RepositoryAuthorizationSerializer
+from .serializers import RequestRepositoryAuthorizationSerializer
 from .permissions import RepositoryPermission
 from .permissions import RepositoryAdminManagerAuthorization
 from .filters import RepositoriesFilter
 from .filters import RepositoryAuthorizationFilter
+from .filters import RepositoryAuthorizationRequestsFilter
 
 
 class RepositoryViewSet(
@@ -269,3 +272,25 @@ class RepositoryAuthorizationViewSet(
     def list(self, request, *args, **kwargs):
         self.lookup_fields = []
         return super().list(request, *args, **kwargs)
+
+
+class RepositoryAuthorizationRequestsViewSet(
+        mixins.ListModelMixin,
+        mixins.CreateModelMixin,
+        GenericViewSet):
+    """
+    List of all authorization requests for a repository
+    """
+    queryset = RequestRepositoryAuthorization.objects.exclude(
+        approved_by__isnull=False)
+    serializer_class = RequestRepositoryAuthorizationSerializer
+    filter_class = RepositoryAuthorizationRequestsFilter
+    permission_classes = [
+        IsAuthenticated,
+    ]
+
+    def create(self, request, *args, **kwargs):
+        self.queryset = RequestRepositoryAuthorization.objects
+        self.filter_class = None
+        return super().create(request, *args, **kwargs)
+

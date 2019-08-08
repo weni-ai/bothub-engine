@@ -7,6 +7,7 @@ from .repository.views import RepositoriesContributionsViewSet
 from .repository.views import RepositoryCategoriesView
 from .repository.views import SearchRepositoriesViewSet
 from .repository.views import RepositoryAuthorizationViewSet
+from .repository.views import RepositoryAuthorizationRequestsViewSet
 from .examples.views import ExamplesViewSet
 from .evaluate.views import EvaluateViewSet
 from .evaluate.views import ResultsListViewSet
@@ -100,6 +101,10 @@ router.register('repository/categories', RepositoryCategoriesView)
 router.register('repository/examples', ExamplesViewSet)
 router.register('repository/search-repositories', SearchRepositoriesViewSet)
 router.register('repository/authorizations', RepositoryAuthorizationViewSet)
+router.register(
+    'repository/authorization-requests',
+    RepositoryAuthorizationRequestsViewSet
+)
 router.register('evaluate/results', ResultsListViewSet)
 router.register('evaluate', EvaluateViewSet)
 router.register('account/login', LoginViewSet)

@@ -2,6 +2,7 @@ from django.utils.translation import gettext as _
 from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied
 
+from bothub.api.v2.fields import TextField
 from bothub.common.models import Repository
 from bothub.common.models import RepositoryVote
 from bothub.common.models import RepositoryCategory
@@ -9,7 +10,42 @@ from bothub.common.models import RepositoryEntityLabel
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RequestRepositoryAuthorization
 from bothub.common.languages import LANGUAGE_CHOICES
-from ..request.serializers import RequestRepositoryAuthorizationSerializer
+
+
+class RequestRepositoryAuthorizationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RequestRepositoryAuthorization
+        fields = [
+            'id',
+            'user',
+            'user__nickname',
+            'repository',
+            'text',
+            'approved_by',
+            'approved_by__nickname',
+            'created_at',
+        ]
+        ref_name = None
+
+    repository = serializers.PrimaryKeyRelatedField(
+        queryset=Repository.objects,
+        style={'show': False})
+    user = serializers.HiddenField(
+        default=serializers.CurrentUserDefault(),
+        style={'show': False})
+    text = TextField(
+        label=_('Leave a message for repository administrators'),
+        min_length=5,
+        max_length=RequestRepositoryAuthorization._meta.get_field(
+            'text').max_length)
+    user__nickname = serializers.SlugRelatedField(
+        source='user',
+        slug_field='nickname',
+        read_only=True)
+    approved_by__nickname = serializers.SlugRelatedField(
+        source='approved_by',
+        slug_field='nickname',
+        read_only=True)
 
 
 class RepositoryCategorySerializer(serializers.ModelSerializer):
@@ -344,3 +380,4 @@ class RepositoryAuthorizationRoleSerializer(serializers.ModelSerializer):
         if self.instance.user == self.instance.repository.owner:
             raise PermissionDenied(_('The owner role can\'t be changed.'))
         return data
+
