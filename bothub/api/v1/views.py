@@ -1007,6 +1007,12 @@ class TranslationsViewSet(
     filter_class = TranslationsFilter
 
 
+@method_decorator(
+    name='list',
+    decorator=swagger_auto_schema(
+        deprecated=True,
+    )
+)
 class RepositoryAuthorizationViewSet(
         mixins.ListModelMixin,
         GenericViewSet):
@@ -1037,7 +1043,8 @@ class RepositoryAuthorizationViewSet(
                 type=openapi.TYPE_STRING,
                 required=True
             ),
-        ]
+        ],
+        deprecated=True
     )
 )
 @method_decorator(
@@ -1058,7 +1065,8 @@ class RepositoryAuthorizationViewSet(
                 type=openapi.TYPE_STRING,
                 required=True
             ),
-        ]
+        ],
+        deprecated=True
     )
 )
 class RepositoryAuthorizationRoleViewSet(

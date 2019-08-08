@@ -1,26 +1,34 @@
 from django.utils.decorators import method_decorator
+from django_filters.rest_framework import DjangoFilterBackend
+from django.shortcuts import get_object_or_404
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from rest_framework import mixins, status
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
-from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.filters import SearchFilter
 
+from bothub.api.v2.mixins import MultipleFieldLookupMixin
+from bothub.authentication.models import User
 from bothub.common.models import Repository
 from bothub.common.models import RepositoryVote
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryCategory
 
 from ..metadata import Metadata
-from .serializers import RepositorySerializer
+from .serializers import RepositorySerializer, \
+    RepositoryAuthorizationRoleSerializer
 from .serializers import RepositoryContributionsSerializer
 from .serializers import RepositoryVotesSerializer
 from .serializers import ShortRepositorySerializer
 from .serializers import RepositoryCategorySerializer
+from .serializers import RepositoryAuthorizationSerializer
 from .permissions import RepositoryPermission
+from .permissions import RepositoryAdminManagerAuthorization
 from .filters import RepositoriesFilter
+from .filters import RepositoryAuthorizationFilter
 
 
 class RepositoryViewSet(
@@ -215,3 +223,49 @@ class SearchRepositoriesViewSet(
                 return self.queryset.filter(owner=self.request.user)
         except TypeError:
             return self.queryset.none()
+
+
+class RepositoryAuthorizationViewSet(
+        MultipleFieldLookupMixin,
+        mixins.UpdateModelMixin,
+        mixins.ListModelMixin,
+        GenericViewSet):
+    queryset = RepositoryAuthorization.objects.exclude(
+        role=RepositoryAuthorization.ROLE_NOT_SETTED)
+    serializer_class = RepositoryAuthorizationSerializer
+    filter_class = RepositoryAuthorizationFilter
+    lookup_fields = ['repository__uuid', 'user__nickname']
+    permission_classes = [
+        IsAuthenticated,
+    ]
+
+    def get_object_update(self):
+        repository_uuid = self.kwargs.get('repository__uuid')
+        user_nickname = self.kwargs.get('user__nickname')
+
+        repository = get_object_or_404(Repository, uuid=repository_uuid)
+        user = get_object_or_404(User, nickname=user_nickname)
+
+        obj = repository.get_user_authorization(user)
+
+        self.check_object_permissions(self.request, obj)
+        return obj
+
+    def update(self, *args, **kwargs):
+        self.lookup_field = 'user__nickname'
+
+        self.filter_class = None
+        self.serializer_class = RepositoryAuthorizationRoleSerializer
+        self.permission_classes = [
+            IsAuthenticated,
+            RepositoryAdminManagerAuthorization,
+        ]
+        response = super().update(*args, **kwargs)
+        instance = self.get_object_update()
+        if instance.role is not RepositoryAuthorization.ROLE_NOT_SETTED:
+            instance.send_new_role_email(self.request.user)
+        return response
+
+    def list(self, request, *args, **kwargs):
+        self.lookup_fields = []
+        return super().list(request, *args, **kwargs)

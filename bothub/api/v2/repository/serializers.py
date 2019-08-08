@@ -1,4 +1,6 @@
+from django.utils.translation import gettext as _
 from rest_framework import serializers
+from rest_framework.exceptions import PermissionDenied
 
 from bothub.common.models import Repository
 from bothub.common.models import RepositoryVote
@@ -328,3 +330,17 @@ class RepositoryContributionsSerializer(serializers.ModelSerializer):
             'created_at',
         ]
         ref_name = None
+
+
+class RepositoryAuthorizationRoleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RepositoryAuthorization
+        fields = [
+            'role',
+        ]
+        ref_name = None
+
+    def validate(self, data):
+        if self.instance.user == self.instance.repository.owner:
+            raise PermissionDenied(_('The owner role can\'t be changed.'))
+        return data
