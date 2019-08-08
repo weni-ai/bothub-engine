@@ -1,8 +1,10 @@
 from django.utils.decorators import method_decorator
 from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
+from django.core.exceptions import ValidationError as DjangoValidationError
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from rest_framework import mixins, status
@@ -303,7 +305,10 @@ class RepositoryAuthorizationRequestsViewSet(
             IsAuthenticated,
             RepositoryAdminManagerAuthorization,
         ]
-        return super().update(request, *args, **kwargs)
+        try:
+            return super().update(request, *args, **kwargs)
+        except DjangoValidationError as e:
+            raise ValidationError(e.message)
 
     def destroy(self, request, *args, **kwargs):
         self.queryset = RequestRepositoryAuthorization.objects
