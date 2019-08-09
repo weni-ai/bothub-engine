@@ -1430,7 +1430,7 @@ class RepositoryExampleRetrieveTestCase(TestCase):
             status.HTTP_200_OK)
         entity = content_data.get('entities')[0]
         self.assertIn(
-            'label',
+            'label_method',
             entity.keys())
 
     def test_entity_has_valid_label(self):
@@ -1445,10 +1445,10 @@ class RepositoryExampleRetrieveTestCase(TestCase):
             status.HTTP_200_OK)
         entity = content_data.get('entities')[0]
         self.assertIn(
-            'label',
+            'label_method',
             entity.keys())
         self.assertEqual(
-            entity.get('label'),
+            entity.get('label_method'),
             label)
 
 
@@ -1580,7 +1580,11 @@ class RepositoryExampleUpdateTestCase(TestCase):
         response, content_data = self.request(
             self.example,
             self.owner_token,
-            {"text": text, "intent": intent}
+            {
+                "repository": str(self.repository.uuid),
+                "text": text,
+                "intent": intent
+            }
         )
 
         self.assertEqual(

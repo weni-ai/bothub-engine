@@ -18,7 +18,9 @@ class RepositoryExampleEntitySerializer(serializers.ModelSerializer):
             'start',
             'end',
             'entity',
+            'entity_method',
             'label',
+            'label_method',
             'created_at',
             'value',
         ]
@@ -26,34 +28,10 @@ class RepositoryExampleEntitySerializer(serializers.ModelSerializer):
 
     repository_example = serializers.PrimaryKeyRelatedField(
         queryset=RepositoryExample.objects,
-        help_text=_('Example\'s ID'))
-    entity = serializers.SerializerMethodField()
-    label = serializers.SerializerMethodField()
-
-    def get_entity(self, obj):
-        return obj.entity.value
-
-    def get_label(self, obj):
-        if not obj.entity.label:
-            return None
-        return obj.entity.label.value
-
-
-class NewRepositoryExampleEntitySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = RepositoryExampleEntity
-        fields = [
-            'repository_example',
-            'start',
-            'end',
-            'entity',
-            'label',
-        ]
-        ref_name = None
-
-    repository_example = serializers.PrimaryKeyRelatedField(
-        queryset=RepositoryExample.objects,
+        help_text=_('Example\'s ID'),
         required=False)
+    entity_method = serializers.SerializerMethodField(required=False)
+    label_method = serializers.SerializerMethodField(required=False)
 
     entity = EntityValueField()
     label = LabelValueField(
@@ -63,6 +41,14 @@ class NewRepositoryExampleEntitySerializer(serializers.ModelSerializer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.validators.append(EntityNotEqualLabelValidator())
+
+    def get_entity_method(self, obj):
+        return obj.entity.value
+
+    def get_label_method(self, obj):
+        if not obj.entity.label:
+            return None
+        return obj.entity.label.value
 
     def create(self, validated_data):
         repository_example = validated_data.pop('repository_example', None)
