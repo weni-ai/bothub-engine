@@ -23,7 +23,7 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - 80:80
+      - ${ENGINE_PORT:-80}:80
     networks:
       - default
       - bothub
