@@ -521,6 +521,13 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        if kwargs['context'].get('request').stream is None:
+            self.fields['entities'] = \
+                RepositoryExampleEntitySerializer(
+                    many=True,
+                    style={'text_field': 'text'},
+                    data='GET'
+                )
         self.validators.append(ExampleWithIntentOrEntityValidator())
         self.validators.append(IntentAndSentenceNotExistsValidator())
 

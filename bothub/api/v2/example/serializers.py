@@ -18,9 +18,7 @@ class RepositoryExampleEntitySerializer(serializers.ModelSerializer):
             'start',
             'end',
             'entity',
-            'entity_method',
             'label',
-            'label_method',
             'created_at',
             'value',
         ]
@@ -30,8 +28,6 @@ class RepositoryExampleEntitySerializer(serializers.ModelSerializer):
         queryset=RepositoryExample.objects,
         help_text=_('Example\'s ID'),
         required=False)
-    entity_method = serializers.SerializerMethodField(required=False)
-    label_method = serializers.SerializerMethodField(required=False)
 
     entity = EntityValueField()
     label = LabelValueField(
@@ -40,12 +36,13 @@ class RepositoryExampleEntitySerializer(serializers.ModelSerializer):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        if kwargs.get('data') == 'GET':
+            self.fields['label'] = serializers.SerializerMethodField(
+                required=False
+            )
         self.validators.append(EntityNotEqualLabelValidator())
 
-    def get_entity_method(self, obj):
-        return obj.entity.value
-
-    def get_label_method(self, obj):
+    def get_label(self, obj):
         if not obj.entity.label:
             return None
         return obj.entity.label.value
