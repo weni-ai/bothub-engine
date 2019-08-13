@@ -42,7 +42,7 @@ class Metadata(BaseMetadata):
         EntityText: 'entity text',
     })
 
-    def determine_metadata(self, request, view):
+    def determine_metadata(self, request, view):  # pragma: no cover
         metadata = OrderedDict()
         metadata['name'] = view.get_view_name()
         metadata['description'] = view.get_view_description()
@@ -60,7 +60,7 @@ class Metadata(BaseMetadata):
                 metadata['actions'] = actions
         return metadata
 
-    def determine_actions(self, request, view):
+    def determine_actions(self, request, view):  # pragma: no cover
         actions = {}
         for method in {'PUT', 'POST'} & set(view.allowed_methods):
             serializer = view.get_serializer()
@@ -68,7 +68,7 @@ class Metadata(BaseMetadata):
             view.request = request
         return actions
 
-    def get_serializer_info(self, serializer):
+    def get_serializer_info(self, serializer):  # pragma: no cover
         if hasattr(serializer, 'child'):
             serializer = serializer.child
         return OrderedDict([
@@ -76,7 +76,7 @@ class Metadata(BaseMetadata):
             for field_name, field in serializer.fields.items()
         ])
 
-    def get_field_info(self, field):
+    def get_field_info(self, field):  # pragma: no cover
         field_info = OrderedDict()
         field_info['type'] = self.label_lookup[field] or 'field'
         field_info['required'] = getattr(field, 'required', False)

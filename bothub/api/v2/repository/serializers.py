@@ -1,13 +1,77 @@
+from django.utils.translation import gettext as _
 from rest_framework import serializers
+from rest_framework.exceptions import PermissionDenied
 
+from bothub.api.v2.example.serializers import \
+    RepositoryExampleEntitySerializer
+from bothub.api.v2.fields import TextField
+from bothub.api.v2.fields import EntityText
+from bothub.api.v2.repository.validators import \
+    CanContributeInRepositoryExampleValidator
+from bothub.api.v2.repository.validators import \
+    IntentAndSentenceNotExistsValidator
+from bothub.api.v2.repository.validators import \
+    ExampleWithIntentOrEntityValidator
+from bothub.api.v2.repository.validators import \
+    CanContributeInRepositoryValidator
+from bothub.common import languages
 from bothub.common.models import Repository
 from bothub.common.models import RepositoryVote
 from bothub.common.models import RepositoryCategory
 from bothub.common.models import RepositoryEntityLabel
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RequestRepositoryAuthorization
+from bothub.common.models import RepositoryTranslatedExample
+from bothub.common.models import RepositoryExample
+from bothub.common.models import RepositoryTranslatedExampleEntity
 from bothub.common.languages import LANGUAGE_CHOICES
-from ..request.serializers import RequestRepositoryAuthorizationSerializer
+from .validators import CanContributeInRepositoryTranslatedExampleValidator
+
+
+class RequestRepositoryAuthorizationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RequestRepositoryAuthorization
+        fields = [
+            'id',
+            'user',
+            'user__nickname',
+            'repository',
+            'text',
+            'approved_by',
+            'approved_by__nickname',
+            'created_at',
+        ]
+        ref_name = None
+
+    repository = serializers.PrimaryKeyRelatedField(
+        queryset=Repository.objects,
+        style={'show': False},
+        required=False)
+    user = serializers.HiddenField(
+        default=serializers.CurrentUserDefault(),
+        style={'show': False})
+    text = TextField(
+        label=_('Leave a message for repository administrators'),
+        min_length=5,
+        max_length=RequestRepositoryAuthorization._meta.get_field(
+            'text').max_length, required=False)
+    user__nickname = serializers.SlugRelatedField(
+        source='user',
+        slug_field='nickname',
+        read_only=True)
+    approved_by__nickname = serializers.SlugRelatedField(
+        source='approved_by',
+        slug_field='nickname',
+        read_only=True)
+    approved_by = serializers.PrimaryKeyRelatedField(
+        read_only=True,
+        style={'show': False})
+
+    def update(self, instance, validated_data):
+        validated_data.update({
+            'approved_by': self.context['request'].user,
+        })
+        return super().update(instance, validated_data)
 
 
 class RepositoryCategorySerializer(serializers.ModelSerializer):
@@ -328,3 +392,160 @@ class RepositoryContributionsSerializer(serializers.ModelSerializer):
             'created_at',
         ]
         ref_name = None
+
+
+class RepositoryAuthorizationRoleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RepositoryAuthorization
+        fields = [
+            'role',
+        ]
+        ref_name = None
+
+    def validate(self, data):
+        if self.instance.user == self.instance.repository.owner:
+            raise PermissionDenied(_('The owner role can\'t be changed.'))
+        return data
+
+
+class RepositoryTranslatedExampleEntitySeralizer(serializers.ModelSerializer):
+    class Meta:
+        model = RepositoryTranslatedExampleEntity
+        fields = [
+            'id',
+            'repository_translated_example',
+            'start',
+            'end',
+            'entity',
+            'created_at',
+            'value',
+        ]
+        ref_name = None
+
+    repository_translated_example = serializers.PrimaryKeyRelatedField(
+        queryset=RepositoryTranslatedExample.objects,
+        validators=[
+            CanContributeInRepositoryTranslatedExampleValidator(),
+        ],
+        help_text='Example translation ID')
+    entity = serializers.SerializerMethodField()
+    value = serializers.SerializerMethodField()
+
+    def get_entity(self, obj):
+        return obj.entity.value
+
+    def get_value(self, obj):
+        return obj.value
+
+
+class RepositoryTranslatedExampleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RepositoryTranslatedExample
+        fields = [
+            'id',
+            'original_example',
+            'from_language',
+            'language',
+            'text',
+            'has_valid_entities',
+            'entities',
+            'created_at',
+        ]
+        ref_name = None
+
+    original_example = serializers.PrimaryKeyRelatedField(
+        queryset=RepositoryExample.objects,
+        validators=[
+            CanContributeInRepositoryExampleValidator(),
+        ],
+        help_text=_('Example\'s ID'))
+    from_language = serializers.SerializerMethodField()
+    has_valid_entities = serializers.SerializerMethodField()
+    entities = RepositoryTranslatedExampleEntitySeralizer(
+        many=True,
+        read_only=True)
+
+    def get_from_language(self, obj):
+        return obj.original_example.repository_update.language
+
+    def get_has_valid_entities(self, obj):
+        return obj.has_valid_entities
+
+
+class RepositoryExampleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RepositoryExample
+        fields = [
+            'id',
+            'repository',
+            'repository_update',
+            'deleted_in',
+            'text',
+            'intent',
+            'language',
+            'created_at',
+            'entities',
+            'translations',
+        ]
+        read_only_fields = [
+            'deleted_in',
+        ]
+        ref_name = None
+
+    id = serializers.PrimaryKeyRelatedField(
+        read_only=True,
+        style={'show': False})
+    text = EntityText(style={'entities_field': 'entities'}, required=False)
+    repository = serializers.PrimaryKeyRelatedField(
+        queryset=Repository.objects,
+        validators=[
+            CanContributeInRepositoryValidator(),
+        ],
+        write_only=True,
+        style={'show': False})
+    repository_update = serializers.PrimaryKeyRelatedField(
+        read_only=True,
+        style={'show': False}, required=False)
+    language = serializers.ChoiceField(
+        languages.LANGUAGE_CHOICES,
+        allow_blank=True,
+        required=False)
+
+    entities = RepositoryExampleEntitySerializer(
+        many=True,
+        style={'text_field': 'text'},
+        required=False)
+    translations = RepositoryTranslatedExampleSerializer(
+        many=True,
+        read_only=True)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if kwargs['context'].get('request').stream is None:
+            self.fields['entities'] = \
+                RepositoryExampleEntitySerializer(
+                    many=True,
+                    style={'text_field': 'text'},
+                    data='GET'
+                )
+        self.validators.append(ExampleWithIntentOrEntityValidator())
+        self.validators.append(IntentAndSentenceNotExistsValidator())
+
+    def create(self, validated_data):
+        entities_data = validated_data.pop('entities')
+        repository = validated_data.pop('repository')
+
+        try:
+            language = validated_data.pop('language')
+        except KeyError:
+            language = None
+        repository_update = repository.current_update(language or None)
+        validated_data.update({'repository_update': repository_update})
+        example = self.Meta.model.objects.create(**validated_data)
+        for entity_data in entities_data:
+            entity_data.update({'repository_example': example.pk})
+            entity_serializer = RepositoryExampleEntitySerializer(
+                data=entity_data)
+            entity_serializer.is_valid(raise_exception=True)
+            entity_serializer.save()
+        return example

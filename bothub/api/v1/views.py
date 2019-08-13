@@ -415,7 +415,8 @@ class NewRepositoryViewSet(
                 description='Nickname User to find repositories',
                 type=openapi.TYPE_STRING
             ),
-        ]
+        ],
+        deprecated=True
     )
 )
 class SearchRepositoriesViewSet(
@@ -635,6 +636,12 @@ class RepositoryViewSet(
         return super().get_permissions()
 
 
+@method_decorator(
+    name='create',
+    decorator=swagger_auto_schema(
+        deprecated=True,
+    )
+)
 class NewRepositoryExampleViewSet(
         mixins.CreateModelMixin,
         GenericViewSet):
@@ -648,6 +655,24 @@ class NewRepositoryExampleViewSet(
 
 @method_decorator(
     name='retrieve',
+    decorator=swagger_auto_schema(
+        deprecated=True,
+    )
+)
+@method_decorator(
+    name='destroy',
+    decorator=swagger_auto_schema(
+        deprecated=True,
+    )
+)
+@method_decorator(
+    name='update',
+    decorator=swagger_auto_schema(
+        deprecated=True,
+    )
+)
+@method_decorator(
+    name='partial_update',
     decorator=swagger_auto_schema(
         deprecated=True,
     )
@@ -682,6 +707,12 @@ class RepositoryExampleViewSet(
         obj.delete()
 
 
+@method_decorator(
+    name='create',
+    decorator=swagger_auto_schema(
+        deprecated=True,
+    )
+)
 class NewRepositoryTranslatedExampleViewSet(
         mixins.CreateModelMixin,
         GenericViewSet):
@@ -693,6 +724,30 @@ class NewRepositoryTranslatedExampleViewSet(
     permission_classes = [permissions.IsAuthenticated]
 
 
+@method_decorator(
+    name='retrieve',
+    decorator=swagger_auto_schema(
+        deprecated=True,
+    )
+)
+@method_decorator(
+    name='update',
+    decorator=swagger_auto_schema(
+        deprecated=True,
+    )
+)
+@method_decorator(
+    name='partial_update',
+    decorator=swagger_auto_schema(
+        deprecated=True,
+    )
+)
+@method_decorator(
+    name='destroy',
+    decorator=swagger_auto_schema(
+        deprecated=True,
+    )
+)
 class RepositoryTranslatedExampleViewSet(
         mixins.RetrieveModelMixin,
         mixins.UpdateModelMixin,
@@ -952,6 +1007,12 @@ class UserProfileViewSet(
     lookup_field = 'nickname'
 
 
+@method_decorator(
+    name='list',
+    decorator=swagger_auto_schema(
+        deprecated=True,
+    )
+)
 class Categories(
         mixins.ListModelMixin,
         GenericViewSet):
@@ -989,6 +1050,12 @@ class RepositoriesViewSet(
     ]
 
 
+@method_decorator(
+    name='list',
+    decorator=swagger_auto_schema(
+        deprecated=True,
+    )
+)
 class TranslationsViewSet(
         mixins.ListModelMixin,
         GenericViewSet):
@@ -1000,6 +1067,12 @@ class TranslationsViewSet(
     filter_class = TranslationsFilter
 
 
+@method_decorator(
+    name='list',
+    decorator=swagger_auto_schema(
+        deprecated=True,
+    )
+)
 class RepositoryAuthorizationViewSet(
         mixins.ListModelMixin,
         GenericViewSet):
@@ -1030,7 +1103,8 @@ class RepositoryAuthorizationViewSet(
                 type=openapi.TYPE_STRING,
                 required=True
             ),
-        ]
+        ],
+        deprecated=True
     )
 )
 @method_decorator(
@@ -1051,7 +1125,8 @@ class RepositoryAuthorizationViewSet(
                 type=openapi.TYPE_STRING,
                 required=True
             ),
-        ]
+        ],
+        deprecated=True
     )
 )
 class RepositoryAuthorizationRoleViewSet(
@@ -1121,6 +1196,12 @@ class SearchUserViewSet(
         return Response(serializer.data)
 
 
+@method_decorator(
+    name='create',
+    decorator=swagger_auto_schema(
+        deprecated=True,
+    )
+)
 class RequestAuthorizationViewSet(
         mixins.CreateModelMixin,
         GenericViewSet):
@@ -1134,6 +1215,12 @@ class RequestAuthorizationViewSet(
     ]
 
 
+@method_decorator(
+    name='list',
+    decorator=swagger_auto_schema(
+        deprecated=True,
+    )
+)
 class RepositoryAuthorizationRequestsViewSet(
         mixins.ListModelMixin,
         GenericViewSet):
@@ -1149,6 +1236,24 @@ class RepositoryAuthorizationRequestsViewSet(
     ]
 
 
+@method_decorator(
+    name='update',
+    decorator=swagger_auto_schema(
+        deprecated=True,
+    )
+)
+@method_decorator(
+    name='destroy',
+    decorator=swagger_auto_schema(
+        deprecated=True,
+    )
+)
+@method_decorator(
+    name='partial_update',
+    decorator=swagger_auto_schema(
+        deprecated=True,
+    )
+)
 class ReviewAuthorizationRequestViewSet(
         mixins.UpdateModelMixin,
         mixins.DestroyModelMixin,

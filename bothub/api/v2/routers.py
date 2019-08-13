@@ -4,6 +4,11 @@ from .repository.views import RepositoryViewSet
 from .repository.views import RepositoryVotesViewSet
 from .repository.views import RepositoriesViewSet
 from .repository.views import RepositoriesContributionsViewSet
+from .repository.views import RepositoryCategoriesView
+from .repository.views import SearchRepositoriesViewSet
+from .repository.views import RepositoryAuthorizationViewSet
+from .repository.views import RepositoryAuthorizationRequestsViewSet
+from .repository.views import RepositoryExampleViewSet
 from .examples.views import ExamplesViewSet
 from .evaluate.views import EvaluateViewSet
 from .evaluate.views import ResultsListViewSet
@@ -14,6 +19,7 @@ from .account.views import RequestResetPasswordViewSet
 from .account.views import UserProfileViewSet
 from .account.views import SearchUserViewSet
 from .account.views import ResetPasswordViewSet
+from .translation.views import RepositoryTranslatedExampleViewSet
 
 
 class Router(routers.SimpleRouter):
@@ -86,11 +92,22 @@ class Router(routers.SimpleRouter):
 
 
 router = Router()
-router.register('repository', RepositoryViewSet)
-router.register('repository-votes', RepositoryVotesViewSet)
-router.register('repositories', RepositoriesViewSet)
-router.register('repositories-contributions', RepositoriesContributionsViewSet)
-router.register('examples', ExamplesViewSet)
+router.register('repository/repository', RepositoryViewSet)
+router.register('repository/repository-votes', RepositoryVotesViewSet)
+router.register('repository/repositories', RepositoriesViewSet)
+router.register(
+    'repository/repositories-contributions',
+    RepositoriesContributionsViewSet
+)
+router.register('repository/categories', RepositoryCategoriesView)
+router.register('repository/examples', ExamplesViewSet)
+router.register('repository/search-repositories', SearchRepositoriesViewSet)
+router.register('repository/authorizations', RepositoryAuthorizationViewSet)
+router.register(
+    'repository/authorization-requests',
+    RepositoryAuthorizationRequestsViewSet
+)
+router.register('repository/example', RepositoryExampleViewSet)
 router.register('evaluate/results', ResultsListViewSet)
 router.register('evaluate', EvaluateViewSet)
 router.register('account/login', LoginViewSet)
@@ -100,3 +117,4 @@ router.register('account/forgot-password', RequestResetPasswordViewSet)
 router.register('account/user-profile', UserProfileViewSet)
 router.register('account/search-user', SearchUserViewSet)
 router.register('account/reset-password', ResetPasswordViewSet)
+router.register('translation', RepositoryTranslatedExampleViewSet)

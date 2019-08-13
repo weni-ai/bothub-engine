@@ -1,4 +1,5 @@
 import json
+import uuid
 
 from django.test import TestCase
 from django.test import RequestFactory
@@ -12,6 +13,8 @@ from bothub.common.models import Repository
 from bothub.common.models import RequestRepositoryAuthorization
 from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryTranslatedExample
+from bothub.common.models import RepositoryExampleEntity
+from bothub.common.models import RepositoryUpdate
 from bothub.common import languages
 
 from bothub.api.v2.tests.utils import create_user_and_token
@@ -20,6 +23,12 @@ from bothub.api.v2.repository.views import RepositoryViewSet
 from bothub.api.v2.repository.views import RepositoriesContributionsViewSet
 from bothub.api.v2.repository.views import RepositoriesViewSet
 from bothub.api.v2.repository.views import RepositoryVotesViewSet
+from bothub.api.v2.repository.views import RepositoryCategoriesView
+from bothub.api.v2.repository.views import SearchRepositoriesViewSet
+from bothub.api.v2.repository.views import RepositoryAuthorizationViewSet
+from bothub.api.v2.repository.views import \
+    RepositoryAuthorizationRequestsViewSet
+from bothub.api.v2.repository.views import RepositoryExampleViewSet
 from bothub.api.v2.repository.serializers import RepositorySerializer
 
 
@@ -856,3 +865,1063 @@ class ListRepositoryContributionsTestCase(TestCase):
             len(content_data['results']),
             1
         )
+
+
+class CategoriesTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.category = RepositoryCategory.objects.create(name='Category 1')
+        self.business_category = RepositoryCategory.objects.create(
+            name='Business',
+            icon='business')
+
+    def request(self):
+        request = self.factory.get('/v2/repository/categories/')
+        response = RepositoryCategoriesView.as_view(
+            {'get': 'list'})(request)
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data,)
+
+    def test_default_category_icon(self):
+        response, content_data = self.request()
+        self.assertEqual(
+            content_data[0].get('id'),
+            self.category.id)
+        self.assertEqual(
+            content_data[0].get('icon'),
+            'botinho')
+
+    def test_custom_category_icon(self):
+        response, content_data = self.request()
+        self.assertEqual(
+            content_data[1].get('id'),
+            self.business_category.id)
+        self.assertEqual(
+            content_data[1].get('icon'),
+            self.business_category.icon)
+
+
+class SearchRepositoriesTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.owner, self.owner_token = create_user_and_token('owner')
+        self.user, self.user_token = create_user_and_token()
+
+        self.category = RepositoryCategory.objects.create(
+            name='ID')
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name='Testing',
+            slug='test',
+            language=languages.LANGUAGE_EN)
+        self.repository.categories.add(self.category)
+
+    def request(self, nickname):
+        request = self.factory.get(
+            '/v2/repository/search-repositories/?nickname={}'.format(nickname)
+        )
+        response = SearchRepositoriesViewSet.as_view(
+            {'get': 'list'}
+        )(request, nickname=nickname)
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data,)
+
+    def test_okay(self):
+        response, content_data = self.request('owner')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            content_data.get('count'),
+            1)
+        self.assertEqual(
+            uuid.UUID(content_data.get('results')[0].get('uuid')),
+            self.repository.uuid)
+
+    def test_empty_with_user_okay(self):
+        response, content_data = self.request('fake')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            content_data.get('count'),
+            0)
+
+    def test_empty_without_user_okay(self):
+        response, content_data = self.request('')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            content_data.get('count'),
+            0)
+
+
+class ListAuthorizationTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.owner, self.owner_token = create_user_and_token('owner')
+        self.user, self.user_token = create_user_and_token()
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name='Testing',
+            slug='test',
+            language=languages.LANGUAGE_EN)
+
+        self.user_auth = self.repository.get_user_authorization(self.user)
+        self.user_auth.role = RepositoryAuthorization.ROLE_CONTRIBUTOR
+        self.user_auth.save()
+
+    def request(self, repository, token):
+        authorization_header = {
+            'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
+        }
+        request = self.factory.get(
+            '/v2/repository/authorizations/',
+            {
+                'repository': repository.uuid,
+            },
+            **authorization_header)
+        response = RepositoryAuthorizationViewSet.as_view(
+            {'get': 'list'})(request)
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data,)
+
+    def test_okay(self):
+        response, content_data = self.request(
+            self.repository,
+            self.owner_token)
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK)
+
+        self.assertEqual(
+            content_data.get('count'),
+            1)
+
+        self.assertEqual(
+            content_data.get('results')[0].get('user'),
+            self.user.id)
+
+    def test_user_forbidden(self):
+        response, content_data = self.request(
+            self.repository,
+            self.user_token)
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_403_FORBIDDEN)
+
+
+class UpdateAuthorizationRoleTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.owner, self.owner_token = create_user_and_token('owner')
+        self.user, self.user_token = create_user_and_token()
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name='Testing',
+            slug='test',
+            language=languages.LANGUAGE_EN)
+
+    def request(self, repository, token, user, data):
+        authorization_header = {
+            'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
+        }
+        request = self.factory.patch(
+            '/v2/repository/authorizations/{}/{}/'.format(
+                repository.uuid, user.nickname),
+            self.factory._encode_data(data, MULTIPART_CONTENT),
+            MULTIPART_CONTENT,
+            **authorization_header)
+        view = RepositoryAuthorizationViewSet.as_view(
+            {'patch': 'update'})
+        response = view(
+            request,
+            repository__uuid=repository.uuid,
+            user__nickname=user.nickname)
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data,)
+
+    def test_okay(self):
+        response, content_data = self.request(
+            self.repository,
+            self.owner_token,
+            self.user,
+            {
+                'role': RepositoryAuthorization.ROLE_CONTRIBUTOR,
+            })
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK)
+        self.assertEqual(
+            content_data.get('role'),
+            RepositoryAuthorization.ROLE_CONTRIBUTOR)
+
+        user_authorization = self.repository.get_user_authorization(self.user)
+        self.assertEqual(
+            user_authorization.role,
+            RepositoryAuthorization.ROLE_CONTRIBUTOR)
+
+    def test_forbidden(self):
+        response, content_data = self.request(
+            self.repository,
+            self.user_token,
+            self.user,
+            {
+                'role': RepositoryAuthorization.ROLE_CONTRIBUTOR,
+            })
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_403_FORBIDDEN)
+
+    def test_owner_can_t_set_your_role(self):
+        response, content_data = self.request(
+            self.repository,
+            self.owner_token,
+            self.owner,
+            {
+                'role': RepositoryAuthorization.ROLE_CONTRIBUTOR,
+            })
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_403_FORBIDDEN)
+
+
+class RepositoryAuthorizationRequestsTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.owner, self.owner_token = create_user_and_token('owner')
+        self.admin, self.admin_token = create_user_and_token('admin')
+        self.user, self.user_token = create_user_and_token()
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name='Testing',
+            slug='test',
+            language=languages.LANGUAGE_EN)
+
+        RequestRepositoryAuthorization.objects.create(
+            user=self.user,
+            repository=self.repository,
+            text='I can contribute')
+
+        admin_autho = self.repository.get_user_authorization(self.admin)
+        admin_autho.role = RepositoryAuthorization.ROLE_ADMIN
+        admin_autho.save()
+
+    def request(self, data, token=None):
+        authorization_header = {
+            'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
+        } if token else {}
+        request = self.factory.get(
+            '/v2/repository/authorization-requests/',
+            data,
+            **authorization_header)
+        response = RepositoryAuthorizationRequestsViewSet.as_view(
+            {'get': 'list'})(request)
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data,)
+
+    def test_okay(self):
+        response, content_data = self.request({
+            'repository_uuid': self.repository.uuid,
+        }, self.owner_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK)
+        self.assertEqual(
+            content_data.get('count'),
+            1)
+
+    def test_admin_okay(self):
+        response, content_data = self.request({
+            'repository_uuid': self.repository.uuid,
+        }, self.admin_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK)
+        self.assertEqual(
+            content_data.get('count'),
+            1)
+
+    def test_repository_uuid_empty(self):
+        response, content_data = self.request({}, self.owner_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            len(content_data.get('repository_uuid')),
+            1)
+
+    def test_forbidden(self):
+        response, content_data = self.request({
+            'repository_uuid': self.repository.uuid,
+        }, self.user_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_403_FORBIDDEN)
+
+
+class RequestAuthorizationTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.owner, self.owner_token = create_user_and_token('owner')
+        self.user, self.token = create_user_and_token()
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name='Testing',
+            slug='test',
+            language=languages.LANGUAGE_EN)
+
+    def request(self, data, token=None):
+        authorization_header = {
+            'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
+        } if token else {}
+        request = self.factory.post(
+            '/v2/repository/authorization-requests/',
+            data,
+            **authorization_header)
+        response = RepositoryAuthorizationRequestsViewSet.as_view(
+            {'post': 'create'})(request)
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data,)
+
+    def test_okay(self):
+        response, content_data = self.request({
+            'repository': self.repository.uuid,
+            'text': 'I can contribute',
+        }, self.token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_201_CREATED)
+
+    def test_forbidden_two_requests(self):
+        RequestRepositoryAuthorization.objects.create(
+            user=self.user,
+            repository=self.repository,
+            text='I can contribute')
+        response, content_data = self.request({
+            'repository': self.repository.uuid,
+            'text': 'I can contribute',
+        }, self.token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST)
+        self.assertIn(
+            'non_field_errors',
+            content_data.keys())
+
+
+class ReviewAuthorizationRequestTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.owner, self.owner_token = create_user_and_token('owner')
+        self.admin, self.admin_token = create_user_and_token('admin')
+        self.user, self.user_token = create_user_and_token()
+
+        repository = Repository.objects.create(
+            owner=self.owner,
+            name='Testing',
+            slug='test',
+            language=languages.LANGUAGE_EN)
+
+        self.ra = RequestRepositoryAuthorization.objects.create(
+            user=self.user,
+            repository=repository,
+            text='I can contribute')
+
+        admin_autho = repository.get_user_authorization(self.admin)
+        admin_autho.role = RepositoryAuthorization.ROLE_ADMIN
+        admin_autho.save()
+
+    def request_approve(self, ra, token=None):
+        authorization_header = {
+            'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
+        } if token else {}
+        request = self.factory.put(
+            '/v2/repository/authorization-requests/{}/'.format(ra.pk),
+            self.factory._encode_data({}, MULTIPART_CONTENT),
+            MULTIPART_CONTENT,
+            **authorization_header)
+        response = RepositoryAuthorizationRequestsViewSet.as_view(
+            {'put': 'update'})(request, pk=ra.pk)
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data,)
+
+    def request_reject(self, ra, token=None):
+        authorization_header = {
+            'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
+        } if token else {}
+        request = self.factory.delete(
+            '/v2/repository/authorization-requests/{}/'.format(ra.pk),
+            **authorization_header)
+        response = RepositoryAuthorizationRequestsViewSet.as_view(
+            {'delete': 'destroy'})(request, pk=ra.pk)
+        response.render()
+        return response
+
+    def test_approve_okay(self):
+        response, content_data = self.request_approve(
+            self.ra,
+            self.owner_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK)
+        self.assertEqual(
+            content_data.get('approved_by'),
+            self.owner.id)
+
+    def test_admin_approve_okay(self):
+        response, content_data = self.request_approve(
+            self.ra,
+            self.admin_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK)
+        self.assertEqual(
+            content_data.get('approved_by'),
+            self.admin.id)
+
+    def test_approve_twice(self):
+        self.ra.approved_by = self.owner
+        self.ra.save()
+        response, content_data = self.request_approve(
+            self.ra,
+            self.owner_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST)
+
+    def test_approve_forbidden(self):
+        response, content_data = self.request_approve(
+            self.ra,
+            self.user_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_403_FORBIDDEN)
+
+    def test_reject_okay(self):
+        response = self.request_reject(self.ra, self.owner_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_204_NO_CONTENT)
+
+    def test_admin_reject_okay(self):
+        response = self.request_reject(self.ra, self.admin_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_204_NO_CONTENT)
+
+    def test_reject_forbidden(self):
+        response = self.request_reject(self.ra, self.user_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_403_FORBIDDEN)
+
+
+class RepositoryExampleRetrieveTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.owner, self.owner_token = create_user_and_token('owner')
+        self.user, self.user_token = create_user_and_token()
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name='Testing',
+            slug='test',
+            language=languages.LANGUAGE_EN)
+        self.example = RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(),
+            text='my name is douglas')
+        self.example_entity = RepositoryExampleEntity.objects.create(
+            repository_example=self.example,
+            start=11,
+            end=18,
+            entity='name')
+
+        self.private_repository = Repository.objects.create(
+            owner=self.owner,
+            name='Testing Private',
+            slug='private',
+            language=languages.LANGUAGE_EN,
+            is_private=True)
+        self.private_example = RepositoryExample.objects.create(
+            repository_update=self.private_repository.current_update(),
+            text='hi')
+
+    def request(self, example, token):
+        authorization_header = {
+            'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
+        }
+        request = self.factory.get(
+            '/v2/repository/example/{}/'.format(example.id),
+            **authorization_header)
+        response = RepositoryExampleViewSet.as_view(
+            {'get': 'retrieve'})(request, pk=example.id)
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data,)
+
+    def test_okay(self):
+        response, content_data = self.request(
+            self.example,
+            self.owner_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK)
+        self.assertEqual(
+            content_data.get('id'),
+            self.example.id)
+
+    def test_forbidden(self):
+        response, content_data = self.request(
+            self.private_example,
+            self.user_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_403_FORBIDDEN)
+
+    def test_public(self):
+        response, content_data = self.request(
+            self.example,
+            self.user_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK)
+        self.assertEqual(
+            content_data.get('id'),
+            self.example.id)
+
+    def test_list_entities(self):
+        response, content_data = self.request(
+            self.example,
+            self.owner_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK)
+        self.assertEqual(
+            len(content_data.get('entities')),
+            1)
+
+    def test_entity_has_label(self):
+        response, content_data = self.request(
+            self.example,
+            self.owner_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK)
+        entity = content_data.get('entities')[0]
+        self.assertIn(
+            'label',
+            entity.keys())
+
+    def test_entity_has_valid_label(self):
+        label = 'subject'
+        self.example_entity.entity.set_label('subject')
+        self.example_entity.entity.save(update_fields=['label'])
+        response, content_data = self.request(
+            self.example,
+            self.owner_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK)
+        entity = content_data.get('entities')[0]
+        self.assertIn(
+            'label',
+            entity.keys())
+        self.assertEqual(
+            entity.get('label'),
+            label)
+
+
+class RepositoryExampleDestroyTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.owner, self.owner_token = create_user_and_token('owner')
+        self.user, self.user_token = create_user_and_token()
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name='Testing',
+            slug='test',
+            language=languages.LANGUAGE_EN)
+        self.example = RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(),
+            text='hi')
+
+        self.private_repository = Repository.objects.create(
+            owner=self.owner,
+            name='Testing Private',
+            slug='private',
+            language=languages.LANGUAGE_EN,
+            is_private=True)
+        self.private_example = RepositoryExample.objects.create(
+            repository_update=self.private_repository.current_update(),
+            text='hi')
+
+    def request(self, example, token):
+        authorization_header = {
+            'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
+        }
+        request = self.factory.delete(
+            '/v2/repository/example/{}/'.format(example.id),
+            **authorization_header)
+        response = RepositoryExampleViewSet.as_view(
+            {'delete': 'destroy'})(request, pk=example.id)
+        return response
+
+    def test_okay(self):
+        response = self.request(
+            self.example,
+            self.owner_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_204_NO_CONTENT)
+
+    def test_private_okay(self):
+        response = self.request(
+            self.private_example,
+            self.owner_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_204_NO_CONTENT)
+
+    def test_forbidden(self):
+        response = self.request(
+            self.example,
+            self.user_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_403_FORBIDDEN)
+
+    def test_private_forbidden(self):
+        response = self.request(
+            self.private_example,
+            self.user_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_403_FORBIDDEN)
+
+    def test_already_deleted(self):
+        self.example.delete()
+
+        response = self.request(
+            self.example,
+            self.owner_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class RepositoryExampleUpdateTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.owner, self.owner_token = create_user_and_token('owner')
+        self.user, self.user_token = create_user_and_token()
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name='Testing',
+            slug='test',
+            language=languages.LANGUAGE_EN)
+        self.example = RepositoryExample.objects.create(
+            repository_update=self.repository.current_update(),
+            text='hi')
+
+        self.private_repository = Repository.objects.create(
+            owner=self.owner,
+            name='Testing Private',
+            slug='private',
+            language=languages.LANGUAGE_EN,
+            is_private=True)
+        self.private_example = RepositoryExample.objects.create(
+            repository_update=self.private_repository.current_update(),
+            text='hi')
+
+    def request(self, example, token, data):
+        authorization_header = {
+            'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
+        }
+        request = self.factory.patch(
+            '/v2/repository/example/{}/'.format(example.id),
+            json.dumps(data),
+            content_type='application/json',
+            **authorization_header)
+        response = RepositoryExampleViewSet.as_view(
+            {'patch': 'update'})(request, pk=example.id)
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data,)
+
+    def test_okay(self):
+        text = 'teste'
+        intent = 'teste1234'
+
+        response, content_data = self.request(
+            self.example,
+            self.owner_token,
+            {
+                "repository": str(self.repository.uuid),
+                "text": text,
+                "intent": intent
+            }
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK)
+        self.assertEqual(
+            content_data.get('text'),
+            text)
+        self.assertEqual(
+            content_data.get('intent'),
+            intent)
+
+    def test_private_forbidden(self):
+        response, content_data = self.request(
+            self.private_example,
+            self.user_token,
+            {"text": 'teste', "intent": 'teste1234'})
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_403_FORBIDDEN)
+
+
+class NewRepositoryExampleTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.owner, self.owner_token = create_user_and_token('owner')
+        self.user, self.user_token = create_user_and_token()
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name='Testing',
+            slug='test',
+            language=languages.LANGUAGE_EN)
+
+    def request(self, token, data):
+        authorization_header = {
+            'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
+        }
+        request = self.factory.post(
+            '/v2/repository/example/',
+            json.dumps(data),
+            content_type='application/json',
+            **authorization_header)
+        response = RepositoryExampleViewSet.as_view(
+            {'post': 'create'})(request)
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data,)
+
+    def test_okay(self):
+        text = 'hi'
+        intent = 'greet'
+        response, content_data = self.request(
+            self.owner_token,
+            {
+                'repository': str(self.repository.uuid),
+                'text': text,
+                'intent': intent,
+                'entities': [],
+            })
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_201_CREATED)
+        self.assertEqual(
+            content_data.get('text'),
+            text)
+        self.assertEqual(
+            content_data.get('intent'),
+            intent)
+
+    def test_okay_with_language(self):
+        text = 'hi'
+        intent = 'greet'
+        language = languages.LANGUAGE_PT
+        response, content_data = self.request(
+            self.owner_token,
+            {
+                'repository': str(self.repository.uuid),
+                'text': text,
+                'language': language,
+                'intent': intent,
+                'entities': [],
+            })
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_201_CREATED)
+        self.assertEqual(
+            content_data.get('text'),
+            text)
+        self.assertEqual(
+            content_data.get('intent'),
+            intent)
+        repository_update_pk = content_data.get('repository_update')
+        repository_update = RepositoryUpdate.objects.get(
+            pk=repository_update_pk)
+        self.assertEqual(repository_update.language, language)
+
+    def test_forbidden(self):
+        response, content_data = self.request(
+            self.user_token,
+            {
+                'repository': str(self.repository.uuid),
+                'text': 'hi',
+                'intent': 'greet',
+                'entities': [],
+            })
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_403_FORBIDDEN)
+
+    def test_repository_uuid_required(self):
+        response, content_data = self.request(
+            self.owner_token,
+            {
+                'text': 'hi',
+                'intent': 'greet',
+                'entities': [],
+            })
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST)
+
+    def test_repository_does_not_exists(self):
+        response, content_data = self.request(
+            self.owner_token,
+            {
+                'repository': str(uuid.uuid4()),
+                'text': 'hi',
+                'intent': 'greet',
+                'entities': [],
+            })
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST)
+        self.assertIn(
+            'repository',
+            content_data.keys())
+
+    def test_invalid_repository_uuid(self):
+        response, content_data = self.request(
+            self.owner_token,
+            {
+                'repository': 'invalid',
+                'text': 'hi',
+                'intent': 'greet',
+                'entities': [],
+            })
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST)
+
+    def test_with_entities(self):
+        response, content_data = self.request(
+            self.owner_token,
+            {
+                'repository': str(self.repository.uuid),
+                'text': 'my name is douglas',
+                'intent': 'greet',
+                'entities': [
+                    {
+                        'start': 11,
+                        'end': 18,
+                        'entity': 'name',
+                    },
+                ],
+            })
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_201_CREATED)
+        self.assertEqual(
+            len(content_data.get('entities')),
+            1)
+
+    def test_exists_example(self):
+        text = 'hi'
+        intent = 'greet'
+        response_created, content_data_created = self.request(
+            self.owner_token,
+            {
+                'repository': str(self.repository.uuid),
+                'text': text,
+                'intent': intent,
+                'entities': [],
+            })
+
+        self.assertEqual(
+            response_created.status_code,
+            status.HTTP_201_CREATED)
+
+        response, content_data = self.request(
+            self.owner_token,
+            {
+                'repository': str(self.repository.uuid),
+                'text': text,
+                'intent': intent,
+                'entities': [],
+            })
+
+        self.assertEqual(
+            content_data.get('non_field_errors')[0],
+            'Intention and Sentence already exists'
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST)
+
+    def test_with_entities_with_label(self):
+        response, content_data = self.request(
+            self.owner_token,
+            {
+                'repository': str(self.repository.uuid),
+                'text': 'my name is douglas',
+                'intent': 'greet',
+                'entities': [
+                    {
+                        'start': 11,
+                        'end': 18,
+                        'entity': 'name',
+                        'label': 'subject',
+                    },
+                ],
+            })
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_201_CREATED)
+        self.assertEqual(
+            len(content_data.get('entities')),
+            1)
+        id = content_data.get('id')
+        repository_example = RepositoryExample.objects.get(id=id)
+        example_entity = repository_example.entities.all()[0]
+        self.assertIsNotNone(example_entity.entity.label)
+
+    def test_with_entities_with_invalid_label(self):
+        response, content_data = self.request(
+            self.owner_token,
+            {
+                'repository': str(self.repository.uuid),
+                'text': 'my name is douglas',
+                'intent': 'greet',
+                'entities': [
+                    {
+                        'start': 11,
+                        'end': 18,
+                        'entity': 'name',
+                        'label': 'other',
+                    },
+                ],
+            })
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST)
+        self.assertIn(
+            'entities',
+            content_data.keys())
+        entities_errors = content_data.get('entities')
+        self.assertIn(
+            'label',
+            entities_errors[0])
+
+    def test_with_entities_with_equal_label(self):
+        response, content_data = self.request(
+            self.owner_token,
+            {
+                'repository': str(self.repository.uuid),
+                'text': 'my name is douglas',
+                'intent': 'greet',
+                'entities': [
+                    {
+                        'start': 11,
+                        'end': 18,
+                        'entity': 'name',
+                        'label': 'name',
+                    },
+                ],
+            })
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST)
+        self.assertIn(
+            'entities',
+            content_data.keys())
+        entities_errors = content_data.get('entities')
+        self.assertIn(
+            'label',
+            entities_errors[0])
+
+    def test_intent_or_entity_required(self):
+        response, content_data = self.request(
+            self.owner_token,
+            {
+                'repository': str(self.repository.uuid),
+                'text': 'hi',
+                'intent': '',
+                'entities': [],
+            })
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST)
+
+    def test_entity_with_special_char(self):
+        response, content_data = self.request(
+            self.owner_token,
+            {
+                'repository': str(self.repository.uuid),
+                'text': 'my name is douglas',
+                'intent': '',
+                'entities': [
+                    {
+                        'start': 11,
+                        'end': 18,
+                        'entity': 'nam&',
+                    },
+                ],
+            })
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            len(content_data.get('entities')),
+            1)
+
+    def test_intent_with_special_char(self):
+        response, content_data = self.request(
+            self.owner_token,
+            {
+                'repository': str(self.repository.uuid),
+                'text': 'my name is douglas',
+                'intent': 'nam$s',
+                'entities': [],
+            })
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            len(content_data.get('intent')),
+            1)

@@ -6,7 +6,7 @@ from .models import RepositoryUpdate
 
 
 @staff_member_required
-def download_bot_data(self, update_id):
+def download_bot_data(self, update_id):  # pragma: no cover
     update = get_object_or_404(RepositoryUpdate, id=update_id)
     if not update.trained_at:
         raise ValidationError('Update #{} not trained at.'.format(update.id))
