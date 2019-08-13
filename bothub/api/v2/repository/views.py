@@ -27,7 +27,6 @@ from bothub.common.models import RepositoryExample
 
 from ..metadata import Metadata
 from .serializers import RepositorySerializer
-from .serializers import NewRepositoryExampleSerializer
 from .serializers import RepositoryAuthorizationRoleSerializer
 from .serializers import RepositoryContributionsSerializer
 from .serializers import RepositoryVotesSerializer
@@ -354,7 +353,6 @@ class RepositoryExampleViewSet(
     ]
 
     def create(self, request, *args, **kwargs):
-        self.serializer_class = NewRepositoryExampleSerializer
         self.permission_classes = [permissions.IsAuthenticated]
         return super().create(request, *args, **kwargs)
 

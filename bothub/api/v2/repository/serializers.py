@@ -4,8 +4,6 @@ from rest_framework.exceptions import PermissionDenied
 
 from bothub.api.v2.example.serializers import \
     RepositoryExampleEntitySerializer
-from bothub.api.v2.example.serializers import \
-    NewRepositoryExampleEntitySerializer
 from bothub.api.v2.fields import TextField
 from bothub.api.v2.fields import EntityText
 from bothub.api.v2.repository.validators import \
@@ -479,6 +477,7 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
         model = RepositoryExample
         fields = [
             'id',
+            'repository',
             'repository_update',
             'deleted_in',
             'text',
@@ -489,41 +488,14 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
             'translations',
         ]
         read_only_fields = [
-            'repository_update',
             'deleted_in',
-        ]
-        ref_name = None
-
-    entities = RepositoryExampleEntitySerializer(
-        many=True,
-        read_only=True)
-    translations = RepositoryTranslatedExampleSerializer(
-        many=True,
-        read_only=True)
-    language = serializers.SerializerMethodField()
-
-    def get_language(self, obj):
-        return obj.language
-
-
-class NewRepositoryExampleSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = RepositoryExample
-        fields = [
-            'id',
-            'repository',
-            'repository_update',
-            'text',
-            'language',
-            'intent',
-            'entities',
         ]
         ref_name = None
 
     id = serializers.PrimaryKeyRelatedField(
         read_only=True,
         style={'show': False})
-    text = EntityText(style={'entities_field': 'entities'})
+    text = EntityText(style={'entities_field': 'entities'}, required=False)
     repository = serializers.PrimaryKeyRelatedField(
         queryset=Repository.objects,
         validators=[
@@ -533,17 +505,29 @@ class NewRepositoryExampleSerializer(serializers.ModelSerializer):
         style={'show': False})
     repository_update = serializers.PrimaryKeyRelatedField(
         read_only=True,
-        style={'show': False})
+        style={'show': False}, required=False)
     language = serializers.ChoiceField(
         languages.LANGUAGE_CHOICES,
         allow_blank=True,
         required=False)
-    entities = NewRepositoryExampleEntitySerializer(
+
+    entities = RepositoryExampleEntitySerializer(
         many=True,
-        style={'text_field': 'text'})
+        style={'text_field': 'text'},
+        required=False)
+    translations = RepositoryTranslatedExampleSerializer(
+        many=True,
+        read_only=True)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        if kwargs['context'].get('request').stream is None:
+            self.fields['entities'] = \
+                RepositoryExampleEntitySerializer(
+                    many=True,
+                    style={'text_field': 'text'},
+                    data='GET'
+                )
         self.validators.append(ExampleWithIntentOrEntityValidator())
         self.validators.append(IntentAndSentenceNotExistsValidator())
 
@@ -560,7 +544,7 @@ class NewRepositoryExampleSerializer(serializers.ModelSerializer):
         example = self.Meta.model.objects.create(**validated_data)
         for entity_data in entities_data:
             entity_data.update({'repository_example': example.pk})
-            entity_serializer = NewRepositoryExampleEntitySerializer(
+            entity_serializer = RepositoryExampleEntitySerializer(
                 data=entity_data)
             entity_serializer.is_valid(raise_exception=True)
             entity_serializer.save()

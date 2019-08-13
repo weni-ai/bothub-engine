@@ -1580,7 +1580,11 @@ class RepositoryExampleUpdateTestCase(TestCase):
         response, content_data = self.request(
             self.example,
             self.owner_token,
-            {"text": text, "intent": intent}
+            {
+                "repository": str(self.repository.uuid),
+                "text": text,
+                "intent": intent
+            }
         )
 
         self.assertEqual(
