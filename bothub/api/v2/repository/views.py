@@ -24,6 +24,7 @@ from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryCategory
 from bothub.common.models import RequestRepositoryAuthorization
 from bothub.common.models import RepositoryExample
+from bothub.common.models import RepositoryUpdate
 
 from ..metadata import Metadata
 from .serializers import RepositorySerializer
@@ -35,12 +36,15 @@ from .serializers import RepositoryCategorySerializer
 from .serializers import RepositoryAuthorizationSerializer
 from .serializers import RequestRepositoryAuthorizationSerializer
 from .serializers import RepositoryExampleSerializer
+from .serializers import RepositoryUpdateSerializer
 from .permissions import RepositoryPermission
 from .permissions import RepositoryAdminManagerAuthorization
 from .permissions import RepositoryExamplePermission
+from .permissions import RepositoryUpdateHasPermission
 from .filters import RepositoriesFilter
 from .filters import RepositoryAuthorizationFilter
 from .filters import RepositoryAuthorizationRequestsFilter
+from .filters import RepositoryUpdatesFilter
 
 
 class RepositoryViewSet(
@@ -360,3 +364,16 @@ class RepositoryExampleViewSet(
         if obj.deleted_in:
             raise APIException(_('Example already deleted'))
         obj.delete()
+
+
+class RepositoryUpdatesViewSet(
+      mixins.ListModelMixin,
+      GenericViewSet):
+    queryset = RepositoryUpdate.objects.filter(
+        training_started_at__isnull=False).order_by('-trained_at')
+    serializer_class = RepositoryUpdateSerializer
+    filter_class = RepositoryUpdatesFilter
+    permission_classes = [
+        IsAuthenticated,
+        RepositoryUpdateHasPermission,
+    ]
