@@ -168,6 +168,8 @@ class NewRepositoryExampleSerializer(serializers.ModelSerializer):
             language = None
         repository_update = repository.current_update(language or None)
         validated_data.update({'repository_update': repository_update})
+        repository.total_updates += 1
+        repository.save()
         example = self.Meta.model.objects.create(**validated_data)
         for entity_data in entities_data:
             entity_data.update({'repository_example': example.pk})
