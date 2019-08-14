@@ -30,7 +30,7 @@ class RepositoryUpdateTestCase(TestCase):
         self.repository_update = self.repository.current_update('en')
         example = RepositoryExample.objects.create(
             repository_update=self.repository_update,
-            text='my name is Douglas')
+            text='my name is User')
         self.entity = RepositoryExampleEntity.objects.create(
             repository_example=example,
             start=11,
@@ -38,7 +38,7 @@ class RepositoryUpdateTestCase(TestCase):
             entity='name')
 
     def test_repository_example_entity(self):
-        self.assertEqual(self.entity.value, 'Douglas')
+        self.assertEqual(self.entity.value, 'User')
 
     def test_repository_current_update(self):
         update1 = self.repository.current_update('en')
@@ -50,19 +50,19 @@ class RepositoryUpdateTestCase(TestCase):
 
 class TranslateTestCase(TestCase):
     EXPECTED_RASA_NLU_DATA = {
-        'text': 'meu nome é Douglas',
+        'text': 'meu nome é User',
         'intent': 'greet',
         'entities': [],
     }
 
     EXPECTED_RASA_NLU_DATA_WITH_ENTITIES = {
-        'text': 'meu nome é Douglas',
+        'text': 'meu nome é User',
         'intent': 'greet',
         'entities': [
             {
                 'start': 11,
                 'end': 18,
-                'value': 'Douglas',
+                'value': 'User',
                 'entity': 'name',
             }
         ],
@@ -77,7 +77,7 @@ class TranslateTestCase(TestCase):
         self.repository_update = self.repository.current_update('en')
         self.example = RepositoryExample.objects.create(
             repository_update=self.repository_update,
-            text='my name is Douglas',
+            text='my name is User',
             intent='greet')
 
     def test_new_translate(self):
@@ -85,7 +85,7 @@ class TranslateTestCase(TestCase):
         RepositoryTranslatedExample.objects.create(
             original_example=self.example,
             language=language,
-            text='meu nome é Douglas')
+            text='meu nome é User')
         self.assertEqual(
             len(self.repository.current_update(language).examples),
             1)
@@ -101,7 +101,7 @@ class TranslateTestCase(TestCase):
         translate = RepositoryTranslatedExample.objects.create(
             original_example=self.example,
             language=language,
-            text='meu nome é Douglas')
+            text='meu nome é User')
         RepositoryTranslatedExampleEntity.objects.create(
             repository_translated_example=translate,
             start=11,
@@ -119,7 +119,7 @@ class TranslateTestCase(TestCase):
         translate = RepositoryTranslatedExample.objects.create(
             original_example=self.example,
             language=language,
-            text='meu nome é Douglas')
+            text='meu nome é User')
         RepositoryTranslatedExampleEntity.objects.create(
             repository_translated_example=translate,
             start=11,
@@ -141,7 +141,7 @@ class TranslateTestCase(TestCase):
         translate = RepositoryTranslatedExample.objects.create(
             original_example=self.example,
             language=language,
-            text='meu nome é Douglas')
+            text='meu nome é User')
 
         self.assertEqual(
             translate.has_valid_entities,
@@ -174,7 +174,7 @@ class TranslateTestCase(TestCase):
         translate = RepositoryTranslatedExample.objects.create(
             original_example=self.example,
             language=language,
-            text='meu nome é Douglas')
+            text='meu nome é User')
         RepositoryTranslatedExampleEntity.objects.create(
             repository_translated_example=translate,
             start=11,
@@ -206,7 +206,7 @@ class TranslateTestCase(TestCase):
         translate = RepositoryTranslatedExample.objects.create(
             original_example=self.example,
             language=language,
-            text='meu nome é Douglas')
+            text='meu nome é User')
         RepositoryTranslatedExampleEntity.objects.create(
             repository_translated_example=translate,
             start=11,
@@ -326,7 +326,7 @@ class RepositoryTestCase(TestCase):
         example = RepositoryExample.objects.create(
             repository_update=self.repository.current_update(
                 languages.LANGUAGE_EN),
-            text='my name is Douglas')
+            text='my name is User')
         RepositoryExampleEntity.objects.create(
             repository_example=example,
             start=11,
@@ -841,11 +841,11 @@ class RepositoryUpdateReadyForTrain(TestCase):
     def test_empty_intent(self):
         example = RepositoryExample.objects.create(
             repository_update=self.repository.current_update(),
-            text='douglas',
+            text='user',
             intent='')
         RepositoryExample.objects.create(
             repository_update=self.repository.current_update(),
-            text='douglas',
+            text='user',
             intent='')
         RepositoryExampleEntity.objects.create(
             repository_example=example,
@@ -968,7 +968,7 @@ class RepositoryEntityTestCase(TestCase):
 
         self.example = RepositoryExample.objects.create(
             repository_update=self.repository.current_update(),
-            text='my name is Douglas')
+            text='my name is User')
 
         self.example_entity_1 = RepositoryExampleEntity.objects.create(
             repository_example=self.example,
@@ -1023,7 +1023,7 @@ class RepositoryEntityLabelTestCase(TestCase):
 
         self.example = RepositoryExample.objects.create(
             repository_update=self.repository.current_update(),
-            text='my name is Douglas')
+            text='my name is User')
 
         self.example_entity_1 = RepositoryExampleEntity.objects.create(
             repository_example=self.example,
@@ -1105,13 +1105,13 @@ class RepositoryOtherEntitiesTest(TestCase):
 
         self.example = RepositoryExample.objects.create(
             repository_update=self.repository.current_update(),
-            text='my name is Douglas')
+            text='my name is User')
 
         self.example_entity_1 = RepositoryExampleEntity.objects.create(
             repository_example=self.example,
             start=11,
             end=18,
-            entity='douglas')
+            entity='user')
         entity = self.example_entity_1.entity
         entity.set_label('name')
         entity.save()
@@ -1145,7 +1145,7 @@ class UseLanguageModelFeaturizerTestCase(TestCase):
 
         RepositoryExample.objects.create(
             repository_update=self.repository.current_update(),
-            text='my name is Douglas',
+            text='my name is user',
             intent='greet')
         RepositoryExample.objects.create(
             repository_update=self.repository.current_update(),
@@ -1177,7 +1177,7 @@ class UseCompetingIntentsTestCase(TestCase):
 
         RepositoryExample.objects.create(
             repository_update=self.repository.current_update(),
-            text='my name is Douglas',
+            text='my name is user',
             intent='greet')
         RepositoryExample.objects.create(
             repository_update=self.repository.current_update(),
@@ -1221,7 +1221,7 @@ class UseNameEntitiesTestCase(TestCase):
 
         RepositoryExample.objects.create(
             repository_update=self.repository.current_update(),
-            text='my name is Douglas',
+            text='my name is user',
             intent='greet')
         RepositoryExample.objects.create(
             repository_update=self.repository.current_update(),
@@ -1265,7 +1265,7 @@ class RepositoryUpdateWarnings(TestCase):
 
         RepositoryExample.objects.create(
             repository_update=self.repository.current_update(),
-            text='my name is Douglas',
+            text='my name is user',
             intent='greet')
 
     def test_min_intents(self):

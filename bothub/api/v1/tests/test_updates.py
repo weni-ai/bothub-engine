@@ -25,7 +25,7 @@ class UpdatesTestCase(TestCase):
         current_update = self.repository.current_update()
         RepositoryExample.objects.create(
             repository_update=current_update,
-            text='my name is Douglas',
+            text='my name is user',
             intent='greet')
         RepositoryExample.objects.create(
             repository_update=current_update,
