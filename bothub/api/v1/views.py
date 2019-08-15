@@ -474,6 +474,12 @@ class RepositoryViewSet(
         RepositoryPermission,
     ]
 
+    @method_decorator(
+        name='list',
+        decorator=swagger_auto_schema(
+            deprecated=True
+        )
+    )
     @action(
         detail=True,
         methods=['GET'],
@@ -534,6 +540,12 @@ class RepositoryViewSet(
                 code=request.status_code)
         return Response(request.json())  # pragma: no cover
 
+    @method_decorator(
+        name='list',
+        decorator=swagger_auto_schema(
+            deprecated=True
+        )
+    )
     @action(
         detail=True,
         methods=['POST'],

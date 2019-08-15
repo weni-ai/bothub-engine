@@ -549,3 +549,12 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
             entity_serializer.is_valid(raise_exception=True)
             entity_serializer.save()
         return example
+
+
+class AnalyzeTextSerializer(serializers.Serializer):
+    language = serializers.ChoiceField(LANGUAGE_CHOICES, required=True)
+    text = serializers.CharField(allow_blank=False)
+
+
+class EvaluateSerializer(serializers.Serializer):
+    language = serializers.ChoiceField(LANGUAGE_CHOICES, required=True)
