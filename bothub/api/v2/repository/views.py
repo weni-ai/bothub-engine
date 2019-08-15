@@ -157,7 +157,8 @@ class RepositoryViewSet(
         serializer.is_valid(raise_exception=True)  # pragma: no cover
 
         if not repository.evaluations(
-            language=request.data.get('language')).count():
+            language=request.data.get('language')
+        ).count():
             raise APIException(
                 detail=_('You need to have at least ' +
                          'one registered test phrase'))  # pragma: no cover
