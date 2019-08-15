@@ -638,6 +638,8 @@ class RepositoryUpdate(models.Model):
 
         self.trained_at = timezone.now()
         self.bot_data = base64.b64encode(bot_data).decode('utf8')
+        self.repository.total_updates += 1
+        self.repository.save()
         self.save(
             update_fields=[
                 'trained_at',

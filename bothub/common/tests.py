@@ -290,6 +290,7 @@ class RepositoryTestCase(TestCase):
         self.assertEqual(
             update_1,
             self.repository.last_trained_update())
+        self.assertEqual(1, self.repository.total_updates)
 
     def test_available_languages(self):
         available_languages = self.repository.available_languages

@@ -7,7 +7,9 @@ from bothub.common.models import Repository
 
 
 def updateRepository(apps, schema_editor):
-    for update in RepositoryUpdate.objects.all():
+    for update in RepositoryUpdate.objects.all().filter(
+        trained_at__isnull=False
+    ):
         repository = Repository.objects.get(uuid=update.repository.uuid)
         repository.total_updates += 1
         repository.save()
