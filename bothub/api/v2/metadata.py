@@ -25,7 +25,7 @@ class Metadata(BaseMetadata):
         serializers.FloatField: 'float',
         serializers.DecimalField: 'decimal',
         serializers.DateField: 'date',
-        serializers.DateTimeField: 'datetime',
+        serializers.DateTimeField: 'date',
         serializers.TimeField: 'time',
         serializers.ChoiceField: 'choice',
         serializers.MultipleChoiceField: 'multiple choice',
