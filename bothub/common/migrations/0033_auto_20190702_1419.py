@@ -7,7 +7,7 @@ import django.utils.datetime_safe
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('common', '0031_auto_20190502_1732'),
+        ('common', '0032_repository_total_updates'),
     ]
 
     operations = [
