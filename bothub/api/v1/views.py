@@ -384,6 +384,12 @@ class MultipleFieldLookupMixin(object):
 
 # ViewSets
 
+@method_decorator(
+    name='create',
+    decorator=swagger_auto_schema(
+        deprecated=True
+    )
+)
 class NewRepositoryViewSet(
         mixins.CreateModelMixin,
         GenericViewSet):
@@ -444,6 +450,30 @@ class SearchRepositoriesViewSet(
             return self.queryset.none()
 
 
+@method_decorator(
+    name='retrieve',
+    decorator=swagger_auto_schema(
+        deprecated=True
+    )
+)
+@method_decorator(
+    name='update',
+    decorator=swagger_auto_schema(
+        deprecated=True
+    )
+)
+@method_decorator(
+    name='partial_update',
+    decorator=swagger_auto_schema(
+        deprecated=True
+    )
+)
+@method_decorator(
+    name='destroy',
+    decorator=swagger_auto_schema(
+        deprecated=True
+    )
+)
 class RepositoryViewSet(
         MultipleFieldLookupMixin,
         mixins.RetrieveModelMixin,
@@ -474,6 +504,12 @@ class RepositoryViewSet(
         RepositoryPermission,
     ]
 
+    @method_decorator(
+        name='list',
+        decorator=swagger_auto_schema(
+            deprecated=True
+        )
+    )
     @action(
         detail=True,
         methods=['GET'],
@@ -534,6 +570,12 @@ class RepositoryViewSet(
                 code=request.status_code)
         return Response(request.json())  # pragma: no cover
 
+    @method_decorator(
+        name='list',
+        decorator=swagger_auto_schema(
+            deprecated=True
+        )
+    )
     @action(
         detail=True,
         methods=['POST'],

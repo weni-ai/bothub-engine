@@ -557,6 +557,15 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
         return example
 
 
+class AnalyzeTextSerializer(serializers.Serializer):
+    language = serializers.ChoiceField(LANGUAGE_CHOICES, required=True)
+    text = serializers.CharField(allow_blank=False)
+
+
+class EvaluateSerializer(serializers.Serializer):
+    language = serializers.ChoiceField(LANGUAGE_CHOICES, required=True)
+
+
 class RepositoryUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = RepositoryUpdate
