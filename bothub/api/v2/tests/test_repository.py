@@ -29,6 +29,7 @@ from bothub.api.v2.repository.views import RepositoryAuthorizationViewSet
 from bothub.api.v2.repository.views import \
     RepositoryAuthorizationRequestsViewSet
 from bothub.api.v2.repository.views import RepositoryExampleViewSet
+from bothub.api.v2.repository.views import RepositoryUpdatesViewSet
 from bothub.api.v2.repository.serializers import RepositorySerializer
 
 
@@ -1350,7 +1351,7 @@ class RepositoryExampleRetrieveTestCase(TestCase):
             language=languages.LANGUAGE_EN)
         self.example = RepositoryExample.objects.create(
             repository_update=self.repository.current_update(),
-            text='my name is douglas')
+            text='my name is user')
         self.example_entity = RepositoryExampleEntity.objects.create(
             repository_example=self.example,
             start=11,
@@ -1743,7 +1744,7 @@ class NewRepositoryExampleTestCase(TestCase):
             self.owner_token,
             {
                 'repository': str(self.repository.uuid),
-                'text': 'my name is douglas',
+                'text': 'my name is user',
                 'intent': 'greet',
                 'entities': [
                     {
@@ -1799,7 +1800,7 @@ class NewRepositoryExampleTestCase(TestCase):
             self.owner_token,
             {
                 'repository': str(self.repository.uuid),
-                'text': 'my name is douglas',
+                'text': 'my name is user',
                 'intent': 'greet',
                 'entities': [
                     {
@@ -1826,7 +1827,7 @@ class NewRepositoryExampleTestCase(TestCase):
             self.owner_token,
             {
                 'repository': str(self.repository.uuid),
-                'text': 'my name is douglas',
+                'text': 'my name is user',
                 'intent': 'greet',
                 'entities': [
                     {
@@ -1853,7 +1854,7 @@ class NewRepositoryExampleTestCase(TestCase):
             self.owner_token,
             {
                 'repository': str(self.repository.uuid),
-                'text': 'my name is douglas',
+                'text': 'my name is user',
                 'intent': 'greet',
                 'entities': [
                     {
@@ -1893,7 +1894,7 @@ class NewRepositoryExampleTestCase(TestCase):
             self.owner_token,
             {
                 'repository': str(self.repository.uuid),
-                'text': 'my name is douglas',
+                'text': 'my name is user',
                 'intent': '',
                 'entities': [
                     {
@@ -1915,7 +1916,7 @@ class NewRepositoryExampleTestCase(TestCase):
             self.owner_token,
             {
                 'repository': str(self.repository.uuid),
-                'text': 'my name is douglas',
+                'text': 'my name is user',
                 'intent': 'nam$s',
                 'entities': [],
             })
@@ -2173,3 +2174,70 @@ class AnalyzeRepositoryTestCase(TestCase):
             response.status_code,
             status.HTTP_400_BAD_REQUEST)
         self.assertIn('text', content_data.keys())
+
+
+class UpdatesTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.owner, self.owner_token = create_user_and_token('owner')
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name='Testing',
+            slug='test',
+            language=languages.LANGUAGE_EN)
+        current_update = self.repository.current_update()
+        RepositoryExample.objects.create(
+            repository_update=current_update,
+            text='my name is Douglas',
+            intent='greet')
+        RepositoryExample.objects.create(
+            repository_update=current_update,
+            text='my name is John',
+            intent='greet')
+        current_update.start_training(self.owner)
+
+    def request(self, data, token=None):
+        authorization_header = {
+            'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
+        } if token else {}
+        request = self.factory.get(
+            '/v2/repository/updates/',
+            data,
+            **authorization_header)
+        response = RepositoryUpdatesViewSet.as_view(
+            {'get': 'list'})(request)
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data,)
+
+    def test_okay(self):
+        response, content_data = self.request(
+            {
+                'repository_uuid': str(self.repository.uuid),
+            },
+            self.owner_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK)
+        self.assertEqual(
+            content_data.get('count'),
+            1)
+
+    def test_not_authenticated(self):
+        response, content_data = self.request(
+            {
+                'repository_uuid': str(self.repository.uuid),
+            })
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_401_UNAUTHORIZED)
+
+    def test_without_repository(self):
+        response, content_data = self.request(
+            {},
+            self.owner_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST)

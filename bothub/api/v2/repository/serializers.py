@@ -24,6 +24,7 @@ from bothub.common.models import RequestRepositoryAuthorization
 from bothub.common.models import RepositoryTranslatedExample
 from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryTranslatedExampleEntity
+from bothub.common.models import RepositoryUpdate
 from bothub.common.languages import LANGUAGE_CHOICES
 from .validators import CanContributeInRepositoryTranslatedExampleValidator
 
@@ -312,45 +313,6 @@ class RepositorySerializer(serializers.ModelSerializer):
             return True
 
 
-class ShortRepositorySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Repository
-        fields = [
-            'uuid',
-            'name',
-            'slug',
-            'description',
-            'is_private',
-            'categories',
-            'categories_list',
-            'language',
-            'available_languages',
-            'created_at',
-            'owner',
-            'owner__nickname',
-            'absolute_url',
-        ]
-        read_only = fields
-        ref_name = None
-
-    categories = RepositoryCategorySerializer(
-        many=True,
-        read_only=True)
-    categories_list = serializers.SlugRelatedField(
-        source='categories',
-        slug_field='name',
-        many=True,
-        read_only=True)
-    owner__nickname = serializers.SlugRelatedField(
-        source='owner',
-        slug_field='nickname',
-        read_only=True)
-    absolute_url = serializers.SerializerMethodField()
-
-    def get_absolute_url(self, obj):
-        return obj.get_absolute_url()
-
-
 class RepositoryVotesSerializer(serializers.ModelSerializer):
     class Meta:
         model = RepositoryVote
@@ -374,6 +336,50 @@ class RepositoryVotesSerializer(serializers.ModelSerializer):
             user=user
         )
         return vote
+
+
+class ShortRepositorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Repository
+        fields = [
+            'uuid',
+            'name',
+            'slug',
+            'description',
+            'is_private',
+            'categories',
+            'categories_list',
+            'language',
+            'available_languages',
+            'created_at',
+            'owner',
+            'owner__nickname',
+            'absolute_url',
+            'votes',
+        ]
+        read_only = fields
+        ref_name = None
+
+    categories = RepositoryCategorySerializer(
+        many=True,
+        read_only=True)
+    categories_list = serializers.SlugRelatedField(
+        source='categories',
+        slug_field='name',
+        many=True,
+        read_only=True)
+    owner__nickname = serializers.SlugRelatedField(
+        source='owner',
+        slug_field='nickname',
+        read_only=True)
+    absolute_url = serializers.SerializerMethodField()
+
+    votes = RepositoryVotesSerializer(
+        many=True,
+        read_only=True)
+
+    def get_absolute_url(self, obj):
+        return obj.get_absolute_url()
 
 
 class RepositoryContributionsSerializer(serializers.ModelSerializer):
@@ -558,3 +564,25 @@ class AnalyzeTextSerializer(serializers.Serializer):
 
 class EvaluateSerializer(serializers.Serializer):
     language = serializers.ChoiceField(LANGUAGE_CHOICES, required=True)
+
+
+class RepositoryUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RepositoryUpdate
+        fields = [
+            'id',
+            'repository',
+            'language',
+            'created_at',
+            'by',
+            'by__nickname',
+            'training_started_at',
+            'trained_at',
+            'failed_at',
+        ]
+        ref_name = None
+
+    by__nickname = serializers.SlugRelatedField(
+        source='by',
+        slug_field='nickname',
+        read_only=True)
