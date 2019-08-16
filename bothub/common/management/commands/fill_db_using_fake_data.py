@@ -33,12 +33,6 @@ class Command(BaseCommand):
             password='admin',
             name='Admin')
 
-        douglas = User.objects.create_user(
-            email='douglas@bothub.it',
-            nickname='douglas',
-            password='douglas',
-            name='Douglas Paz')
-
         user = User.objects.create_user(
             email='user@bothub.it',
             nickname='user',
@@ -55,7 +49,7 @@ class Command(BaseCommand):
         # Repositories
 
         repository_1 = Repository.objects.create(
-            owner=douglas,
+            owner=user,
             name='Repository 1',
             slug='repo1',
             language=languages.LANGUAGE_EN)
@@ -73,7 +67,7 @@ class Command(BaseCommand):
 
         for x in range(3, 46):
             new_repository = Repository.objects.create(
-                owner=random.choice([douglas, user]),
+                owner=user,
                 name='Repository {}'.format(x),
                 slug='repo{}'.format(x),
                 language=languages.LANGUAGE_EN)

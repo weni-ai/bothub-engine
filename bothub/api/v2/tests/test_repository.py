@@ -1351,7 +1351,7 @@ class RepositoryExampleRetrieveTestCase(TestCase):
             language=languages.LANGUAGE_EN)
         self.example = RepositoryExample.objects.create(
             repository_update=self.repository.current_update(),
-            text='my name is douglas')
+            text='my name is user')
         self.example_entity = RepositoryExampleEntity.objects.create(
             repository_example=self.example,
             start=11,
@@ -1744,7 +1744,7 @@ class NewRepositoryExampleTestCase(TestCase):
             self.owner_token,
             {
                 'repository': str(self.repository.uuid),
-                'text': 'my name is douglas',
+                'text': 'my name is user',
                 'intent': 'greet',
                 'entities': [
                     {
@@ -1800,7 +1800,7 @@ class NewRepositoryExampleTestCase(TestCase):
             self.owner_token,
             {
                 'repository': str(self.repository.uuid),
-                'text': 'my name is douglas',
+                'text': 'my name is user',
                 'intent': 'greet',
                 'entities': [
                     {
@@ -1827,7 +1827,7 @@ class NewRepositoryExampleTestCase(TestCase):
             self.owner_token,
             {
                 'repository': str(self.repository.uuid),
-                'text': 'my name is douglas',
+                'text': 'my name is user',
                 'intent': 'greet',
                 'entities': [
                     {
@@ -1854,7 +1854,7 @@ class NewRepositoryExampleTestCase(TestCase):
             self.owner_token,
             {
                 'repository': str(self.repository.uuid),
-                'text': 'my name is douglas',
+                'text': 'my name is user',
                 'intent': 'greet',
                 'entities': [
                     {
@@ -1894,7 +1894,7 @@ class NewRepositoryExampleTestCase(TestCase):
             self.owner_token,
             {
                 'repository': str(self.repository.uuid),
-                'text': 'my name is douglas',
+                'text': 'my name is user',
                 'intent': '',
                 'entities': [
                     {
@@ -1916,7 +1916,7 @@ class NewRepositoryExampleTestCase(TestCase):
             self.owner_token,
             {
                 'repository': str(self.repository.uuid),
-                'text': 'my name is douglas',
+                'text': 'my name is user',
                 'intent': 'nam$s',
                 'entities': [],
             })
