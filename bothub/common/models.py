@@ -61,7 +61,7 @@ class RepositoryQuerySet(models.QuerySet):
         return self \
             .annotate(votes_summ=models.Sum('votes__vote')) \
             .annotate(examples_sum=models.Sum('updates__added')) \
-            .order_by('-votes_summ', '-examples_sum', '-created_at')
+            .order_by('-total_updates', '-examples_sum', '-created_at')
 
     def supported_language(self, language):
         valid_examples = RepositoryExample.objects.filter(
@@ -174,6 +174,13 @@ class Repository(models.Model):
     created_at = models.DateTimeField(
         _('created at'),
         auto_now_add=True)
+
+    total_updates = models.IntegerField(
+        _('total updates'),
+        default=0,
+        blank=False,
+        null=False
+    )
 
     objects = RepositoryManager()
 
@@ -631,6 +638,8 @@ class RepositoryUpdate(models.Model):
 
         self.trained_at = timezone.now()
         self.bot_data = base64.b64encode(bot_data).decode('utf8')
+        self.repository.total_updates += 1
+        self.repository.save()
         self.save(
             update_fields=[
                 'trained_at',
