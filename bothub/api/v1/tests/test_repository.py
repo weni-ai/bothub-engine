@@ -641,7 +641,7 @@ class AnalyzeRepositoryTestCase(TestCase):
             self.user_token,
             {
                 'language': 'en',
-                'text': 'My name is Douglas',
+                'text': 'My name is user',
             })
         self.assertEqual(
             response.status_code,
@@ -653,7 +653,7 @@ class AnalyzeRepositoryTestCase(TestCase):
             self.owner_token,
             {
                 'language': '',
-                'text': 'My name is Douglas',
+                'text': 'My name is user',
             })
         self.assertEqual(
             response.status_code,

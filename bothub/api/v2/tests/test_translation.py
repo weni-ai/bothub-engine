@@ -101,7 +101,7 @@ class TranslateExampleTestCase(TestCase):
     def test_okay_with_entities(self):
         example = RepositoryExample.objects.create(
             repository_update=self.repository.current_update(),
-            text='my name is douglas')
+            text='my name is user')
         RepositoryExampleEntity.objects.create(
             repository_example=example,
             start=11,
@@ -111,7 +111,7 @@ class TranslateExampleTestCase(TestCase):
             {
                 'original_example': example.id,
                 'language': languages.LANGUAGE_PT,
-                'text': 'meu nome é douglas',
+                'text': 'meu nome é user',
                 'entities': [
                     {
                         'start': 11,
@@ -131,7 +131,7 @@ class TranslateExampleTestCase(TestCase):
     def test_entities_no_valid(self):
         example = RepositoryExample.objects.create(
             repository_update=self.repository.current_update(),
-            text='my name is douglas')
+            text='my name is user')
         RepositoryExampleEntity.objects.create(
             repository_example=self.example,
             start=11,
@@ -141,7 +141,7 @@ class TranslateExampleTestCase(TestCase):
             {
                 'original_example': example.id,
                 'language': languages.LANGUAGE_PT,
-                'text': 'meu nome é douglas',
+                'text': 'meu nome é user',
                 'entities': [
                     {
                         'start': 11,
@@ -161,7 +161,7 @@ class TranslateExampleTestCase(TestCase):
     def test_entities_no_valid_2(self):
         example = RepositoryExample.objects.create(
             repository_update=self.repository.current_update(),
-            text='my name is douglas')
+            text='my name is user')
         RepositoryExampleEntity.objects.create(
             repository_example=self.example,
             start=11,
@@ -171,7 +171,7 @@ class TranslateExampleTestCase(TestCase):
             {
                 'original_example': example.id,
                 'language': languages.LANGUAGE_PT,
-                'text': 'meu nome é douglas',
+                'text': 'meu nome é user',
                 'entities': [
                     {
                         'start': 11,

@@ -29,7 +29,6 @@ Run ```pipenv run python ./manage.py fill_db_using_fake_data``` to fill database
 | nickname | email | password | is superuser |
 |---|---|---|---|
 | admin | admin@bothub.it | admin | yes |
-| douglas | douglas@bothub.it | douglas | no |
 | user | user@bothub.it | user | no |
 
 

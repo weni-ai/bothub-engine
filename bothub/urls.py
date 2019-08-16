@@ -52,15 +52,15 @@ if settings.DEBUG:
                 'welcome/',
                 render_template(
                     'authentication/emails/welcome.html',
-                    name='Douglas')),
+                    name='User')),
             path(
                 'new-role/',
                 render_template(
                     'common/emails/new_role.html',
-                    responsible_name='Douglas',
+                    responsible_name='User',
                     user_name='Michael',
                     repository_name='Repository 1',
-                    repository_url='http://localhost:8080/douglas/repo1/',
+                    repository_url='http://localhost:8080/user/repo1/',
                     new_role='Admin')),
             path(
                 'new-request/',
@@ -73,7 +73,7 @@ if settings.DEBUG:
                     'consectetur. Praesent eleifend sit amet nulla sed ' +
                     'egestas. Nam ac quam lacus. Pellentesque posuere, ' +
                     'nisl nullam.',
-                    repository_url='http://localhost:8080/douglas/repo1/')),
+                    repository_url='http://localhost:8080/user/repo1/')),
             path(
                 'request-rejected/',
                 render_template(
@@ -83,8 +83,8 @@ if settings.DEBUG:
                 'request-approved/',
                 render_template(
                     'common/emails/request_approved.html',
-                    admin_name='Douglas',
+                    admin_name='User',
                     repository_name='Repository 1',
-                    repository_url='http://localhost:8080/douglas/repo1/')),
+                    repository_url='http://localhost:8080/user/repo1/')),
         ])),
     ]
