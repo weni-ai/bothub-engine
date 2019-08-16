@@ -24,6 +24,7 @@ from bothub.common.models import RequestRepositoryAuthorization
 from bothub.common.models import RepositoryTranslatedExample
 from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryTranslatedExampleEntity
+from bothub.common.models import RepositoryUpdate
 from bothub.common.languages import LANGUAGE_CHOICES
 from .validators import CanContributeInRepositoryTranslatedExampleValidator
 
@@ -554,3 +555,25 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
             entity_serializer.is_valid(raise_exception=True)
             entity_serializer.save()
         return example
+
+
+class RepositoryUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RepositoryUpdate
+        fields = [
+            'id',
+            'repository',
+            'language',
+            'created_at',
+            'by',
+            'by__nickname',
+            'training_started_at',
+            'trained_at',
+            'failed_at',
+        ]
+        ref_name = None
+
+    by__nickname = serializers.SlugRelatedField(
+        source='by',
+        slug_field='nickname',
+        read_only=True)

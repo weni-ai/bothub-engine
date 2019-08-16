@@ -1294,6 +1294,12 @@ class RepositoryEntitiesViewSet(
     ]
 
 
+@method_decorator(
+    name='list',
+    decorator=swagger_auto_schema(
+        deprecated=True,
+    )
+)
 class RepositoryUpdatesViewSet(
       mixins.ListModelMixin,
       GenericViewSet):
