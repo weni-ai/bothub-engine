@@ -63,3 +63,24 @@ class RepositoryAuthorizationInfoViewSet(
         repository = repository_authorization.repository
         serializer = RepositorySerializer(repository)
         return Response(serializer.data)
+
+
+class RepositoryAuthorizationEvaluateViewSet(
+        mixins.RetrieveModelMixin,
+        GenericViewSet):
+    queryset = RepositoryAuthorization.objects
+    permission_classes = [AllowAny]
+
+    def retrieve(self, request, *args, **kwargs):
+        repository_authorization = self.get_object()
+        repository = repository_authorization.repository
+        update = repository.last_trained_update(
+            str(request.query_params.get('language'))
+        )
+        data = {
+            'update': False if update is None else True,
+            'update_id': update.id,
+            'language': update.language,
+            'user_id': repository_authorization.user.id
+        }
+        return Response(data)

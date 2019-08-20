@@ -13,6 +13,7 @@ from .repository.views import RepositoryUpdatesViewSet
 from .nlp.views import RepositoryAuthorizationTrainViewSet
 from .nlp.views import RepositoryAuthorizationParseViewSet
 from .nlp.views import RepositoryAuthorizationInfoViewSet
+from .nlp.views import RepositoryAuthorizationEvaluateViewSet
 from .examples.views import ExamplesViewSet
 from .evaluate.views import EvaluateViewSet
 from .evaluate.views import ResultsListViewSet
@@ -127,6 +128,10 @@ router.register(
 router.register(
     'repository/nlp/authorization/info',
     RepositoryAuthorizationInfoViewSet
+)
+router.register(
+    'repository/nlp/authorization/evaluate',
+    RepositoryAuthorizationEvaluateViewSet
 )
 router.register('account/login', LoginViewSet)
 router.register('account/register', RegisterUserViewSet)
