@@ -5,6 +5,7 @@ from rest_framework.permissions import AllowAny
 
 from bothub.api.v2.repository.serializers import RepositorySerializer
 from bothub.common.models import RepositoryAuthorization
+from bothub.common import languages
 
 
 class RepositoryAuthorizationTrainViewSet(
@@ -82,5 +83,33 @@ class RepositoryAuthorizationEvaluateViewSet(
             'update_id': update.id,
             'language': update.language,
             'user_id': repository_authorization.user.id
+        }
+        return Response(data)
+
+
+class NLPLangsViewSet(
+        mixins.ListModelMixin,
+        GenericViewSet):
+    queryset = RepositoryAuthorization.objects
+    permission_classes = [AllowAny]
+
+    def list(self, request, *args, **kwargs):
+        data = {
+            'english': [
+                languages.LANGUAGE_EN,
+            ],
+            'portuguese': [
+                languages.LANGUAGE_PT,
+                languages.LANGUAGE_PT_BR,
+            ],
+            languages.LANGUAGE_PT: [
+                languages.LANGUAGE_PT_BR,
+            ],
+            'pt-br': [
+                languages.LANGUAGE_PT_BR,
+            ],
+            'br': [
+                languages.LANGUAGE_PT_BR,
+            ],
         }
         return Response(data)
