@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.permissions import AllowAny
 
+from bothub.api.v2.repository.serializers import RepositorySerializer
 from bothub.common.models import RepositoryAuthorization
 
 
@@ -49,3 +50,16 @@ class RepositoryAuthorizationParseViewSet(
             'language': update.language
         }
         return Response(data)
+
+
+class RepositoryAuthorizationInfoViewSet(
+        mixins.RetrieveModelMixin,
+        GenericViewSet):
+    queryset = RepositoryAuthorization.objects
+    permission_classes = [AllowAny]
+
+    def retrieve(self, request, *args, **kwargs):
+        repository_authorization = self.get_object()
+        repository = repository_authorization.repository
+        serializer = RepositorySerializer(repository)
+        return Response(serializer.data)
