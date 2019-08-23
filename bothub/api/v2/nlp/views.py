@@ -285,12 +285,17 @@ class RepositoryAuthorizationEvaluateViewSet(
         for evaluate in evaluations:
             entities = []
 
-            for evaluate_entity in evaluate.get_entities(repository_update.language):
+            for evaluate_entity in evaluate.get_entities(
+                repository_update.language
+            ):
                 entities.append(
                     {
                         'start': evaluate_entity.start,
                         'end': evaluate_entity.end,
-                        'value': evaluate.text[evaluate_entity.start:evaluate_entity.end],
+                        'value':
+                            evaluate.text[
+                                evaluate_entity.start:evaluate_entity.end
+                            ],
                         'entity': evaluate_entity.entity.value,
                     }
                 )
