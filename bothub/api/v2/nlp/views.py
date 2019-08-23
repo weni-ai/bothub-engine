@@ -1,4 +1,6 @@
 import base64
+import json
+
 from django.db import models
 from rest_framework import mixins
 from rest_framework.decorators import action
@@ -9,6 +11,11 @@ from rest_framework.permissions import AllowAny
 from bothub.api.v2.repository.serializers import RepositorySerializer
 from bothub.authentication.models import User
 from bothub.common.models import RepositoryAuthorization
+from bothub.common.models import RepositoryEntity
+from bothub.common.models import RepositoryEvaluateResult
+from bothub.common.models import RepositoryEvaluateResultScore
+from bothub.common.models import RepositoryEvaluateResultIntent
+from bothub.common.models import RepositoryEvaluateResultEntity
 from bothub.common.models import RepositoryUpdate
 from bothub.common.models import Repository
 from bothub.common import languages
@@ -206,6 +213,26 @@ class RepositoryAuthorizationParseViewSet(
         }
         return Response(data)
 
+    @action(
+        detail=True,
+        methods=['GET'],
+        url_name='repository_entity',
+        lookup_field=[])
+    def repositoryentity(self, request, **kwargs):
+        repository_update = RepositoryUpdate.objects.get(
+            id=request.query_params.get('update_id')
+        )
+        repository_entity = RepositoryEntity.objects.get(
+            repository=repository_update.repository,
+            value=request.query_params.get('entity')
+        )
+
+        data = {
+            'label': repository_entity.label,
+            'label_value': repository_entity.label.value
+        }
+        return Response(data)
+
 
 class RepositoryAuthorizationInfoViewSet(
         mixins.RetrieveModelMixin,
@@ -239,6 +266,139 @@ class RepositoryAuthorizationEvaluateViewSet(
             'user_id': repository_authorization.user.id
         }
         return Response(data)
+
+    @action(
+        detail=True,
+        methods=['GET'],
+        url_name='evaluations',
+        lookup_field=[])
+    def evaluations(self, request, **kwargs):
+        repository_update = RepositoryUpdate.objects.get(
+            id=request.query_params.get('update_id')
+        )
+        evaluations = repository_update.repository.evaluations(
+            language=repository_update.language
+        )
+
+        data = []
+
+        for evaluate in evaluations:
+            entities = []
+
+            for evaluate_entity in evaluate.get_entities(repository_update.language):
+                entities.append(
+                    {
+                        'start': evaluate_entity.start,
+                        'end': evaluate_entity.end,
+                        'value': evaluate.text[evaluate_entity.start:evaluate_entity.end],
+                        'entity': evaluate_entity.entity.value,
+                    }
+                )
+
+            data.append(
+                {
+                    'text': evaluate.get_text(repository_update.language),
+                    'intent': evaluate.intent,
+                    'entities': entities
+
+                }
+            )
+        return Response(data)
+
+    @action(
+        detail=True,
+        methods=['POST'],
+        url_name='evaluate_results',
+        lookup_field=[])
+    def evaluateresults(self, request, **kwargs):
+        repository_update = RepositoryUpdate.objects.get(
+            id=request.data.get('update_id')
+        )
+
+        intents_score = RepositoryEvaluateResultScore.objects.create(
+            precision=request.data.get('intentprecision'),
+            f1_score=request.data.get('intentf1_score'),
+            accuracy=request.data.get('intentaccuracy'),
+        )
+
+        entities_score = RepositoryEvaluateResultScore.objects.create(
+            precision=request.data.get('entityprecision'),
+            f1_score=request.data.get('entityf1_score'),
+            accuracy=request.data.get('entityaccuracy'),
+        )
+
+        evaluate_result = RepositoryEvaluateResult.objects.create(
+            repository_update=repository_update,
+            entity_results=entities_score,
+            intent_results=intents_score,
+            matrix_chart=request.data.get('matrix_chart'),
+            confidence_chart=request.data.get('confidence_chart'),
+            log=json.dumps(request.data.get('log')),
+        )
+
+        return Response(
+            {
+                'evaluate_id': evaluate_result.id,
+                'evaluate_version': evaluate_result.version
+            }
+        )
+
+    @action(
+        detail=True,
+        methods=['POST'],
+        url_name='evaluate_results_intent',
+        lookup_field=[])
+    def evaluateresultsintent(self, request, **kwargs):
+        evaluate_result = RepositoryEvaluateResult.objects.get(
+            id=request.data.get('evaluate_id')
+        )
+
+        intent_score = RepositoryEvaluateResultScore.objects.create(
+            precision=request.data.get('precision'),
+            recall=request.data.get('recall'),
+            f1_score=request.data.get('f1_score'),
+            support=request.data.get('support'),
+        )
+
+        RepositoryEvaluateResultIntent.objects.create(
+            intent=request.data.get('intent_key'),
+            evaluate_result=evaluate_result,
+            score=intent_score,
+        )
+
+        return Response({})
+
+    @action(
+        detail=True,
+        methods=['POST'],
+        url_name='evaluate_results_score',
+        lookup_field=[])
+    def evaluateresultsscore(self, request, **kwargs):
+        evaluate_result = RepositoryEvaluateResult.objects.get(
+            id=request.data.get('evaluate_id')
+        )
+
+        repository_update = RepositoryUpdate.objects.get(
+            id=request.data.get('update_id')
+        )
+
+        entity_score = RepositoryEvaluateResultScore.objects.create(
+            precision=request.data.get('precision'),
+            recall=request.data.get('recall'),
+            f1_score=request.data.get('f1_score'),
+            support=request.data.get('support'),
+        )
+
+        RepositoryEvaluateResultEntity.objects.create(
+            entity=RepositoryEntity.objects.get(
+                repository=repository_update.repository,
+                value=request.data.get('entity_key'),
+                create_entity=False),
+            evaluate_result=evaluate_result,
+            score=entity_score,
+        )
+
+        return Response({})
 
 
 class NLPLangsViewSet(
