@@ -2,7 +2,10 @@ import base64
 import json
 
 from django.db import models
+from django.utils.translation import gettext_lazy as _
+
 from rest_framework import mixins
+from rest_framework import exceptions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
@@ -19,6 +22,16 @@ from bothub.common.models import RepositoryEvaluateResultEntity
 from bothub.common.models import RepositoryUpdate
 from bothub.common.models import Repository
 from bothub.common import languages
+
+
+def check_auth(request):
+    try:
+        auth = request.META.get('HTTP_AUTHORIZATION').split()
+        auth = auth[1]
+        RepositoryAuthorization.objects.get(uuid=auth)
+    except Exception:
+        msg = _('Invalid token header.')
+        raise exceptions.AuthenticationFailed(msg)
 
 
 class RepositoryAuthorizationTrainViewSet(
@@ -273,6 +286,7 @@ class RepositoryAuthorizationEvaluateViewSet(
         url_name='evaluations',
         lookup_field=[])
     def evaluations(self, request, **kwargs):
+        check_auth(request)
         repository_update = RepositoryUpdate.objects.get(
             id=request.query_params.get('update_id')
         )
@@ -413,6 +427,7 @@ class NLPLangsViewSet(
     permission_classes = [AllowAny]
 
     def list(self, request, *args, **kwargs):
+        check_auth(request)
         data = {
             'english': [
                 languages.LANGUAGE_EN,
@@ -442,6 +457,7 @@ class RepositoryUpdateInterpretersViewSet(
     permission_classes = [AllowAny]
 
     def retrieve(self, request, *args, **kwargs):
+        check_auth(request)
         update = self.get_object()
         data = {
             'update_id': update.id,
@@ -451,6 +467,7 @@ class RepositoryUpdateInterpretersViewSet(
         return Response(data)
 
     def create(self, request, *args, **kwargs):
+        check_auth(request)
         repository = self.queryset.get(pk=request.data.get('id'))
         bot_data = base64.b64decode(request.data.get('bot_data'))
         repository.save_training(bot_data)
