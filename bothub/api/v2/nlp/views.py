@@ -65,6 +65,7 @@ class RepositoryAuthorizationTrainViewSet(
         url_name='start_training',
         lookup_field=[])
     def starttraining(self, request, **kwargs):
+        check_auth(request)
         repository = RepositoryUpdate.objects.get(
             id=request.data.get('update_id')
         )
@@ -117,6 +118,7 @@ class RepositoryAuthorizationTrainViewSet(
         url_name='gettext',
         lookup_field=[])
     def gettext(self, request, **kwargs):
+        check_auth(request)
         repository = RepositoryUpdate.objects.get(
             id=request.query_params.get('update_id')
         ).examples.get(
@@ -136,6 +138,7 @@ class RepositoryAuthorizationTrainViewSet(
         url_name='get_entities',
         lookup_field=[])
     def getentities(self, request, **kwargs):
+        check_auth(request)
         repository = RepositoryUpdate.objects.get(
             id=request.query_params.get('update_id')
         ).examples.get(
@@ -160,6 +163,7 @@ class RepositoryAuthorizationTrainViewSet(
         url_name='get_entities_label',
         lookup_field=[])
     def getentitieslabel(self, request, **kwargs):
+        check_auth(request)
         repository = RepositoryUpdate.objects.get(
             id=request.query_params.get('update_id')
         ).examples.get(
@@ -188,6 +192,7 @@ class RepositoryAuthorizationTrainViewSet(
         url_name='train_fail',
         lookup_field=[])
     def trainfail(self, request, **kwargs):
+        check_auth(request)
         RepositoryUpdate.objects.get(
             id=request.data.get('update_id')
         ).train_fail()
@@ -199,6 +204,7 @@ class RepositoryAuthorizationTrainViewSet(
         url_name='training_log',
         lookup_field=[])
     def traininglog(self, request, **kwargs):
+        check_auth(request)
         repository = RepositoryUpdate.objects.get(
             id=request.data.get('update_id')
         )
@@ -267,6 +273,7 @@ class RepositoryAuthorizationEvaluateViewSet(
     permission_classes = [AllowAny]
 
     def retrieve(self, request, *args, **kwargs):
+        check_auth(request)
         repository_authorization = self.get_object()
         repository = repository_authorization.repository
         update = repository.last_trained_update(
@@ -330,6 +337,7 @@ class RepositoryAuthorizationEvaluateViewSet(
         url_name='evaluate_results',
         lookup_field=[])
     def evaluateresults(self, request, **kwargs):
+        check_auth(request)
         repository_update = RepositoryUpdate.objects.get(
             id=request.data.get('update_id')
         )
@@ -368,6 +376,7 @@ class RepositoryAuthorizationEvaluateViewSet(
         url_name='evaluate_results_intent',
         lookup_field=[])
     def evaluateresultsintent(self, request, **kwargs):
+        check_auth(request)
         evaluate_result = RepositoryEvaluateResult.objects.get(
             id=request.data.get('evaluate_id')
         )
@@ -393,6 +402,7 @@ class RepositoryAuthorizationEvaluateViewSet(
         url_name='evaluate_results_score',
         lookup_field=[])
     def evaluateresultsscore(self, request, **kwargs):
+        check_auth(request)
         evaluate_result = RepositoryEvaluateResult.objects.get(
             id=request.data.get('evaluate_id')
         )
@@ -427,7 +437,6 @@ class NLPLangsViewSet(
     permission_classes = [AllowAny]
 
     def list(self, request, *args, **kwargs):
-        check_auth(request)
         data = {
             'english': [
                 languages.LANGUAGE_EN,
