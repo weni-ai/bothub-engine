@@ -42,6 +42,7 @@ class RepositoryAuthorizationTrainViewSet(
     permission_classes = [AllowAny]
 
     def retrieve(self, request, *args, **kwargs):
+        check_auth(request)
         repository_authorization = self.get_object()
         current_update = repository_authorization.repository.current_update(
             str(request.query_params.get('language'))
@@ -220,6 +221,7 @@ class RepositoryAuthorizationParseViewSet(
     permission_classes = [AllowAny]
 
     def retrieve(self, request, *args, **kwargs):
+        check_auth(request)
         repository_authorization = self.get_object()
         repository = repository_authorization.repository
         update = repository.last_trained_update(
@@ -238,6 +240,7 @@ class RepositoryAuthorizationParseViewSet(
         url_name='repository_entity',
         lookup_field=[])
     def repositoryentity(self, request, **kwargs):
+        check_auth(request)
         repository_update = RepositoryUpdate.objects.get(
             id=request.query_params.get('update_id')
         )
@@ -260,6 +263,7 @@ class RepositoryAuthorizationInfoViewSet(
     permission_classes = [AllowAny]
 
     def retrieve(self, request, *args, **kwargs):
+        check_auth(request)
         repository_authorization = self.get_object()
         repository = repository_authorization.repository
         serializer = RepositorySerializer(repository)
