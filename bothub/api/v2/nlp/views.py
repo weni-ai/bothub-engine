@@ -12,6 +12,7 @@ from rest_framework.viewsets import GenericViewSet
 from rest_framework.permissions import AllowAny
 
 from bothub.api.v2.repository.serializers import RepositorySerializer
+from .serializers import NLPSerializer
 from bothub.authentication.models import User
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryEntity
@@ -39,6 +40,7 @@ class RepositoryAuthorizationTrainViewSet(
         mixins.CreateModelMixin,
         GenericViewSet):
     queryset = RepositoryAuthorization.objects
+    serializer_class = NLPSerializer
     permission_classes = [AllowAny]
 
     def retrieve(self, request, *args, **kwargs):
@@ -218,6 +220,7 @@ class RepositoryAuthorizationParseViewSet(
         mixins.RetrieveModelMixin,
         GenericViewSet):
     queryset = RepositoryAuthorization.objects
+    serializer_class = NLPSerializer
     permission_classes = [AllowAny]
 
     def retrieve(self, request, *args, **kwargs):
@@ -260,6 +263,7 @@ class RepositoryAuthorizationInfoViewSet(
         mixins.RetrieveModelMixin,
         GenericViewSet):
     queryset = RepositoryAuthorization.objects
+    serializer_class = NLPSerializer
     permission_classes = [AllowAny]
 
     def retrieve(self, request, *args, **kwargs):
@@ -274,6 +278,7 @@ class RepositoryAuthorizationEvaluateViewSet(
         mixins.RetrieveModelMixin,
         GenericViewSet):
     queryset = RepositoryAuthorization.objects
+    serializer_class = NLPSerializer
     permission_classes = [AllowAny]
 
     def retrieve(self, request, *args, **kwargs):
@@ -438,6 +443,7 @@ class NLPLangsViewSet(
         mixins.ListModelMixin,
         GenericViewSet):
     queryset = RepositoryAuthorization.objects
+    serializer_class = NLPSerializer
     permission_classes = [AllowAny]
 
     def list(self, request, *args, **kwargs):
@@ -467,6 +473,7 @@ class RepositoryUpdateInterpretersViewSet(
         mixins.CreateModelMixin,
         GenericViewSet):
     queryset = RepositoryUpdate.objects
+    serializer_class = NLPSerializer
     permission_classes = [AllowAny]
 
     def retrieve(self, request, *args, **kwargs):
