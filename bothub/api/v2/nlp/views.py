@@ -25,7 +25,7 @@ from bothub.common.models import Repository
 from bothub.common import languages
 
 
-def check_auth(request):
+def check_auth(request):  # pragma: no cover
     try:
         auth = request.META.get('HTTP_AUTHORIZATION').split()
         auth = auth[1]
@@ -43,7 +43,7 @@ class RepositoryAuthorizationTrainViewSet(
     serializer_class = NLPSerializer
     permission_classes = [AllowAny]
 
-    def retrieve(self, request, *args, **kwargs):
+    def retrieve(self, request, *args, **kwargs):  # pragma: no cover
         check_auth(request)
         repository_authorization = self.get_object()
         current_update = repository_authorization.repository.current_update(
@@ -67,7 +67,7 @@ class RepositoryAuthorizationTrainViewSet(
         methods=['POST'],
         url_name='start_training',
         lookup_field=[])
-    def starttraining(self, request, **kwargs):
+    def starttraining(self, request, **kwargs):  # pragma: no cover
         check_auth(request)
         repository = RepositoryUpdate.objects.get(
             id=request.data.get('update_id')
@@ -120,7 +120,7 @@ class RepositoryAuthorizationTrainViewSet(
         methods=['GET'],
         url_name='gettext',
         lookup_field=[])
-    def gettext(self, request, **kwargs):
+    def gettext(self, request, **kwargs):  # pragma: no cover
         check_auth(request)
         repository = RepositoryUpdate.objects.get(
             id=request.query_params.get('update_id')
@@ -140,7 +140,7 @@ class RepositoryAuthorizationTrainViewSet(
         methods=['GET'],
         url_name='get_entities',
         lookup_field=[])
-    def getentities(self, request, **kwargs):
+    def getentities(self, request, **kwargs):  # pragma: no cover
         check_auth(request)
         repository = RepositoryUpdate.objects.get(
             id=request.query_params.get('update_id')
@@ -165,7 +165,7 @@ class RepositoryAuthorizationTrainViewSet(
         methods=['GET'],
         url_name='get_entities_label',
         lookup_field=[])
-    def getentitieslabel(self, request, **kwargs):
+    def getentitieslabel(self, request, **kwargs):  # pragma: no cover
         check_auth(request)
         repository = RepositoryUpdate.objects.get(
             id=request.query_params.get('update_id')
@@ -194,7 +194,7 @@ class RepositoryAuthorizationTrainViewSet(
         methods=['POST'],
         url_name='train_fail',
         lookup_field=[])
-    def trainfail(self, request, **kwargs):
+    def trainfail(self, request, **kwargs):  # pragma: no cover
         check_auth(request)
         RepositoryUpdate.objects.get(
             id=request.data.get('update_id')
@@ -206,7 +206,7 @@ class RepositoryAuthorizationTrainViewSet(
         methods=['POST'],
         url_name='training_log',
         lookup_field=[])
-    def traininglog(self, request, **kwargs):
+    def traininglog(self, request, **kwargs):  # pragma: no cover
         check_auth(request)
         repository = RepositoryUpdate.objects.get(
             id=request.data.get('update_id')
@@ -223,7 +223,7 @@ class RepositoryAuthorizationParseViewSet(
     serializer_class = NLPSerializer
     permission_classes = [AllowAny]
 
-    def retrieve(self, request, *args, **kwargs):
+    def retrieve(self, request, *args, **kwargs):  # pragma: no cover
         check_auth(request)
         repository_authorization = self.get_object()
         repository = repository_authorization.repository
@@ -242,7 +242,7 @@ class RepositoryAuthorizationParseViewSet(
         methods=['GET'],
         url_name='repository_entity',
         lookup_field=[])
-    def repositoryentity(self, request, **kwargs):
+    def repositoryentity(self, request, **kwargs):  # pragma: no cover
         check_auth(request)
         repository_update = RepositoryUpdate.objects.get(
             id=request.query_params.get('update_id')
@@ -266,7 +266,7 @@ class RepositoryAuthorizationInfoViewSet(
     serializer_class = NLPSerializer
     permission_classes = [AllowAny]
 
-    def retrieve(self, request, *args, **kwargs):
+    def retrieve(self, request, *args, **kwargs):  # pragma: no cover
         check_auth(request)
         repository_authorization = self.get_object()
         repository = repository_authorization.repository
@@ -281,7 +281,7 @@ class RepositoryAuthorizationEvaluateViewSet(
     serializer_class = NLPSerializer
     permission_classes = [AllowAny]
 
-    def retrieve(self, request, *args, **kwargs):
+    def retrieve(self, request, *args, **kwargs):  # pragma: no cover
         check_auth(request)
         repository_authorization = self.get_object()
         repository = repository_authorization.repository
@@ -301,7 +301,7 @@ class RepositoryAuthorizationEvaluateViewSet(
         methods=['GET'],
         url_name='evaluations',
         lookup_field=[])
-    def evaluations(self, request, **kwargs):
+    def evaluations(self, request, **kwargs):  # pragma: no cover
         check_auth(request)
         repository_update = RepositoryUpdate.objects.get(
             id=request.query_params.get('update_id')
@@ -345,7 +345,7 @@ class RepositoryAuthorizationEvaluateViewSet(
         methods=['POST'],
         url_name='evaluate_results',
         lookup_field=[])
-    def evaluateresults(self, request, **kwargs):
+    def evaluateresults(self, request, **kwargs):  # pragma: no cover
         check_auth(request)
         repository_update = RepositoryUpdate.objects.get(
             id=request.data.get('update_id')
@@ -384,7 +384,7 @@ class RepositoryAuthorizationEvaluateViewSet(
         methods=['POST'],
         url_name='evaluate_results_intent',
         lookup_field=[])
-    def evaluateresultsintent(self, request, **kwargs):
+    def evaluateresultsintent(self, request, **kwargs):  # pragma: no cover
         check_auth(request)
         evaluate_result = RepositoryEvaluateResult.objects.get(
             id=request.data.get('evaluate_id')
@@ -410,7 +410,7 @@ class RepositoryAuthorizationEvaluateViewSet(
         methods=['POST'],
         url_name='evaluate_results_score',
         lookup_field=[])
-    def evaluateresultsscore(self, request, **kwargs):
+    def evaluateresultsscore(self, request, **kwargs):  # pragma: no cover
         check_auth(request)
         evaluate_result = RepositoryEvaluateResult.objects.get(
             id=request.data.get('evaluate_id')
@@ -446,7 +446,7 @@ class NLPLangsViewSet(
     serializer_class = NLPSerializer
     permission_classes = [AllowAny]
 
-    def list(self, request, *args, **kwargs):
+    def list(self, request, *args, **kwargs):  # pragma: no cover
         data = {
             'english': [
                 languages.LANGUAGE_EN,
@@ -476,7 +476,7 @@ class RepositoryUpdateInterpretersViewSet(
     serializer_class = NLPSerializer
     permission_classes = [AllowAny]
 
-    def retrieve(self, request, *args, **kwargs):
+    def retrieve(self, request, *args, **kwargs):  # pragma: no cover
         check_auth(request)
         update = self.get_object()
         data = {
@@ -486,7 +486,7 @@ class RepositoryUpdateInterpretersViewSet(
         }
         return Response(data)
 
-    def create(self, request, *args, **kwargs):
+    def create(self, request, *args, **kwargs):  # pragma: no cover
         check_auth(request)
         repository = self.queryset.get(pk=request.data.get('id'))
         bot_data = base64.b64decode(request.data.get('bot_data'))
