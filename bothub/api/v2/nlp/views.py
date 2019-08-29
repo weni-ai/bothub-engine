@@ -9,6 +9,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import mixins
 from rest_framework import exceptions
 from rest_framework.decorators import action
+from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.permissions import AllowAny
 
@@ -286,7 +287,7 @@ class RepositoryAuthorizationInfoViewSet(
         repository_authorization = self.get_object()
         repository = repository_authorization.repository
         serializer = RepositorySerializer(repository)
-        return JsonResponse(serializer.data)
+        return Response(serializer.data)
 
 
 class RepositoryAuthorizationEvaluateViewSet(
