@@ -67,7 +67,7 @@ class RepositoryAuthorizationTrainViewSet(
         methods=['POST'],
         url_name='start_training',
         lookup_field=[])
-    def starttraining(self, request, **kwargs):
+    def start_training(self, request, **kwargs):
         check_auth(request)
 
         repository = get_object_or_404(
@@ -121,7 +121,7 @@ class RepositoryAuthorizationTrainViewSet(
         methods=['GET'],
         url_name='gettext',
         lookup_field=[])
-    def gettext(self, request, **kwargs):
+    def get_text(self, request, **kwargs):
         check_auth(request)
 
         try:
@@ -146,7 +146,7 @@ class RepositoryAuthorizationTrainViewSet(
         methods=['GET'],
         url_name='get_entities',
         lookup_field=[])
-    def getentities(self, request, **kwargs):
+    def get_entities(self, request, **kwargs):
         check_auth(request)
 
         try:
@@ -173,7 +173,7 @@ class RepositoryAuthorizationTrainViewSet(
         methods=['GET'],
         url_name='get_entities_label',
         lookup_field=[])
-    def getentitieslabel(self, request, **kwargs):
+    def get_entities_label(self, request, **kwargs):
         check_auth(request)
 
         try:
@@ -206,7 +206,7 @@ class RepositoryAuthorizationTrainViewSet(
         methods=['POST'],
         url_name='train_fail',
         lookup_field=[])
-    def trainfail(self, request, **kwargs):
+    def train_fail(self, request, **kwargs):
         check_auth(request)
         repository = get_object_or_404(
             RepositoryUpdate,
@@ -220,7 +220,7 @@ class RepositoryAuthorizationTrainViewSet(
         methods=['POST'],
         url_name='training_log',
         lookup_field=[])
-    def traininglog(self, request, **kwargs):
+    def training_log(self, request, **kwargs):
         check_auth(request)
         repository = get_object_or_404(
             RepositoryUpdate,
@@ -256,7 +256,7 @@ class RepositoryAuthorizationParseViewSet(
         methods=['GET'],
         url_name='repository_entity',
         lookup_field=[])
-    def repositoryentity(self, request, **kwargs):
+    def repository_entity(self, request, **kwargs):
         check_auth(request)
         repository_update = get_object_or_404(
             RepositoryUpdate,
@@ -360,7 +360,7 @@ class RepositoryAuthorizationEvaluateViewSet(
         methods=['POST'],
         url_name='evaluate_results',
         lookup_field=[])
-    def evaluateresults(self, request, **kwargs):
+    def evaluate_results(self, request, **kwargs):
         check_auth(request)
         repository_update = get_object_or_404(
             RepositoryUpdate,
@@ -400,7 +400,7 @@ class RepositoryAuthorizationEvaluateViewSet(
         methods=['POST'],
         url_name='evaluate_results_intent',
         lookup_field=[])
-    def evaluateresultsintent(self, request, **kwargs):
+    def evaluate_results_intent(self, request, **kwargs):
         check_auth(request)
 
         evaluate_result = get_object_or_404(
@@ -428,7 +428,7 @@ class RepositoryAuthorizationEvaluateViewSet(
         methods=['POST'],
         url_name='evaluate_results_score',
         lookup_field=[])
-    def evaluateresultsscore(self, request, **kwargs):
+    def evaluate_results_score(self, request, **kwargs):
         check_auth(request)
 
         evaluate_result = get_object_or_404(
