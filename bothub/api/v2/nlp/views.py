@@ -354,7 +354,7 @@ class RepositoryAuthorizationEvaluateViewSet(
 
                 }
             )
-        return JsonResponse(data)
+        return Response(data)
 
     @action(
         detail=True,
