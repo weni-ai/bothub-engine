@@ -1,3 +1,4 @@
+import json
 from django.utils.decorators import method_decorator
 from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
@@ -7,10 +8,12 @@ from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import UnsupportedMediaType
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from rest_framework import mixins
+from rest_framework import parsers
 from rest_framework import status
 from rest_framework import permissions
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
@@ -474,6 +477,51 @@ class RepositoryExampleViewSet(
     def create(self, request, *args, **kwargs):
         self.permission_classes = [permissions.IsAuthenticated]
         return super().create(request, *args, **kwargs)
+
+    @action(
+        detail=True,
+        methods=['POST'],
+        url_name='repository-upload-examples',
+        parser_classes=[parsers.MultiPartParser])
+    def upload_examples(self, request, **kwargs):
+        try:
+            repository = get_object_or_404(
+                Repository,
+                pk=request.data.get('repository')
+            )
+        except DjangoValidationError:
+            raise PermissionDenied()
+
+        user_authorization = repository.get_user_authorization(request.user)
+        if not user_authorization.can_write:
+            raise PermissionDenied()
+
+        f = request.FILES.get('file')
+        try:
+            json_data = json.loads(f.read())
+        except json.decoder.JSONDecodeError:
+            raise UnsupportedMediaType('json')
+
+        count_added = 0
+        not_added = []
+
+        for data in json_data:
+            response_data = data
+            response_data['repository'] = request.data.get('repository')
+            serializer = RepositoryExampleSerializer(
+                data=response_data,
+                context={'request': request}
+            )
+            if serializer.is_valid():
+                serializer.save()
+                count_added += 1
+            else:
+                not_added.append(data)
+
+        return Response({
+            'added': count_added,
+            'not_added': not_added
+        })
 
     def perform_destroy(self, obj):
         if obj.deleted_in:
