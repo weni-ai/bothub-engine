@@ -240,8 +240,7 @@ class RepositorySerializer(serializers.ModelSerializer):
     def get_nlp_server(self, obj):
         if obj.nlp_server:
             return obj.nlp_server
-        else:
-            return settings.BOTHUB_NLP_BASE_URL
+        return settings.BOTHUB_NLP_BASE_URL
 
     def create(self, validated_data):
         validated_data.update({
