@@ -183,11 +183,23 @@ class Repository(models.Model):
         null=False
     )
 
+    nlp_server = models.URLField(
+        _('Base URL NLP'),
+        null=True,
+        blank=True
+    )
+
     objects = RepositoryManager()
 
-    nlp_train_url = '{}train/'.format(settings.BOTHUB_NLP_BASE_URL)
-    nlp_analyze_url = '{}parse/'.format(settings.BOTHUB_NLP_BASE_URL)
-    nlp_evaluate_url = '{}evaluate/'.format(settings.BOTHUB_NLP_BASE_URL)
+    nlp_train_url = '{}train/'.format(
+        nlp_server if nlp_server else settings.BOTHUB_NLP_BASE_URL
+    )
+    nlp_analyze_url = '{}parse/'.format(
+        nlp_server if nlp_server else settings.BOTHUB_NLP_BASE_URL
+    )
+    nlp_evaluate_url = '{}evaluate/'.format(
+        nlp_server if nlp_server else settings.BOTHUB_NLP_BASE_URL
+    )
 
     @classmethod
     def request_nlp_train(cls, user_authorization):
