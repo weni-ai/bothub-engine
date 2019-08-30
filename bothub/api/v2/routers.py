@@ -10,6 +10,12 @@ from .repository.views import RepositoryAuthorizationViewSet
 from .repository.views import RepositoryAuthorizationRequestsViewSet
 from .repository.views import RepositoryExampleViewSet
 from .repository.views import RepositoryUpdatesViewSet
+from .nlp.views import RepositoryAuthorizationTrainViewSet
+from .nlp.views import RepositoryAuthorizationParseViewSet
+from .nlp.views import RepositoryAuthorizationInfoViewSet
+from .nlp.views import RepositoryAuthorizationEvaluateViewSet
+from .nlp.views import NLPLangsViewSet
+from .nlp.views import RepositoryUpdateInterpretersViewSet
 from .examples.views import ExamplesViewSet
 from .evaluate.views import EvaluateViewSet
 from .evaluate.views import ResultsListViewSet
@@ -113,6 +119,30 @@ router.register('repository/evaluate/results', ResultsListViewSet)
 router.register('repository/evaluate', EvaluateViewSet)
 router.register('repository/translation', RepositoryTranslatedExampleViewSet)
 router.register('repository/updates', RepositoryUpdatesViewSet)
+router.register(
+    'repository/nlp/authorization/train',
+    RepositoryAuthorizationTrainViewSet
+)
+router.register(
+    'repository/nlp/authorization/parse',
+    RepositoryAuthorizationParseViewSet
+)
+router.register(
+    'repository/nlp/authorization/info',
+    RepositoryAuthorizationInfoViewSet
+)
+router.register(
+    'repository/nlp/authorization/evaluate',
+    RepositoryAuthorizationEvaluateViewSet
+)
+router.register(
+    'repository/nlp/authorization/langs',
+    NLPLangsViewSet
+)
+router.register(
+    'repository/nlp/update_interpreters',
+    RepositoryUpdateInterpretersViewSet
+)
 router.register('account/login', LoginViewSet)
 router.register('account/register', RegisterUserViewSet)
 router.register('account/change-password', ChangePasswordViewSet)
