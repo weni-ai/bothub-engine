@@ -2,7 +2,6 @@ import base64
 import json
 
 from django.db import models
-from django.http import JsonResponse
 from django.utils.translation import gettext_lazy as _
 from django.shortcuts import get_object_or_404
 
@@ -52,7 +51,7 @@ class RepositoryAuthorizationTrainViewSet(
             str(request.query_params.get('language'))
         )
 
-        return JsonResponse({
+        return Response({
             'ready_for_train':
                 current_update.ready_for_train,
             'current_update_id':
@@ -101,7 +100,7 @@ class RepositoryAuthorizationTrainViewSet(
                 }
             )
 
-        return JsonResponse({
+        return Response({
             'language': repository.language,
             'update_id': repository.id,
             'repository_uuid': str(repository.repository.uuid),
@@ -138,7 +137,7 @@ class RepositoryAuthorizationTrainViewSet(
             ).examples, pk=example_id
         ).get_text(request.query_params.get('language'))
 
-        return JsonResponse({
+        return Response({
             'get_text': repository
         })
 
@@ -165,7 +164,7 @@ class RepositoryAuthorizationTrainViewSet(
 
         entities = [entit.rasa_nlu_data for entit in repository]
 
-        return JsonResponse({
+        return Response({
             'entities': entities,
         })
 
@@ -198,7 +197,7 @@ class RepositoryAuthorizationTrainViewSet(
             )
         ]
 
-        return JsonResponse({
+        return Response({
             'entities': entities,
         })
 
@@ -214,7 +213,7 @@ class RepositoryAuthorizationTrainViewSet(
             pk=request.data.get('update_id')
         )
         repository.train_fail()
-        return JsonResponse({})
+        return Response({})
 
     @action(
         detail=True,
@@ -229,7 +228,7 @@ class RepositoryAuthorizationTrainViewSet(
         )
         repository.training_log = request.data.get('training_log')
         repository.save(update_fields=['training_log'])
-        return JsonResponse({})
+        return Response({})
 
 
 class RepositoryAuthorizationParseViewSet(
@@ -246,7 +245,7 @@ class RepositoryAuthorizationParseViewSet(
         update = repository.last_trained_update(
             str(request.query_params.get('language'))
         )
-        return JsonResponse({
+        return Response({
             'update': False if update is None else True,
             'update_id': update.id,
             'language': update.language
@@ -269,7 +268,7 @@ class RepositoryAuthorizationParseViewSet(
             value=request.query_params.get('entity')
         )
 
-        return JsonResponse({
+        return Response({
             'label': repository_entity.label,
             'label_value': repository_entity.label.value
         })
@@ -304,7 +303,7 @@ class RepositoryAuthorizationEvaluateViewSet(
         update = repository.last_trained_update(
             str(request.query_params.get('language'))
         )
-        return JsonResponse({
+        return Response({
             'update': False if update is None else True,
             'update_id': update.id,
             'language': update.language,
@@ -389,7 +388,7 @@ class RepositoryAuthorizationEvaluateViewSet(
             log=json.dumps(request.data.get('log')),
         )
 
-        return JsonResponse(
+        return Response(
             {
                 'evaluate_id': evaluate_result.id,
                 'evaluate_version': evaluate_result.version
@@ -422,7 +421,7 @@ class RepositoryAuthorizationEvaluateViewSet(
             score=intent_score,
         )
 
-        return JsonResponse({})
+        return Response({})
 
     @action(
         detail=True,
@@ -458,7 +457,7 @@ class RepositoryAuthorizationEvaluateViewSet(
             score=entity_score,
         )
 
-        return JsonResponse({})
+        return Response({})
 
 
 class NLPLangsViewSet(
@@ -469,7 +468,7 @@ class NLPLangsViewSet(
     permission_classes = [AllowAny]
 
     def list(self, request, *args, **kwargs):
-        return JsonResponse({
+        return Response({
             'english': [
                 languages.LANGUAGE_EN,
             ],
@@ -500,7 +499,7 @@ class RepositoryUpdateInterpretersViewSet(
     def retrieve(self, request, *args, **kwargs):
         check_auth(request)
         update = self.get_object()
-        return JsonResponse({
+        return Response({
             'update_id': update.id,
             'repository_uuid': update.repository.uuid,
             'bot_data': str(update.bot_data)
@@ -514,4 +513,4 @@ class RepositoryUpdateInterpretersViewSet(
         )
         bot_data = base64.b64decode(request.data.get('bot_data'))
         repository.save_training(bot_data)
-        return JsonResponse({})
+        return Response({})
