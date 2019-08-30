@@ -1,4 +1,5 @@
 from django.utils.translation import gettext as _
+from django.conf import settings
 from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied
 
@@ -188,6 +189,7 @@ class RepositorySerializer(serializers.ModelSerializer):
             'use_language_model_featurizer',
             'use_competing_intents',
             'use_name_entities',
+            'nlp_server',
         ]
         read_only = [
             'uuid',
@@ -199,6 +201,7 @@ class RepositorySerializer(serializers.ModelSerializer):
             'ready_for_train',
             'created_at',
             'authorization',
+            'nlp_server',
         ]
         ref_name = None
 
@@ -232,6 +235,12 @@ class RepositorySerializer(serializers.ModelSerializer):
     request_authorization = serializers.SerializerMethodField()
     available_request_authorization = serializers.SerializerMethodField()
     entities = serializers.SerializerMethodField()
+    nlp_server = serializers.SerializerMethodField()
+
+    def get_nlp_server(self, obj):
+        if obj.nlp_server:
+            return obj.nlp_server
+        return settings.BOTHUB_NLP_BASE_URL
 
     def create(self, validated_data):
         validated_data.update({
