@@ -498,7 +498,7 @@ class RepositoryExampleViewSet(
 
         f = request.FILES.get('file')
         try:
-            json_data = json.loads(f.read())
+            json_data = json.loads(f.read().decode())
         except json.decoder.JSONDecodeError:
             raise UnsupportedMediaType('json')
 

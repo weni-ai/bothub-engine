@@ -1,6 +1,7 @@
 import json
 import uuid
 
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.test import RequestFactory
 from django.test.client import MULTIPART_CONTENT
@@ -1451,6 +1452,88 @@ class RepositoryExampleRetrieveTestCase(TestCase):
         self.assertEqual(
             entity.get('label'),
             label)
+
+
+class RepositoryExampleUploadTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.owner, self.owner_token = create_user_and_token('owner')
+        self.user, self.user_token = create_user_and_token()
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name='Testing',
+            slug='test',
+            language=languages.LANGUAGE_EN)
+
+    def request(self, token):
+        authorization_header = {
+            'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
+        }
+        examples = b'''[
+                    {
+                        "text": "yes",
+                        "language": "en",
+                        "entities": [{
+                            "label": "yes",
+                            "entity": "_yes",
+                            "start": 0,
+                            "end": 3
+                        }],
+                        "intent": "greet"
+                    },
+                    {
+                        "text": "alright",
+                        "language": "en",
+                        "entities": [{
+                            "label": "yes",
+                            "entity": "_yes",
+                            "start": 0,
+                            "end": 3
+                        }],
+                        "intent": "greet"
+                    }
+                ]'''
+
+        uploaded_file = SimpleUploadedFile(
+            'examples.json',
+            examples,
+            'multipart/form-data'
+        )
+
+        request = self.factory.post(
+            '/v2/repository/example/upload_examples/',
+            {
+                'file': uploaded_file,
+                'repository': str(self.repository.uuid)
+            }, format='multipart',
+            **authorization_header)
+        response = RepositoryExampleViewSet.as_view(
+            {'post': 'upload_examples'})(request)
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data,)
+
+    def test_okay(self):
+        response, content_data = self.request(self.owner_token)
+        self.assertEqual(
+            content_data.get('added'),
+            2
+        )
+        self.assertEqual(
+            len(content_data.get('not_added')),
+            0
+        )
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK)
+
+    def test_permission_denied(self):
+        response, content_data = self.request(self.user_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_403_FORBIDDEN)
 
 
 class RepositoryExampleDestroyTestCase(TestCase):
