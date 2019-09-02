@@ -595,3 +595,7 @@ class RepositoryUpdateSerializer(serializers.ModelSerializer):
         source='by',
         slug_field='nickname',
         read_only=True)
+
+
+class RepositoryUpload(serializers.Serializer):
+    pass

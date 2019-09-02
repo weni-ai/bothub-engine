@@ -127,7 +127,7 @@ class CreateRepositoryAPITestCase(TestCase):
         } if token else {}
 
         request = self.factory.post(
-            '/v2/repository/',
+            '/v2/repository/repository-info/',
             data,
             **authorization_header)
 
@@ -191,7 +191,7 @@ class RetriveRepositoryTestCase(TestCase):
         } if token else {}
 
         request = self.factory.get(
-            '/v2/repository/{}/'.format(repository.uuid),
+            '/v2/repository/repository-info/{}/'.format(repository.uuid),
             **authorization_header)
 
         response = RepositoryViewSet.as_view({'get': 'retrieve'})(
@@ -236,7 +236,7 @@ class UpdateRepositoryTestCase(TestCase):
         } if token else {}
 
         request = self.factory.patch(
-            '/v2/repository/{}/'.format(repository.uuid),
+            '/v2/repository/repository-info/{}/'.format(repository.uuid),
             self.factory._encode_data(data, MULTIPART_CONTENT),
             MULTIPART_CONTENT,
             **authorization_header)
@@ -295,7 +295,7 @@ class RepositoryAuthorizationTestCase(TestCase):
         } if token else {}
 
         request = self.factory.get(
-            '/v2/repository/{}/'.format(repository.uuid),
+            '/v2/repository/repository-info/{}/'.format(repository.uuid),
             **authorization_header)
 
         response = RepositoryViewSet.as_view({'get': 'retrieve'})(
@@ -344,7 +344,7 @@ class RepositoryAvailableRequestAuthorizationTestCase(TestCase):
         } if token else {}
 
         request = self.factory.get(
-            '/v2/repository/{}/'.format(repository.uuid),
+            '/v2/repository/repository-info/{}/'.format(repository.uuid),
             **authorization_header)
 
         response = RepositoryViewSet.as_view({'get': 'retrieve'})(
@@ -2036,7 +2036,7 @@ class RetrieveRepositoryTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
         }
         request = self.factory.get(
-            '/v2/repository/{}/'.format(
+            '/v2/repository/repository-info/{}/'.format(
                 str(repository.uuid)),
             **authorization_header)
         response = RepositoryViewSet.as_view(
@@ -2086,7 +2086,7 @@ class RetrieveRepositoryTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(self.user_token.key),
         }
         request = self.factory.get(
-            '/v2/repository/{}/languagesstatus/'.format(
+            '/v2/repository/repository-info/{}/languagesstatus/'.format(
                 self.repository.uuid),
             **authorization_header)
         response = RepositoryViewSet.as_view(
@@ -2170,7 +2170,7 @@ class TrainRepositoryTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
         }
         request = self.factory.get(
-            '/v2/repository/{}/train/'.format(
+            '/v2/repository/repository-info/{}/train/'.format(
                 str(repository.uuid)),
             **authorization_header)
         response = RepositoryViewSet.as_view({'get': 'train'})(request)
@@ -2209,7 +2209,7 @@ class AnalyzeRepositoryTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
         }
         request = self.factory.post(
-            '/v2/repository/{}/analyze/'.format(
+            '/v2/repository/repository-info/{}/analyze/'.format(
                 str(repository.uuid)),
             data,
             **authorization_header)

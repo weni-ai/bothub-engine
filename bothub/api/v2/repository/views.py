@@ -44,6 +44,7 @@ from .serializers import RepositoryExampleSerializer
 from .serializers import AnalyzeTextSerializer
 from .serializers import EvaluateSerializer
 from .serializers import RepositoryUpdateSerializer
+from .serializers import RepositoryUpload
 from .permissions import RepositoryPermission
 from .permissions import RepositoryAdminManagerAuthorization
 from .permissions import RepositoryExamplePermission
@@ -482,7 +483,8 @@ class RepositoryExampleViewSet(
         detail=True,
         methods=['POST'],
         url_name='repository-upload-examples',
-        parser_classes=[parsers.MultiPartParser])
+        parser_classes=[parsers.MultiPartParser],
+        serializer_class=RepositoryUpload)
     def upload_examples(self, request, **kwargs):
         try:
             repository = get_object_or_404(
