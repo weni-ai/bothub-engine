@@ -27,8 +27,8 @@ def send_bot_data_file_aws(id, bot_data):
     confmat_url = ''
 
     if all([aws_access_key_id, aws_secret_access_key, aws_bucket_name]):
-        confmat_filename = 'repository_{}/bot_data_{}.tar.gz'.format(
-            str(id), uuid.uuid4())
+        confmat_filename = \
+            f'repository_{str(id)}/bot_data_{uuid.uuid4()}.tar.gz'
 
         botdata = io.BytesIO(bot_data)
 
