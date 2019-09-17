@@ -106,7 +106,7 @@ class RepositoryViewSet(
         user_authorization = repository.get_user_authorization(request.user)
         if not user_authorization.can_write:
             raise PermissionDenied()
-        request = Repository.request_nlp_train(  # pragma: no cover
+        request = repository.request_nlp_train(  # pragma: no cover
             user_authorization)
         if request.status_code != status.HTTP_200_OK:  # pragma: no cover
             raise APIException(  # pragma: no cover
@@ -126,7 +126,7 @@ class RepositoryViewSet(
         serializer = AnalyzeTextSerializer(
             data=request.data)  # pragma: no cover
         serializer.is_valid(raise_exception=True)  # pragma: no cover
-        request = Repository.request_nlp_analyze(
+        request = repository.request_nlp_analyze(
             user_authorization,
             serializer.data)  # pragma: no cover
 
@@ -176,7 +176,7 @@ class RepositoryViewSet(
                 detail=_('You need to have at least ' +
                          'two registered intents'))  # pragma: no cover
 
-        request = Repository.request_nlp_evaluate(  # pragma: no cover
+        request = repository.request_nlp_evaluate(  # pragma: no cover
             user_authorization, serializer.data)
         if request.status_code != status.HTTP_200_OK:  # pragma: no cover
             raise APIException(  # pragma: no cover
