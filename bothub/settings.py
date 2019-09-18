@@ -1,27 +1,55 @@
 import os
-import dj_database_url
 
-from decouple import config
+import environ
+
 from django.utils.log import DEFAULT_LOGGING
 
 from .utils import cast_supported_languages
 from .utils import cast_empty_str_to_none
 
 
+environ.Env.read_env(env_file=(environ.Path(__file__) - 2)('.env'))
+
+env = environ.Env(
+    # set casting, default value
+    DEBUG=(bool, False),
+    ALLOWED_HOSTS=(lambda v: [s.strip() for s in v.split(',')], '*'),
+    LANGUAGE_CODE=(str, 'en-us'),
+    TIME_ZONE=(str, 'UTC'),
+    STATIC_URL=(str, '/static/'),
+    EMAIL_HOST=(cast_empty_str_to_none, None),
+    ADMINS=(lambda v: [
+        (
+            s.strip().split('|')[0],
+            s.strip().split('|')[1],
+        ) for s in v.split(',')] if v else [], []),
+    DEFAULT_FROM_EMAIL=(str, 'webmaster@localhost'),
+    SERVER_EMAIL=(str, 'root@localhost'),
+    EMAIL_PORT=(int, 25),
+    EMAIL_HOST_USER=(str, ''),
+    EMAIL_HOST_PASSWORD=(str, ''),
+    EMAIL_USE_SSL=(bool, False),
+    EMAIL_USE_TLS=(bool, False),
+    SEND_EMAILS=(bool, True),
+    BOTHUB_WEBAPP_BASE_URL=(str, 'http://localhost:8080/'),
+    BOTHUB_NLP_BASE_URL=(str, 'http://localhost:2657/'),
+    CSRF_COOKIE_DOMAIN=(cast_empty_str_to_none, None),
+    CSRF_COOKIE_SECURE=(bool, False),
+    SUPPORTED_LANGUAGES=(cast_supported_languages, 'en|pt'),
+    CHECK_ACCESSIBLE_API_URL=(str, None)
+)
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config('SECRET_KEY')
+SECRET_KEY = env.str('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default=False, cast=bool)
+DEBUG = env.bool('DEBUG')
 
-ALLOWED_HOSTS = config(
-    'ALLOWED_HOSTS',
-    default='*',
-    cast=lambda v: [s.strip() for s in v.split(',')])
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS')
 
 
 # Application definition
@@ -78,11 +106,10 @@ WSGI_APPLICATION = 'bothub.wsgi.application'
 
 # Database
 
-DATABASES = {}
-DATABASES['default'] = dj_database_url.parse(
-    config(
-        'DEFAULT_DATABASE',
-        default='sqlite:///db.sqlite3'))
+
+DATABASES = {
+    'default': env.db(var='DEFAULT_DATABASE', default='sqlite:///db.sqlite3')
+}
 
 
 # Auth
@@ -114,9 +141,9 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Internationalization
 
-LANGUAGE_CODE = config('LANGUAGE_CODE', default='en-us')
+LANGUAGE_CODE = env.str('LANGUAGE_CODE')
 
-TIME_ZONE = config('TIME_ZONE', default='UTC')
+TIME_ZONE = env.str('TIME_ZONE')
 
 USE_I18N = True
 
@@ -127,7 +154,7 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 
-STATIC_URL = config('STATIC_URL', default='/static/')
+STATIC_URL = env.str('STATIC_URL')
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
@@ -157,63 +184,41 @@ CORS_ORIGIN_ALLOW_ALL = True
 
 # mail
 
-envvar_EMAIL_HOST = config(
-    'EMAIL_HOST',
-    default=None,
-    cast=cast_empty_str_to_none)
+envvar_EMAIL_HOST = env.str('EMAIL_HOST')
 
-ADMINS = config(
-    'ADMINS',
-    default='',
-    cast=lambda v: [
-        (
-            s.strip().split('|')[0],
-            s.strip().split('|')[1],
-        ) for s in v.split(',')] if v else [])
+ADMINS = env.list('ADMINS')
 EMAIL_SUBJECT_PREFIX = '[bothub] '
-DEFAULT_FROM_EMAIL = config(
-    'DEFAULT_FROM_EMAIL',
-    default='webmaster@localhost')
-SERVER_EMAIL = config('SERVER_EMAIL', default='root@localhost')
+DEFAULT_FROM_EMAIL = env.str('DEFAULT_FROM_EMAIL')
+SERVER_EMAIL = env.str('SERVER_EMAIL')
 
 if envvar_EMAIL_HOST:
     EMAIL_HOST = envvar_EMAIL_HOST
-    EMAIL_PORT = config('EMAIL_PORT', default=25, cast=int)
-    EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
-    EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
-    EMAIL_USE_SSL = config('EMAIL_USE_SSL', default=False, cast=bool)
-    EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=False, cast=bool)
+    EMAIL_PORT = env.int('EMAIL_PORT')
+    EMAIL_HOST_USER = env.str('EMAIL_HOST_USER')
+    EMAIL_HOST_PASSWORD = env.str('EMAIL_HOST_PASSWORD')
+    EMAIL_USE_SSL = env.bool('EMAIL_USE_SSL')
+    EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS')
 else:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-SEND_EMAILS = config('SEND_EMAILS', default=True, cast=bool)
+SEND_EMAILS = env.bool('SEND_EMAILS')
 
 
 # webapp
 
-BOTHUB_WEBAPP_BASE_URL = config(
-    'BOTHUB_WEBAPP_BASE_URL',
-    default='http://localhost:8080/')
+BOTHUB_WEBAPP_BASE_URL = env.str('BOTHUB_WEBAPP_BASE_URL')
 
 
 # NLP
 
-BOTHUB_NLP_BASE_URL = config(
-    'BOTHUB_NLP_BASE_URL',
-    default='http://localhost:2657/')
+BOTHUB_NLP_BASE_URL = env.str('BOTHUB_NLP_BASE_URL')
 
 
 # CSRF
 
-CSRF_COOKIE_DOMAIN = config(
-    'CSRF_COOKIE_DOMAIN',
-    default=None,
-    cast=cast_empty_str_to_none)
+CSRF_COOKIE_DOMAIN = env.str('CSRF_COOKIE_DOMAIN')
 
-CSRF_COOKIE_SECURE = config(
-    'CSRF_COOKIE_SECURE',
-    default=False,
-    cast=bool)
+CSRF_COOKIE_SECURE = env.bool('CSRF_COOKIE_SECURE')
 
 
 # Logging
@@ -236,10 +241,7 @@ LOGGING['loggers']['bothub.health.checks'] = {
 
 # Supported Languages
 
-SUPPORTED_LANGUAGES = config(
-    'SUPPORTED_LANGUAGES',
-    default='en|pt',
-    cast=cast_supported_languages)
+SUPPORTED_LANGUAGES = env.str('SUPPORTED_LANGUAGES')
 
 
 # SECURE PROXY SSL HEADER
