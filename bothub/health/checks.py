@@ -1,14 +1,12 @@
 import logging
 
-from decouple import config
+from ..settings import env
 from rest_framework import status
 
 
 logger = logging.getLogger('bothub.health.checks')
 
-CHECK_ACCESSIBLE_API_URL = config(
-    'CHECK_ACCESSIBLE_API_URL',
-    default=None)
+CHECK_ACCESSIBLE_API_URL = env.str('CHECK_ACCESSIBLE_API_URL')
 
 
 def check_database_connection(**kwargs):

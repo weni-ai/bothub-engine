@@ -190,21 +190,13 @@ class Repository(models.Model):
 
     objects = RepositoryManager()
 
-    nlp_train_url = '{}train/'.format(
-        nlp_server if nlp_server else settings.BOTHUB_NLP_BASE_URL
-    )
-    nlp_analyze_url = '{}parse/'.format(
-        nlp_server if nlp_server else settings.BOTHUB_NLP_BASE_URL
-    )
-    nlp_evaluate_url = '{}evaluate/'.format(
-        nlp_server if nlp_server else settings.BOTHUB_NLP_BASE_URL
-    )
-
-    @classmethod
-    def request_nlp_train(cls, user_authorization):
+    def request_nlp_train(self, user_authorization):
         try:  # pragma: no cover
             r = requests.post(  # pragma: no cover
-                cls.nlp_train_url,
+                '{}train/'.format(
+                    self.nlp_server if self.nlp_server else
+                    settings.BOTHUB_NLP_BASE_URL
+                ),
                 data={},
                 headers={'Authorization': 'Bearer {}'.format(
                     user_authorization.uuid)})
@@ -214,11 +206,13 @@ class Repository(models.Model):
                 {'status_code': status.HTTP_503_SERVICE_UNAVAILABLE},
                 code=status.HTTP_503_SERVICE_UNAVAILABLE)
 
-    @classmethod
-    def request_nlp_analyze(cls, user_authorization, data):
+    def request_nlp_analyze(self, user_authorization, data):
         try:  # pragma: no cover
             r = requests.post(  # pragma: no cover
-                cls.nlp_analyze_url,
+                '{}parse/'.format(
+                    self.nlp_server if self.nlp_server else
+                    settings.BOTHUB_NLP_BASE_URL
+                ),
                 data={
                     'text': data.get('text'),
                     'language': data.get('language'),
@@ -231,11 +225,13 @@ class Repository(models.Model):
                 {'status_code': status.HTTP_503_SERVICE_UNAVAILABLE},
                 code=status.HTTP_503_SERVICE_UNAVAILABLE)
 
-    @classmethod
-    def request_nlp_evaluate(cls, user_authorization, data):
+    def request_nlp_evaluate(self, user_authorization, data):
         try:  # pragma: no cover
             r = requests.post(  # pragma: no cover
-                cls.nlp_evaluate_url,
+                '{}evaluate/'.format(
+                    self.nlp_server if self.nlp_server else
+                    settings.BOTHUB_NLP_BASE_URL
+                ),
                 data={
                     'language': data.get('language'),
                 },

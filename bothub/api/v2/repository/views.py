@@ -1,3 +1,4 @@
+import json
 from django.utils.decorators import method_decorator
 from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
@@ -7,10 +8,12 @@ from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import UnsupportedMediaType
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from rest_framework import mixins
+from rest_framework import parsers
 from rest_framework import status
 from rest_framework import permissions
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
@@ -41,6 +44,7 @@ from .serializers import RepositoryExampleSerializer
 from .serializers import AnalyzeTextSerializer
 from .serializers import EvaluateSerializer
 from .serializers import RepositoryUpdateSerializer
+from .serializers import RepositoryUpload
 from .permissions import RepositoryPermission
 from .permissions import RepositoryAdminManagerAuthorization
 from .permissions import RepositoryExamplePermission
@@ -102,7 +106,7 @@ class RepositoryViewSet(
         user_authorization = repository.get_user_authorization(request.user)
         if not user_authorization.can_write:
             raise PermissionDenied()
-        request = Repository.request_nlp_train(  # pragma: no cover
+        request = repository.request_nlp_train(  # pragma: no cover
             user_authorization)
         if request.status_code != status.HTTP_200_OK:  # pragma: no cover
             raise APIException(  # pragma: no cover
@@ -122,7 +126,7 @@ class RepositoryViewSet(
         serializer = AnalyzeTextSerializer(
             data=request.data)  # pragma: no cover
         serializer.is_valid(raise_exception=True)  # pragma: no cover
-        request = Repository.request_nlp_analyze(
+        request = repository.request_nlp_analyze(
             user_authorization,
             serializer.data)  # pragma: no cover
 
@@ -172,7 +176,7 @@ class RepositoryViewSet(
                 detail=_('You need to have at least ' +
                          'two registered intents'))  # pragma: no cover
 
-        request = Repository.request_nlp_evaluate(  # pragma: no cover
+        request = repository.request_nlp_evaluate(  # pragma: no cover
             user_authorization, serializer.data)
         if request.status_code != status.HTTP_200_OK:  # pragma: no cover
             raise APIException(  # pragma: no cover
@@ -474,6 +478,52 @@ class RepositoryExampleViewSet(
     def create(self, request, *args, **kwargs):
         self.permission_classes = [permissions.IsAuthenticated]
         return super().create(request, *args, **kwargs)
+
+    @action(
+        detail=True,
+        methods=['POST'],
+        url_name='repository-upload-examples',
+        parser_classes=[parsers.MultiPartParser],
+        serializer_class=RepositoryUpload)
+    def upload_examples(self, request, **kwargs):
+        try:
+            repository = get_object_or_404(
+                Repository,
+                pk=request.data.get('repository')
+            )
+        except DjangoValidationError:
+            raise PermissionDenied()
+
+        user_authorization = repository.get_user_authorization(request.user)
+        if not user_authorization.can_write:
+            raise PermissionDenied()
+
+        f = request.FILES.get('file')
+        try:
+            json_data = json.loads(f.read().decode())
+        except json.decoder.JSONDecodeError:
+            raise UnsupportedMediaType('json')
+
+        count_added = 0
+        not_added = []
+
+        for data in json_data:
+            response_data = data
+            response_data['repository'] = request.data.get('repository')
+            serializer = RepositoryExampleSerializer(
+                data=response_data,
+                context={'request': request}
+            )
+            if serializer.is_valid():
+                serializer.save()
+                count_added += 1
+            else:
+                not_added.append(data)
+
+        return Response({
+            'added': count_added,
+            'not_added': not_added
+        })
 
     def perform_destroy(self, obj):
         if obj.deleted_in:

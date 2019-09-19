@@ -1,6 +1,7 @@
 import json
 import uuid
 
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.test import RequestFactory
 from django.test.client import MULTIPART_CONTENT
@@ -126,7 +127,7 @@ class CreateRepositoryAPITestCase(TestCase):
         } if token else {}
 
         request = self.factory.post(
-            '/v2/repository/',
+            '/v2/repository/repository-info/',
             data,
             **authorization_header)
 
@@ -190,7 +191,7 @@ class RetriveRepositoryTestCase(TestCase):
         } if token else {}
 
         request = self.factory.get(
-            '/v2/repository/{}/'.format(repository.uuid),
+            '/v2/repository/repository-info/{}/'.format(repository.uuid),
             **authorization_header)
 
         response = RepositoryViewSet.as_view({'get': 'retrieve'})(
@@ -235,7 +236,7 @@ class UpdateRepositoryTestCase(TestCase):
         } if token else {}
 
         request = self.factory.patch(
-            '/v2/repository/{}/'.format(repository.uuid),
+            '/v2/repository/repository-info/{}/'.format(repository.uuid),
             self.factory._encode_data(data, MULTIPART_CONTENT),
             MULTIPART_CONTENT,
             **authorization_header)
@@ -294,7 +295,7 @@ class RepositoryAuthorizationTestCase(TestCase):
         } if token else {}
 
         request = self.factory.get(
-            '/v2/repository/{}/'.format(repository.uuid),
+            '/v2/repository/repository-info/{}/'.format(repository.uuid),
             **authorization_header)
 
         response = RepositoryViewSet.as_view({'get': 'retrieve'})(
@@ -343,7 +344,7 @@ class RepositoryAvailableRequestAuthorizationTestCase(TestCase):
         } if token else {}
 
         request = self.factory.get(
-            '/v2/repository/{}/'.format(repository.uuid),
+            '/v2/repository/repository-info/{}/'.format(repository.uuid),
             **authorization_header)
 
         response = RepositoryViewSet.as_view({'get': 'retrieve'})(
@@ -1453,6 +1454,88 @@ class RepositoryExampleRetrieveTestCase(TestCase):
             label)
 
 
+class RepositoryExampleUploadTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.owner, self.owner_token = create_user_and_token('owner')
+        self.user, self.user_token = create_user_and_token()
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name='Testing',
+            slug='test',
+            language=languages.LANGUAGE_EN)
+
+    def request(self, token):
+        authorization_header = {
+            'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
+        }
+        examples = b'''[
+                    {
+                        "text": "yes",
+                        "language": "en",
+                        "entities": [{
+                            "label": "yes",
+                            "entity": "_yes",
+                            "start": 0,
+                            "end": 3
+                        }],
+                        "intent": "greet"
+                    },
+                    {
+                        "text": "alright",
+                        "language": "en",
+                        "entities": [{
+                            "label": "yes",
+                            "entity": "_yes",
+                            "start": 0,
+                            "end": 3
+                        }],
+                        "intent": "greet"
+                    }
+                ]'''
+
+        uploaded_file = SimpleUploadedFile(
+            'examples.json',
+            examples,
+            'multipart/form-data'
+        )
+
+        request = self.factory.post(
+            '/v2/repository/example/upload_examples/',
+            {
+                'file': uploaded_file,
+                'repository': str(self.repository.uuid)
+            }, format='multipart',
+            **authorization_header)
+        response = RepositoryExampleViewSet.as_view(
+            {'post': 'upload_examples'})(request)
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data,)
+
+    def test_okay(self):
+        response, content_data = self.request(self.owner_token)
+        self.assertEqual(
+            content_data.get('added'),
+            2
+        )
+        self.assertEqual(
+            len(content_data.get('not_added')),
+            0
+        )
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK)
+
+    def test_permission_denied(self):
+        response, content_data = self.request(self.user_token)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_403_FORBIDDEN)
+
+
 class RepositoryExampleDestroyTestCase(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
@@ -1953,7 +2036,7 @@ class RetrieveRepositoryTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
         }
         request = self.factory.get(
-            '/v2/repository/{}/'.format(
+            '/v2/repository/repository-info/{}/'.format(
                 str(repository.uuid)),
             **authorization_header)
         response = RepositoryViewSet.as_view(
@@ -2003,7 +2086,7 @@ class RetrieveRepositoryTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(self.user_token.key),
         }
         request = self.factory.get(
-            '/v2/repository/{}/languagesstatus/'.format(
+            '/v2/repository/repository-info/{}/languagesstatus/'.format(
                 self.repository.uuid),
             **authorization_header)
         response = RepositoryViewSet.as_view(
@@ -2087,7 +2170,7 @@ class TrainRepositoryTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
         }
         request = self.factory.get(
-            '/v2/repository/{}/train/'.format(
+            '/v2/repository/repository-info/{}/train/'.format(
                 str(repository.uuid)),
             **authorization_header)
         response = RepositoryViewSet.as_view({'get': 'train'})(request)
@@ -2126,7 +2209,7 @@ class AnalyzeRepositoryTestCase(TestCase):
             'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
         }
         request = self.factory.post(
-            '/v2/repository/{}/analyze/'.format(
+            '/v2/repository/repository-info/{}/analyze/'.format(
                 str(repository.uuid)),
             data,
             **authorization_header)

@@ -99,7 +99,7 @@ class Router(routers.SimpleRouter):
 
 
 router = Router()
-router.register('repository', RepositoryViewSet)
+router.register('repository/repository-info', RepositoryViewSet)
 router.register('repository/repository-votes', RepositoryVotesViewSet)
 router.register('repository/repositories', RepositoriesViewSet)
 router.register(
