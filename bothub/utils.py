@@ -1,7 +1,7 @@
 import io
 import uuid
 import boto3
-from bothub.settings import env
+from django.conf import settings
 from botocore.exceptions import ClientError
 from collections import OrderedDict
 
@@ -18,14 +18,10 @@ def cast_empty_str_to_none(value):
 
 
 def send_bot_data_file_aws(id, bot_data):
-    aws_access_key_id = env.str('BOTHUB_ENGINE_AWS_ACCESS_KEY_ID')
-    aws_secret_access_key = env.str('BOTHUB_ENGINE_AWS_SECRET_ACCESS_KEY')
-    aws_bucket_name = env.str('BOTHUB_ENGINE_AWS_S3_BUCKET_NAME')
-    aws_region_name = env.str('BOTHUB_ENGINE_AWS_REGION_NAME')
-
     confmat_url = ''
 
-    if all([aws_access_key_id, aws_secret_access_key, aws_bucket_name]):
+    if all([settings.AWS_ACCESS_KEY_ID, settings.AWS_SECRET_ACCESS_KEY,
+            settings.AWS_BUCKET_NAME]):
         confmat_filename = \
             f'repository_{str(id)}/bot_data_{uuid.uuid4()}.tar.gz'
 
@@ -33,20 +29,20 @@ def send_bot_data_file_aws(id, bot_data):
 
         s3_client = boto3.client(
             's3',
-            aws_access_key_id=aws_access_key_id,
-            aws_secret_access_key=aws_secret_access_key,
-            region_name=aws_region_name,
+            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+            region_name=settings.AWS_REGION_NAME,
         )
         try:
             s3_client.upload_fileobj(
                 botdata,
-                aws_bucket_name,
+                settings.AWS_BUCKET_NAME,
                 confmat_filename,
                 ExtraArgs={'ContentType': 'application/gzip'}
             )
             confmat_url = '{}/{}/{}'.format(
                 s3_client.meta.endpoint_url,
-                aws_bucket_name,
+                settings.AWS_BUCKET_NAME,
                 confmat_filename
             )
         except ClientError as e:
