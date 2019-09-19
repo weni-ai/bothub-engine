@@ -17,6 +17,7 @@ gunicorn = "*"
 gevent = "*"
 packaging = "*"
 django-environ = "*"
+boto3 = "*"
 
 [dev-packages]
 "flake8" = "*"

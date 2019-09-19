@@ -1,5 +1,4 @@
 import uuid
-import base64
 import requests
 
 from functools import reduce
@@ -485,10 +484,9 @@ class RepositoryUpdate(models.Model):
     created_at = models.DateTimeField(
         _('created at'),
         auto_now_add=True)
-    bot_data = models.TextField(
+    bot_data = models.URLField(
         _('bot data'),
-        blank=True,
-        editable=False)
+        blank=True)
     by = models.ForeignKey(
         User,
         models.CASCADE,
@@ -656,7 +654,7 @@ class RepositoryUpdate(models.Model):
             raise RepositoryUpdateAlreadyTrained()
 
         self.trained_at = timezone.now()
-        self.bot_data = base64.b64encode(bot_data).decode('utf8')
+        self.bot_data = bot_data
         self.repository.total_updates += 1
         self.repository.save()
         self.save(
@@ -666,7 +664,7 @@ class RepositoryUpdate(models.Model):
             ])
 
     def get_bot_data(self):
-        return base64.b64decode(self.bot_data)
+        return self.bot_data
 
     def train_fail(self):
         self.failed_at = timezone.now()
