@@ -552,7 +552,7 @@ class RepositoryUpdateTrainingTestCase(TestCase):
         update = self.repository.current_update()
         update.start_training(self.owner)
 
-        bot_data = b'bot_data__()\\\\//?(*)'
+        bot_data = 'https://s3.amazonaws.com'
 
         update.save_training(bot_data)
         self.assertEqual(

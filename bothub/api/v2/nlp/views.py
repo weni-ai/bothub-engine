@@ -1,5 +1,6 @@
 import base64
 import json
+import requests
 
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -24,6 +25,7 @@ from bothub.common.models import RepositoryEvaluateResultEntity
 from bothub.common.models import RepositoryUpdate
 from bothub.common.models import Repository
 from bothub.common import languages
+from bothub.utils import send_bot_data_file_aws
 
 
 def check_auth(request):
@@ -499,18 +501,24 @@ class RepositoryUpdateInterpretersViewSet(
     def retrieve(self, request, *args, **kwargs):
         check_auth(request)
         update = self.get_object()
+        try:
+            download = requests.get(update.bot_data)
+            bot_data = base64.b64encode(download.content)
+        except Exception:
+            bot_data = b''
         return Response({
             'update_id': update.id,
             'repository_uuid': update.repository.uuid,
-            'bot_data': str(update.bot_data)
+            'bot_data': str(bot_data)
         })
 
     def create(self, request, *args, **kwargs):
         check_auth(request)
+        id = request.data.get('id')
         repository = get_object_or_404(
             RepositoryUpdate,
-            pk=request.data.get('id')
+            pk=id
         )
         bot_data = base64.b64decode(request.data.get('bot_data'))
-        repository.save_training(bot_data)
+        repository.save_training(send_bot_data_file_aws(id, bot_data))
         return Response({})

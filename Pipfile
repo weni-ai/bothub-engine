@@ -18,6 +18,7 @@ drf-yasg = "*"
 gunicorn = "*"
 gevent = "*"
 packaging = "*"
+boto3 = "*"
 
 [dev-packages]
 "flake8" = "*"
