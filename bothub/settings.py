@@ -36,7 +36,11 @@ env = environ.Env(
     CSRF_COOKIE_DOMAIN=(cast_empty_str_to_none, None),
     CSRF_COOKIE_SECURE=(bool, False),
     SUPPORTED_LANGUAGES=(cast_supported_languages, 'en|pt'),
-    CHECK_ACCESSIBLE_API_URL=(str, None)
+    CHECK_ACCESSIBLE_API_URL=(str, None),
+    BOTHUB_ENGINE_AWS_ACCESS_KEY_ID=(str, ''),
+    BOTHUB_ENGINE_AWS_SECRET_ACCESS_KEY=(str, ''),
+    BOTHUB_ENGINE_AWS_S3_BUCKET_NAME=(str, ''),
+    BOTHUB_ENGINE_AWS_REGION_NAME=(str, 'us-east-1')
 )
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
