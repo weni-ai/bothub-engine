@@ -241,7 +241,12 @@ LOGGING['loggers']['bothub.health.checks'] = {
 
 # Supported Languages
 
-SUPPORTED_LANGUAGES = env.str('SUPPORTED_LANGUAGES')
+SUPPORTED_LANGUAGES = env.get_value(
+    'SUPPORTED_LANGUAGES',
+    cast_supported_languages,
+    'en|pt',
+    True
+)
 
 
 # SECURE PROXY SSL HEADER
