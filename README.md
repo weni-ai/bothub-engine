@@ -5,7 +5,7 @@
 # Bothub
 
 [![Build Status](https://travis-ci.org/Ilhasoft/bothub-engine.svg?branch=master)](https://travis-ci.org/Ilhasoft/bothub-engine)
-[![Coverage Status](https://coveralls.io/repos/github/Ilhasoft/bothub-engine/badge.svg)](https://coveralls.io/github/Ilhasoft/bothub-engine)
+[![Coverage Status](https://coveralls.io/repos/github/Ilhasoft/bothub-engine/badge.svg?branch=master)](https://coveralls.io/github/Ilhasoft/bothub-engine?branch=master)
 [![Code Climate](https://codeclimate.com/github/Ilhasoft/bothub-engine/badges/gpa.svg)](https://codeclimate.com/github/Ilhasoft/bothub-engine)
 [![Python Version](https://img.shields.io/badge/python-3.6-blue.svg)](https://www.python.org/)
 [![License GPL-3.0](https://img.shields.io/badge/license-%20GPL--3.0-yellow.svg)](https://github.com/Ilhasoft/bothub-engine/blob/master/LICENSE)
