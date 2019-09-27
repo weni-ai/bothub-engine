@@ -6,21 +6,16 @@ from bothub.common.models import RepositoryUpdate
 
 
 def update_repository(apps, schema_editor):
-    for update in RepositoryUpdate.objects.all().exclude(bot_data__exact=''):
-        repository_update = RepositoryUpdate.objects.get(pk=update.pk)
-        if settings.AWS_SEND:
+    if settings.AWS_SEND:
+        for update in RepositoryUpdate.objects.all().exclude(bot_data__exact=''):
+            repository_update = RepositoryUpdate.objects.get(pk=update.pk)
             bot_data = send_bot_data_file_aws(update.pk, update.bot_data)
-            repository_update.is_url = True
-        else:
-            bot_data = update.bot_data
-            repository_update.is_url = False
-        repository_update.bot_data = bot_data
-        repository_update.save(
-            update_fields=[
-                'bot_data',
-                'is_url',
-            ])
-        print('Updating bot_data repository_update {}'.format(str(update.pk)))
+            repository_update.bot_data = bot_data
+            repository_update.save(
+                update_fields=[
+                    'bot_data',
+                ])
+            print('Updating bot_data repository_update {}'.format(str(update.pk)))
 
 
 class Migration(migrations.Migration):
@@ -30,11 +25,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='repositoryupdate',
-            name='is_url',
-            field=models.BooleanField(default=True),
-        ),
         migrations.RunPython(update_repository),
         migrations.AlterField(
             model_name='repositoryupdate',

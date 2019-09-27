@@ -1,5 +1,7 @@
 import base64
 import json
+import re
+
 import requests
 from django.conf import settings
 
@@ -503,7 +505,16 @@ class RepositoryUpdateInterpretersViewSet(
         check_auth(request)
         update = self.get_object()
 
-        if update.is_url:
+        regex = re.compile(
+            r'^(?:http|ftp)s?://'  # http:// or https://
+            r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|'
+            r'[A-Z0-9-]{2,}\.?)|'
+            r'localhost|'
+            r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'
+            r'(?::\d+)?'
+            r'(?:/?|[/?]\S+)$', re.IGNORECASE)
+
+        if re.match(regex, update.bot_data) is not None:
             try:
                 download = requests.get(update.bot_data)
                 bot_data = base64.b64encode(download.content)
@@ -530,9 +541,8 @@ class RepositoryUpdateInterpretersViewSet(
                 send_bot_data_file_aws(
                     id,
                     bot_data
-                ),
-                True
+                )
             )
         else:
-            repository.save_training(request.data.get('bot_data'), False)
+            repository.save_training(request.data.get('bot_data'))
         return Response({})
