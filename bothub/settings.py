@@ -40,7 +40,8 @@ env = environ.Env(
     BOTHUB_ENGINE_AWS_ACCESS_KEY_ID=(str, ''),
     BOTHUB_ENGINE_AWS_SECRET_ACCESS_KEY=(str, ''),
     BOTHUB_ENGINE_AWS_S3_BUCKET_NAME=(str, ''),
-    BOTHUB_ENGINE_AWS_REGION_NAME=(str, 'us-east-1')
+    BOTHUB_ENGINE_AWS_REGION_NAME=(str, 'us-east-1'),
+    BOTHUB_ENGINE_AWS_SEND=(bool, False)
 )
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -275,7 +276,7 @@ SWAGGER_SETTINGS = {
 
 
 # AWS
-
+AWS_SEND = env.bool('BOTHUB_ENGINE_AWS_SEND')
 AWS_ACCESS_KEY_ID = env.str('BOTHUB_ENGINE_AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = env.str('BOTHUB_ENGINE_AWS_SECRET_ACCESS_KEY')
 AWS_BUCKET_NAME = env.str('BOTHUB_ENGINE_AWS_S3_BUCKET_NAME')

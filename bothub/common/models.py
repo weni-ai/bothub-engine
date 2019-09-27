@@ -484,9 +484,10 @@ class RepositoryUpdate(models.Model):
     created_at = models.DateTimeField(
         _('created at'),
         auto_now_add=True)
-    bot_data = models.URLField(
+    bot_data = models.TextField(
         _('bot data'),
         blank=True)
+    is_url = models.BooleanField(default=True)
     by = models.ForeignKey(
         User,
         models.CASCADE,
@@ -649,18 +650,20 @@ class RepositoryUpdate(models.Model):
                 'use_name_entities',
             ])
 
-    def save_training(self, bot_data):
+    def save_training(self, bot_data, is_url):
         if self.trained_at:
             raise RepositoryUpdateAlreadyTrained()
 
         self.trained_at = timezone.now()
         self.bot_data = bot_data
+        self.is_url = is_url
         self.repository.total_updates += 1
         self.repository.save()
         self.save(
             update_fields=[
                 'trained_at',
                 'bot_data',
+                'is_url',
             ])
 
     def get_bot_data(self):
