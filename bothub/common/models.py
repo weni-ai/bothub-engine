@@ -484,7 +484,7 @@ class RepositoryUpdate(models.Model):
     created_at = models.DateTimeField(
         _('created at'),
         auto_now_add=True)
-    bot_data = models.URLField(
+    bot_data = models.TextField(
         _('bot data'),
         blank=True)
     by = models.ForeignKey(

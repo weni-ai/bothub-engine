@@ -1,6 +1,9 @@
 import base64
 import json
+import re
+
 import requests
+from django.conf import settings
 
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -501,11 +504,24 @@ class RepositoryUpdateInterpretersViewSet(
     def retrieve(self, request, *args, **kwargs):
         check_auth(request)
         update = self.get_object()
-        try:
-            download = requests.get(update.bot_data)
-            bot_data = base64.b64encode(download.content)
-        except Exception:
-            bot_data = b''
+
+        regex = re.compile(
+            r'^(?:http|ftp)s?://'  # http:// or https://
+            r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|'
+            r'[A-Z0-9-]{2,}\.?)|'
+            r'localhost|'
+            r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'
+            r'(?::\d+)?'
+            r'(?:/?|[/?]\S+)$', re.IGNORECASE)
+
+        if re.match(regex, update.bot_data) is not None:
+            try:
+                download = requests.get(update.bot_data)
+                bot_data = base64.b64encode(download.content)
+            except Exception:
+                bot_data = b''
+        else:
+            bot_data = update.bot_data
         return Response({
             'update_id': update.id,
             'repository_uuid': update.repository.uuid,
@@ -519,6 +535,14 @@ class RepositoryUpdateInterpretersViewSet(
             RepositoryUpdate,
             pk=id
         )
-        bot_data = base64.b64decode(request.data.get('bot_data'))
-        repository.save_training(send_bot_data_file_aws(id, bot_data))
+        if settings.AWS_SEND:
+            bot_data = base64.b64decode(request.data.get('bot_data'))
+            repository.save_training(
+                send_bot_data_file_aws(
+                    id,
+                    bot_data
+                )
+            )
+        else:
+            repository.save_training(request.data.get('bot_data'))
         return Response({})
