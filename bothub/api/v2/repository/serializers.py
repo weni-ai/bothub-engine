@@ -3,7 +3,7 @@ from django.conf import settings
 from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied
 
-from bothub.api.v2.example.serializers import \
+from bothub.api.v2.examples.serializers import \
     RepositoryExampleEntitySerializer
 from bothub.api.v2.fields import TextField
 from bothub.api.v2.fields import EntityText
@@ -243,6 +243,9 @@ class RepositorySerializer(serializers.ModelSerializer):
         return settings.BOTHUB_NLP_BASE_URL
 
     def create(self, validated_data):
+
+        print('create')
+
         validated_data.update({
             'owner': self.context['request'].user,
         })

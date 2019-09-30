@@ -4,7 +4,8 @@ from django.test import TestCase
 from rest_framework import status
 from bothub.api.v2.evaluate.views import EvaluateViewSet, ResultsListViewSet
 from bothub.common import languages
-from bothub.common.models import RepositoryExample
+from bothub.common.models import RepositoryExample, UserGroupRepository, \
+    UserPermissionRepository, PermissionsCode, RepositoryAuthorization
 from bothub.common.models import RepositoryUpdate
 from bothub.common.models import Repository
 from bothub.common.models import RepositoryEvaluate
@@ -182,6 +183,8 @@ class NewEvaluateTestCase(TestCase):
 
 
 class EvaluateDestroyTestCase(TestCase):
+    fixtures = ['permissions.json']
+
     def setUp(self):
         self.factory = RequestFactory()
 
@@ -194,6 +197,8 @@ class EvaluateDestroyTestCase(TestCase):
             slug='test',
             language=languages.LANGUAGE_EN
         )
+
+        # self.repository.get_user_authorization(self.owner)
 
         self.repository_update = RepositoryUpdate.objects.create(
             repository=self.repository,
@@ -223,6 +228,7 @@ class EvaluateDestroyTestCase(TestCase):
                 self.repository.uuid
             ), **authorization_header
         )
+
         response = EvaluateViewSet.as_view(
             {'delete': 'destroy'})(
             request,

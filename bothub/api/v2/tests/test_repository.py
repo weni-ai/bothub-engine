@@ -114,6 +114,8 @@ def create_repository_from_mockup(owner, categories, **mockup):
 
 
 class CreateRepositoryAPITestCase(TestCase):
+    fixtures = ['permissions.json']
+
     def setUp(self):
         self.factory = RequestFactory()
 

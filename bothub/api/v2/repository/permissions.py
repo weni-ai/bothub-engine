@@ -1,6 +1,6 @@
 from rest_framework import permissions
 
-from bothub.common.models import UserPermissionRepository
+from bothub.common.models import UserPermissionRepository, PermissionsCode
 from .. import READ_METHODS
 from .. import WRITE_METHODS
 from .. import EDIT_METHODS
@@ -21,7 +21,10 @@ class RepositoryPermission(permissions.BasePermission):
 
         if request.user.is_authenticated:
             if request.method in READ_METHODS:
-                return permission.filter(codename='view.repository').exists()
+                return permission.filter(
+                    codename=PermissionsCode.objects.filter(
+                            codename='view.repository'
+                        ).first()).exists()
             if request.method in WRITE_METHODS:
                 return permission.filter(codename='write.repository').exists()
             if request.method in EDIT_METHODS:
@@ -55,35 +58,6 @@ class RepositoryAdminManagerAuthorization(permissions.BasePermission):
             if request.method in DELETE_METHODS:
                 return permission.filter(
                     codename='delete.repositoryadminmanager'
-                ).exists()
-        return False
-
-
-class RepositoryExamplePermission(permissions.BasePermission):
-    def has_object_permission(self, request, view, obj):
-        authorization = obj.repository_update.repository.\
-            get_user_authorization(request.user)
-        usergrouprepository = authorization.usergrouprepository
-        permission = UserPermissionRepository.objects.filter(
-            usergrouprepository=usergrouprepository
-        )
-
-        if request.user.is_authenticated:
-            if request.method in READ_METHODS:
-                return permission.filter(
-                    codename='view.repositoryexample'
-                ).exists()
-            if request.method in WRITE_METHODS:
-                return permission.filter(
-                    codename='write.repositoryexample'
-                ).exists()
-            if request.method in EDIT_METHODS:
-                return permission.filter(
-                    codename='edit.repositoryexample'
-                ).exists()
-            if request.method in DELETE_METHODS:
-                return permission.filter(
-                    codename='delete.repositoryexample'
                 ).exists()
         return False
 

@@ -190,6 +190,10 @@ class Repository(models.Model):
 
     objects = RepositoryManager()
 
+    def save(self, *args, **kwargs):
+
+        super(Repository, self).save(*args, **kwargs)
+
     def request_nlp_train(self, user_authorization):
         try:  # pragma: no cover
             r = requests.post(  # pragma: no cover
@@ -439,12 +443,33 @@ class Repository(models.Model):
             trained_at__isnull=False).first()
 
     def get_user_authorization(self, user):
+        print('foi')
         if user.is_anonymous:
             return RepositoryAuthorization(repository=self)
-        get, created = RepositoryAuthorization.objects.get_or_create(
+
+        if UserGroupRepository.objects.filter(repository=self).count() == 0:
+            usergroup = UserGroupRepository.objects.create(
+                repository=self,
+                name='Owner'
+            )
+
+            UserPermissionRepository.objects.create(
+                codename=PermissionsCode.objects.get(
+                    codename='delete.repositoryevaluate'
+                ),
+                usergrouprepository=usergroup
+            )
+
+            get, created = RepositoryAuthorization.objects.get_or_create(
+                user=user,
+                repository=self,
+                usergrouprepository=usergroup)
+
+            return get
+
+        return RepositoryAuthorization.objects.get(
             user=user,
             repository=self)
-        return get
 
     def get_absolute_url(self):
         return '{}{}/{}/'.format(

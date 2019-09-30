@@ -5,10 +5,10 @@ from bothub.api.v2 import READ_METHODS, WRITE_METHODS, EDIT_METHODS, \
 from bothub.common.models import UserPermissionRepository
 
 
-class RepositoryTranslatedExamplePermission(permissions.BasePermission):
+class RepositoryExamplePermission(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
-        repository = obj.original_example.repository_update.repository
-        authorization = repository.get_user_authorization(request.user)
+        authorization = obj.repository_update.repository.\
+            get_user_authorization(request.user)
         usergrouprepository = authorization.usergrouprepository
         permission = UserPermissionRepository.objects.filter(
             usergrouprepository=usergrouprepository
@@ -17,18 +17,18 @@ class RepositoryTranslatedExamplePermission(permissions.BasePermission):
         if request.user.is_authenticated:
             if request.method in READ_METHODS:
                 return permission.filter(
-                    codename='view.repositorytranslatedexample'
+                    codename='view.repositoryexample'
                 ).exists()
             if request.method in WRITE_METHODS:
                 return permission.filter(
-                    codename='write.repositorytranslatedexample'
+                    codename='write.repositoryexample'
                 ).exists()
             if request.method in EDIT_METHODS:
                 return permission.filter(
-                    codename='edit.repositorytranslatedexample'
+                    codename='edit.repositoryexample'
                 ).exists()
             if request.method in DELETE_METHODS:
                 return permission.filter(
-                    codename='delete.repositorytranslatedexample'
+                    codename='delete.repositoryexample'
                 ).exists()
         return False

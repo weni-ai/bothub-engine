@@ -6,8 +6,8 @@ from django_filters.rest_framework import DjangoFilterBackend
 
 from bothub.common.models import RepositoryExample
 
-from ..example.serializers import RepositoryExampleSerializer
-from ..example.permissions import RepositoryExamplePermission
+from bothub.api.v2.examples.serializers import RepositoryExampleSerializer
+from bothub.api.v2.examples.permissions import RepositoryExamplePermission
 from .filters import ExamplesFilter
 
 
