@@ -1023,6 +1023,62 @@ class RepositoryTranslatedExampleEntity(EntityBase):
         return self.repository_translated_example
 
 
+class PermissionsCode(models.Model):
+    class Meta:
+        verbose_name = _('permissions code')
+
+    uuid = models.UUIDField(
+        _('UUID'),
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False
+    )
+    codename = models.TextField(
+        _('CodeName')
+    )
+    name = models.TextField(_('Name'), null=True)
+
+    def __str__(self):
+        return self.name + ' - ' + self.codename
+
+
+class UserGroupRepository(models.Model):
+    class Meta:
+        verbose_name = _('User Group Repository')
+
+    uuid = models.UUIDField(
+        _('UUID'),
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False
+    )
+    repository = models.ForeignKey(
+        Repository,
+        models.CASCADE
+    )
+    name = models.TextField(_('Group Name'))
+
+    def __str__(self):
+        return self.repository.name + ' - ' + self.name
+
+
+class UserPermissionRepository(models.Model):
+    class Meta:
+        verbose_name = _('repository user authorization')
+
+    uuid = models.UUIDField(
+        _('UUID'),
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False
+    )
+    codename = models.ForeignKey(PermissionsCode, models.CASCADE)
+    usergrouprepository = models.ForeignKey(
+        UserGroupRepository,
+        models.CASCADE
+    )
+
+
 class RepositoryAuthorization(models.Model):
     class Meta:
         verbose_name = _('repository authorization')
@@ -1062,6 +1118,11 @@ class RepositoryAuthorization(models.Model):
         _('role'),
         choices=ROLE_CHOICES,
         default=ROLE_NOT_SETTED)
+    usergrouprepository = models.ForeignKey(
+        UserGroupRepository,
+        models.CASCADE,
+        null=True
+    )
     created_at = models.DateTimeField(
         _('created at'),
         auto_now_add=True)
