@@ -221,6 +221,23 @@ class Repository(models.Model):
                 code=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
 
+    def create_permissions(self):
+        if UserGroupRepository.objects.filter(repository=self).count() == 0:
+            usergroup = UserGroupRepository.objects.create(
+                repository=self,
+                name='Owner'
+            )
+            for perm in PermissionsCode.objects.all():
+                UserPermissionRepository.objects.create(
+                    codename=perm,
+                    usergrouprepository=usergroup
+                )
+
+            return usergroup
+        else:
+            usergroup = UserGroupRepository.objects.get(repository=self, name='Owner')
+            return usergroup
+
     @property
     def available_languages(self):
         examples = self.examples()
@@ -420,7 +437,7 @@ class Repository(models.Model):
         if user.is_anonymous:
             return RepositoryAuthorization(repository=self)
         get, created = RepositoryAuthorization.objects.get_or_create(
-            user=user, repository=self
+            user=user, repository=self, usergrouprepository=self.create_permissions()
         )
         return get
 
@@ -960,11 +977,67 @@ class RepositoryTranslatedExampleEntity(EntityBase):
         return self.repository_translated_example
 
 
+class PermissionsCode(models.Model):
+    class Meta:
+        verbose_name = _('permissions code')
+
+    uuid = models.UUIDField(
+        _('UUID'),
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False
+    )
+    codename = models.TextField(
+        _('CodeName')
+    )
+    name = models.TextField(_('Name'), null=True)
+
+    def __str__(self):
+        return self.name + ' - ' + self.codename
+
+
+class UserGroupRepository(models.Model):
+    class Meta:
+        verbose_name = _('User Group Repository')
+
+    uuid = models.UUIDField(
+        _('UUID'),
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False
+    )
+    repository = models.ForeignKey(
+        Repository,
+        models.CASCADE
+    )
+    name = models.TextField(_('Group Name'))
+
+    def __str__(self):
+        return self.repository.name + ' - ' + self.name
+
+
+class UserPermissionRepository(models.Model):
+    class Meta:
+        verbose_name = _('repository user authorization')
+
+    uuid = models.UUIDField(
+        _('UUID'),
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False
+    )
+    codename = models.ForeignKey(PermissionsCode, models.CASCADE)
+    usergrouprepository = models.ForeignKey(
+        UserGroupRepository,
+        models.CASCADE
+    )
+
+
 class RepositoryAuthorization(models.Model):
     class Meta:
-        verbose_name = _("repository authorization")
-        verbose_name_plural = _("repository authorizations")
-        unique_together = ["user", "repository"]
+        verbose_name = _('repository authorization')
+        verbose_name_plural = _('repository authorizations')
+        unique_together = ['user', 'repository']
 
     LEVEL_NOTHING = 0
     LEVEL_READER = 1
@@ -977,23 +1050,36 @@ class RepositoryAuthorization(models.Model):
     ROLE_ADMIN = 3
 
     ROLE_CHOICES = [
-        (ROLE_NOT_SETTED, _("not set")),
-        (ROLE_USER, _("user")),
-        (ROLE_CONTRIBUTOR, _("contributor")),
-        (ROLE_ADMIN, _("admin")),
+        (ROLE_NOT_SETTED, _('not set')),
+        (ROLE_USER, _('user')),
+        (ROLE_CONTRIBUTOR, _('contributor')),
+        (ROLE_ADMIN, _('admin')),
     ]
 
     uuid = models.UUIDField(
-        _("UUID"), primary_key=True, default=uuid.uuid4, editable=False
-    )
-    user = models.ForeignKey(User, models.CASCADE)
+        _('UUID'),
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False)
+    user = models.ForeignKey(
+        User,
+        models.CASCADE)
     repository = models.ForeignKey(
-        Repository, models.CASCADE, related_name="authorizations"
-    )
+        Repository,
+        models.CASCADE,
+        related_name='authorizations')
     role = models.PositiveIntegerField(
-        _("role"), choices=ROLE_CHOICES, default=ROLE_NOT_SETTED
+        _('role'),
+        choices=ROLE_CHOICES,
+        default=ROLE_NOT_SETTED)
+    usergrouprepository = models.ForeignKey(
+        UserGroupRepository,
+        models.CASCADE,
+        null=True
     )
-    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
+    created_at = models.DateTimeField(
+        _('created at'),
+        auto_now_add=True)
 
     @property
     def level(self):

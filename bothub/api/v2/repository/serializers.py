@@ -13,7 +13,7 @@ from bothub.api.v2.repository.validators import IntentAndSentenceNotExistsValida
 from bothub.api.v2.repository.validators import ExampleWithIntentOrEntityValidator
 from bothub.api.v2.repository.validators import CanContributeInRepositoryValidator
 from bothub.common import languages
-from bothub.common.models import Repository
+from bothub.common.models import Repository, UserGroupRepository, UserPermissionRepository, PermissionsCode
 from bothub.common.models import RepositoryVote
 from bothub.common.models import RepositoryCategory
 from bothub.common.models import RepositoryEntityLabel
@@ -264,6 +264,7 @@ class RepositorySerializer(serializers.ModelSerializer):
         request = self.context.get("request")
         if not request or not request.user.is_authenticated:
             return None
+
         return RepositoryAuthorizationSerializer(
             obj.get_user_authorization(request.user)
         ).data
