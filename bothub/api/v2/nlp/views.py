@@ -421,43 +421,39 @@ class RepositoryUpdateInterpretersViewSet(
         update = self.get_object()
 
         regex = re.compile(
-            r'^(?:http|ftp)s?://'  # http:// or https://
-            r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|'
-            r'[A-Z0-9-]{2,}\.?)|'
-            r'localhost|'
-            r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'
-            r'(?::\d+)?'
-            r'(?:/?|[/?]\S+)$', re.IGNORECASE)
+            r"^(?:http|ftp)s?://"  # http:// or https://
+            r"(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|"
+            r"[A-Z0-9-]{2,}\.?)|"
+            r"localhost|"
+            r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})"
+            r"(?::\d+)?"
+            r"(?:/?|[/?]\S+)$",
+            re.IGNORECASE,
+        )
 
         if re.match(regex, update.bot_data) is not None:
             try:
                 download = requests.get(update.bot_data)
                 bot_data = base64.b64encode(download.content)
             except Exception:
-                bot_data = b''
+                bot_data = b""
         else:
             bot_data = update.bot_data
-        return Response({
-            'update_id': update.id,
-            'repository_uuid': update.repository.uuid,
-            'bot_data': str(bot_data)
-        })
+        return Response(
+            {
+                "update_id": update.id,
+                "repository_uuid": update.repository.uuid,
+                "bot_data": str(bot_data),
+            }
+        )
 
     def create(self, request, *args, **kwargs):
         check_auth(request)
-        id = request.data.get('id')
-        repository = get_object_or_404(
-            RepositoryUpdate,
-            pk=id
-        )
+        id = request.data.get("id")
+        repository = get_object_or_404(RepositoryUpdate, pk=id)
         if settings.AWS_SEND:
-            bot_data = base64.b64decode(request.data.get('bot_data'))
-            repository.save_training(
-                send_bot_data_file_aws(
-                    id,
-                    bot_data
-                )
-            )
+            bot_data = base64.b64decode(request.data.get("bot_data"))
+            repository.save_training(send_bot_data_file_aws(id, bot_data))
         else:
-            repository.save_training(request.data.get('bot_data'))
+            repository.save_training(request.data.get("bot_data"))
         return Response({})
