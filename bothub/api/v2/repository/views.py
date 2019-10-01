@@ -56,29 +56,29 @@ from .filters import RepositoryUpdatesFilter
 
 
 class RepositoryViewSet(
-        mixins.CreateModelMixin,
-        mixins.RetrieveModelMixin,
-        mixins.UpdateModelMixin,
-        mixins.DestroyModelMixin,
-        GenericViewSet):
+    mixins.CreateModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    GenericViewSet,
+):
     """
     Manager repository (bot).
     """
+
     queryset = Repository.objects
-    lookup_field = 'uuid'
-    lookup_fields = ['uuid']
+    lookup_field = "uuid"
+    lookup_fields = ["uuid"]
     serializer_class = RepositorySerializer
-    permission_classes = [
-        IsAuthenticatedOrReadOnly,
-        RepositoryPermission,
-    ]
+    permission_classes = [IsAuthenticatedOrReadOnly, RepositoryPermission]
     metadata_class = Metadata
 
     @action(
         detail=True,
-        methods=['GET'],
-        url_name='repository-languages-status',
-        lookup_fields=['uuid'])
+        methods=["GET"],
+        url_name="repository-languages-status",
+        lookup_fields=["uuid"],
+    )
     def languagesstatus(self, request, **kwargs):
         """
         Get current language status.
@@ -87,15 +87,14 @@ class RepositoryViewSet(
             return Response(status=405)
 
         repository = self.get_object()
-        return Response({
-            'languages_status': repository.languages_status,
-        })
+        return Response({"languages_status": repository.languages_status})
 
     @action(
         detail=True,
-        methods=['GET'],
-        url_name='repository-train',
-        lookup_fields=['uuid'])
+        methods=["GET"],
+        url_name="repository-train",
+        lookup_fields=["uuid"],
+    )
     def train(self, request, **kwargs):
         """
         Train current update using Bothub NLP service
@@ -106,29 +105,28 @@ class RepositoryViewSet(
         user_authorization = repository.get_user_authorization(request.user)
         if not user_authorization.can_write:
             raise PermissionDenied()
-        request = repository.request_nlp_train(  # pragma: no cover
-            user_authorization)
+        request = repository.request_nlp_train(user_authorization)  # pragma: no cover
         if request.status_code != status.HTTP_200_OK:  # pragma: no cover
             raise APIException(  # pragma: no cover
-                {'status_code': request.status_code},
-                code=request.status_code)
+                {"status_code": request.status_code}, code=request.status_code
+            )
         return Response(request.json())  # pragma: no cover
 
     @action(
         detail=True,
-        methods=['POST'],
-        url_name='repository-analyze',
+        methods=["POST"],
+        url_name="repository-analyze",
         permission_classes=[],
-        lookup_fields=['uuid'])
+        lookup_fields=["uuid"],
+    )
     def analyze(self, request, **kwargs):
         repository = self.get_object()
         user_authorization = repository.get_user_authorization(request.user)
-        serializer = AnalyzeTextSerializer(
-            data=request.data)  # pragma: no cover
+        serializer = AnalyzeTextSerializer(data=request.data)  # pragma: no cover
         serializer.is_valid(raise_exception=True)  # pragma: no cover
         request = repository.request_nlp_analyze(
-            user_authorization,
-            serializer.data)  # pragma: no cover
+            user_authorization, serializer.data
+        )  # pragma: no cover
 
         if request.status_code == status.HTTP_200_OK:  # pragma: no cover
             return Response(request.json())  # pragma: no cover
@@ -141,17 +139,20 @@ class RepositoryViewSet(
 
         if not response:  # pragma: no cover
             raise APIException(  # pragma: no cover
-                detail=_('Something unexpected happened! ' + \
-                         'We couldn\'t analyze your text.'))
-        error = response.get('error')  # pragma: no cover
-        message = error.get('message')  # pragma: no cover
+                detail=_(
+                    "Something unexpected happened! " + "We couldn't analyze your text."
+                )
+            )
+        error = response.get("error")  # pragma: no cover
+        message = error.get("message")  # pragma: no cover
         raise APIException(detail=message)  # pragma: no cover
 
     @action(
         detail=True,
-        methods=['POST'],
-        url_name='repository-evaluate',
-        lookup_fields=['uuid'])
+        methods=["POST"],
+        url_name="repository-evaluate",
+        lookup_fields=["uuid"],
+    )
     def evaluate(self, request, **kwargs):
         """
         Evaluate repository using Bothub NLP service
@@ -160,198 +161,170 @@ class RepositoryViewSet(
         user_authorization = repository.get_user_authorization(request.user)
         if not user_authorization.can_write:
             raise PermissionDenied()
-        serializer = EvaluateSerializer(
-            data=request.data)  # pragma: no cover
+        serializer = EvaluateSerializer(data=request.data)  # pragma: no cover
         serializer.is_valid(raise_exception=True)  # pragma: no cover
 
-        if not repository.evaluations(
-            language=request.data.get('language')
-        ).count():
+        if not repository.evaluations(language=request.data.get("language")).count():
             raise APIException(
-                detail=_('You need to have at least ' +
-                         'one registered test phrase'))  # pragma: no cover
+                detail=_("You need to have at least " + "one registered test phrase")
+            )  # pragma: no cover
 
         if len(repository.intents) <= 1:
             raise APIException(
-                detail=_('You need to have at least ' +
-                         'two registered intents'))  # pragma: no cover
+                detail=_("You need to have at least " + "two registered intents")
+            )  # pragma: no cover
 
         request = repository.request_nlp_evaluate(  # pragma: no cover
-            user_authorization, serializer.data)
+            user_authorization, serializer.data
+        )
         if request.status_code != status.HTTP_200_OK:  # pragma: no cover
             raise APIException(  # pragma: no cover
-                {'status_code': request.status_code},
-                code=request.status_code)
+                {"status_code": request.status_code}, code=request.status_code
+            )
         return Response(request.json())  # pragma: no cover
 
 
 @method_decorator(
-    name='list',
+    name="list",
     decorator=swagger_auto_schema(
         manual_parameters=[
             openapi.Parameter(
-                'user',
+                "user",
                 openapi.IN_QUERY,
-                description='Nickname User to find repositories votes',
-                type=openapi.TYPE_STRING
+                description="Nickname User to find repositories votes",
+                type=openapi.TYPE_STRING,
             ),
             openapi.Parameter(
-                'repository',
+                "repository",
                 openapi.IN_QUERY,
-                description='Repository UUID, returns a list of '
-                            'users who voted for this repository',
-                type=openapi.TYPE_STRING
+                description="Repository UUID, returns a list of "
+                "users who voted for this repository",
+                type=openapi.TYPE_STRING,
             ),
         ]
-    )
+    ),
 )
 class RepositoryVotesViewSet(
-        mixins.CreateModelMixin,
-        mixins.DestroyModelMixin,
-        mixins.ListModelMixin,
-        GenericViewSet):
+    mixins.CreateModelMixin,
+    mixins.DestroyModelMixin,
+    mixins.ListModelMixin,
+    GenericViewSet,
+):
     """
     Manager repository votes (bot).
     """
+
     queryset = RepositoryVote.objects.all()
-    lookup_field = 'repository'
-    lookup_fields = ['repository']
+    lookup_field = "repository"
+    lookup_fields = ["repository"]
     serializer_class = RepositoryVotesSerializer
-    permission_classes = [
-        IsAuthenticatedOrReadOnly
-    ]
+    permission_classes = [IsAuthenticatedOrReadOnly]
     metadata_class = Metadata
 
     def get_queryset(self, *args, **kwargs):
-        if self.request.query_params.get('repository', None):
+        if self.request.query_params.get("repository", None):
             return self.queryset.filter(
-                repository=self.request.query_params.get(
-                    'repository',
-                    None
-                )
+                repository=self.request.query_params.get("repository", None)
             )
-        elif self.request.query_params.get('user', None):
+        elif self.request.query_params.get("user", None):
             return self.queryset.filter(
-                user__nickname=self.request.query_params.get(
-                    'user',
-                    None
-                )
+                user__nickname=self.request.query_params.get("user", None)
             )
         else:
             return self.queryset.all()
 
     def destroy(self, request, *args, **kwargs):
         self.queryset.filter(
-            repository=self.request.query_params.get(
-                'repository',
-                None
-            ),
-            user=self.request.user
+            repository=self.request.query_params.get("repository", None),
+            user=self.request.user,
         ).delete()
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class RepositoriesViewSet(
-        mixins.ListModelMixin,
-        GenericViewSet):
+class RepositoriesViewSet(mixins.ListModelMixin, GenericViewSet):
     """
     List all public repositories.
     """
+
     serializer_class = ShortRepositorySerializer
     queryset = Repository.objects.all().publics().order_by_relevance()
     filter_class = RepositoriesFilter
-    filter_backends = [
-        DjangoFilterBackend,
-        SearchFilter,
-    ]
-    search_fields = [
-        '$name',
-        '^name',
-        '=name',
-    ]
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    search_fields = ["$name", "^name", "=name"]
 
 
 @method_decorator(
-    name='list',
+    name="list",
     decorator=swagger_auto_schema(
         manual_parameters=[
             openapi.Parameter(
-                'nickname',
+                "nickname",
                 openapi.IN_QUERY,
-                description='Nickname User',
+                description="Nickname User",
                 type=openapi.TYPE_STRING,
-                required=True
-            ),
+                required=True,
+            )
         ]
-    )
+    ),
 )
-class RepositoriesContributionsViewSet(
-        mixins.ListModelMixin,
-        GenericViewSet):
+class RepositoriesContributionsViewSet(mixins.ListModelMixin, GenericViewSet):
     """
     List Repositories Contributions by user.
     """
+
     serializer_class = RepositoryContributionsSerializer
     queryset = RepositoryAuthorization.objects.all()
-    permission_classes = [
-        IsAuthenticatedOrReadOnly
-    ]
-    lookup_field = 'nickname'
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    lookup_field = "nickname"
 
     def get_queryset(self):
-        if self.request.query_params.get('nickname', None):
+        if self.request.query_params.get("nickname", None):
             return self.queryset.filter(
-                user__nickname=self.request.query_params.get(
-                    'nickname',
-                    None
-                )
+                user__nickname=self.request.query_params.get("nickname", None)
             )
         else:
             return self.queryset.none()
 
 
-class RepositoryCategoriesView(
-        mixins.ListModelMixin,
-        GenericViewSet):
+class RepositoryCategoriesView(mixins.ListModelMixin, GenericViewSet):
     """
     List all categories.
     """
+
     serializer_class = RepositoryCategorySerializer
     queryset = RepositoryCategory.objects.all()
     pagination_class = None
 
 
 @method_decorator(
-    name='list',
+    name="list",
     decorator=swagger_auto_schema(
         manual_parameters=[
             openapi.Parameter(
-                'nickname',
+                "nickname",
                 openapi.IN_QUERY,
-                description='Nickname User to find repositories',
-                type=openapi.TYPE_STRING
-            ),
+                description="Nickname User to find repositories",
+                type=openapi.TYPE_STRING,
+            )
         ]
-    )
+    ),
 )
-class SearchRepositoriesViewSet(
-        mixins.ListModelMixin,
-        GenericViewSet):
+class SearchRepositoriesViewSet(mixins.ListModelMixin, GenericViewSet):
     """
     List all user's repositories
     """
+
     queryset = Repository.objects
     serializer_class = RepositorySerializer
-    lookup_field = 'nickname'
+    lookup_field = "nickname"
 
     def get_queryset(self, *args, **kwargs):
         try:
-            if self.request.query_params.get('nickname', None):
+            if self.request.query_params.get("nickname", None):
                 return self.queryset.filter(
                     owner__nickname=self.request.query_params.get(
-                        'nickname',
-                        self.request.user
+                        "nickname", self.request.user
                     )
                 )
             else:
@@ -361,22 +334,22 @@ class SearchRepositoriesViewSet(
 
 
 class RepositoryAuthorizationViewSet(
-        MultipleFieldLookupMixin,
-        mixins.UpdateModelMixin,
-        mixins.ListModelMixin,
-        GenericViewSet):
+    MultipleFieldLookupMixin,
+    mixins.UpdateModelMixin,
+    mixins.ListModelMixin,
+    GenericViewSet,
+):
     queryset = RepositoryAuthorization.objects.exclude(
-        role=RepositoryAuthorization.ROLE_NOT_SETTED)
+        role=RepositoryAuthorization.ROLE_NOT_SETTED
+    )
     serializer_class = RepositoryAuthorizationSerializer
     filter_class = RepositoryAuthorizationFilter
-    lookup_fields = ['repository__uuid', 'user__nickname']
-    permission_classes = [
-        IsAuthenticated,
-    ]
+    lookup_fields = ["repository__uuid", "user__nickname"]
+    permission_classes = [IsAuthenticated]
 
     def get_object(self):
-        repository_uuid = self.kwargs.get('repository__uuid')
-        user_nickname = self.kwargs.get('user__nickname')
+        repository_uuid = self.kwargs.get("repository__uuid")
+        user_nickname = self.kwargs.get("user__nickname")
 
         repository = get_object_or_404(Repository, uuid=repository_uuid)
         user = get_object_or_404(User, nickname=user_nickname)
@@ -387,14 +360,11 @@ class RepositoryAuthorizationViewSet(
         return obj
 
     def update(self, *args, **kwargs):
-        self.lookup_field = 'user__nickname'
+        self.lookup_field = "user__nickname"
 
         self.filter_class = None
         self.serializer_class = RepositoryAuthorizationRoleSerializer
-        self.permission_classes = [
-            IsAuthenticated,
-            RepositoryAdminManagerAuthorization,
-        ]
+        self.permission_classes = [IsAuthenticated, RepositoryAdminManagerAuthorization]
         response = super().update(*args, **kwargs)
         instance = self.get_object()
         if instance.role is not RepositoryAuthorization.ROLE_NOT_SETTED:
@@ -407,21 +377,20 @@ class RepositoryAuthorizationViewSet(
 
 
 class RepositoryAuthorizationRequestsViewSet(
-        mixins.ListModelMixin,
-        mixins.CreateModelMixin,
-        mixins.UpdateModelMixin,
-        mixins.DestroyModelMixin,
-        GenericViewSet):
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    GenericViewSet,
+):
     """
     List of all authorization requests for a repository
     """
-    queryset = RequestRepositoryAuthorization.objects.exclude(
-        approved_by__isnull=False)
+
+    queryset = RequestRepositoryAuthorization.objects.exclude(approved_by__isnull=False)
     serializer_class = RequestRepositoryAuthorizationSerializer
     filter_class = RepositoryAuthorizationRequestsFilter
-    permission_classes = [
-        IsAuthenticated,
-    ]
+    permission_classes = [IsAuthenticated]
 
     def create(self, request, *args, **kwargs):
         self.queryset = RequestRepositoryAuthorization.objects
@@ -431,10 +400,7 @@ class RepositoryAuthorizationRequestsViewSet(
     def update(self, request, *args, **kwargs):
         self.queryset = RequestRepositoryAuthorization.objects
         self.filter_class = None
-        self.permission_classes = [
-            IsAuthenticated,
-            RepositoryAdminManagerAuthorization,
-        ]
+        self.permission_classes = [IsAuthenticated, RepositoryAdminManagerAuthorization]
         try:
             return super().update(request, *args, **kwargs)
         except DjangoValidationError as e:
@@ -443,19 +409,17 @@ class RepositoryAuthorizationRequestsViewSet(
     def destroy(self, request, *args, **kwargs):
         self.queryset = RequestRepositoryAuthorization.objects
         self.filter_class = None
-        self.permission_classes = [
-            IsAuthenticated,
-            RepositoryAdminManagerAuthorization,
-        ]
+        self.permission_classes = [IsAuthenticated, RepositoryAdminManagerAuthorization]
         return super().destroy(request, *args, **kwargs)
 
 
 class RepositoryExampleViewSet(
-        mixins.CreateModelMixin,
-        mixins.RetrieveModelMixin,
-        mixins.DestroyModelMixin,
-        mixins.UpdateModelMixin,
-        GenericViewSet):
+    mixins.CreateModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.DestroyModelMixin,
+    mixins.UpdateModelMixin,
+    GenericViewSet,
+):
     """
     Manager repository example.
 
@@ -469,11 +433,10 @@ class RepositoryExampleViewSet(
     Update repository example.
 
     """
+
     queryset = RepositoryExample.objects
     serializer_class = RepositoryExampleSerializer
-    permission_classes = [
-        RepositoryExamplePermission,
-    ]
+    permission_classes = [RepositoryExamplePermission]
 
     def create(self, request, *args, **kwargs):
         self.permission_classes = [permissions.IsAuthenticated]
@@ -481,15 +444,15 @@ class RepositoryExampleViewSet(
 
     @action(
         detail=True,
-        methods=['POST'],
-        url_name='repository-upload-examples',
+        methods=["POST"],
+        url_name="repository-upload-examples",
         parser_classes=[parsers.MultiPartParser],
-        serializer_class=RepositoryUpload)
+        serializer_class=RepositoryUpload,
+    )
     def upload_examples(self, request, **kwargs):
         try:
             repository = get_object_or_404(
-                Repository,
-                pk=request.data.get('repository')
+                Repository, pk=request.data.get("repository")
             )
         except DjangoValidationError:
             raise PermissionDenied()
@@ -498,21 +461,20 @@ class RepositoryExampleViewSet(
         if not user_authorization.can_write:
             raise PermissionDenied()
 
-        f = request.FILES.get('file')
+        f = request.FILES.get("file")
         try:
             json_data = json.loads(f.read().decode())
         except json.decoder.JSONDecodeError:
-            raise UnsupportedMediaType('json')
+            raise UnsupportedMediaType("json")
 
         count_added = 0
         not_added = []
 
         for data in json_data:
             response_data = data
-            response_data['repository'] = request.data.get('repository')
+            response_data["repository"] = request.data.get("repository")
             serializer = RepositoryExampleSerializer(
-                data=response_data,
-                context={'request': request}
+                data=response_data, context={"request": request}
             )
             if serializer.is_valid():
                 serializer.save()
@@ -520,25 +482,18 @@ class RepositoryExampleViewSet(
             else:
                 not_added.append(data)
 
-        return Response({
-            'added': count_added,
-            'not_added': not_added
-        })
+        return Response({"added": count_added, "not_added": not_added})
 
     def perform_destroy(self, obj):
         if obj.deleted_in:
-            raise APIException(_('Example already deleted'))
+            raise APIException(_("Example already deleted"))
         obj.delete()
 
 
-class RepositoryUpdatesViewSet(
-      mixins.ListModelMixin,
-      GenericViewSet):
+class RepositoryUpdatesViewSet(mixins.ListModelMixin, GenericViewSet):
     queryset = RepositoryUpdate.objects.filter(
-        training_started_at__isnull=False).order_by('-trained_at')
+        training_started_at__isnull=False
+    ).order_by("-trained_at")
     serializer_class = RepositoryUpdateSerializer
     filter_class = RepositoryUpdatesFilter
-    permission_classes = [
-        IsAuthenticated,
-        RepositoryUpdateHasPermission,
-    ]
+    permission_classes = [IsAuthenticated, RepositoryUpdateHasPermission]

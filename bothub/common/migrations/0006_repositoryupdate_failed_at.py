@@ -5,14 +5,12 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('common', '0005_repositorytranslatedexample_repository_update'),
-    ]
+    dependencies = [("common", "0005_repositorytranslatedexample_repository_update")]
 
     operations = [
         migrations.AddField(
-            model_name='repositoryupdate',
-            name='failed_at',
-            field=models.DateTimeField(blank=True, null=True, verbose_name='failed at'),
-        ),
+            model_name="repositoryupdate",
+            name="failed_at",
+            field=models.DateTimeField(blank=True, null=True, verbose_name="failed at"),
+        )
     ]

@@ -20,9 +20,7 @@ def update_repository(apps, schema_editor):
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('common', '0034_repository_nlp_server'),
-    ]
+    dependencies = [("common", "0034_repository_nlp_server")]
 
     operations = [
         migrations.RunPython(update_repository),

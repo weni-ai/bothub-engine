@@ -6,104 +6,185 @@ import django.db.models.deletion
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('common', '0001_initial'),
-    ]
+    dependencies = [("common", "0001_initial")]
 
     operations = [
         migrations.AlterField(
-            model_name='repository',
-            name='categories',
-            field=models.ManyToManyField(help_text='Categories for approaching repositories with the same purpose', to='common.RepositoryCategory'),
+            model_name="repository",
+            name="categories",
+            field=models.ManyToManyField(
+                help_text="Categories for approaching repositories with the same purpose",
+                to="common.RepositoryCategory",
+            ),
         ),
         migrations.AlterField(
-            model_name='repository',
-            name='description',
-            field=models.TextField(blank=True, help_text='Tell what your bot do!', verbose_name='description'),
+            model_name="repository",
+            name="description",
+            field=models.TextField(
+                blank=True,
+                help_text="Tell what your bot do!",
+                verbose_name="description",
+            ),
         ),
         migrations.AlterField(
-            model_name='repository',
-            name='is_private',
-            field=models.BooleanField(default=False, help_text='Your repository can be private, only you can see and use, or can be public and all community can see and use.', verbose_name='private'),
+            model_name="repository",
+            name="is_private",
+            field=models.BooleanField(
+                default=False,
+                help_text="Your repository can be private, only you can see and use, or can be public and all community can see and use.",
+                verbose_name="private",
+            ),
         ),
         migrations.AlterField(
-            model_name='repository',
-            name='language',
-            field=models.CharField(choices=[('en', 'English'), ('de', 'German'), ('es', 'Spanish'), ('pt', 'Portuguese'), ('fr', 'French'), ('it', 'Italian'), ('nl', 'Dutch')], help_text="Repository's examples language. The examples can be translated to other languages.", max_length=2, verbose_name='language'),
+            model_name="repository",
+            name="language",
+            field=models.CharField(
+                choices=[
+                    ("en", "English"),
+                    ("de", "German"),
+                    ("es", "Spanish"),
+                    ("pt", "Portuguese"),
+                    ("fr", "French"),
+                    ("it", "Italian"),
+                    ("nl", "Dutch"),
+                ],
+                help_text="Repository's examples language. The examples can be translated to other languages.",
+                max_length=2,
+                verbose_name="language",
+            ),
         ),
         migrations.AlterField(
-            model_name='repository',
-            name='name',
-            field=models.CharField(help_text='Repository display name', max_length=64, verbose_name='name'),
+            model_name="repository",
+            name="name",
+            field=models.CharField(
+                help_text="Repository display name", max_length=64, verbose_name="name"
+            ),
         ),
         migrations.AlterField(
-            model_name='repository',
-            name='slug',
-            field=models.SlugField(help_text='Easy way to found and share repositories', max_length=32, unique=True, verbose_name='slug'),
+            model_name="repository",
+            name="slug",
+            field=models.SlugField(
+                help_text="Easy way to found and share repositories",
+                max_length=32,
+                unique=True,
+                verbose_name="slug",
+            ),
         ),
         migrations.AlterField(
-            model_name='repositoryexample',
-            name='intent',
-            field=models.CharField(blank=True, help_text='Example intent reference', max_length=64, verbose_name='intent'),
+            model_name="repositoryexample",
+            name="intent",
+            field=models.CharField(
+                blank=True,
+                help_text="Example intent reference",
+                max_length=64,
+                verbose_name="intent",
+            ),
         ),
         migrations.AlterField(
-            model_name='repositoryexample',
-            name='text',
-            field=models.TextField(help_text='Example text', verbose_name='text'),
+            model_name="repositoryexample",
+            name="text",
+            field=models.TextField(help_text="Example text", verbose_name="text"),
         ),
         migrations.AlterField(
-            model_name='repositoryexampleentity',
-            name='end',
-            field=models.PositiveIntegerField(help_text='End index of entity value in example text', verbose_name='end'),
+            model_name="repositoryexampleentity",
+            name="end",
+            field=models.PositiveIntegerField(
+                help_text="End index of entity value in example text",
+                verbose_name="end",
+            ),
         ),
         migrations.AlterField(
-            model_name='repositoryexampleentity',
-            name='entity',
-            field=models.CharField(help_text='Entity name', max_length=64, verbose_name='entity'),
+            model_name="repositoryexampleentity",
+            name="entity",
+            field=models.CharField(
+                help_text="Entity name", max_length=64, verbose_name="entity"
+            ),
         ),
         migrations.AlterField(
-            model_name='repositoryexampleentity',
-            name='repository_example',
-            field=models.ForeignKey(editable=False, help_text='Example object', on_delete=django.db.models.deletion.CASCADE, related_name='entities', to='common.RepositoryExample'),
+            model_name="repositoryexampleentity",
+            name="repository_example",
+            field=models.ForeignKey(
+                editable=False,
+                help_text="Example object",
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="entities",
+                to="common.RepositoryExample",
+            ),
         ),
         migrations.AlterField(
-            model_name='repositoryexampleentity',
-            name='start',
-            field=models.PositiveIntegerField(help_text='Start index of entity value in example text', verbose_name='start'),
+            model_name="repositoryexampleentity",
+            name="start",
+            field=models.PositiveIntegerField(
+                help_text="Start index of entity value in example text",
+                verbose_name="start",
+            ),
         ),
         migrations.AlterField(
-            model_name='repositorytranslatedexample',
-            name='language',
-            field=models.CharField(choices=[('en', 'English'), ('de', 'German'), ('es', 'Spanish'), ('pt', 'Portuguese'), ('fr', 'French'), ('it', 'Italian'), ('nl', 'Dutch')], help_text='Translation language', max_length=2, verbose_name='language'),
+            model_name="repositorytranslatedexample",
+            name="language",
+            field=models.CharField(
+                choices=[
+                    ("en", "English"),
+                    ("de", "German"),
+                    ("es", "Spanish"),
+                    ("pt", "Portuguese"),
+                    ("fr", "French"),
+                    ("it", "Italian"),
+                    ("nl", "Dutch"),
+                ],
+                help_text="Translation language",
+                max_length=2,
+                verbose_name="language",
+            ),
         ),
         migrations.AlterField(
-            model_name='repositorytranslatedexample',
-            name='original_example',
-            field=models.ForeignKey(editable=False, help_text='Example object', on_delete=django.db.models.deletion.CASCADE, related_name='translations', to='common.RepositoryExample'),
+            model_name="repositorytranslatedexample",
+            name="original_example",
+            field=models.ForeignKey(
+                editable=False,
+                help_text="Example object",
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="translations",
+                to="common.RepositoryExample",
+            ),
         ),
         migrations.AlterField(
-            model_name='repositorytranslatedexample',
-            name='text',
-            field=models.TextField(help_text='Translation text', verbose_name='text'),
+            model_name="repositorytranslatedexample",
+            name="text",
+            field=models.TextField(help_text="Translation text", verbose_name="text"),
         ),
         migrations.AlterField(
-            model_name='repositorytranslatedexampleentity',
-            name='end',
-            field=models.PositiveIntegerField(help_text='End index of entity value in example text', verbose_name='end'),
+            model_name="repositorytranslatedexampleentity",
+            name="end",
+            field=models.PositiveIntegerField(
+                help_text="End index of entity value in example text",
+                verbose_name="end",
+            ),
         ),
         migrations.AlterField(
-            model_name='repositorytranslatedexampleentity',
-            name='entity',
-            field=models.CharField(help_text='Entity name', max_length=64, verbose_name='entity'),
+            model_name="repositorytranslatedexampleentity",
+            name="entity",
+            field=models.CharField(
+                help_text="Entity name", max_length=64, verbose_name="entity"
+            ),
         ),
         migrations.AlterField(
-            model_name='repositorytranslatedexampleentity',
-            name='repository_translated_example',
-            field=models.ForeignKey(editable=False, help_text='Translated example object', on_delete=django.db.models.deletion.CASCADE, related_name='entities', to='common.RepositoryTranslatedExample'),
+            model_name="repositorytranslatedexampleentity",
+            name="repository_translated_example",
+            field=models.ForeignKey(
+                editable=False,
+                help_text="Translated example object",
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="entities",
+                to="common.RepositoryTranslatedExample",
+            ),
         ),
         migrations.AlterField(
-            model_name='repositorytranslatedexampleentity',
-            name='start',
-            field=models.PositiveIntegerField(help_text='Start index of entity value in example text', verbose_name='start'),
+            model_name="repositorytranslatedexampleentity",
+            name="start",
+            field=models.PositiveIntegerField(
+                help_text="Start index of entity value in example text",
+                verbose_name="start",
+            ),
         ),
     ]

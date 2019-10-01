@@ -6,14 +6,17 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('common', '0014_auto_20180709_1909'),
-    ]
+    dependencies = [("common", "0014_auto_20180709_1909")]
 
     operations = [
         migrations.AlterField(
-            model_name='repository',
-            name='language',
-            field=models.CharField(help_text="Repository's examples language. The examples can be translated to other languages.", max_length=5, validators=[bothub.common.languages.validate_language], verbose_name='language'),
-        ),
+            model_name="repository",
+            name="language",
+            field=models.CharField(
+                help_text="Repository's examples language. The examples can be translated to other languages.",
+                max_length=5,
+                validators=[bothub.common.languages.validate_language],
+                verbose_name="language",
+            ),
+        )
     ]

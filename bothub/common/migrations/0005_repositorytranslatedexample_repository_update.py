@@ -5,27 +5,39 @@ import django.db.models.deletion
 
 
 def set_repository_update(apps, schema_editor):
-    RepositoryTranslatedExample = apps.get_model('common', 'RepositoryTranslatedExample')
+    RepositoryTranslatedExample = apps.get_model(
+        "common", "RepositoryTranslatedExample"
+    )
     for translate in RepositoryTranslatedExample.objects.all().iterator():
         translate.repository_update = translate.original_example.repository_update
         translate.save()
 
+
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('common', '0004_auto_20180514_1129'),
-    ]
+    dependencies = [("common", "0004_auto_20180514_1129")]
 
     operations = [
         migrations.AddField(
-            model_name='repositorytranslatedexample',
-            name='repository_update',
-            field=models.ForeignKey(editable=False, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='translated_added', to='common.RepositoryUpdate'),
+            model_name="repositorytranslatedexample",
+            name="repository_update",
+            field=models.ForeignKey(
+                editable=False,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="translated_added",
+                to="common.RepositoryUpdate",
+            ),
         ),
         migrations.RunPython(set_repository_update),
         migrations.AlterField(
-            model_name='repositorytranslatedexample',
-            name='repository_update',
-            field=models.ForeignKey(editable=False, on_delete=django.db.models.deletion.CASCADE, related_name='translated_added', to='common.RepositoryUpdate'),
+            model_name="repositorytranslatedexample",
+            name="repository_update",
+            field=models.ForeignKey(
+                editable=False,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="translated_added",
+                to="common.RepositoryUpdate",
+            ),
         ),
     ]

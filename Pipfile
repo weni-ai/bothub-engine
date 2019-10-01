@@ -24,6 +24,7 @@ boto3 = "*"
 coverage = "*"
 ipython = "*"
 autopep8 = "*"
+black = "==19.3b0"
 
 [requires]
 python_version = "3.6"
