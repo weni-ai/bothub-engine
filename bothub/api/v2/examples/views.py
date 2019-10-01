@@ -11,25 +11,11 @@ from ..example.permissions import RepositoryExamplePermission
 from .filters import ExamplesFilter
 
 
-class ExamplesViewSet(
-        mixins.ListModelMixin,
-        GenericViewSet):
+class ExamplesViewSet(mixins.ListModelMixin, GenericViewSet):
     queryset = RepositoryExample.objects
     serializer_class = RepositoryExampleSerializer
     filter_class = ExamplesFilter
-    filter_backends = [
-        OrderingFilter,
-        SearchFilter,
-        DjangoFilterBackend,
-    ]
-    search_fields = [
-        '$text',
-        '^text',
-        '=text',
-    ]
-    ordering_fields = [
-        'created_at',
-    ]
-    permission_classes = [
-        RepositoryExamplePermission,
-    ]
+    filter_backends = [OrderingFilter, SearchFilter, DjangoFilterBackend]
+    search_fields = ["$text", "^text", "=text"]
+    ordering_fields = ["created_at"]
+    permission_classes = [RepositoryExamplePermission]

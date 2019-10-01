@@ -8,17 +8,20 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('common', '0002_auto_20180315_1343'),
+        ("common", "0002_auto_20180315_1343"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='repository',
-            name='slug',
-            field=models.SlugField(help_text='Easy way to found and share repositories', max_length=32, verbose_name='slug'),
+            model_name="repository",
+            name="slug",
+            field=models.SlugField(
+                help_text="Easy way to found and share repositories",
+                max_length=32,
+                verbose_name="slug",
+            ),
         ),
         migrations.AlterUniqueTogether(
-            name='repository',
-            unique_together={('owner', 'slug')},
+            name="repository", unique_together={("owner", "slug")}
         ),
     ]

@@ -7,14 +7,16 @@ import django.db.models.deletion
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('common', '0025_auto_20181003_1911'),
-    ]
+    dependencies = [("common", "0025_auto_20181003_1911")]
 
     operations = [
         migrations.AlterField(
-            model_name='repository',
-            name='owner',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='repositories', to=settings.AUTH_USER_MODEL),
-        ),
+            model_name="repository",
+            name="owner",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="repositories",
+                to=settings.AUTH_USER_MODEL,
+            ),
+        )
     ]

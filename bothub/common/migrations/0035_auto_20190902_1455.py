@@ -6,28 +6,23 @@ from bothub.common.models import RepositoryUpdate
 
 
 def update_repository(apps, schema_editor):
-    for update in RepositoryUpdate.objects.all().exclude(bot_data__exact=''):
+    for update in RepositoryUpdate.objects.all().exclude(bot_data__exact=""):
         url = send_bot_data_file_aws(update.pk, update.bot_data)
         repository_update = RepositoryUpdate.objects.get(pk=update.pk)
         repository_update.bot_data = url
-        repository_update.save(
-            update_fields=[
-                'bot_data',
-            ])
-        print('Updating bot_data repository_update {}'.format(str(update.pk)))
+        repository_update.save(update_fields=["bot_data"])
+        print("Updating bot_data repository_update {}".format(str(update.pk)))
 
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('common', '0034_repository_nlp_server'),
-    ]
+    dependencies = [("common", "0034_repository_nlp_server")]
 
     operations = [
         migrations.RunPython(update_repository),
         migrations.AlterField(
-            model_name='repositoryupdate',
-            name='bot_data',
-            field=models.URLField(blank=True, verbose_name='bot data'),
+            model_name="repositoryupdate",
+            name="bot_data",
+            field=models.URLField(blank=True, verbose_name="bot data"),
         ),
     ]

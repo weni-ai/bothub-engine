@@ -14,18 +14,21 @@ class TranslationsFilter(filters.FilterSet):
         fields = []
 
     repository_uuid = filters.CharFilter(
-        field_name='repository_uuid',
-        method='filter_repository_uuid',
+        field_name="repository_uuid",
+        method="filter_repository_uuid",
         required=True,
-        help_text=_('Repository\'s UUID'))
+        help_text=_("Repository's UUID"),
+    )
     from_language = filters.CharFilter(
-        field_name='language',
-        method='filter_from_language',
-        help_text='Filter by original language')
+        field_name="language",
+        method="filter_from_language",
+        help_text="Filter by original language",
+    )
     to_language = filters.CharFilter(
-        field_name='language',
-        method='filter_to_language',
-        help_text='Filter by translated language')
+        field_name="language",
+        method="filter_to_language",
+        help_text="Filter by translated language",
+    )
 
     def filter_repository_uuid(self, queryset, name, value):
         request = self.request
@@ -35,16 +38,15 @@ class TranslationsFilter(filters.FilterSet):
             if not authorization.can_read:
                 raise PermissionDenied()
             return RepositoryTranslatedExample.objects.filter(
-                original_example__repository_update__repository=repository)
+                original_example__repository_update__repository=repository
+            )
         except Repository.DoesNotExist:
-            raise NotFound(
-                _('Repository {} does not exist').format(value))
+            raise NotFound(_("Repository {} does not exist").format(value))
         except DjangoValidationError:
-            raise NotFound(_('Invalid repository_uuid'))
+            raise NotFound(_("Invalid repository_uuid"))
 
     def filter_from_language(self, queryset, name, value):
-        return queryset.filter(
-            original_example__repository_update__language=value)
+        return queryset.filter(original_example__repository_update__language=value)
 
     def filter_to_language(self, queryset, name, value):
         return queryset.filter(language=value)

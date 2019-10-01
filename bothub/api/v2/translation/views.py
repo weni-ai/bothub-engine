@@ -3,20 +3,19 @@ from rest_framework import mixins
 from rest_framework import permissions
 from bothub.common.models import RepositoryTranslatedExample
 
-from bothub.api.v2.translation.permissions import \
-    RepositoryTranslatedExamplePermission
-from bothub.api.v2.translation.serializers import \
-    RepositoryTranslatedExampleSerializer
+from bothub.api.v2.translation.permissions import RepositoryTranslatedExamplePermission
+from bothub.api.v2.translation.serializers import RepositoryTranslatedExampleSerializer
 from bothub.api.v2.translation.filters import TranslationsFilter
 
 
 class RepositoryTranslatedExampleViewSet(
-        mixins.CreateModelMixin,
-        mixins.ListModelMixin,
-        mixins.RetrieveModelMixin,
-        mixins.UpdateModelMixin,
-        mixins.DestroyModelMixin,
-        GenericViewSet):
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    GenericViewSet,
+):
     """
     Manager example translation.
 
@@ -35,6 +34,7 @@ class RepositoryTranslatedExampleViewSet(
     delete:
     Delete example translation.
     """
+
     queryset = RepositoryTranslatedExample.objects
     serializer_class = RepositoryTranslatedExampleSerializer
     permission_classes = [

@@ -34,16 +34,16 @@ class Router(routers.SimpleRouter):
         # Generated using @action decorator
         # on methods of the viewset.
         routers.DynamicRoute(
-            url=r'^{prefix}/{url_path}{trailing_slash}$',
-            name='{basename}-{url_name}',
+            url=r"^{prefix}/{url_path}{trailing_slash}$",
+            name="{basename}-{url_name}",
             detail=True,
             initkwargs={},
         ),
         # Dynamically generated detail routes.
         # Generated using @action decorator on methods of the viewset.
         routers.DynamicRoute(
-            url=r'^{prefix}/{lookup}/{url_path}{trailing_slash}$',
-            name='{basename}-{url_name}',
+            url=r"^{prefix}/{lookup}/{url_path}{trailing_slash}$",
+            name="{basename}-{url_name}",
             detail=True,
             initkwargs={},
         ),
@@ -51,79 +51,80 @@ class Router(routers.SimpleRouter):
 
     def get_routes(self, viewset):
         ret = super().get_routes(viewset)
-        lookup_field = getattr(viewset, 'lookup_field', None)
+        lookup_field = getattr(viewset, "lookup_field", None)
 
         if lookup_field:
             # List route.
-            ret.append(routers.Route(
-                url=r'^{prefix}{trailing_slash}$',
-                mapping={
-                    'get': 'list',
-                    'post': 'create'
-                },
-                name='{basename}-list',
-                detail=False,
-                initkwargs={'suffix': 'List'},
-            ))
+            ret.append(
+                routers.Route(
+                    url=r"^{prefix}{trailing_slash}$",
+                    mapping={"get": "list", "post": "create"},
+                    name="{basename}-list",
+                    detail=False,
+                    initkwargs={"suffix": "List"},
+                )
+            )
 
-        detail_url_regex = r'^{prefix}/{lookup}{trailing_slash}$'
+        detail_url_regex = r"^{prefix}/{lookup}{trailing_slash}$"
         if not lookup_field:
-            detail_url_regex = r'^{prefix}{trailing_slash}$'
+            detail_url_regex = r"^{prefix}{trailing_slash}$"
         # Detail route.
-        ret.append(routers.Route(
-            url=detail_url_regex,
-            mapping={
-                'get': 'retrieve',
-                'put': 'update',
-                'patch': 'partial_update',
-                'delete': 'destroy'
-            },
-            name='{basename}-detail',
-            detail=True,
-            initkwargs={'suffix': 'Instance'}
-        ))
+        ret.append(
+            routers.Route(
+                url=detail_url_regex,
+                mapping={
+                    "get": "retrieve",
+                    "put": "update",
+                    "patch": "partial_update",
+                    "delete": "destroy",
+                },
+                name="{basename}-detail",
+                detail=True,
+                initkwargs={"suffix": "Instance"},
+            )
+        )
 
         return ret
 
-    def get_lookup_regex(self, viewset, lookup_prefix=''):
-        lookup_fields = getattr(viewset, 'lookup_fields', None)
+    def get_lookup_regex(self, viewset, lookup_prefix=""):
+        lookup_fields = getattr(viewset, "lookup_fields", None)
         if lookup_fields:
-            base_regex = '(?P<{lookup_prefix}{lookup_url_kwarg}>[^/.]+)'
-            return '/'.join(map(
-                lambda x: base_regex.format(
-                    lookup_prefix=lookup_prefix,
-                    lookup_url_kwarg=x),
-                lookup_fields))
+            base_regex = "(?P<{lookup_prefix}{lookup_url_kwarg}>[^/.]+)"
+            return "/".join(
+                map(
+                    lambda x: base_regex.format(
+                        lookup_prefix=lookup_prefix, lookup_url_kwarg=x
+                    ),
+                    lookup_fields,
+                )
+            )
         return super().get_lookup_regex(viewset, lookup_prefix)
 
 
 router = Router()
-router.register('repository/new', NewRepositoryViewSet)
-router.register('search-repositories', SearchRepositoriesViewSet)
-router.register('repository', RepositoryViewSet)
-router.register('example/new', NewRepositoryExampleViewSet)
-router.register('example', RepositoryExampleViewSet)
-router.register('translate-example', NewRepositoryTranslatedExampleViewSet)
-router.register('translation', RepositoryTranslatedExampleViewSet)
-router.register('examples', RepositoryExamplesViewSet)
-router.register('register', RegisterUserViewSet)
-router.register('login', LoginViewSet)
-router.register('change-password', ChangePasswordViewSet)
-router.register('forgot-password', RequestResetPassword)
-router.register('reset-password', ResetPassword)
-router.register('my-profile', MyUserProfileViewSet)
-router.register('user-profile', UserProfileViewSet)
-router.register('categories', Categories)
-router.register('repositories', RepositoriesViewSet)
-router.register('translations', TranslationsViewSet)
-router.register('authorizations', RepositoryAuthorizationViewSet)
-router.register('authorization-role',
-                RepositoryAuthorizationRoleViewSet)
-router.register('search-user', SearchUserViewSet)
-router.register('request-authorization', RequestAuthorizationViewSet)
-router.register('authorization-requests',
-                RepositoryAuthorizationRequestsViewSet)
-router.register('review-authorization-request',
-                ReviewAuthorizationRequestViewSet)
-router.register('entities', RepositoryEntitiesViewSet)
-router.register('updates', RepositoryUpdatesViewSet)
+router.register("repository/new", NewRepositoryViewSet)
+router.register("search-repositories", SearchRepositoriesViewSet)
+router.register("repository", RepositoryViewSet)
+router.register("example/new", NewRepositoryExampleViewSet)
+router.register("example", RepositoryExampleViewSet)
+router.register("translate-example", NewRepositoryTranslatedExampleViewSet)
+router.register("translation", RepositoryTranslatedExampleViewSet)
+router.register("examples", RepositoryExamplesViewSet)
+router.register("register", RegisterUserViewSet)
+router.register("login", LoginViewSet)
+router.register("change-password", ChangePasswordViewSet)
+router.register("forgot-password", RequestResetPassword)
+router.register("reset-password", ResetPassword)
+router.register("my-profile", MyUserProfileViewSet)
+router.register("user-profile", UserProfileViewSet)
+router.register("categories", Categories)
+router.register("repositories", RepositoriesViewSet)
+router.register("translations", TranslationsViewSet)
+router.register("authorizations", RepositoryAuthorizationViewSet)
+router.register("authorization-role", RepositoryAuthorizationRoleViewSet)
+router.register("search-user", SearchUserViewSet)
+router.register("request-authorization", RequestAuthorizationViewSet)
+router.register("authorization-requests", RepositoryAuthorizationRequestsViewSet)
+router.register("review-authorization-request", ReviewAuthorizationRequestViewSet)
+router.register("entities", RepositoryEntitiesViewSet)
+router.register("updates", RepositoryUpdatesViewSet)

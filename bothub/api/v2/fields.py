@@ -14,7 +14,7 @@ class TextField(serializers.CharField):
 
 class PasswordField(serializers.CharField):
     def __init__(self, *args, **kwargs):
-        kwargs.pop('trim_whitespace', None)
+        kwargs.pop("trim_whitespace", None)
         super().__init__(trim_whitespace=False, **kwargs)
 
 
@@ -24,16 +24,17 @@ class EntityText(serializers.CharField):
 
 class EntityValueField(serializers.CharField):
     def __init__(self, *args, validators=[], **kwargs):
-        kwargs.pop('max_length', 0)
-        kwargs.pop('help_text', '')
+        kwargs.pop("max_length", 0)
+        kwargs.pop("help_text", "")
 
-        value_field = RepositoryEntity._meta.get_field('value')
+        value_field = RepositoryEntity._meta.get_field("value")
 
         super().__init__(
             *args,
             max_length=value_field.max_length,
             validators=(validators + value_field.validators),
-            **kwargs)
+            **kwargs
+        )
 
     def to_representation(self, obj):
         return obj.value  # pragma: no cover
@@ -41,16 +42,17 @@ class EntityValueField(serializers.CharField):
 
 class LabelValueField(serializers.CharField):  # pragma: no cover
     def __init__(self, *args, validators=[], **kwargs):
-        kwargs.pop('max_length', 0)
-        kwargs.pop('help_text', '')
+        kwargs.pop("max_length", 0)
+        kwargs.pop("help_text", "")
 
-        value_field = RepositoryEntityLabel._meta.get_field('value')
+        value_field = RepositoryEntityLabel._meta.get_field("value")
 
         super().__init__(
             *args,
             max_length=value_field.max_length,
             validators=(validators + value_field.validators),
-            **kwargs)
+            **kwargs
+        )
 
     def to_representation(self, obj):
         return obj.value  # pragma: no cover

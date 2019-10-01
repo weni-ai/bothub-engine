@@ -5,14 +5,14 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('common', '0021_auto_20180921_1259'),
-    ]
+    dependencies = [("common", "0021_auto_20180921_1259")]
 
     operations = [
         migrations.AddField(
-            model_name='repositoryupdate',
-            name='training_log',
-            field=models.TextField(blank=True, editable=False, verbose_name='training log'),
-        ),
+            model_name="repositoryupdate",
+            name="training_log",
+            field=models.TextField(
+                blank=True, editable=False, verbose_name="training log"
+            ),
+        )
     ]
