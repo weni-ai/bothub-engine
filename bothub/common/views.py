@@ -9,6 +9,6 @@ from .models import RepositoryUpdate
 def download_bot_data(self, update_id):  # pragma: no cover
     update = get_object_or_404(RepositoryUpdate, pk=update_id)
     if not update.trained_at:
-        raise ValidationError(f'Update #{update.pk} not trained at.')
+        raise ValidationError(f"Update #{update.pk} not trained at.")
     response = HttpResponseRedirect(update.get_bot_data())
     return response

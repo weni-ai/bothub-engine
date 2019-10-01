@@ -6,19 +6,16 @@ import django.utils.timezone
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('common', '0032_repository_total_updates'),
-    ]
+    dependencies = [("common", "0032_repository_total_updates")]
 
     operations = [
-        migrations.RemoveField(
-            model_name='repositoryvote',
-            name='vote',
-        ),
+        migrations.RemoveField(model_name="repositoryvote", name="vote"),
         migrations.AddField(
-            model_name='repositoryvote',
-            name='created',
-            field=models.DateTimeField(auto_now_add=True, default=django.utils.timezone.now),
+            model_name="repositoryvote",
+            name="created",
+            field=models.DateTimeField(
+                auto_now_add=True, default=django.utils.timezone.now
+            ),
             preserve_default=False,
         ),
     ]

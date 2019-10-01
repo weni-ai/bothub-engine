@@ -7,8 +7,7 @@ from .. import WRITE_METHODS
 class RepositoryPermission(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         authorization = obj.get_user_authorization(request.user)
-        if request.method in READ_METHODS and \
-                not request.user.is_authenticated:
+        if request.method in READ_METHODS and not request.user.is_authenticated:
             return authorization.can_read
 
         if request.user.is_authenticated:
@@ -28,8 +27,9 @@ class RepositoryAdminManagerAuthorization(permissions.BasePermission):
 
 class RepositoryExamplePermission(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
-        authorization = obj.repository_update.repository \
-            .get_user_authorization(request.user)
+        authorization = obj.repository_update.repository.get_user_authorization(
+            request.user
+        )
         if request.method in READ_METHODS:
             return authorization.can_read
         return authorization.can_contribute

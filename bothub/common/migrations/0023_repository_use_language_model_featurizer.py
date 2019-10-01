@@ -5,14 +5,16 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('common', '0022_repositoryupdate_training_log'),
-    ]
+    dependencies = [("common", "0022_repositoryupdate_training_log")]
 
     operations = [
         migrations.AddField(
-            model_name='repository',
-            name='use_language_model_featurizer',
-            field=models.BooleanField(default=True, help_text='You can use language featurizer to get words similarity. You need less examples to create a great bot.', verbose_name='Use language model featurizer'),
-        ),
+            model_name="repository",
+            name="use_language_model_featurizer",
+            field=models.BooleanField(
+                default=True,
+                help_text="You can use language featurizer to get words similarity. You need less examples to create a great bot.",
+                verbose_name="Use language model featurizer",
+            ),
+        )
     ]

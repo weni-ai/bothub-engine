@@ -5,14 +5,12 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('common', '0033_auto_20190816_2030'),
-    ]
+    dependencies = [("common", "0033_auto_20190816_2030")]
 
     operations = [
         migrations.AddField(
-            model_name='repository',
-            name='nlp_server',
-            field=models.URLField(blank=True, null=True, verbose_name='Base URL NLP'),
-        ),
+            model_name="repository",
+            name="nlp_server",
+            field=models.URLField(blank=True, null=True, verbose_name="Base URL NLP"),
+        )
     ]

@@ -7,19 +7,18 @@ class RepositoryUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = RepositoryUpdate
         fields = [
-            'id',
-            'repository',
-            'language',
-            'created_at',
-            'by',
-            'by__nickname',
-            'training_started_at',
-            'trained_at',
-            'failed_at',
+            "id",
+            "repository",
+            "language",
+            "created_at",
+            "by",
+            "by__nickname",
+            "training_started_at",
+            "trained_at",
+            "failed_at",
         ]
         ref_name = None
 
     by__nickname = serializers.SlugRelatedField(
-        source='by',
-        slug_field='nickname',
-        read_only=True)
+        source="by", slug_field="nickname", read_only=True
+    )

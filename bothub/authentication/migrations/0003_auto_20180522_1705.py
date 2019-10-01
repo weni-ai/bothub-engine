@@ -5,14 +5,17 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('authentication', '0002_auto_20180315_1343'),
-    ]
+    dependencies = [("authentication", "0002_auto_20180315_1343")]
 
     operations = [
         migrations.AlterField(
-            model_name='user',
-            name='locale',
-            field=models.CharField(blank=True, help_text="User's locale.", max_length=48, verbose_name='locale'),
-        ),
+            model_name="user",
+            name="locale",
+            field=models.CharField(
+                blank=True,
+                help_text="User's locale.",
+                max_length=48,
+                verbose_name="locale",
+            ),
+        )
     ]

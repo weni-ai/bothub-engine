@@ -6,4 +6,4 @@ from bothub.common.models import Repository
 
 def repository_shortcut(self, **kwargs):  # pragma: no cover
     repository = get_object_or_404(Repository, **kwargs)
-    return redirect('repository-detail', uuid=repository.uuid)
+    return redirect("repository-detail", uuid=repository.uuid)

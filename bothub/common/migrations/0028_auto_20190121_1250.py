@@ -5,19 +5,47 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('common', '0027_repositorycategory_icon'),
-    ]
+    dependencies = [("common", "0027_repositorycategory_icon")]
 
     operations = [
         migrations.AddField(
-            model_name='repository',
-            name='algorithm',
-            field=models.CharField(choices=[('statistical_model', 'Statistical Model'), ('neural_network_internal', 'Neural Network with internal vocabulary'), ('neural_network_external', 'Neural Network with external vocabulary (BETA)')], default='statistical_model', max_length=24, verbose_name='algorithm'),
+            model_name="repository",
+            name="algorithm",
+            field=models.CharField(
+                choices=[
+                    ("statistical_model", "Statistical Model"),
+                    (
+                        "neural_network_internal",
+                        "Neural Network with internal vocabulary",
+                    ),
+                    (
+                        "neural_network_external",
+                        "Neural Network with external vocabulary (BETA)",
+                    ),
+                ],
+                default="statistical_model",
+                max_length=24,
+                verbose_name="algorithm",
+            ),
         ),
         migrations.AddField(
-            model_name='repositoryupdate',
-            name='algorithm',
-            field=models.CharField(choices=[('statistical_model', 'Statistical Model'), ('neural_network_internal', 'Neural Network with internal vocabulary'), ('neural_network_external', 'Neural Network with external vocabulary (BETA)')], default='statistical_model', max_length=24, verbose_name='algorithm'),
+            model_name="repositoryupdate",
+            name="algorithm",
+            field=models.CharField(
+                choices=[
+                    ("statistical_model", "Statistical Model"),
+                    (
+                        "neural_network_internal",
+                        "Neural Network with internal vocabulary",
+                    ),
+                    (
+                        "neural_network_external",
+                        "Neural Network with external vocabulary (BETA)",
+                    ),
+                ],
+                default="statistical_model",
+                max_length=24,
+                verbose_name="algorithm",
+            ),
         ),
     ]

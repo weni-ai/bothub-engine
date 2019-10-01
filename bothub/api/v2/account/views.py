@@ -19,10 +19,7 @@ from .serializers import ResetPasswordSerializer
 
 
 @method_decorator(
-    name='create',
-    decorator=swagger_auto_schema(
-        responses={201: '{"token":"TOKEN"}'}
-    )
+    name="create", decorator=swagger_auto_schema(responses={201: '{"token":"TOKEN"}'})
 )
 class LoginViewSet(mixins.CreateModelMixin, GenericViewSet):
 
@@ -32,32 +29,30 @@ class LoginViewSet(mixins.CreateModelMixin, GenericViewSet):
 
     queryset = User.objects
     serializer_class = LoginSerializer
-    lookup_field = ('username', 'password')
+    lookup_field = ("username", "password")
     metadata_class = Metadata
 
     def create(self, request, *args, **kwargs):
         serializer = self.serializer_class(
-            data=request.data,
-            context={'request': request})
+            data=request.data, context={"request": request}
+        )
         serializer.is_valid(raise_exception=True)
-        user = serializer.validated_data['user']
+        user = serializer.validated_data["user"]
         token, created = Token.objects.get_or_create(user=user)
         return Response(
-            {
-                'token': token.key,
-            },
-            status.HTTP_201_CREATED if created else status.HTTP_200_OK)
+            {"token": token.key},
+            status.HTTP_201_CREATED if created else status.HTTP_200_OK,
+        )
 
 
-class RegisterUserViewSet(
-        mixins.CreateModelMixin,
-        GenericViewSet):
+class RegisterUserViewSet(mixins.CreateModelMixin, GenericViewSet):
     """
     Register new user
     """
+
     queryset = User.objects
     serializer_class = RegisterUserSerializer
-    lookup_field = ('email', 'name', 'nickname', 'password')
+    lookup_field = ("email", "name", "nickname", "password")
     metadata_class = Metadata
 
 
@@ -65,12 +60,11 @@ class ChangePasswordViewSet(mixins.UpdateModelMixin, GenericViewSet):
     """
     Change current user password.
     """
+
     serializer_class = ChangePasswordSerializer
     queryset = User.objects
     lookup_field = None
-    permission_classes = [
-        permissions.IsAuthenticated
-    ]
+    permission_classes = [permissions.IsAuthenticated]
     metadata_class = Metadata
 
     def get_object(self, *args, **kwargs):
@@ -87,27 +81,26 @@ class ChangePasswordViewSet(mixins.UpdateModelMixin, GenericViewSet):
         serializer = self.get_serializer(data=request.data)
 
         if serializer.is_valid():
-            self.object.set_password(serializer.data.get('password'))
+            self.object.set_password(serializer.data.get("password"))
             self.object.save()
             return Response(status=status.HTTP_200_OK)
 
-        return Response(
-            serializer.errors,
-            status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class RequestResetPasswordViewSet(mixins.CreateModelMixin, GenericViewSet):
     """
     Request reset password
     """
+
     serializer_class = RequestResetPasswordSerializer
     queryset = User.objects
-    lookup_field = ['email']
+    lookup_field = ["email"]
     permission_classes = [permissions.AllowAny]
     metadata_class = Metadata
 
     def get_object(self):
-        return self.queryset.get(email=self.request.data.get('email'))
+        return self.queryset.get(email=self.request.data.get("email"))
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -115,47 +108,40 @@ class RequestResetPasswordViewSet(mixins.CreateModelMixin, GenericViewSet):
             self.object = self.get_object()
             self.object.send_reset_password_email()
             return Response(status=status.HTTP_201_CREATED)
-        return Response(
-            serializer.errors,
-            status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserProfileViewSet(
-        mixins.RetrieveModelMixin,
-        mixins.UpdateModelMixin,
-        GenericViewSet):
+    mixins.RetrieveModelMixin, mixins.UpdateModelMixin, GenericViewSet
+):
     """
     Get user profile
     """
+
     serializer_class = UserSerializer
     queryset = User.objects
-    lookup_field = 'nickname'
-    permission_classes = [
-        permissions.IsAuthenticatedOrReadOnly
-    ]
+    lookup_field = "nickname"
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
 class SearchUserViewSet(mixins.ListModelMixin, GenericViewSet):
     serializer_class = UserSerializer
     queryset = User.objects.all()
-    filter_backends = [
-        DjangoFilterBackend,
-        SearchFilter,
-    ]
+    filter_backends = [DjangoFilterBackend, SearchFilter]
     search_fields = [
-        '=name',
-        '^name',
-        '$name',
-        '=nickname',
-        '^nickname',
-        '$nickname',
-        '=email',
+        "=name",
+        "^name",
+        "$name",
+        "=nickname",
+        "^nickname",
+        "$nickname",
+        "=email",
     ]
     pagination_class = None
     limit = 5
 
     def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())[:self.limit]
+        queryset = self.filter_queryset(self.get_queryset())[: self.limit]
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
@@ -164,17 +150,16 @@ class ResetPasswordViewSet(mixins.UpdateModelMixin, GenericViewSet):
     """
     Reset password
     """
+
     serializer_class = ResetPasswordSerializer
     queryset = User.objects
-    lookup_field = 'nickname'
+    lookup_field = "nickname"
 
     def update(self, request, *args, **kwargs):
         self.object = self.get_object()
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
-            self.object.set_password(serializer.data.get('password'))
+            self.object.set_password(serializer.data.get("password"))
             self.object.save()
             return Response(status=status.HTTP_200_OK)
-        return Response(
-            serializer.errors,
-            status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
