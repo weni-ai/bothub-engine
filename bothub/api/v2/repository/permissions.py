@@ -116,3 +116,21 @@ class RepositoryUpdateHasPermission(permissions.BasePermission):
                     ).first()
                 ).exists()
         return False
+
+
+class RepositoryAnalyzePermission(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        authorization = obj.get_user_authorization(request.user)
+        usergrouprepository = authorization.usergrouprepository
+        permission = UserPermissionRepository.objects.filter(
+            usergrouprepository=usergrouprepository
+        )
+
+        if request.user.is_authenticated:
+            if request.method in WRITE_METHODS:
+                return permission.filter(
+                    codename=PermissionsCode.objects.filter(
+                        codename="write.repository_analyze"
+                    ).first()
+                ).exists()
+        return False

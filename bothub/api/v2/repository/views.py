@@ -46,6 +46,7 @@ from .serializers import EvaluateSerializer
 from .serializers import RepositoryUpdateSerializer
 from .serializers import RepositoryUpload
 from .permissions import RepositoryPermission
+from .permissions import RepositoryAnalyzePermission
 from .permissions import RepositoryAdminManagerAuthorization
 from ..examples.permissions import RepositoryExamplePermission
 from .permissions import RepositoryUpdateHasPermission
@@ -116,7 +117,7 @@ class RepositoryViewSet(
         detail=True,
         methods=["POST"],
         url_name="repository-analyze",
-        permission_classes=[],
+        permission_classes=[RepositoryAnalyzePermission],
         lookup_fields=["uuid"],
     )
     def analyze(self, request, **kwargs):
