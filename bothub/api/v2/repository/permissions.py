@@ -15,22 +15,34 @@ class RepositoryPermission(permissions.BasePermission):
             usergrouprepository=usergrouprepository
         )
 
-        if request.method in READ_METHODS and \
-                not request.user.is_authenticated:
+        if request.method in READ_METHODS and not request.user.is_authenticated:
             return True
 
         if request.user.is_authenticated:
             if request.method in READ_METHODS:
                 return permission.filter(
                     codename=PermissionsCode.objects.filter(
-                            codename='view.repository'
-                        ).first()).exists()
+                        codename="view.repository"
+                    ).first()
+                ).exists()
             if request.method in WRITE_METHODS:
-                return permission.filter(codename='write.repository').exists()
+                return permission.filter(
+                    codename=PermissionsCode.objects.filter(
+                        codename="write.repository"
+                    ).first()
+                ).exists()
             if request.method in EDIT_METHODS:
-                return permission.filter(codename='edit.repository').exists()
+                return permission.filter(
+                    codename=PermissionsCode.objects.filter(
+                        codename="write.repository"
+                    ).first()
+                ).exists()
             if request.method in DELETE_METHODS:
-                return permission.filter(codename='delete.repository').exists()
+                return permission.filter(
+                    codename=PermissionsCode.objects.filter(
+                        codename="delete.repository"
+                    ).first()
+                ).exists()
         return False
 
 
@@ -45,19 +57,27 @@ class RepositoryAdminManagerAuthorization(permissions.BasePermission):
         if request.user.is_authenticated:
             if request.method in READ_METHODS:
                 return permission.filter(
-                    codename='view.repositoryadminmanager'
+                    codename=PermissionsCode.objects.filter(
+                        codename="view.repositoryadminmanager"
+                    ).first()
                 ).exists()
             if request.method in WRITE_METHODS:
                 return permission.filter(
-                    codename='write.repositoryadminmanager'
+                    codename=PermissionsCode.objects.filter(
+                        codename="write.repositoryadminmanager"
+                    ).first()
                 ).exists()
             if request.method in EDIT_METHODS:
                 return permission.filter(
-                    codename='edit.repositoryadminmanager'
+                    codename=PermissionsCode.objects.filter(
+                        codename="edit.repositoryadminmanager"
+                    ).first()
                 ).exists()
             if request.method in DELETE_METHODS:
                 return permission.filter(
-                    codename='delete.repositoryadminmanager'
+                    codename=PermissionsCode.objects.filter(
+                        codename="delete.repositoryadminmanager"
+                    ).first()
                 ).exists()
         return False
 
@@ -73,18 +93,26 @@ class RepositoryUpdateHasPermission(permissions.BasePermission):
         if request.user.is_authenticated:
             if request.method in READ_METHODS:
                 return permission.filter(
-                    codename='view.repositoryupdate'
+                    codename=PermissionsCode.objects.filter(
+                        codename="view.repositoryupdate"
+                    ).first()
                 ).exists()
             if request.method in WRITE_METHODS:
                 return permission.filter(
-                    codename='write.repositoryupdate'
+                    codename=PermissionsCode.objects.filter(
+                        codename="write.repositoryupdate"
+                    ).first()
                 ).exists()
             if request.method in EDIT_METHODS:
                 return permission.filter(
-                    codename='edit.repositoryupdate'
+                    codename=PermissionsCode.objects.filter(
+                        codename="edit.repositoryupdate"
+                    ).first()
                 ).exists()
             if request.method in DELETE_METHODS:
                 return permission.filter(
-                    codename='delete.repositoryupdate'
+                    codename=PermissionsCode.objects.filter(
+                        codename="delete.repositoryupdate"
+                    ).first()
                 ).exists()
         return False

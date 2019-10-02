@@ -58,36 +58,19 @@ class RepositoryCategoryAdmin(admin.ModelAdmin):
 
 @admin.register(UserPermissionRepository)
 class UserPermissionRepositoryAdmin(admin.ModelAdmin):
-    list_display = [
-        'uuid',
-        'codename',
-        'usergrouprepository',
-    ]
+    list_display = ["uuid", "codename", "usergrouprepository"]
 
 
 @admin.register(UserGroupRepository)
 class UserGroupRepositoryAdmin(admin.ModelAdmin):
-    list_display = [
-        'uuid',
-        'repository',
-        'name',
-    ]
+    list_display = ["uuid", "repository", "name"]
 
 
 @admin.register(PermissionsCode)
 class PermissionsCodeAdmin(admin.ModelAdmin):
-    list_display = [
-        'uuid',
-        'codename',
-        'name',
-    ]
+    list_display = ["uuid", "codename", "name"]
 
 
 @admin.register(RepositoryAuthorization)
 class RepositoryAuthorizationAdmin(admin.ModelAdmin):
-    list_display = [
-        'uuid',
-        'user',
-        'repository',
-        'usergrouprepository',
-    ]
+    list_display = ["uuid", "user", "repository", "usergrouprepository"]

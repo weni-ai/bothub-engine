@@ -5,6 +5,7 @@ from bothub.api.v2 import WRITE_METHODS
 from bothub.api.v2 import EDIT_METHODS
 from bothub.api.v2 import DELETE_METHODS
 from bothub.common.models import UserPermissionRepository
+from bothub.common.models import PermissionsCode
 
 
 class RepositoryTranslatedExamplePermission(permissions.BasePermission):
@@ -19,18 +20,26 @@ class RepositoryTranslatedExamplePermission(permissions.BasePermission):
         if request.user.is_authenticated:
             if request.method in READ_METHODS:
                 return permission.filter(
-                    codename='view.repositorytranslatedexample'
+                    codename=PermissionsCode.objects.filter(
+                        codename="view.repositorytranslatedexample"
+                    ).first()
                 ).exists()
             if request.method in WRITE_METHODS:
                 return permission.filter(
-                    codename='write.repositorytranslatedexample'
+                    codename=PermissionsCode.objects.filter(
+                        codename="write.repositorytranslatedexample"
+                    ).first()
                 ).exists()
             if request.method in EDIT_METHODS:
                 return permission.filter(
-                    codename='edit.repositorytranslatedexample'
+                    codename=PermissionsCode.objects.filter(
+                        codename="edit.repositorytranslatedexample"
+                    ).first()
                 ).exists()
             if request.method in DELETE_METHODS:
                 return permission.filter(
-                    codename='delete.repositorytranslatedexample'
+                    codename=PermissionsCode.objects.filter(
+                        codename="delete.repositorytranslatedexample"
+                    ).first()
                 ).exists()
         return False

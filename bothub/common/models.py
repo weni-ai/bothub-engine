@@ -221,21 +221,27 @@ class Repository(models.Model):
                 code=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
 
-    def create_permissions(self):
+    def create_permissions(self, return_group='Public'):
         if UserGroupRepository.objects.filter(repository=self).count() == 0:
-            usergroup = UserGroupRepository.objects.create(
-                repository=self,
-                name='Owner'
-            )
-            for perm in PermissionsCode.objects.all():
-                UserPermissionRepository.objects.create(
-                    codename=perm,
-                    usergrouprepository=usergroup
+
+            group_return = None
+
+            for group, value in settings.USER_PERMISSIONS.items():
+                usergroup = UserGroupRepository.objects.create(
+                    repository=self, name=group
                 )
 
-            return usergroup
+                if group == return_group:
+                    group_return = usergroup
+
+                for perm in value:
+                    UserPermissionRepository.objects.create(
+                        codename=PermissionsCode.objects.get(codename=perm), usergrouprepository=usergroup
+                    )
+
+            return group_return
         else:
-            usergroup = UserGroupRepository.objects.get(repository=self, name='Owner')
+            usergroup = UserGroupRepository.objects.get(repository=self, name=return_group)
             return usergroup
 
     @property
@@ -433,13 +439,18 @@ class Repository(models.Model):
             language=language, by__isnull=False, trained_at__isnull=False
         ).first()
 
-    def get_user_authorization(self, user):
+    def get_user_authorization(self, user, return_group='Public'):
         if user.is_anonymous:
             return RepositoryAuthorization(repository=self)
-        get, created = RepositoryAuthorization.objects.get_or_create(
-            user=user, repository=self, usergrouprepository=self.create_permissions()
-        )
-        return get
+
+        if RepositoryAuthorization.objects.filter(user=user, repository=self).count() > 0:
+            return RepositoryAuthorization.objects.get(
+                user=user, repository=self
+            )
+        else:
+            return RepositoryAuthorization.objects.create(
+                user=user, repository=self, usergrouprepository=self.create_permissions(return_group=return_group)
+            )
 
     def get_absolute_url(self):
         return "{}{}/{}/".format(
@@ -979,65 +990,48 @@ class RepositoryTranslatedExampleEntity(EntityBase):
 
 class PermissionsCode(models.Model):
     class Meta:
-        verbose_name = _('permissions code')
+        verbose_name = _("permissions code")
 
     uuid = models.UUIDField(
-        _('UUID'),
-        primary_key=True,
-        default=uuid.uuid4,
-        editable=False
+        _("UUID"), primary_key=True, default=uuid.uuid4, editable=False
     )
-    codename = models.TextField(
-        _('CodeName')
-    )
-    name = models.TextField(_('Name'), null=True)
+    codename = models.TextField(_("CodeName"))
+    name = models.TextField(_("Name"), null=True)
 
     def __str__(self):
-        return self.name + ' - ' + self.codename
+        return self.name + " - " + self.codename
 
 
 class UserGroupRepository(models.Model):
     class Meta:
-        verbose_name = _('User Group Repository')
+        verbose_name = _("User Group Repository")
 
     uuid = models.UUIDField(
-        _('UUID'),
-        primary_key=True,
-        default=uuid.uuid4,
-        editable=False
+        _("UUID"), primary_key=True, default=uuid.uuid4, editable=False
     )
-    repository = models.ForeignKey(
-        Repository,
-        models.CASCADE
-    )
-    name = models.TextField(_('Group Name'))
+    repository = models.ForeignKey(Repository, models.CASCADE)
+    name = models.TextField(_("Group Name"))
 
     def __str__(self):
-        return self.repository.name + ' - ' + self.name
+        return self.repository.name + " - " + self.name
 
 
 class UserPermissionRepository(models.Model):
     class Meta:
-        verbose_name = _('repository user authorization')
+        verbose_name = _("repository user authorization")
 
     uuid = models.UUIDField(
-        _('UUID'),
-        primary_key=True,
-        default=uuid.uuid4,
-        editable=False
+        _("UUID"), primary_key=True, default=uuid.uuid4, editable=False
     )
-    codename = models.ForeignKey(PermissionsCode, models.CASCADE)
-    usergrouprepository = models.ForeignKey(
-        UserGroupRepository,
-        models.CASCADE
-    )
+    codename = models.ForeignKey(PermissionsCode, models.DO_NOTHING)
+    usergrouprepository = models.ForeignKey(UserGroupRepository, models.CASCADE)
 
 
 class RepositoryAuthorization(models.Model):
     class Meta:
-        verbose_name = _('repository authorization')
-        verbose_name_plural = _('repository authorizations')
-        unique_together = ['user', 'repository']
+        verbose_name = _("repository authorization")
+        verbose_name_plural = _("repository authorizations")
+        unique_together = ["user", "repository"]
 
     LEVEL_NOTHING = 0
     LEVEL_READER = 1
@@ -1050,36 +1044,26 @@ class RepositoryAuthorization(models.Model):
     ROLE_ADMIN = 3
 
     ROLE_CHOICES = [
-        (ROLE_NOT_SETTED, _('not set')),
-        (ROLE_USER, _('user')),
-        (ROLE_CONTRIBUTOR, _('contributor')),
-        (ROLE_ADMIN, _('admin')),
+        (ROLE_NOT_SETTED, _("not set")),
+        (ROLE_USER, _("user")),
+        (ROLE_CONTRIBUTOR, _("contributor")),
+        (ROLE_ADMIN, _("admin")),
     ]
 
     uuid = models.UUIDField(
-        _('UUID'),
-        primary_key=True,
-        default=uuid.uuid4,
-        editable=False)
-    user = models.ForeignKey(
-        User,
-        models.CASCADE)
-    repository = models.ForeignKey(
-        Repository,
-        models.CASCADE,
-        related_name='authorizations')
-    role = models.PositiveIntegerField(
-        _('role'),
-        choices=ROLE_CHOICES,
-        default=ROLE_NOT_SETTED)
-    usergrouprepository = models.ForeignKey(
-        UserGroupRepository,
-        models.CASCADE,
-        null=True
+        _("UUID"), primary_key=True, default=uuid.uuid4, editable=False
     )
-    created_at = models.DateTimeField(
-        _('created at'),
-        auto_now_add=True)
+    user = models.ForeignKey(User, models.CASCADE)
+    repository = models.ForeignKey(
+        Repository, models.CASCADE, related_name="authorizations"
+    )
+    role = models.PositiveIntegerField(
+        _("role"), choices=ROLE_CHOICES, default=ROLE_NOT_SETTED
+    )
+    usergrouprepository = models.ForeignKey(
+        UserGroupRepository, models.CASCADE, null=True
+    )
+    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
 
     @property
     def level(self):
