@@ -434,7 +434,6 @@ class Repository(models.Model):
         ).first()
 
     def get_user_authorization(self, user):
-        return RepositoryAuthorization.objects.none()
         if user.is_anonymous:
             return RepositoryAuthorization(repository=self)
         get, created = RepositoryAuthorization.objects.get_or_create(
