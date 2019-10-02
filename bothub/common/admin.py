@@ -3,6 +3,10 @@ from django.utils.html import format_html
 from django.shortcuts import reverse
 
 from bothub.common.models import Repository
+from bothub.common.models import UserPermissionRepository
+from bothub.common.models import UserGroupRepository
+from bothub.common.models import PermissionsCode
+from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryUpdate
 from bothub.common.models import RepositoryCategory
 
@@ -50,3 +54,40 @@ class RepositoryAdmin(admin.ModelAdmin):
 @admin.register(RepositoryCategory)
 class RepositoryCategoryAdmin(admin.ModelAdmin):
     list_display = ["__str__", "icon"]
+
+
+@admin.register(UserPermissionRepository)
+class UserPermissionRepositoryAdmin(admin.ModelAdmin):
+    list_display = [
+        'uuid',
+        'codename',
+        'usergrouprepository',
+    ]
+
+
+@admin.register(UserGroupRepository)
+class UserGroupRepositoryAdmin(admin.ModelAdmin):
+    list_display = [
+        'uuid',
+        'repository',
+        'name',
+    ]
+
+
+@admin.register(PermissionsCode)
+class PermissionsCodeAdmin(admin.ModelAdmin):
+    list_display = [
+        'uuid',
+        'codename',
+        'name',
+    ]
+
+
+@admin.register(RepositoryAuthorization)
+class RepositoryAuthorizationAdmin(admin.ModelAdmin):
+    list_display = [
+        'uuid',
+        'user',
+        'repository',
+        'usergrouprepository',
+    ]

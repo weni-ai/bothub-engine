@@ -47,7 +47,7 @@ from .serializers import RepositoryUpdateSerializer
 from .serializers import RepositoryUpload
 from .permissions import RepositoryPermission
 from .permissions import RepositoryAdminManagerAuthorization
-from .permissions import RepositoryExamplePermission
+from ..examples.permissions import RepositoryExamplePermission
 from .permissions import RepositoryUpdateHasPermission
 from .filters import RepositoriesFilter
 from .filters import RepositoryAuthorizationFilter

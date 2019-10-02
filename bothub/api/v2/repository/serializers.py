@@ -3,7 +3,7 @@ from django.conf import settings
 from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied
 
-from bothub.api.v2.example.serializers import RepositoryExampleEntitySerializer
+from bothub.api.v2.examples.serializers import RepositoryExampleEntitySerializer
 from bothub.api.v2.fields import TextField
 from bothub.api.v2.fields import EntityText
 from bothub.api.v2.repository.validators import (
