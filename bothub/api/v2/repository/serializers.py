@@ -122,7 +122,6 @@ class RepositoryAuthorizationSerializer(serializers.ModelSerializer):
             "user__nickname",
             "repository",
             "usergrouprepository",
-            "level",
             "can_read",
             "can_contribute",
             "can_write",

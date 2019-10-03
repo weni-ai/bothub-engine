@@ -1034,22 +1034,22 @@ class RepositoryAuthorization(models.Model):
         verbose_name_plural = _("repository authorizations")
         unique_together = ["user", "repository"]
 
-    LEVEL_NOTHING = 0
-    LEVEL_READER = 1
-    LEVEL_CONTRIBUTOR = 2
-    LEVEL_ADMIN = 3
-
-    ROLE_NOT_SETTED = 0
-    ROLE_USER = 1
-    ROLE_CONTRIBUTOR = 2
-    ROLE_ADMIN = 3
-
-    ROLE_CHOICES = [
-        (ROLE_NOT_SETTED, _("not set")),
-        (ROLE_USER, _("user")),
-        (ROLE_CONTRIBUTOR, _("contributor")),
-        (ROLE_ADMIN, _("admin")),
-    ]
+    # LEVEL_NOTHING = 0
+    # LEVEL_READER = 1
+    # LEVEL_CONTRIBUTOR = 2
+    # LEVEL_ADMIN = 3
+    #
+    # ROLE_NOT_SETTED = 0
+    # ROLE_USER = 1
+    # ROLE_CONTRIBUTOR = 2
+    # ROLE_ADMIN = 3
+    #
+    # ROLE_CHOICES = [
+    #     (ROLE_NOT_SETTED, _("not set")),
+    #     (ROLE_USER, _("user")),
+    #     (ROLE_CONTRIBUTOR, _("contributor")),
+    #     (ROLE_ADMIN, _("admin")),
+    # ]
 
     uuid = models.UUIDField(
         _("UUID"), primary_key=True, default=uuid.uuid4, editable=False
@@ -1073,44 +1073,48 @@ class RepositoryAuthorization(models.Model):
         if user and self.repository.owner == user:
             return RepositoryAuthorization.LEVEL_ADMIN
 
-        if self.role == RepositoryAuthorization.ROLE_NOT_SETTED:
-            if self.repository.is_private:
-                return RepositoryAuthorization.LEVEL_NOTHING
-            return RepositoryAuthorization.LEVEL_READER
-
-        if self.role == RepositoryAuthorization.ROLE_USER:
-            return RepositoryAuthorization.LEVEL_READER
-
-        if self.role == RepositoryAuthorization.ROLE_CONTRIBUTOR:
-            return RepositoryAuthorization.LEVEL_CONTRIBUTOR
-
-        if self.role == RepositoryAuthorization.ROLE_ADMIN:
-            return RepositoryAuthorization.LEVEL_ADMIN
+        # if self.role == RepositoryAuthorization.ROLE_NOT_SETTED:
+        #     if self.repository.is_private:
+        #         return RepositoryAuthorization.LEVEL_NOTHING
+        #     return RepositoryAuthorization.LEVEL_READER
+        #
+        # if self.role == RepositoryAuthorization.ROLE_USER:
+        #     return RepositoryAuthorization.LEVEL_READER
+        #
+        # if self.role == RepositoryAuthorization.ROLE_CONTRIBUTOR:
+        #     return RepositoryAuthorization.LEVEL_CONTRIBUTOR
+        #
+        # if self.role == RepositoryAuthorization.ROLE_ADMIN:
+        #     return RepositoryAuthorization.LEVEL_ADMIN
 
         return RepositoryAuthorization.LEVEL_NOTHING  # pragma: no cover
 
     @property
     def can_read(self):
-        return self.level in [
-            RepositoryAuthorization.LEVEL_READER,
-            RepositoryAuthorization.LEVEL_CONTRIBUTOR,
-            RepositoryAuthorization.LEVEL_ADMIN,
-        ]
+        return True
+        # return self.level in [
+        #     RepositoryAuthorization.LEVEL_READER,
+        #     RepositoryAuthorization.LEVEL_CONTRIBUTOR,
+        #     RepositoryAuthorization.LEVEL_ADMIN,
+        # ]
 
     @property
     def can_contribute(self):
-        return self.level in [
-            RepositoryAuthorization.LEVEL_CONTRIBUTOR,
-            RepositoryAuthorization.LEVEL_ADMIN,
-        ]
+        return True
+        # return self.level in [
+        #     RepositoryAuthorization.LEVEL_CONTRIBUTOR,
+        #     RepositoryAuthorization.LEVEL_ADMIN,
+        # ]
 
     @property
     def can_write(self):
-        return self.level in [RepositoryAuthorization.LEVEL_ADMIN]
+        return True
+        # return self.level in [RepositoryAuthorization.LEVEL_ADMIN]
 
     @property
     def is_admin(self):
-        return self.level == RepositoryAuthorization.LEVEL_ADMIN
+        return True
+        # return self.level == RepositoryAuthorization.LEVEL_ADMIN
 
     @property
     def is_owner(self):
@@ -1411,7 +1415,7 @@ def set_user_role_on_approved(instance, **kwargs):
 
     if current.approved_by is None and current.approved_by is not instance.approved_by:
         user_authorization = instance.repository.get_user_authorization(instance.user)
-        user_authorization.role = RepositoryAuthorization.ROLE_USER
+        # user_authorization.role = RepositoryAuthorization.ROLE_USER # TODO
         user_authorization.save(update_fields=["role"])
         instance.send_request_approved_email()
     else:
