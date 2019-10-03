@@ -341,7 +341,7 @@ class RepositoryAuthorizationViewSet(
     GenericViewSet,
 ):
     queryset = RepositoryAuthorization.objects.exclude(
-        role=RepositoryAuthorization.ROLE_NOT_SETTED
+        usergrouprepository__name='Public'
     )
     serializer_class = RepositoryAuthorizationSerializer
     filter_class = RepositoryAuthorizationFilter
@@ -368,7 +368,7 @@ class RepositoryAuthorizationViewSet(
         self.permission_classes = [IsAuthenticated, RepositoryAdminManagerAuthorization]
         response = super().update(*args, **kwargs)
         instance = self.get_object()
-        if instance.role is not RepositoryAuthorization.ROLE_NOT_SETTED:
+        if instance.usergrouprepository.name is not 'Public':
             instance.send_new_role_email(self.request.user)
         return response
 

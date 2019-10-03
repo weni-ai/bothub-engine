@@ -121,7 +121,7 @@ class RepositoryAuthorizationSerializer(serializers.ModelSerializer):
             "user",
             "user__nickname",
             "repository",
-            "role",
+            "usergrouprepository",
             "level",
             "can_read",
             "can_contribute",
@@ -129,7 +129,7 @@ class RepositoryAuthorizationSerializer(serializers.ModelSerializer):
             "is_admin",
             "created_at",
         ]
-        read_only = ["user", "user__nickname", "repository", "role", "created_at"]
+        read_only = ["user", "user__nickname", "repository", "usergrouprepository", "created_at"]
         ref_name = None
 
     user__nickname = serializers.SlugRelatedField(
@@ -291,8 +291,9 @@ class RepositorySerializer(serializers.ModelSerializer):
         if not request or not request.user.is_authenticated:
             return False
         authorization = obj.get_user_authorization(request.user)
-        if authorization.role is not RepositoryAuthorization.ROLE_NOT_SETTED:
-            return False
+
+        if authorization.usergrouprepository.name == 'Public':
+            return True
         if authorization.is_owner:
             return False
         try:
@@ -361,16 +362,16 @@ class ShortRepositorySerializer(serializers.ModelSerializer):
 class RepositoryContributionsSerializer(serializers.ModelSerializer):
     class Meta:
         model = RepositoryAuthorization
-        fields = ["user", "repository", "role", "created_at"]
+        fields = ["user", "repository", "usergrouprepository", "created_at"]
 
-        read_only_fields = ["user", "role", "created_at"]
+        read_only_fields = ["user", "usergrouprepository", "created_at"]
         ref_name = None
 
 
 class RepositoryAuthorizationRoleSerializer(serializers.ModelSerializer):
     class Meta:
         model = RepositoryAuthorization
-        fields = ["role"]
+        fields = ["usergrouprepository"]
         ref_name = None
 
     def validate(self, data):

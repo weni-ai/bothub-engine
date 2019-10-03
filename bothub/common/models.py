@@ -3,6 +3,7 @@ import requests
 
 from functools import reduce
 from django.db import models
+from django.db.models import Q
 from django.utils.translation import gettext as _
 from django.utils import timezone
 from django.conf import settings
@@ -349,7 +350,7 @@ class Repository(models.Model):
         admins = [self.owner] + [
             authorization.user
             for authorization in self.authorizations.filter(
-                role=RepositoryAuthorization.ROLE_ADMIN
+                Q(usergrouprepository__name='Owner') | Q(usergrouprepository__name='Admin')
             )
         ]
         return list(set(admins))
@@ -1057,9 +1058,6 @@ class RepositoryAuthorization(models.Model):
     repository = models.ForeignKey(
         Repository, models.CASCADE, related_name="authorizations"
     )
-    role = models.PositiveIntegerField(
-        _("role"), choices=ROLE_CHOICES, default=ROLE_NOT_SETTED
-    )
     usergrouprepository = models.ForeignKey(
         UserGroupRepository, models.CASCADE, null=True
     )
@@ -1124,7 +1122,7 @@ class RepositoryAuthorization(models.Model):
 
     @property
     def role_verbose(self):
-        return dict(RepositoryAuthorization.ROLE_CHOICES).get(self.role)
+        return self.usergrouprepository.name
 
     def send_new_role_email(self, responsible=None):
         if not settings.SEND_EMAILS:

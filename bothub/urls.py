@@ -6,7 +6,6 @@ from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 
-from bothub.api.v1.routers import router as bothub_api_routers
 from bothub.api.v2 import urls as bothub_api_v2_urls
 from bothub.health.views import ping
 from bothub.health.views import r200
@@ -28,7 +27,6 @@ schema_view = get_schema_view(
 
 urlpatterns = [
     path("", schema_view.with_ui("swagger")),
-    path("v1/", include(bothub_api_routers.urls)),
     path("v2/", include(bothub_api_v2_urls)),
     path("admin/", admin.site.urls),
     path("ping/", ping, name="ping"),
