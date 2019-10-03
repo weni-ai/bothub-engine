@@ -297,6 +297,8 @@ USER_PERMISSIONS = {
         "edit.repositoryevaluate",
         "view.repository",
         "write.repository_analyze",
+        "view.repository_train"
+        "write.repository_evaluate"
     ],
     "Admin": [
         "write.repository",
@@ -328,6 +330,8 @@ USER_PERMISSIONS = {
         "edit.repositoryevaluate",
         "view.repository",
         "write.repository_analyze",
+        "view.repository_train",
+        "write.repository_evaluate"
     ],
     "Contributor": [
         "write.repository",
@@ -359,6 +363,8 @@ USER_PERMISSIONS = {
         "edit.repositoryevaluate",
         "view.repository",
         "write.repository_analyze",
+        "view.repository_train",
+        "write.repository_evaluate"
     ],
     "Public": [
         "view.repositoryupdate",

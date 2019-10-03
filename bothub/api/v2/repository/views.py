@@ -46,6 +46,8 @@ from .serializers import EvaluateSerializer
 from .serializers import RepositoryUpdateSerializer
 from .serializers import RepositoryUpload
 from .permissions import RepositoryPermission
+from .permissions import RepositoryTrainPermission
+from .permissions import RepositoryEvaluatePermission
 from .permissions import RepositoryAnalyzePermission
 from .permissions import RepositoryAdminManagerAuthorization
 from ..examples.permissions import RepositoryExamplePermission
@@ -95,6 +97,7 @@ class RepositoryViewSet(
         methods=["GET"],
         url_name="repository-train",
         lookup_fields=["uuid"],
+        permission_classes=[RepositoryTrainPermission]
     )
     def train(self, request, **kwargs):
         """
@@ -153,6 +156,7 @@ class RepositoryViewSet(
         methods=["POST"],
         url_name="repository-evaluate",
         lookup_fields=["uuid"],
+        permission_classes=[RepositoryEvaluatePermission]
     )
     def evaluate(self, request, **kwargs):
         """

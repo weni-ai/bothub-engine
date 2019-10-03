@@ -1034,23 +1034,6 @@ class RepositoryAuthorization(models.Model):
         verbose_name_plural = _("repository authorizations")
         unique_together = ["user", "repository"]
 
-    # LEVEL_NOTHING = 0
-    # LEVEL_READER = 1
-    # LEVEL_CONTRIBUTOR = 2
-    # LEVEL_ADMIN = 3
-    #
-    # ROLE_NOT_SETTED = 0
-    # ROLE_USER = 1
-    # ROLE_CONTRIBUTOR = 2
-    # ROLE_ADMIN = 3
-    #
-    # ROLE_CHOICES = [
-    #     (ROLE_NOT_SETTED, _("not set")),
-    #     (ROLE_USER, _("user")),
-    #     (ROLE_CONTRIBUTOR, _("contributor")),
-    #     (ROLE_ADMIN, _("admin")),
-    # ]
-
     uuid = models.UUIDField(
         _("UUID"), primary_key=True, default=uuid.uuid4, editable=False
     )
@@ -1062,32 +1045,6 @@ class RepositoryAuthorization(models.Model):
         UserGroupRepository, models.CASCADE, null=True
     )
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
-
-    @property
-    def level(self):
-        try:
-            user = self.user
-        except User.DoesNotExist:
-            user = None
-
-        if user and self.repository.owner == user:
-            return RepositoryAuthorization.LEVEL_ADMIN
-
-        # if self.role == RepositoryAuthorization.ROLE_NOT_SETTED:
-        #     if self.repository.is_private:
-        #         return RepositoryAuthorization.LEVEL_NOTHING
-        #     return RepositoryAuthorization.LEVEL_READER
-        #
-        # if self.role == RepositoryAuthorization.ROLE_USER:
-        #     return RepositoryAuthorization.LEVEL_READER
-        #
-        # if self.role == RepositoryAuthorization.ROLE_CONTRIBUTOR:
-        #     return RepositoryAuthorization.LEVEL_CONTRIBUTOR
-        #
-        # if self.role == RepositoryAuthorization.ROLE_ADMIN:
-        #     return RepositoryAuthorization.LEVEL_ADMIN
-
-        return RepositoryAuthorization.LEVEL_NOTHING  # pragma: no cover
 
     @property
     def can_read(self):

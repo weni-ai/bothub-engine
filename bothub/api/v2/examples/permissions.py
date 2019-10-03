@@ -40,6 +40,9 @@ class RepositoryExamplePermission(permissions.BasePermission):
         return False
 
     def has_permission(self, request, view):
+        if request.method != 'GET':
+            return super().has_permission(request, view)
+
         try:
             repository = Repository.objects.get(uuid=request.GET.get("repository_uuid"))
             authorization = repository.get_user_authorization(request.user)
