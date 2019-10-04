@@ -626,18 +626,18 @@ class RepositoryUpdate(models.Model):
     def __str__(self):
         return "Repository Update #{}".format(self.id)  # pragma: no cover
 
-    def validate_init_train(self, by=None):
+    def validate_init_train(self, by=None, permission='Public'):
         if self.trained_at:
             raise RepositoryUpdateAlreadyTrained()
         if self.training_started_at:
             raise RepositoryUpdateAlreadyStartedTraining()
         if by:
-            authorization = self.repository.get_user_authorization(by)
-            if not authorization.can_write:
+            authorization = self.repository.get_user_authorization(by, return_group=permission)
+            if not authorization.check_permission('view.repository_train'):
                 raise TrainingNotAllowed()
 
-    def start_training(self, by):
-        self.validate_init_train(by)
+    def start_training(self, by, permission='Public'):
+        self.validate_init_train(by, permission)
         self.by = by
         self.training_started_at = timezone.now()
         self.algorithm = self.repository.algorithm
@@ -1046,32 +1046,39 @@ class RepositoryAuthorization(models.Model):
     )
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
 
-    @property
-    def can_read(self):
-        return True
-        # return self.level in [
-        #     RepositoryAuthorization.LEVEL_READER,
-        #     RepositoryAuthorization.LEVEL_CONTRIBUTOR,
-        #     RepositoryAuthorization.LEVEL_ADMIN,
-        # ]
+    def check_permission(self, code_permission):
+        print(code_permission)
+        if self.usergrouprepository.name == 'Public' and self.repository.is_private:
+            print('entrou aqui')
+            return False
 
-    @property
-    def can_contribute(self):
-        return True
-        # return self.level in [
-        #     RepositoryAuthorization.LEVEL_CONTRIBUTOR,
-        #     RepositoryAuthorization.LEVEL_ADMIN,
-        # ]
+        permission = UserPermissionRepository.objects.filter(
+            usergrouprepository=self.usergrouprepository
+        )
 
-    @property
-    def can_write(self):
-        return True
-        # return self.level in [RepositoryAuthorization.LEVEL_ADMIN]
-
-    @property
-    def is_admin(self):
-        return True
-        # return self.level == RepositoryAuthorization.LEVEL_ADMIN
+        return permission.filter(
+            codename=PermissionsCode.objects.filter(
+                codename=code_permission
+            ).first()
+        ).exists()
+    #
+    # @property
+    # def can_contribute(self):
+    #     return True
+    #     # return self.level in [
+    #     #     RepositoryAuthorization.LEVEL_CONTRIBUTOR,
+    #     #     RepositoryAuthorization.LEVEL_ADMIN,
+    #     # ]
+    #
+    # @property
+    # def can_write(self):
+    #     return True
+    #     # return self.level in [RepositoryAuthorization.LEVEL_ADMIN]
+    #
+    # @property
+    # def is_admin(self):
+    #     return True
+    #     # return self.level == RepositoryAuthorization.LEVEL_ADMIN
 
     @property
     def is_owner(self):

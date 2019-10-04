@@ -297,7 +297,7 @@ USER_PERMISSIONS = {
         "edit.repositoryevaluate",
         "view.repository",
         "write.repository_analyze",
-        "view.repository_train"
+        "view.repository_train",
         "write.repository_evaluate"
     ],
     "Admin": [
