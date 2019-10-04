@@ -17,6 +17,8 @@ from .utils import create_user_and_token
 
 
 class TrainStartTrainingTestCase(TestCase):
+    fixtures = ['permissions.json']
+
     def setUp(self):
         self.factory = RequestFactory()
 
@@ -30,9 +32,7 @@ class TrainStartTrainingTestCase(TestCase):
             language=languages.LANGUAGE_EN,
         )
 
-        self.repository_authorization = RepositoryAuthorization.objects.create(
-            user=self.user, repository=self.repository, role=3
-        )
+        self.repository_authorization = self.repository.get_user_authorization(self.user, 'Owner')
 
         self.repository_update = RepositoryUpdate.objects.create(
             repository=self.repository,
@@ -67,6 +67,8 @@ class TrainStartTrainingTestCase(TestCase):
 
 
 class TrainGetTextTestCase(TestCase):
+    fixtures = ['permissions.json']
+
     def setUp(self):
         self.factory = RequestFactory()
 
@@ -80,9 +82,7 @@ class TrainGetTextTestCase(TestCase):
             language=languages.LANGUAGE_EN,
         )
 
-        self.repository_authorization = RepositoryAuthorization.objects.create(
-            user=self.user, repository=self.repository, role=3
-        )
+        self.repository_authorization = self.repository.get_user_authorization(self.owner, 'Owner')
 
         self.repository_update = RepositoryUpdate.objects.create(
             repository=self.repository,
@@ -123,6 +123,8 @@ class TrainGetTextTestCase(TestCase):
 
 
 class TrainGetEntitiesTestCase(TestCase):
+    fixtures = ['permissions.json']
+
     def setUp(self):
         self.factory = RequestFactory()
 
@@ -136,9 +138,7 @@ class TrainGetEntitiesTestCase(TestCase):
             language=languages.LANGUAGE_EN,
         )
 
-        self.repository_authorization = RepositoryAuthorization.objects.create(
-            user=self.user, repository=self.repository, role=3
-        )
+        self.repository_authorization = self.repository.get_user_authorization(self.owner, 'Owner')
 
         self.repository_update = RepositoryUpdate.objects.create(
             repository=self.repository,
@@ -183,6 +183,8 @@ class TrainGetEntitiesTestCase(TestCase):
 
 
 class TrainFailTestCase(TestCase):
+    fixtures = ['permissions.json']
+
     def setUp(self):
         self.factory = RequestFactory()
 
@@ -196,9 +198,7 @@ class TrainFailTestCase(TestCase):
             language=languages.LANGUAGE_EN,
         )
 
-        self.repository_authorization = RepositoryAuthorization.objects.create(
-            user=self.user, repository=self.repository, role=3
-        )
+        self.repository_authorization = self.repository.get_user_authorization(self.owner, 'Owner')
 
         self.repository_update = RepositoryUpdate.objects.create(
             repository=self.repository,
@@ -234,6 +234,8 @@ class TrainFailTestCase(TestCase):
 
 
 class AuthorizationInfoTestCase(TestCase):
+    fixtures = ['permissions.json']
+
     def setUp(self):
         self.factory = RequestFactory()
 
@@ -247,9 +249,7 @@ class AuthorizationInfoTestCase(TestCase):
             language=languages.LANGUAGE_EN,
         )
 
-        self.repository_authorization = RepositoryAuthorization.objects.create(
-            user=self.user, repository=self.repository, role=3
-        )
+        self.repository_authorization = self.repository.get_user_authorization(self.owner, 'Owner')
 
         self.repository_update = RepositoryUpdate.objects.create(
             repository=self.repository,

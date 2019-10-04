@@ -45,7 +45,7 @@ class EvaluatesFilter(filters.FilterSet):
         try:
             repository = Repository.objects.get(uuid=value)
             authorization = repository.get_user_authorization(request.user)
-            if not authorization.can_read:
+            if not authorization.check_permission('view.repositoryevaluate'):
                 raise PermissionDenied()
             return repository.evaluations(queryset=queryset)
         except Repository.DoesNotExist:
@@ -83,7 +83,7 @@ class EvaluateResultsFilter(filters.FilterSet):
             repository = Repository.objects.get(uuid=value)
             authorization = repository.get_user_authorization(request.user)
 
-            if not authorization.can_read:
+            if not authorization.check_permission('view.repositoryevaluateresult'):
                 raise PermissionDenied()
             return repository.evaluations_results(queryset=queryset)
         except Repository.DoesNotExist:
@@ -120,7 +120,7 @@ class EvaluateResultFilter(filters.FilterSet):
             repository = Repository.objects.get(uuid=value)
             authorization = repository.get_user_authorization(request.user)
 
-            if not authorization.can_read:
+            if not authorization.check_permission('view.repositoryevaluateresult'):
                 raise PermissionDenied()
             return repository.evaluations_results(queryset=queryset)
         except Repository.DoesNotExist:
