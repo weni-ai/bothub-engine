@@ -1781,7 +1781,6 @@ class RetrieveRepositoryTestCase(TestCase):
     def test_user_not_available_request_authorization(self):
         self.repository.get_user_authorization(self.user, "Contributor")
         response, content_data = self.request(self.repository, self.user_token)
-        print(content_data)
         self.assertFalse(content_data.get("available_request_authorization"))
 
     def test_requested_not_available_request_authorization(self):

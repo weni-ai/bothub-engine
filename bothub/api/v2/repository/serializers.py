@@ -131,6 +131,10 @@ class RepositoryAuthorizationSerializer(serializers.ModelSerializer):
     user__nickname = serializers.SlugRelatedField(
         source="user", slug_field="nickname", read_only=True
     )
+    usergrouprepository = serializers.SerializerMethodField()
+
+    def get_usergrouprepository(self, obj):
+        return obj.usergrouprepository.name
 
 
 class RepositorySerializer(serializers.ModelSerializer):

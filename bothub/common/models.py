@@ -1056,9 +1056,7 @@ class RepositoryAuthorization(models.Model):
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
 
     def check_permission(self, code_permission):
-        print(code_permission)
         if self.usergrouprepository.name == "Public" and self.repository.is_private:
-            print("entrou aqui")
             return False
 
         permission = UserPermissionRepository.objects.filter(
