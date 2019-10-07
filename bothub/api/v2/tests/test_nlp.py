@@ -1,18 +1,16 @@
 import json
 
-from django.test import TestCase
 from django.test import RequestFactory
+from django.test import TestCase
 from rest_framework import status
 
-from bothub.api.v2.nlp.views import RepositoryAuthorizationTrainViewSet
 from bothub.api.v2.nlp.views import RepositoryAuthorizationInfoViewSet
+from bothub.api.v2.nlp.views import RepositoryAuthorizationTrainViewSet
 from bothub.common import languages
-from bothub.common.models import RepositoryAuthorization
+from bothub.common.models import Repository
 from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryExampleEntity
-from bothub.common.models import Repository
 from bothub.common.models import RepositoryUpdate
-
 from .utils import create_user_and_token
 
 

@@ -1,34 +1,29 @@
-from django.utils.translation import gettext as _
 from django.conf import settings
+from django.utils.translation import gettext as _
 from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied
 
 from bothub.api.v2.examples.serializers import RepositoryExampleEntitySerializer
-from bothub.api.v2.fields import TextField
 from bothub.api.v2.fields import EntityText
+from bothub.api.v2.fields import TextField
 from bothub.api.v2.repository.validators import (
     CanContributeInRepositoryExampleValidator,
 )
-from bothub.api.v2.repository.validators import IntentAndSentenceNotExistsValidator
-from bothub.api.v2.repository.validators import ExampleWithIntentOrEntityValidator
 from bothub.api.v2.repository.validators import CanContributeInRepositoryValidator
+from bothub.api.v2.repository.validators import ExampleWithIntentOrEntityValidator
+from bothub.api.v2.repository.validators import IntentAndSentenceNotExistsValidator
 from bothub.common import languages
-from bothub.common.models import (
-    Repository,
-    UserGroupRepository,
-    UserPermissionRepository,
-    PermissionsCode,
-)
-from bothub.common.models import RepositoryVote
+from bothub.common.languages import LANGUAGE_CHOICES
+from bothub.common.models import Repository
+from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryCategory
 from bothub.common.models import RepositoryEntityLabel
-from bothub.common.models import RepositoryAuthorization
-from bothub.common.models import RequestRepositoryAuthorization
-from bothub.common.models import RepositoryTranslatedExample
 from bothub.common.models import RepositoryExample
+from bothub.common.models import RepositoryTranslatedExample
 from bothub.common.models import RepositoryTranslatedExampleEntity
 from bothub.common.models import RepositoryUpdate
-from bothub.common.languages import LANGUAGE_CHOICES
+from bothub.common.models import RepositoryVote
+from bothub.common.models import RequestRepositoryAuthorization
 from .validators import CanContributeInRepositoryTranslatedExampleValidator
 
 

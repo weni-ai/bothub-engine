@@ -2,35 +2,32 @@ import json
 import uuid
 
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import TestCase
 from django.test import RequestFactory
+from django.test import TestCase
 from django.test.client import MULTIPART_CONTENT
 from rest_framework import status
 
-from bothub.common.models import RepositoryCategory, UserGroupRepository
-from bothub.common.models import RepositoryVote
-from bothub.common.models import RepositoryAuthorization
-from bothub.common.models import Repository
-from bothub.common.models import RequestRepositoryAuthorization
-from bothub.common.models import RepositoryExample
-from bothub.common.models import RepositoryTranslatedExample
-from bothub.common.models import RepositoryExampleEntity
-from bothub.common.models import RepositoryUpdate
-from bothub.common import languages
-
-from bothub.api.v2.tests.utils import create_user_and_token
-
-from bothub.api.v2.repository.views import RepositoryViewSet
+from bothub.api.v2.repository.serializers import RepositorySerializer
 from bothub.api.v2.repository.views import RepositoriesContributionsViewSet
 from bothub.api.v2.repository.views import RepositoriesViewSet
-from bothub.api.v2.repository.views import RepositoryVotesViewSet
-from bothub.api.v2.repository.views import RepositoryCategoriesView
-from bothub.api.v2.repository.views import SearchRepositoriesViewSet
-from bothub.api.v2.repository.views import RepositoryAuthorizationViewSet
 from bothub.api.v2.repository.views import RepositoryAuthorizationRequestsViewSet
+from bothub.api.v2.repository.views import RepositoryAuthorizationViewSet
+from bothub.api.v2.repository.views import RepositoryCategoriesView
 from bothub.api.v2.repository.views import RepositoryExampleViewSet
 from bothub.api.v2.repository.views import RepositoryUpdatesViewSet
-from bothub.api.v2.repository.serializers import RepositorySerializer
+from bothub.api.v2.repository.views import RepositoryViewSet
+from bothub.api.v2.repository.views import RepositoryVotesViewSet
+from bothub.api.v2.repository.views import SearchRepositoriesViewSet
+from bothub.api.v2.tests.utils import create_user_and_token
+from bothub.common import languages
+from bothub.common.models import Repository
+from bothub.common.models import RepositoryCategory, UserGroupRepository
+from bothub.common.models import RepositoryExample
+from bothub.common.models import RepositoryExampleEntity
+from bothub.common.models import RepositoryTranslatedExample
+from bothub.common.models import RepositoryUpdate
+from bothub.common.models import RepositoryVote
+from bothub.common.models import RequestRepositoryAuthorization
 
 
 def get_valid_mockups(categories):

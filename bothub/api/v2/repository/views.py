@@ -377,7 +377,7 @@ class RepositoryAuthorizationViewSet(
         self.permission_classes = [IsAuthenticated, RepositoryAdminManagerAuthorization]
         response = super().update(*args, **kwargs)
         instance = self.get_object()
-        if instance.usergrouprepository.name is not "Public":
+        if instance.usergrouprepository.name != "Public":
             instance.send_new_role_email(self.request.user)
         return response
 

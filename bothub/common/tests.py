@@ -1,24 +1,22 @@
+from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.utils import timezone
-from django.core.exceptions import ValidationError
-from django.conf import settings
 
 from bothub.authentication.models import User
-
-from .models import Repository, UserGroupRepository
+from . import languages
+from .exceptions import DoesNotHaveTranslation
+from .exceptions import RepositoryUpdateAlreadyStartedTraining
+from .exceptions import RepositoryUpdateAlreadyTrained
+from .exceptions import TrainingNotAllowed
+from .models import Repository
+from .models import RepositoryEntity
+from .models import RepositoryEntityLabel
 from .models import RepositoryExample
 from .models import RepositoryExampleEntity
 from .models import RepositoryTranslatedExample
 from .models import RepositoryTranslatedExampleEntity
-from .models import RepositoryAuthorization
 from .models import RequestRepositoryAuthorization
-from .models import RepositoryEntity
-from .models import RepositoryEntityLabel
-from . import languages
-from .exceptions import RepositoryUpdateAlreadyStartedTraining
-from .exceptions import RepositoryUpdateAlreadyTrained
-from .exceptions import TrainingNotAllowed
-from .exceptions import DoesNotHaveTranslation
 
 
 class RepositoryUpdateTestCase(TestCase):
