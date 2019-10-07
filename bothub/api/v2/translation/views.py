@@ -38,15 +38,15 @@ class RepositoryTranslatedExampleViewSet(
     queryset = RepositoryTranslatedExample.objects
     serializer_class = RepositoryTranslatedExampleSerializer
     permission_classes = [
-        permissions.IsAuthenticatedOrReadOnly,
+        permissions.IsAuthenticated,
         RepositoryTranslatedExamplePermission,
     ]
 
     def create(self, request, *args, **kwargs):
-        self.permission_classes = [permissions.IsAuthenticated]
         return super().create(request, *args, **kwargs)
 
     def list(self, request, *args, **kwargs):
         self.queryset = RepositoryTranslatedExample.objects.all()
+        print('fdasdasdasdas')
         self.filter_class = TranslationsFilter
         return super().list(request, *args, **kwargs)

@@ -45,7 +45,8 @@ from .serializers import AnalyzeTextSerializer
 from .serializers import EvaluateSerializer
 from .serializers import RepositoryUpdateSerializer
 from .serializers import RepositoryUpload
-from .permissions import RepositoryPermission
+from .permissions import RepositoryPermission, RepositoryAuthorizationPermission, RepositoryeUploadExamplePermission, \
+    RepositoryAuthorizationRequestsPermission
 from .permissions import RepositoryTrainPermission
 from .permissions import RepositoryEvaluatePermission
 from .permissions import RepositoryAnalyzePermission
@@ -350,7 +351,7 @@ class RepositoryAuthorizationViewSet(
     serializer_class = RepositoryAuthorizationSerializer
     filter_class = RepositoryAuthorizationFilter
     lookup_fields = ["repository__uuid", "user__nickname"]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, RepositoryAuthorizationPermission]
 
     def get_object(self):
         repository_uuid = self.kwargs.get("repository__uuid")
@@ -395,7 +396,7 @@ class RepositoryAuthorizationRequestsViewSet(
     queryset = RequestRepositoryAuthorization.objects.exclude(approved_by__isnull=False)
     serializer_class = RequestRepositoryAuthorizationSerializer
     filter_class = RepositoryAuthorizationRequestsFilter
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, RepositoryAuthorizationRequestsPermission]
 
     def create(self, request, *args, **kwargs):
         self.queryset = RequestRepositoryAuthorization.objects
@@ -453,6 +454,7 @@ class RepositoryExampleViewSet(
         url_name="repository-upload-examples",
         parser_classes=[parsers.MultiPartParser],
         serializer_class=RepositoryUpload,
+        permission_classes=[RepositoryeUploadExamplePermission]
     )
     def upload_examples(self, request, **kwargs):
         try:
@@ -463,7 +465,7 @@ class RepositoryExampleViewSet(
             raise PermissionDenied()
 
         user_authorization = repository.get_user_authorization(request.user)
-        if not user_authorization.can_write:
+        if not user_authorization.check_permission('write.repositoryuploadexamples'):
             raise PermissionDenied()
 
         f = request.FILES.get("file")

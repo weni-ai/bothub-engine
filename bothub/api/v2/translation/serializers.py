@@ -7,7 +7,7 @@ from bothub.common.languages import LANGUAGE_CHOICES
 from bothub.common.models import RepositoryTranslatedExample
 from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryTranslatedExampleEntity
-from bothub.api.v2.translation.validators import (
+from bothub.api.v2.repository.validators import (
     CanContributeInRepositoryExampleValidator,
 )
 from bothub.api.v2.translation.validators import (

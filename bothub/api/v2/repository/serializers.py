@@ -122,10 +122,6 @@ class RepositoryAuthorizationSerializer(serializers.ModelSerializer):
             "user__nickname",
             "repository",
             "usergrouprepository",
-            "can_read",
-            "can_contribute",
-            "can_write",
-            "is_admin",
             "created_at",
         ]
         read_only = ["user", "user__nickname", "repository", "usergrouprepository", "created_at"]
@@ -291,8 +287,12 @@ class RepositorySerializer(serializers.ModelSerializer):
             return False
         authorization = obj.get_user_authorization(request.user)
 
-        if authorization.usergrouprepository.name == 'Public':
+        if authorization.usergrouprepository.name == 'Public' and not \
+                RequestRepositoryAuthorization.objects.filter(
+                    user=request.user, repository=obj
+                ).count() > 0:
             return True
+
         if authorization.is_owner:
             return False
         try:

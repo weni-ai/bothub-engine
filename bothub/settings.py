@@ -298,7 +298,13 @@ USER_PERMISSIONS = {
         "view.repository",
         "write.repository_analyze",
         "view.repository_train",
-        "write.repository_evaluate"
+        "write.repository_evaluate",
+        "view.repository_authorization",
+        "write.repositoryuploadexamples",
+        "write.repositoryauthorizationrequests",
+        "view.repositoryauthorizationrequests",
+        "edit.repositoryauthorizationrequests",
+        "delete.repositoryauthorizationrequests",
     ],
     "Admin": [
         "write.repository",
@@ -331,7 +337,13 @@ USER_PERMISSIONS = {
         "view.repository",
         "write.repository_analyze",
         "view.repository_train",
-        "write.repository_evaluate"
+        "write.repository_evaluate",
+        "view.repository_authorization",
+        "write.repositoryuploadexamples",
+        "write.repositoryauthorizationrequests",
+        "view.repositoryauthorizationrequests",
+        "edit.repositoryauthorizationrequests",
+        "delete.repositoryauthorizationrequests",
     ],
     "Contributor": [
         "write.repository",
@@ -364,7 +376,13 @@ USER_PERMISSIONS = {
         "view.repository",
         "write.repository_analyze",
         "view.repository_train",
-        "write.repository_evaluate"
+        "write.repository_evaluate",
+        "view.repository_authorization",
+        "write.repositoryuploadexamples",
+        "write.repositoryauthorizationrequests",
+        "view.repositoryauthorizationrequests",
+        "edit.repositoryauthorizationrequests",
+        "delete.repositoryauthorizationrequests",
     ],
     "Public": [
         "view.repositoryupdate",

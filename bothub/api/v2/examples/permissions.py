@@ -19,6 +19,12 @@ class RepositoryExamplePermission(permissions.BasePermission):
         )
 
         if request.user.is_authenticated:
+            if request.method in READ_METHODS:
+                return permission.filter(
+                    codename=PermissionsCode.objects.filter(
+                        codename="view.repositoryexample"
+                    ).first()
+                ).exists()
             if request.method in WRITE_METHODS:
                 return permission.filter(
                     codename=PermissionsCode.objects.filter(

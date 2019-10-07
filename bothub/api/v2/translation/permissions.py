@@ -18,6 +18,7 @@ class RepositoryTranslatedExamplePermission(permissions.BasePermission):
         )
 
         if request.user.is_authenticated:
+            print('foidasda')
             if request.method in READ_METHODS:
                 return permission.filter(
                     codename=PermissionsCode.objects.filter(

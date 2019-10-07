@@ -87,12 +87,15 @@ def get_invalid_mockups(categories):
 
 def create_repository_from_mockup(owner, categories, **mockup):
     r = Repository.objects.create(owner_id=owner.id, **mockup)
+    r.get_user_authorization(owner, 'Owner')
     for category in categories:
         r.categories.add(category)
     return r
 
 
 class CreateRepositoryAPITestCase(TestCase):
+    fixtures = ['permissions.json']
+
     def setUp(self):
         self.factory = RequestFactory()
 
@@ -135,10 +138,13 @@ class CreateRepositoryAPITestCase(TestCase):
 
 
 class RetriveRepositoryTestCase(TestCase):
+    fixtures = ['permissions.json']
+
     def setUp(self):
         self.factory = RequestFactory()
 
         self.owner, self.owner_token = create_user_and_token("owner")
+        self.user, self.user_token = create_user_and_token()
         self.category = RepositoryCategory.objects.create(name="Category 1")
 
         self.repositories = [
@@ -170,16 +176,18 @@ class RetriveRepositoryTestCase(TestCase):
 
     def test_private_repository(self):
         for repository in self.repositories:
-            response, content_data = self.request(repository)
+            response, content_data = self.request(repository, self.user_token)
             self.assertEqual(
                 response.status_code,
-                status.HTTP_401_UNAUTHORIZED
+                status.HTTP_403_FORBIDDEN
                 if repository.is_private
                 else status.HTTP_200_OK,
             )
 
 
 class UpdateRepositoryTestCase(TestCase):
+    fixtures = ['permissions.json']
+
     def setUp(self):
         self.factory = RequestFactory()
 
@@ -233,6 +241,8 @@ class UpdateRepositoryTestCase(TestCase):
 
 
 class RepositoryAuthorizationTestCase(TestCase):
+    fixtures = ['permissions.json']
+
     def setUp(self):
         self.factory = RequestFactory()
 
@@ -287,6 +297,8 @@ class RepositoryAuthorizationTestCase(TestCase):
 
 
 class RepositoryAvailableRequestAuthorizationTestCase(TestCase):
+    fixtures = ['permissions.json']
+
     def setUp(self):
         self.factory = RequestFactory()
 
@@ -299,6 +311,8 @@ class RepositoryAvailableRequestAuthorizationTestCase(TestCase):
             slug="test",
             language=languages.LANGUAGE_EN,
         )
+
+        self.repository.get_user_authorization(self.owner, 'Owner')
 
     def request(self, repository, token=None):
         authorization_header = (
@@ -343,6 +357,8 @@ class RepositoryAvailableRequestAuthorizationTestCase(TestCase):
 
 
 class IntentsInRepositorySerializerTestCase(TestCase):
+    fixtures = ['permissions.json']
+
     def setUp(self):
         self.owner, self.owner_token = create_user_and_token("owner")
 
@@ -352,6 +368,9 @@ class IntentsInRepositorySerializerTestCase(TestCase):
             slug="test",
             language=languages.LANGUAGE_EN,
         )
+
+        self.repository.get_user_authorization(self.owner, 'Owner')
+
         RepositoryExample.objects.create(
             repository_update=self.repository.current_update(),
             text="hi",
@@ -379,6 +398,8 @@ class IntentsInRepositorySerializerTestCase(TestCase):
 
 
 class RepositoriesViewSetTestCase(TestCase):
+    fixtures = ['permissions.json']
+
     def setUp(self):
         self.factory = RequestFactory()
         self.owner, self.owner_token = create_user_and_token("owner")
@@ -423,6 +444,8 @@ class RepositoriesViewSetTestCase(TestCase):
 
 
 class RepositoriesLanguageFilterTestCase(TestCase):
+    fixtures = ['permissions.json']
+
     def setUp(self):
         self.factory = RequestFactory()
         self.owner, self.owner_token = create_user_and_token("owner")
@@ -433,18 +456,26 @@ class RepositoriesLanguageFilterTestCase(TestCase):
             slug="test en_1",
             language=languages.LANGUAGE_EN,
         )
+
+        self.repository_en_1.get_user_authorization(self.owner, 'Owner')
+
         self.repository_en_2 = Repository.objects.create(
             owner=self.owner,
             name="Testing en_2",
             slug="en_2",
             language=languages.LANGUAGE_EN,
         )
+
+        self.repository_en_2.get_user_authorization(self.owner, 'Owner')
+
         self.repository_pt = Repository.objects.create(
             owner=self.owner,
             name="Testing pt",
             slug="pt",
             language=languages.LANGUAGE_PT,
         )
+
+        self.repository_pt.get_user_authorization(self.owner, 'Owner')
 
     def request(self, data={}, token=None):
         authorization_header = (
@@ -499,6 +530,8 @@ class RepositoriesLanguageFilterTestCase(TestCase):
 
 
 class ListRepositoryVoteTestCase(TestCase):
+    fixtures = ['permissions.json']
+
     def setUp(self):
         self.factory = RequestFactory()
 
@@ -511,6 +544,8 @@ class ListRepositoryVoteTestCase(TestCase):
             slug="test",
             language=languages.LANGUAGE_EN,
         )
+
+        self.repository.get_user_authorization(self.owner, 'Owner')
 
         self.repository_votes = RepositoryVote.objects.create(
             user=self.owner, repository=self.repository
@@ -556,6 +591,8 @@ class ListRepositoryVoteTestCase(TestCase):
 
 
 class NewRepositoryVoteTestCase(TestCase):
+    fixtures = ['permissions.json']
+
     def setUp(self):
         self.factory = RequestFactory()
 
@@ -568,6 +605,8 @@ class NewRepositoryVoteTestCase(TestCase):
             slug="test",
             language=languages.LANGUAGE_EN,
         )
+
+        self.repository.get_user_authorization(self.owner, 'Owner')
 
     def request(self, data, token):
         authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token)}
@@ -601,6 +640,8 @@ class NewRepositoryVoteTestCase(TestCase):
 
 
 class DestroyRepositoryVoteTestCase(TestCase):
+    fixtures = ['permissions.json']
+
     def setUp(self):
         self.factory = RequestFactory()
 
@@ -613,6 +654,8 @@ class DestroyRepositoryVoteTestCase(TestCase):
             slug="test",
             language=languages.LANGUAGE_EN,
         )
+
+        self.repository.get_user_authorization(self.owner, 'Owner')
 
         self.repository_votes = RepositoryVote.objects.create(
             user=self.owner, repository=self.repository
@@ -641,6 +684,8 @@ class DestroyRepositoryVoteTestCase(TestCase):
 
 
 class ListRepositoryContributionsTestCase(TestCase):
+    fixtures = ['permissions.json']
+
     def setUp(self):
         self.factory = RequestFactory()
 
@@ -654,6 +699,8 @@ class ListRepositoryContributionsTestCase(TestCase):
             language=languages.LANGUAGE_EN,
         )
 
+        self.repository.get_user_authorization(self.owner, 'Owner')
+
         text = "I can contribute"
         self.repository_request_auth = RequestRepositoryAuthorization.objects.create(
             user=self.user,
@@ -662,9 +709,7 @@ class ListRepositoryContributionsTestCase(TestCase):
             text=text,
         )
 
-        self.repository_auth = RepositoryAuthorization.objects.create(
-            user=self.user, repository=self.repository, role=0
-        )
+        self.repository_auth = self.repository.get_user_authorization(self.user, 'Owner')
 
     def request(self):
         request = self.factory.get(
@@ -685,6 +730,8 @@ class ListRepositoryContributionsTestCase(TestCase):
 
 
 class CategoriesTestCase(TestCase):
+    fixtures = ['permissions.json']
+
     def setUp(self):
         self.factory = RequestFactory()
 
@@ -712,6 +759,8 @@ class CategoriesTestCase(TestCase):
 
 
 class SearchRepositoriesTestCase(TestCase):
+    fixtures = ['permissions.json']
+
     def setUp(self):
         self.factory = RequestFactory()
 
@@ -726,6 +775,9 @@ class SearchRepositoriesTestCase(TestCase):
             slug="test",
             language=languages.LANGUAGE_EN,
         )
+
+        self.repository.get_user_authorization(self.owner, 'Owner')
+
         self.repository.categories.add(self.category)
 
     def request(self, nickname):
@@ -759,6 +811,8 @@ class SearchRepositoriesTestCase(TestCase):
 
 
 class ListAuthorizationTestCase(TestCase):
+    fixtures = ['permissions.json']
+
     def setUp(self):
         self.factory = RequestFactory()
 
@@ -772,9 +826,7 @@ class ListAuthorizationTestCase(TestCase):
             language=languages.LANGUAGE_EN,
         )
 
-        self.user_auth = self.repository.get_user_authorization(self.user)
-        self.user_auth.role = RepositoryAuthorization.ROLE_CONTRIBUTOR
-        self.user_auth.save()
+        self.user_auth = self.repository.get_user_authorization(self.owner, 'Contributor')
 
     def request(self, repository, token):
         authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
@@ -795,7 +847,7 @@ class ListAuthorizationTestCase(TestCase):
 
         self.assertEqual(content_data.get("count"), 1)
 
-        self.assertEqual(content_data.get("results")[0].get("user"), self.user.id)
+        self.assertEqual(content_data.get("results")[0].get("user"), self.owner.pk)
 
     def test_user_forbidden(self):
         response, content_data = self.request(self.repository, self.user_token)
@@ -804,6 +856,8 @@ class ListAuthorizationTestCase(TestCase):
 
 
 class UpdateAuthorizationRoleTestCase(TestCase):
+    fixtures = ['permissions.json']
+
     def setUp(self):
         self.factory = RequestFactory()
 
@@ -816,6 +870,8 @@ class UpdateAuthorizationRoleTestCase(TestCase):
             slug="test",
             language=languages.LANGUAGE_EN,
         )
+
+        self.repository.get_user_authorization(self.owner, 'Owner')
 
     def request(self, repository, token, user, data):
         authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
@@ -875,6 +931,8 @@ class UpdateAuthorizationRoleTestCase(TestCase):
 
 
 class RepositoryAuthorizationRequestsTestCase(TestCase):
+    fixtures = ['permissions.json']
+
     def setUp(self):
         self.factory = RequestFactory()
 
@@ -893,9 +951,9 @@ class RepositoryAuthorizationRequestsTestCase(TestCase):
             user=self.user, repository=self.repository, text="I can contribute"
         )
 
-        admin_autho = self.repository.get_user_authorization(self.admin)
-        admin_autho.role = RepositoryAuthorization.ROLE_ADMIN
-        admin_autho.save()
+        self.repository.get_user_authorization(self.owner, return_group='Owner')
+        self.repository.get_user_authorization(self.user)
+        self.repository.get_user_authorization(self.admin, return_group='Admin')
 
     def request(self, data, token=None):
         authorization_header = (
@@ -983,6 +1041,8 @@ class RequestAuthorizationTestCase(TestCase):
 
 
 class ReviewAuthorizationRequestTestCase(TestCase):
+    fixtures = ['permissions.json']
+
     def setUp(self):
         self.factory = RequestFactory()
 
@@ -1001,9 +1061,9 @@ class ReviewAuthorizationRequestTestCase(TestCase):
             user=self.user, repository=repository, text="I can contribute"
         )
 
-        admin_autho = repository.get_user_authorization(self.admin)
-        admin_autho.role = RepositoryAuthorization.ROLE_ADMIN
-        admin_autho.save()
+        repository.get_user_authorization(self.admin, return_group='Admin')
+        repository.get_user_authorization(self.owner, return_group='Owner')
+        repository.get_user_authorization(self.user)
 
     def request_approve(self, ra, token=None):
         authorization_header = (
@@ -1070,6 +1130,8 @@ class ReviewAuthorizationRequestTestCase(TestCase):
 
 
 class RepositoryExampleRetrieveTestCase(TestCase):
+    fixtures = ['permissions.json']
+
     def setUp(self):
         self.factory = RequestFactory()
 
@@ -1082,6 +1144,10 @@ class RepositoryExampleRetrieveTestCase(TestCase):
             slug="test",
             language=languages.LANGUAGE_EN,
         )
+
+        self.repository.get_user_authorization(self.owner, 'Owner')
+        self.repository.get_user_authorization(self.user, 'Contributor')
+
         self.example = RepositoryExample.objects.create(
             repository_update=self.repository.current_update(), text="my name is user"
         )
@@ -1096,14 +1162,17 @@ class RepositoryExampleRetrieveTestCase(TestCase):
             language=languages.LANGUAGE_EN,
             is_private=True,
         )
+
+        self.private_repository.get_user_authorization(self.owner, 'Owner')
+
         self.private_example = RepositoryExample.objects.create(
             repository_update=self.private_repository.current_update(), text="hi"
         )
 
-    def request(self, example, token):
+    def request(self, example, token, repository):
         authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
         request = self.factory.get(
-            "/v2/repository/example/{}/".format(example.id), **authorization_header
+            "/v2/repository/example/{}/?repository_uuid={}".format(example.id, repository), **authorization_header
         )
         response = RepositoryExampleViewSet.as_view({"get": "retrieve"})(
             request, pk=example.id
@@ -1113,26 +1182,26 @@ class RepositoryExampleRetrieveTestCase(TestCase):
         return (response, content_data)
 
     def test_okay(self):
-        response, content_data = self.request(self.example, self.owner_token)
+        response, content_data = self.request(self.example, self.owner_token, self.repository.pk)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(content_data.get("id"), self.example.id)
 
     def test_forbidden(self):
-        response, content_data = self.request(self.private_example, self.user_token)
+        response, content_data = self.request(self.private_example, self.user_token, self.private_repository.pk)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_public(self):
-        response, content_data = self.request(self.example, self.user_token)
+        response, content_data = self.request(self.example, self.user_token, self.repository.pk)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(content_data.get("id"), self.example.id)
 
     def test_list_entities(self):
-        response, content_data = self.request(self.example, self.owner_token)
+        response, content_data = self.request(self.example, self.owner_token, self.repository.pk)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(content_data.get("entities")), 1)
 
     def test_entity_has_label(self):
-        response, content_data = self.request(self.example, self.owner_token)
+        response, content_data = self.request(self.example, self.owner_token, self.repository.pk)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         entity = content_data.get("entities")[0]
         self.assertIn("label", entity.keys())
@@ -1141,7 +1210,7 @@ class RepositoryExampleRetrieveTestCase(TestCase):
         label = "subject"
         self.example_entity.entity.set_label("subject")
         self.example_entity.entity.save(update_fields=["label"])
-        response, content_data = self.request(self.example, self.owner_token)
+        response, content_data = self.request(self.example, self.owner_token, self.repository.pk)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         entity = content_data.get("entities")[0]
         self.assertIn("label", entity.keys())
@@ -1149,6 +1218,8 @@ class RepositoryExampleRetrieveTestCase(TestCase):
 
 
 class RepositoryExampleUploadTestCase(TestCase):
+    fixtures = ['permissions.json']
+
     def setUp(self):
         self.factory = RequestFactory()
 
@@ -1161,6 +1232,8 @@ class RepositoryExampleUploadTestCase(TestCase):
             slug="test",
             language=languages.LANGUAGE_EN,
         )
+
+        self.repository.get_user_authorization(self.owner, 'Owner')
 
     def request(self, token):
         authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
@@ -1218,6 +1291,8 @@ class RepositoryExampleUploadTestCase(TestCase):
 
 
 class RepositoryExampleDestroyTestCase(TestCase):
+    fixtures = ['permissions.json']
+
     def setUp(self):
         self.factory = RequestFactory()
 
@@ -1230,6 +1305,9 @@ class RepositoryExampleDestroyTestCase(TestCase):
             slug="test",
             language=languages.LANGUAGE_EN,
         )
+
+        self.repository.get_user_authorization(self.owner, 'Owner')
+
         self.example = RepositoryExample.objects.create(
             repository_update=self.repository.current_update(), text="hi"
         )
@@ -1241,6 +1319,9 @@ class RepositoryExampleDestroyTestCase(TestCase):
             language=languages.LANGUAGE_EN,
             is_private=True,
         )
+
+        self.private_repository.get_user_authorization(self.owner, 'Owner')
+
         self.private_example = RepositoryExample.objects.create(
             repository_update=self.private_repository.current_update(), text="hi"
         )
@@ -1279,6 +1360,8 @@ class RepositoryExampleDestroyTestCase(TestCase):
 
 
 class RepositoryExampleUpdateTestCase(TestCase):
+    fixtures = ['permissions.json']
+
     def setUp(self):
         self.factory = RequestFactory()
 
@@ -1291,6 +1374,9 @@ class RepositoryExampleUpdateTestCase(TestCase):
             slug="test",
             language=languages.LANGUAGE_EN,
         )
+
+        self.repository.get_user_authorization(self.owner, 'Owner')
+
         self.example = RepositoryExample.objects.create(
             repository_update=self.repository.current_update(), text="hi"
         )
@@ -1302,6 +1388,9 @@ class RepositoryExampleUpdateTestCase(TestCase):
             language=languages.LANGUAGE_EN,
             is_private=True,
         )
+
+        self.private_repository.get_user_authorization(self.owner, 'Owner')
+
         self.private_example = RepositoryExample.objects.create(
             repository_update=self.private_repository.current_update(), text="hi"
         )
@@ -1346,6 +1435,8 @@ class RepositoryExampleUpdateTestCase(TestCase):
 
 
 class NewRepositoryExampleTestCase(TestCase):
+    fixtures = ['permissions.json']
+
     def setUp(self):
         self.factory = RequestFactory()
 
@@ -1358,6 +1449,8 @@ class NewRepositoryExampleTestCase(TestCase):
             slug="test",
             language=languages.LANGUAGE_EN,
         )
+
+        self.repository.get_user_authorization(self.owner, 'Owner')
 
     def request(self, token, data):
         authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
@@ -1585,6 +1678,8 @@ class NewRepositoryExampleTestCase(TestCase):
 
 
 class RetrieveRepositoryTestCase(TestCase):
+    fixtures = ['permissions.json']
+
     def setUp(self):
         self.factory = RequestFactory()
 
@@ -1598,6 +1693,8 @@ class RetrieveRepositoryTestCase(TestCase):
             language=languages.LANGUAGE_EN,
         )
 
+        self.repository.get_user_authorization(self.owner, 'Owner')
+
         self.private_repository = Repository.objects.create(
             owner=self.owner,
             name="Testing Private",
@@ -1605,6 +1702,8 @@ class RetrieveRepositoryTestCase(TestCase):
             language=languages.LANGUAGE_EN,
             is_private=True,
         )
+
+        self.private_repository.get_user_authorization(self.owner, 'Owner')
 
     def request(self, repository, token):
         authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
@@ -1653,6 +1752,7 @@ class RetrieveRepositoryTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_available_request_authorization(self):
+        self.private_repository.get_user_authorization(self.user, 'Contributor')
         response, content_data = self.request(self.repository, self.user_token)
         self.assertTrue(content_data.get("available_request_authorization"))
 
@@ -1661,9 +1761,7 @@ class RetrieveRepositoryTestCase(TestCase):
         self.assertFalse(content_data.get("available_request_authorization"))
 
     def test_user_not_available_request_authorization(self):
-        authorization = self.repository.get_user_authorization(self.user)
-        authorization.role = RepositoryAuthorization.ROLE_USER
-        authorization.save()
+        self.repository.get_user_authorization(self.user)
         response, content_data = self.request(self.repository, self.user_token)
         self.assertFalse(content_data.get("available_request_authorization"))
 
@@ -1720,6 +1818,8 @@ class TrainRepositoryTestCase(TestCase):
 
 
 class AnalyzeRepositoryTestCase(TestCase):
+    fixtures = ['permissions.json']
+
     def setUp(self):
         self.factory = RequestFactory()
 
@@ -1732,6 +1832,9 @@ class AnalyzeRepositoryTestCase(TestCase):
             slug="test",
             language=languages.LANGUAGE_EN,
         )
+
+        self.repository.get_user_authorization(self.owner, 'Owner')
+
         self.private_repository = Repository.objects.create(
             owner=self.owner,
             name="Testing",
@@ -1739,6 +1842,9 @@ class AnalyzeRepositoryTestCase(TestCase):
             language=languages.LANGUAGE_EN,
             is_private=True,
         )
+
+        self.repository.get_user_authorization(self.owner, 'Owner')
+        self.repository.get_user_authorization(self.user)
 
     def request(self, repository, token, data):
         authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
@@ -1780,6 +1886,8 @@ class AnalyzeRepositoryTestCase(TestCase):
 
 
 class UpdatesTestCase(TestCase):
+    fixtures = ['permissions.json']
+
     def setUp(self):
         self.factory = RequestFactory()
 
@@ -1798,7 +1906,7 @@ class UpdatesTestCase(TestCase):
         RepositoryExample.objects.create(
             repository_update=current_update, text="my name is John", intent="greet"
         )
-        current_update.start_training(self.owner)
+        current_update.start_training(self.owner, 'Owner')
 
     def request(self, data, token=None):
         authorization_header = (

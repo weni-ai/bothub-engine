@@ -39,7 +39,7 @@ class RepositoryAuthorizationFilter(filters.FilterSet):
         try:
             repository = Repository.objects.get(uuid=value)
             authorization = repository.get_user_authorization(request.user)
-            if not authorization.is_admin:
+            if not authorization.check_permission('view.repository_authorization'):
                 raise PermissionDenied()
             return queryset.filter(repository=repository)
         except Repository.DoesNotExist:
@@ -65,7 +65,7 @@ class RepositoryAuthorizationRequestsFilter(filters.FilterSet):
         try:
             repository = Repository.objects.get(uuid=value)
             authorization = repository.get_user_authorization(request.user)
-            if not authorization.is_admin:
+            if not authorization.check_permission('view.repositoryauthorizationrequests'):
                 raise PermissionDenied()
             return queryset.filter(repository=repository)
         except Repository.DoesNotExist:
@@ -91,7 +91,7 @@ class RepositoryUpdatesFilter(filters.FilterSet):
         try:
             repository = Repository.objects.get(uuid=value)
             authorization = repository.get_user_authorization(request.user)
-            if not authorization.can_read:
+            if not authorization.check_permission('view.repositoryupdate'):
                 raise PermissionDenied()
             return queryset.filter(repository=repository)
         except Repository.DoesNotExist:

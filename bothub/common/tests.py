@@ -174,6 +174,8 @@ class TranslateTestCase(TestCase):
 
 
 class RepositoryTestCase(TestCase):
+    fixtures = ['permissions.json']
+
     def setUp(self):
         self.owner = User.objects.create_user("owner@user.com", "owner")
         self.user = User.objects.create_user("fake@user.com", "user")
@@ -184,6 +186,11 @@ class RepositoryTestCase(TestCase):
         self.private_repository = Repository.objects.create(
             owner=self.owner, name="Test", slug="private", is_private=True
         )
+
+        self.repository.get_user_authorization(self.owner, 'Owner')
+        self.private_repository.get_user_authorization(self.owner, 'Owner')
+        self.repository.get_user_authorization(self.user)
+        self.private_repository.get_user_authorization(self.user)
 
         example_1 = RepositoryExample.objects.create(
             repository_update=self.repository.current_update(languages.LANGUAGE_EN),
@@ -306,16 +313,16 @@ class RepositoryAuthorizationTestCase(TestCase):
         )
 
     def test_admin_level(self):
-        authorization = self.repository.get_user_authorization(self.owner)
-        self.assertEqual(authorization.level, RepositoryAuthorization.LEVEL_ADMIN)
+        authorization = self.repository.get_user_authorization(self.owner, 'Admin')
+        self.assertEqual(authorization.usergrouprepository.name, 'Admin')
 
     def test_read_level(self):
         authorization = self.repository.get_user_authorization(self.user)
-        self.assertEqual(authorization.level, RepositoryAuthorization.LEVEL_READER)
+        self.assertEqual(authorization.usergrouprepository.name, 'Public')
 
     def test_nothing_level(self):
         authorization = self.private_repository.get_user_authorization(self.user)
-        self.assertEqual(authorization.level, RepositoryAuthorization.LEVEL_NOTHING)
+        self.assertEqual(authorization.usergrouprepository.name, 'Public')
 
     def test_can_read(self):
         # repository owner
@@ -785,15 +792,13 @@ class RequestRepositoryAuthorizationTestCase(TestCase):
             user=self.user, repository=repository, text="I can contribute"
         )
         self.admin = User.objects.create_user("admin@user.com", "admin")
-        admin_authorization = repository.get_user_authorization(self.admin)
-        admin_authorization.role = RepositoryAuthorization.ROLE_ADMIN # TODO:
-        admin_authorization.save()
+        repository.get_user_authorization(self.admin, return_group='Admin')
 
     def test_approve(self):
         self.ra.approved_by = self.owner
         self.ra.save()
         user_authorization = self.ra.repository.get_user_authorization(self.ra.user)
-        self.assertEqual(user_authorization.role, RepositoryAuthorization.ROLE_USER)
+        self.assertEqual(user_authorization.usergrouprepository.name, 'Public')
 
     def test_approve_twice(self):
         self.ra.approved_by = self.owner

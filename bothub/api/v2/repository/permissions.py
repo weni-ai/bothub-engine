@@ -18,6 +18,9 @@ class RepositoryPermission(permissions.BasePermission):
         if request.method in READ_METHODS and not request.user.is_authenticated:
             return True
 
+        if request.user.is_authenticated and obj.is_private and usergrouprepository.name == 'Public':
+            return False
+
         if request.user.is_authenticated:
             if request.method in READ_METHODS:
                 return permission.filter(
@@ -43,6 +46,7 @@ class RepositoryPermission(permissions.BasePermission):
                         codename="delete.repository"
                     ).first()
                 ).exists()
+
         return False
 
 
@@ -167,6 +171,84 @@ class RepositoryEvaluatePermission(permissions.BasePermission):
                 return permission.filter(
                     codename=PermissionsCode.objects.filter(
                         codename="write.repository_evaluate"
+                    ).first()
+                ).exists()
+        return False
+
+
+class RepositoryAuthorizationPermission(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        authorization = obj.get_user_authorization(request.user)
+        usergrouprepository = authorization.usergrouprepository
+        permission = UserPermissionRepository.objects.filter(
+            usergrouprepository=usergrouprepository
+        )
+
+        if request.user.is_authenticated:
+            if request.method in READ_METHODS:
+                return permission.filter(
+                    codename=PermissionsCode.objects.filter(
+                        codename="view.repository_authorization"
+                    ).first()
+                ).exists()
+            if request.method in EDIT_METHODS:
+                return permission.filter(
+                    codename=PermissionsCode.objects.filter(
+                        codename="edit.repository_authorization"
+                    ).first()
+                ).exists()
+        return False
+
+
+class RepositoryeUploadExamplePermission(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        authorization = obj.get_user_authorization(request.user)
+        usergrouprepository = authorization.usergrouprepository
+        permission = UserPermissionRepository.objects.filter(
+            usergrouprepository=usergrouprepository
+        )
+
+        if request.user.is_authenticated:
+            if request.method in WRITE_METHODS:
+                return permission.filter(
+                    codename=PermissionsCode.objects.filter(
+                        codename="write.repositoryuploadexamples"
+                    ).first()
+                ).exists()
+        return False
+
+
+class RepositoryAuthorizationRequestsPermission(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        authorization = obj.get_user_authorization(request.user)
+        usergrouprepository = authorization.usergrouprepository
+        permission = UserPermissionRepository.objects.filter(
+            usergrouprepository=usergrouprepository
+        )
+
+        if request.user.is_authenticated:
+            if request.method in WRITE_METHODS:
+                return permission.filter(
+                    codename=PermissionsCode.objects.filter(
+                        codename="write.repositoryauthorizationrequests"
+                    ).first()
+                ).exists()
+            if request.method in READ_METHODS:
+                return permission.filter(
+                    codename=PermissionsCode.objects.filter(
+                        codename="view.repositoryauthorizationrequests"
+                    ).first()
+                ).exists()
+            if request.method in EDIT_METHODS:
+                return permission.filter(
+                    codename=PermissionsCode.objects.filter(
+                        codename="edit.repositoryauthorizationrequests"
+                    ).first()
+                ).exists()
+            if request.method in DELETE_METHODS:
+                return permission.filter(
+                    codename=PermissionsCode.objects.filter(
+                        codename="delete.repositoryauthorizationrequests"
                     ).first()
                 ).exists()
         return False
