@@ -124,7 +124,13 @@ class RepositoryAuthorizationSerializer(serializers.ModelSerializer):
             "usergrouprepository",
             "created_at",
         ]
-        read_only = ["user", "user__nickname", "repository", "usergrouprepository", "created_at"]
+        read_only = [
+            "user",
+            "user__nickname",
+            "repository",
+            "usergrouprepository",
+            "created_at",
+        ]
         ref_name = None
 
     user__nickname = serializers.SlugRelatedField(
@@ -266,7 +272,7 @@ class RepositorySerializer(serializers.ModelSerializer):
             return None
 
         return RepositoryAuthorizationSerializer(
-            obj.get_user_authorization(request.user, return_group='Owner')
+            obj.get_user_authorization(request.user, return_group="Owner")
         ).data
 
     def get_request_authorization(self, obj):
@@ -287,13 +293,16 @@ class RepositorySerializer(serializers.ModelSerializer):
             return False
         authorization = obj.get_user_authorization(request.user)
 
-        if authorization.usergrouprepository.name == 'Public' and not \
-                RequestRepositoryAuthorization.objects.filter(
-                    user=request.user, repository=obj
-                ).count() > 0:
+        if (
+            authorization.usergrouprepository.name == "Public"
+            and not RequestRepositoryAuthorization.objects.filter(
+                user=request.user, repository=obj
+            ).count()
+            > 0
+        ):
             return True
 
-        if authorization.usergrouprepository.name != 'Public':
+        if authorization.usergrouprepository.name != "Public":
             return False
 
         if authorization.is_owner:

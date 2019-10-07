@@ -35,7 +35,7 @@ class TranslationsFilter(filters.FilterSet):
         try:
             repository = Repository.objects.get(uuid=value)
             authorization = repository.get_user_authorization(request.user)
-            if not authorization.check_permission('view.repositorytranslatedexample'):
+            if not authorization.check_permission("view.repositorytranslatedexample"):
                 raise PermissionDenied()
             return RepositoryTranslatedExample.objects.filter(
                 original_example__repository_update__repository=repository

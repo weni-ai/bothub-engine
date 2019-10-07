@@ -16,7 +16,7 @@ from .utils import create_user_and_token
 
 
 class TranslateExampleTestCase(TestCase):
-    fixtures = ['permissions.json']
+    fixtures = ["permissions.json"]
 
     def setUp(self):
         self.factory = RequestFactory()
@@ -30,7 +30,7 @@ class TranslateExampleTestCase(TestCase):
             language=languages.LANGUAGE_EN,
         )
 
-        self.repository.get_user_authorization(self.owner, 'Owner')
+        self.repository.get_user_authorization(self.owner, "Owner")
 
         self.example = RepositoryExample.objects.create(
             repository_update=self.repository.current_update(), text="hi"
@@ -172,7 +172,7 @@ class TranslateExampleTestCase(TestCase):
 
 
 class RepositoryTranslatedExampleRetrieveTestCase(TestCase):
-    fixtures = ['permissions.json']
+    fixtures = ["permissions.json"]
 
     def setUp(self):
         self.factory = RequestFactory()
@@ -186,7 +186,7 @@ class RepositoryTranslatedExampleRetrieveTestCase(TestCase):
             language=languages.LANGUAGE_EN,
         )
 
-        self.repository.get_user_authorization(self.owner, 'Owner')
+        self.repository.get_user_authorization(self.owner, "Owner")
 
         self.example = RepositoryExample.objects.create(
             repository_update=self.repository.current_update(), text="hi"
@@ -203,7 +203,7 @@ class RepositoryTranslatedExampleRetrieveTestCase(TestCase):
             is_private=True,
         )
 
-        self.private_repository.get_user_authorization(self.owner, 'Owner')
+        self.private_repository.get_user_authorization(self.owner, "Owner")
 
         self.private_example = RepositoryExample.objects.create(
             repository_update=self.private_repository.current_update(), text="hi"
@@ -244,7 +244,7 @@ class RepositoryTranslatedExampleRetrieveTestCase(TestCase):
 
 
 class RepositoryTranslatedExampleDestroyTestCase(TestCase):
-    fixtures = ['permissions.json']
+    fixtures = ["permissions.json"]
 
     def setUp(self):
         self.factory = RequestFactory()
@@ -258,7 +258,7 @@ class RepositoryTranslatedExampleDestroyTestCase(TestCase):
             language=languages.LANGUAGE_EN,
         )
 
-        self.repository.get_user_authorization(self.owner, 'Owner')
+        self.repository.get_user_authorization(self.owner, "Owner")
 
         self.example = RepositoryExample.objects.create(
             repository_update=self.repository.current_update(), text="hi"
@@ -289,7 +289,7 @@ class RepositoryTranslatedExampleDestroyTestCase(TestCase):
 
 
 class TranslationsViewTest(TestCase):
-    fixtures = ['permissions.json']
+    fixtures = ["permissions.json"]
 
     def setUp(self):
         self.factory = RequestFactory()
@@ -303,7 +303,7 @@ class TranslationsViewTest(TestCase):
             language=languages.LANGUAGE_EN,
         )
 
-        self.repository.get_user_authorization(self.owner, 'Owner')
+        self.repository.get_user_authorization(self.owner, "Owner")
 
         self.example = RepositoryExample.objects.create(
             repository_update=self.repository.current_update(), text="hi"
@@ -318,23 +318,31 @@ class TranslationsViewTest(TestCase):
             if user_token
             else {}
         )
-        request = self.factory.get("/v2/repository/translation/", data, **authorization_header)
+        request = self.factory.get(
+            "/v2/repository/translation/", data, **authorization_header
+        )
         response = RepositoryTranslatedExampleViewSet.as_view({"get": "list"})(request)
         response.render()
         content_data = json.loads(response.content)
         return (response, content_data)
 
     def test_okay(self):
-        response, content_data = self.request({"repository_uuid": self.repository.uuid}, self.owner_token)
+        response, content_data = self.request(
+            {"repository_uuid": self.repository.uuid}, self.owner_token
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(content_data.get("count"), 1)
 
     def test_repository_not_found(self):
-        response, content_data = self.request({"repository_uuid": uuid.uuid4()}, self.owner_token)
+        response, content_data = self.request(
+            {"repository_uuid": uuid.uuid4()}, self.owner_token
+        )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_repository_uuid_invalid(self):
-        response, content_data = self.request({"repository_uuid": "invalid"}, self.owner_token)
+        response, content_data = self.request(
+            {"repository_uuid": "invalid"}, self.owner_token
+        )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_forbidden(self):
@@ -347,8 +355,7 @@ class TranslationsViewTest(TestCase):
         )
 
         response, content_data = self.request(
-            {"repository_uuid": private_repository.uuid},
-            self.owner_token
+            {"repository_uuid": private_repository.uuid}, self.owner_token
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -372,7 +379,7 @@ class TranslationsViewTest(TestCase):
                 "repository_uuid": self.repository.uuid,
                 "from_language": self.example.repository_update.language,
             },
-            self.owner_token
+            self.owner_token,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(content_data.get("count"), 1)
@@ -383,7 +390,7 @@ class TranslationsViewTest(TestCase):
                 "repository_uuid": self.repository.uuid,
                 "from_language": example.repository_update.language,
             },
-            self.owner_token
+            self.owner_token,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(content_data.get("count"), 1)
@@ -403,7 +410,7 @@ class TranslationsViewTest(TestCase):
                 "repository_uuid": self.repository.uuid,
                 "to_language": self.translated.language,
             },
-            self.owner_token
+            self.owner_token,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(content_data.get("count"), 2)
@@ -413,7 +420,7 @@ class TranslationsViewTest(TestCase):
                 "repository_uuid": self.repository.uuid,
                 "to_language": languages.LANGUAGE_DE,
             },
-            self.owner_token
+            self.owner_token,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(content_data.get("count"), 0)

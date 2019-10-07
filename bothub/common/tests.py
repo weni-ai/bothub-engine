@@ -174,7 +174,7 @@ class TranslateTestCase(TestCase):
 
 
 class RepositoryTestCase(TestCase):
-    fixtures = ['permissions.json']
+    fixtures = ["permissions.json"]
 
     def setUp(self):
         self.owner = User.objects.create_user("owner@user.com", "owner")
@@ -187,8 +187,8 @@ class RepositoryTestCase(TestCase):
             owner=self.owner, name="Test", slug="private", is_private=True
         )
 
-        self.repository.get_user_authorization(self.owner, 'Owner')
-        self.private_repository.get_user_authorization(self.owner, 'Owner')
+        self.repository.get_user_authorization(self.owner, "Owner")
+        self.private_repository.get_user_authorization(self.owner, "Owner")
         self.repository.get_user_authorization(self.user)
         self.private_repository.get_user_authorization(self.user)
 
@@ -299,7 +299,7 @@ class RepositoryExampleTestCase(TestCase):
 
 
 class RepositoryAuthorizationTestCase(TestCase):
-    fixtures = ['permissions.json']
+    fixtures = ["permissions.json"]
 
     def setUp(self):
         self.owner = User.objects.create_user("owner@user.com", "owner")
@@ -313,119 +313,143 @@ class RepositoryAuthorizationTestCase(TestCase):
         )
 
     def test_admin_level(self):
-        authorization = self.repository.get_user_authorization(self.owner, 'Admin')
-        self.assertEqual(authorization.usergrouprepository.name, 'Admin')
+        authorization = self.repository.get_user_authorization(self.owner, "Admin")
+        self.assertEqual(authorization.usergrouprepository.name, "Admin")
 
     def test_read_level(self):
         authorization = self.repository.get_user_authorization(self.user)
-        self.assertEqual(authorization.usergrouprepository.name, 'Public')
+        self.assertEqual(authorization.usergrouprepository.name, "Public")
 
     def test_nothing_level(self):
         authorization = self.private_repository.get_user_authorization(self.user)
-        self.assertEqual(authorization.usergrouprepository.name, 'Public')
+        self.assertEqual(authorization.usergrouprepository.name, "Public")
 
     def test_can_read(self):
         # repository owner
-        authorization_owner = self.repository.get_user_authorization(self.owner, return_group='Owner')
-        self.assertTrue(authorization_owner.check_permission('view.repository'))
+        authorization_owner = self.repository.get_user_authorization(
+            self.owner, return_group="Owner"
+        )
+        self.assertTrue(authorization_owner.check_permission("view.repository"))
         # # secondary user in public repository
         authorization_user = self.repository.get_user_authorization(self.user)
-        self.assertTrue(authorization_user.check_permission('view.repository'))
+        self.assertTrue(authorization_user.check_permission("view.repository"))
         # # private repository owner
         private_authorization_owner = self.private_repository.get_user_authorization(
-            self.owner, return_group='Owner'
+            self.owner, return_group="Owner"
         )
-        self.assertTrue(private_authorization_owner.check_permission('view.repository'))
+        self.assertTrue(private_authorization_owner.check_permission("view.repository"))
         # # secondary user in private repository
         private_authorization_user = self.private_repository.get_user_authorization(
             self.user
         )
-        self.assertFalse(private_authorization_user.check_permission('view.repository'))
+        self.assertFalse(private_authorization_user.check_permission("view.repository"))
 
     def test_can_contribute(self):
         # repository owner
-        authorization_owner = self.repository.get_user_authorization(self.owner, return_group='Owner')
-        self.assertTrue(authorization_owner.check_permission('write.repository'))
+        authorization_owner = self.repository.get_user_authorization(
+            self.owner, return_group="Owner"
+        )
+        self.assertTrue(authorization_owner.check_permission("write.repository"))
         # secondary user in public repository
         authorization_user = self.repository.get_user_authorization(self.user)
-        self.assertFalse(authorization_user.check_permission('write.repository'))
+        self.assertFalse(authorization_user.check_permission("write.repository"))
         # private repository owner
         private_authorization_owner = self.private_repository.get_user_authorization(
-            self.owner, return_group='Owner'
+            self.owner, return_group="Owner"
         )
-        self.assertTrue(private_authorization_owner.check_permission('write.repository'))
+        self.assertTrue(
+            private_authorization_owner.check_permission("write.repository")
+        )
         # secondary user in private repository
         private_authorization_user = self.private_repository.get_user_authorization(
             self.user
         )
-        self.assertFalse(private_authorization_user.check_permission('write.repository'))
+        self.assertFalse(
+            private_authorization_user.check_permission("write.repository")
+        )
 
     def test_can_write(self):
         # repository owner
-        authorization_owner = self.repository.get_user_authorization(self.owner, return_group='Contributor')
-        self.assertTrue(authorization_owner.check_permission('write.repository'))
+        authorization_owner = self.repository.get_user_authorization(
+            self.owner, return_group="Contributor"
+        )
+        self.assertTrue(authorization_owner.check_permission("write.repository"))
         # secondary user in public repository
         authorization_user = self.repository.get_user_authorization(self.user)
-        self.assertFalse(authorization_user.check_permission('write.repository'))
+        self.assertFalse(authorization_user.check_permission("write.repository"))
         # private repository owner
         private_authorization_owner = self.private_repository.get_user_authorization(
-            self.owner, return_group='Contributor'
+            self.owner, return_group="Contributor"
         )
-        self.assertTrue(private_authorization_owner.check_permission('write.repository'))
+        self.assertTrue(
+            private_authorization_owner.check_permission("write.repository")
+        )
         # secondary user in private repository
         private_authorization_user = self.private_repository.get_user_authorization(
             self.user
         )
-        self.assertFalse(private_authorization_user.check_permission('write.repository'))
+        self.assertFalse(
+            private_authorization_user.check_permission("write.repository")
+        )
 
     def test_is_admin(self):
         # repository owner
-        authorization_owner = self.repository.get_user_authorization(self.owner, return_group='Admin')
-        self.assertTrue(authorization_owner.check_permission('write.repository'))
+        authorization_owner = self.repository.get_user_authorization(
+            self.owner, return_group="Admin"
+        )
+        self.assertTrue(authorization_owner.check_permission("write.repository"))
         # secondary user in public repository
         authorization_user = self.repository.get_user_authorization(self.user)
-        self.assertFalse(authorization_user.check_permission('write.repository'))
+        self.assertFalse(authorization_user.check_permission("write.repository"))
         # private repository owner
         private_authorization_owner = self.private_repository.get_user_authorization(
-            self.owner, return_group='Admin'
+            self.owner, return_group="Admin"
         )
-        self.assertTrue(private_authorization_owner.check_permission('write.repository'))
+        self.assertTrue(
+            private_authorization_owner.check_permission("write.repository")
+        )
         # secondary user in private repository
         private_authorization_user = self.private_repository.get_user_authorization(
             self.user
         )
-        self.assertFalse(private_authorization_user.check_permission('write.repository'))
+        self.assertFalse(
+            private_authorization_user.check_permission("write.repository")
+        )
 
     def test_role_user_can_read(self):
         # public repository
         authorization_user = self.repository.get_user_authorization(self.user)
-        self.assertTrue(authorization_user.check_permission('view.repository'))
+        self.assertTrue(authorization_user.check_permission("view.repository"))
 
         # private repository
         authorization_user = self.private_repository.get_user_authorization(self.user)
-        self.assertFalse(authorization_user.check_permission('view.repository'))
+        self.assertFalse(authorization_user.check_permission("view.repository"))
 
     def test_role_user_can_t_contribute(self):
         # public repository
         authorization_user = self.repository.get_user_authorization(self.user)
-        self.assertFalse(authorization_user.check_permission('write.repository'))
+        self.assertFalse(authorization_user.check_permission("write.repository"))
 
         # # private repository
         authorization_user = self.private_repository.get_user_authorization(self.user)
-        self.assertFalse(authorization_user.check_permission('write.repository'))
+        self.assertFalse(authorization_user.check_permission("write.repository"))
 
     def test_role_contributor_can_contribute(self):
         # public repository
-        authorization_user = self.repository.get_user_authorization(self.user, return_group='Contributor')
-        self.assertTrue(authorization_user.check_permission('write.repository'))
+        authorization_user = self.repository.get_user_authorization(
+            self.user, return_group="Contributor"
+        )
+        self.assertTrue(authorization_user.check_permission("write.repository"))
 
         # private repository
-        authorization_user = self.private_repository.get_user_authorization(self.user, return_group='Contributor')
-        self.assertTrue(authorization_user.check_permission('write.repository'))
+        authorization_user = self.private_repository.get_user_authorization(
+            self.user, return_group="Contributor"
+        )
+        self.assertTrue(authorization_user.check_permission("write.repository"))
 
 
 class RepositoryUpdateTrainingTestCase(TestCase):
-    fixtures = ['permissions.json']
+    fixtures = ["permissions.json"]
 
     def setUp(self):
         self.owner = User.objects.create_user("owner@user.com", "user")
@@ -436,7 +460,7 @@ class RepositoryUpdateTrainingTestCase(TestCase):
 
     def test_train(self):
         update = self.repository.current_update()
-        update.start_training(self.owner, 'Contributor')
+        update.start_training(self.owner, "Contributor")
 
         bot_data = "https://s3.amazonaws.com"
 
@@ -445,13 +469,13 @@ class RepositoryUpdateTrainingTestCase(TestCase):
 
     def test_already_started_trained(self):
         update = self.repository.current_update()
-        update.start_training(self.owner, 'Contributor')
+        update.start_training(self.owner, "Contributor")
         with self.assertRaises(RepositoryUpdateAlreadyStartedTraining):
             update.start_training(self.owner)
 
     def test_already_trained(self):
         update = self.repository.current_update()
-        update.start_training(self.owner, 'Contributor')
+        update.start_training(self.owner, "Contributor")
         update.save_training(b"")
 
         with self.assertRaises(RepositoryUpdateAlreadyTrained):
@@ -469,7 +493,7 @@ class RepositoryUpdateTrainingTestCase(TestCase):
 
 
 class RepositoryUpdateExamplesTestCase(TestCase):
-    fixtures = ['permissions.json']
+    fixtures = ["permissions.json"]
 
     def setUp(self):
         self.owner = User.objects.create_user("owner@user.com", "user")
@@ -490,7 +514,7 @@ class RepositoryUpdateExamplesTestCase(TestCase):
         example.delete()
 
         self.update = self.repository.current_update()
-        self.update.start_training(self.owner, 'Contributor')
+        self.update.start_training(self.owner, "Contributor")
         self.update.save_training(b"")
 
     def test_okay(self):
@@ -498,7 +522,7 @@ class RepositoryUpdateExamplesTestCase(TestCase):
         RepositoryExample.objects.create(
             repository_update=new_update_1, text="hello", intent="greet"
         )
-        new_update_1.start_training(self.owner, 'Contributor')
+        new_update_1.start_training(self.owner, "Contributor")
 
         new_update_2 = self.repository.current_update()
         RepositoryExample.objects.create(
@@ -518,14 +542,14 @@ class RepositoryUpdateExamplesTestCase(TestCase):
             repository_update=new_update_1, text="hello d1", intent="greet"
         ).delete()
         examples_1_count = new_update_1.examples.count()
-        new_update_1.start_training(self.owner, 'Contributor')
+        new_update_1.start_training(self.owner, "Contributor")
 
         new_update_2 = self.repository.current_update()
         RepositoryExample.objects.create(
             repository_update=new_update_2, text="hellow", intent="greet"
         )
         examples_2_count = new_update_2.examples.count()
-        new_update_2.start_training(self.owner, 'Contributor')
+        new_update_2.start_training(self.owner, "Contributor")
 
         new_update_3 = self.repository.current_update()
         RepositoryExample.objects.create(
@@ -541,14 +565,14 @@ class RepositoryUpdateExamplesTestCase(TestCase):
             repository_update=new_update_3, text="hello d4", intent="greet"
         ).delete()
         examples_3_count = new_update_3.examples.count()
-        new_update_3.start_training(self.owner, 'Contributor')
+        new_update_3.start_training(self.owner, "Contributor")
 
         new_update_4 = self.repository.current_update()
         RepositoryExample.objects.create(
             repository_update=new_update_4, text="hellow", intent="greet"
         )
         examples_4_count = new_update_4.examples.count()
-        new_update_4.start_training(self.owner, 'Contributor')
+        new_update_4.start_training(self.owner, "Contributor")
 
         self.assertEqual(examples_1_count, new_update_1.examples.count())
 
@@ -560,7 +584,7 @@ class RepositoryUpdateExamplesTestCase(TestCase):
 
 
 class RepositoryReadyForTrain(TestCase):
-    fixtures = ['permissions.json']
+    fixtures = ["permissions.json"]
 
     def setUp(self):
         self.owner = User.objects.create_user("owner@user.com", "user")
@@ -598,11 +622,11 @@ class RepositoryReadyForTrain(TestCase):
         self.assertTrue(self.repository.ready_for_train)
 
     def test_be_false(self):
-        self.repository.current_update().start_training(self.owner, 'Contributor')
+        self.repository.current_update().start_training(self.owner, "Contributor")
         self.assertFalse(self.repository.ready_for_train)
 
     def test_be_true_when_new_translate(self):
-        self.repository.current_update().start_training(self.owner, 'Contributor')
+        self.repository.current_update().start_training(self.owner, "Contributor")
         RepositoryTranslatedExample.objects.create(
             original_example=self.example_1, language=languages.LANGUAGE_PT, text="oi"
         )
@@ -614,13 +638,13 @@ class RepositoryReadyForTrain(TestCase):
 
     def test_be_true_when_deleted_example(self):
         self.repository.current_update()
-        self.repository.current_update().start_training(self.owner, 'Contributor')
+        self.repository.current_update().start_training(self.owner, "Contributor")
         self.example_1.delete()
         self.assertTrue(self.repository.ready_for_train)
 
     def test_last_train_failed(self):
         current_update = self.repository.current_update()
-        current_update.start_training(self.owner, 'Contributor')
+        current_update.start_training(self.owner, "Contributor")
         current_update.train_fail()
         self.assertTrue(self.repository.current_update().ready_for_train)
 
@@ -633,7 +657,7 @@ class RepositoryReadyForTrain(TestCase):
                 self.repository.algorithm = val_current
                 self.repository.save()
                 current_update = self.repository.current_update()
-                current_update.start_training(self.owner, 'Contributor')
+                current_update.start_training(self.owner, "Contributor")
                 current_update.save_training(b"")
                 self.assertFalse(self.repository.ready_for_train)
                 self.repository.algorithm = val_next
@@ -642,7 +666,7 @@ class RepositoryReadyForTrain(TestCase):
 
 
 class RepositoryUpdateReadyForTrain(TestCase):
-    fixtures = ['permissions.json']
+    fixtures = ["permissions.json"]
 
     def setUp(self):
         self.owner = User.objects.create_user("owner@user.com", "user")
@@ -682,7 +706,7 @@ class RepositoryUpdateReadyForTrain(TestCase):
             text="hello",
             intent="greet",
         )
-        self.repository.current_update().start_training(self.owner, 'Contributor')
+        self.repository.current_update().start_training(self.owner, "Contributor")
         RepositoryTranslatedExample.objects.create(
             original_example=example_1, language=languages.LANGUAGE_PT, text="oi"
         )
@@ -709,7 +733,7 @@ class RepositoryUpdateReadyForTrain(TestCase):
             text="hellow",
             intent="greet",
         )
-        self.repository.current_update().start_training(self.owner, 'Contributor')
+        self.repository.current_update().start_training(self.owner, "Contributor")
         example.delete()
         self.assertTrue(self.repository.current_update().ready_for_train)
 
@@ -757,7 +781,7 @@ class RepositoryUpdateReadyForTrain(TestCase):
         self.assertTrue(self.repository.current_update().ready_for_train)
 
     def test_settings_change_exists_requirements(self):
-        self.repository.current_update().start_training(self.owner, 'Contributor')
+        self.repository.current_update().start_training(self.owner, "Contributor")
         self.repository.algorithm = Repository.ALGORITHM_NEURAL_NETWORK_EXTERNAL
         self.repository.save()
         RepositoryExample.objects.create(
@@ -774,13 +798,13 @@ class RepositoryUpdateReadyForTrain(TestCase):
             text="hi",
             intent="greet",
         )
-        self.repository.current_update().start_training(self.owner, 'Contributor')
+        self.repository.current_update().start_training(self.owner, "Contributor")
         example.delete()
         self.assertFalse(self.repository.current_update().ready_for_train)
 
 
 class RequestRepositoryAuthorizationTestCase(TestCase):
-    fixtures = ['permissions.json']
+    fixtures = ["permissions.json"]
 
     def setUp(self):
         self.owner = User.objects.create_user("owner@user.com", "owner")
@@ -792,13 +816,13 @@ class RequestRepositoryAuthorizationTestCase(TestCase):
             user=self.user, repository=repository, text="I can contribute"
         )
         self.admin = User.objects.create_user("admin@user.com", "admin")
-        repository.get_user_authorization(self.admin, return_group='Admin')
+        repository.get_user_authorization(self.admin, return_group="Admin")
 
     def test_approve(self):
         self.ra.approved_by = self.owner
         self.ra.save()
         user_authorization = self.ra.repository.get_user_authorization(self.ra.user)
-        self.assertEqual(user_authorization.usergrouprepository.name, 'Public')
+        self.assertEqual(user_authorization.usergrouprepository.name, "Public")
 
     def test_approve_twice(self):
         self.ra.approved_by = self.owner
@@ -816,7 +840,7 @@ class RequestRepositoryAuthorizationTestCase(TestCase):
 
 
 class RepositoryEntityTestCase(TestCase):
-    fixtures = ['permissions.json']
+    fixtures = ["permissions.json"]
 
     def setUp(self):
         self.language = languages.LANGUAGE_EN
@@ -859,7 +883,7 @@ class RepositoryEntityTestCase(TestCase):
 
 
 class RepositoryEntityLabelTestCase(TestCase):
-    fixtures = ['permissions.json']
+    fixtures = ["permissions.json"]
 
     def setUp(self):
         self.language = languages.LANGUAGE_EN
@@ -933,7 +957,7 @@ class RepositoryEntityLabelTestCase(TestCase):
 
 
 class RepositoryOtherEntitiesTest(TestCase):
-    fixtures = ['permissions.json']
+    fixtures = ["permissions.json"]
 
     def setUp(self):
         self.owner = User.objects.create_user("owner@user.com", "user")
@@ -964,7 +988,7 @@ class RepositoryOtherEntitiesTest(TestCase):
 
 
 class UseLanguageModelFeaturizerTestCase(TestCase):
-    fixtures = ['permissions.json']
+    fixtures = ["permissions.json"]
 
     def setUp(self):
         self.language = languages.LANGUAGE_EN
@@ -994,13 +1018,13 @@ class UseLanguageModelFeaturizerTestCase(TestCase):
         current_update = self.repository.current_update()
         self.repository.algorithm = Repository.ALGORITHM_NEURAL_NETWORK_INTERNAL
         self.repository.save()
-        current_update.start_training(self.owner, permission='Contributor')
+        current_update.start_training(self.owner, permission="Contributor")
         current_update.save_training(b"")
         self.assertFalse(current_update.use_language_model_featurizer)
 
 
 class UseCompetingIntentsTestCase(TestCase):
-    fixtures = ['permissions.json']
+    fixtures = ["permissions.json"]
 
     def setUp(self):
         self.language = languages.LANGUAGE_EN
@@ -1029,7 +1053,7 @@ class UseCompetingIntentsTestCase(TestCase):
     def test_change_ready_for_train(self):
         self.assertTrue(self.repository.ready_for_train)
         current_update = self.repository.current_update()
-        current_update.start_training(self.owner, permission='Contributor')
+        current_update.start_training(self.owner, permission="Contributor")
         current_update.save_training(b"")
         self.assertFalse(self.repository.ready_for_train)
         self.repository.use_competing_intents = False
@@ -1043,13 +1067,13 @@ class UseCompetingIntentsTestCase(TestCase):
         current_update = self.repository.current_update()
         self.repository.use_competing_intents = False
         self.repository.save()
-        current_update.start_training(self.owner, permission='Contributor')
+        current_update.start_training(self.owner, permission="Contributor")
         current_update.save_training(b"")
         self.assertFalse(current_update.use_competing_intents)
 
 
 class UseNameEntitiesTestCase(TestCase):
-    fixtures = ['permissions.json']
+    fixtures = ["permissions.json"]
 
     def setUp(self):
         self.language = languages.LANGUAGE_EN
@@ -1078,7 +1102,7 @@ class UseNameEntitiesTestCase(TestCase):
     def test_change_ready_for_train(self):
         self.assertTrue(self.repository.ready_for_train)
         current_update = self.repository.current_update()
-        current_update.start_training(self.owner, permission='Contributor')
+        current_update.start_training(self.owner, permission="Contributor")
         current_update.save_training(b"")
         self.assertFalse(self.repository.ready_for_train)
         self.repository.use_name_entities = False
@@ -1092,13 +1116,13 @@ class UseNameEntitiesTestCase(TestCase):
         current_update = self.repository.current_update()
         self.repository.use_name_entities = False
         self.repository.save()
-        current_update.start_training(self.owner, permission='Contributor')
+        current_update.start_training(self.owner, permission="Contributor")
         current_update.save_training(b"")
         self.assertFalse(current_update.use_name_entities)
 
 
 class RepositoryUpdateWarnings(TestCase):
-    fixtures = ['permissions.json']
+    fixtures = ["permissions.json"]
 
     def setUp(self):
         self.language = languages.LANGUAGE_EN
@@ -1128,7 +1152,7 @@ class RepositoryUpdateWarnings(TestCase):
 
 
 class RepositorySupportedLanguageQueryTestCase(TestCase):
-    fixtures = ['permissions.json']
+    fixtures = ["permissions.json"]
 
     def setUp(self):
         self.owner = User.objects.create_user("owner@user.com", "user")

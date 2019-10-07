@@ -5,13 +5,8 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('common', '0036_auto_20191002_1310'),
-    ]
+    dependencies = [("common", "0036_auto_20191002_1310")]
 
     operations = [
-        migrations.RemoveField(
-            model_name='repositoryauthorization',
-            name='role',
-        ),
+        migrations.RemoveField(model_name="repositoryauthorization", name="role")
     ]

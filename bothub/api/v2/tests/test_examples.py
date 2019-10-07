@@ -15,7 +15,7 @@ from bothub.api.v2.examples.views import ExamplesViewSet
 
 
 class ListExamplesAPITestCase(TestCase):
-    fixtures = ['permissions.json']
+    fixtures = ["permissions.json"]
 
     def setUp(self):
         self.factory = RequestFactory()
@@ -29,7 +29,7 @@ class ListExamplesAPITestCase(TestCase):
             language=languages.LANGUAGE_EN,
         )
 
-        self.repository.get_user_authorization(self.owner, 'Owner')
+        self.repository.get_user_authorization(self.owner, "Owner")
 
         self.example_1 = RepositoryExample.objects.create(
             repository_update=self.repository.current_update(),
@@ -64,7 +64,7 @@ class ListExamplesAPITestCase(TestCase):
             language=languages.LANGUAGE_EN,
         )
 
-        self.repository_2.get_user_authorization(self.owner, 'Owner')
+        self.repository_2.get_user_authorization(self.owner, "Owner")
 
         self.example_5 = RepositoryExample.objects.create(
             repository_update=self.repository_2.current_update(),
@@ -85,7 +85,9 @@ class ListExamplesAPITestCase(TestCase):
             {"HTTP_AUTHORIZATION": "Token {}".format(token.key)} if token else {}
         )
 
-        request = self.factory.get("/v2/repository/examples/", data, **authorization_header)
+        request = self.factory.get(
+            "/v2/repository/examples/", data, **authorization_header
+        )
 
         response = ExamplesViewSet.as_view({"get": "list"})(request)
         response.render()
@@ -93,20 +95,23 @@ class ListExamplesAPITestCase(TestCase):
         return (response, content_data)
 
     def test_okay(self):
-        response, content_data = self.request({"repository_uuid": self.repository.uuid}, self.owner_token)
+        response, content_data = self.request(
+            {"repository_uuid": self.repository.uuid}, self.owner_token
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(content_data.get("count"), 4)
 
         response, content_data = self.request(
-            {"repository_uuid": self.repository_2.uuid},
-            self.owner_token
+            {"repository_uuid": self.repository_2.uuid}, self.owner_token
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(content_data.get("count"), 2)
 
     def test_deleted(self):
         self.example_1.delete()
-        response, content_data = self.request({"repository_uuid": self.repository.uuid}, self.owner_token)
+        response, content_data = self.request(
+            {"repository_uuid": self.repository.uuid}, self.owner_token
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(content_data.get("count"), 3)
 
@@ -117,7 +122,7 @@ class ListExamplesAPITestCase(TestCase):
     def test_filter_text(self):
         response, content_data = self.request(
             {"repository_uuid": self.repository.uuid, "text": self.example_1.text},
-            self.owner_token
+            self.owner_token,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(content_data.get("count"), 1)
@@ -125,8 +130,7 @@ class ListExamplesAPITestCase(TestCase):
 
     def test_filter_part_text(self):
         response, content_data = self.request(
-            {"repository_uuid": self.repository.uuid, "search": "h"},
-            self.owner_token
+            {"repository_uuid": self.repository.uuid, "search": "h"}, self.owner_token
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(content_data.get("count"), 2)
@@ -137,7 +141,7 @@ class ListExamplesAPITestCase(TestCase):
                 "repository_uuid": self.repository_2.uuid,
                 "language": languages.LANGUAGE_PT,
             },
-            self.owner_token
+            self.owner_token,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(content_data.get("count"), 1)
@@ -145,14 +149,14 @@ class ListExamplesAPITestCase(TestCase):
     def test_filter_has_translation(self):
         response, content_data = self.request(
             {"repository_uuid": self.repository_2.uuid, "has_translation": False},
-            self.owner_token
+            self.owner_token,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(content_data.get("count"), 1)
 
         response, content_data = self.request(
             {"repository_uuid": self.repository_2.uuid, "has_translation": True},
-            self.owner_token
+            self.owner_token,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(content_data.get("count"), 1)
@@ -163,7 +167,7 @@ class ListExamplesAPITestCase(TestCase):
                 "repository_uuid": self.repository_2.uuid,
                 "has_not_translation_to": languages.LANGUAGE_ES,
             },
-            self.owner_token
+            self.owner_token,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(content_data.get("count"), 2)
@@ -173,7 +177,7 @@ class ListExamplesAPITestCase(TestCase):
                 "repository_uuid": self.repository_2.uuid,
                 "has_not_translation_to": languages.LANGUAGE_EN,
             },
-            self.owner_token
+            self.owner_token,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(content_data.get("count"), 1)

@@ -390,5 +390,5 @@ USER_PERMISSIONS = {
         "view.repositoryevaluate",
         "view.repository",
         "write.repository_analyze",
-    ]
+    ],
 }

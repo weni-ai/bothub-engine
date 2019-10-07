@@ -45,8 +45,12 @@ from .serializers import AnalyzeTextSerializer
 from .serializers import EvaluateSerializer
 from .serializers import RepositoryUpdateSerializer
 from .serializers import RepositoryUpload
-from .permissions import RepositoryPermission, RepositoryAuthorizationPermission, RepositoryeUploadExamplePermission, \
-    RepositoryAuthorizationRequestsPermission
+from .permissions import (
+    RepositoryPermission,
+    RepositoryAuthorizationPermission,
+    RepositoryeUploadExamplePermission,
+    RepositoryAuthorizationRequestsPermission,
+)
 from .permissions import RepositoryTrainPermission
 from .permissions import RepositoryEvaluatePermission
 from .permissions import RepositoryAnalyzePermission
@@ -98,7 +102,7 @@ class RepositoryViewSet(
         methods=["GET"],
         url_name="repository-train",
         lookup_fields=["uuid"],
-        permission_classes=[RepositoryTrainPermission]
+        permission_classes=[RepositoryTrainPermission],
     )
     def train(self, request, **kwargs):
         """
@@ -157,7 +161,7 @@ class RepositoryViewSet(
         methods=["POST"],
         url_name="repository-evaluate",
         lookup_fields=["uuid"],
-        permission_classes=[RepositoryEvaluatePermission]
+        permission_classes=[RepositoryEvaluatePermission],
     )
     def evaluate(self, request, **kwargs):
         """
@@ -346,7 +350,7 @@ class RepositoryAuthorizationViewSet(
     GenericViewSet,
 ):
     queryset = RepositoryAuthorization.objects.exclude(
-        usergrouprepository__name='Public'
+        usergrouprepository__name="Public"
     )
     serializer_class = RepositoryAuthorizationSerializer
     filter_class = RepositoryAuthorizationFilter
@@ -373,7 +377,7 @@ class RepositoryAuthorizationViewSet(
         self.permission_classes = [IsAuthenticated, RepositoryAdminManagerAuthorization]
         response = super().update(*args, **kwargs)
         instance = self.get_object()
-        if instance.usergrouprepository.name is not 'Public':
+        if instance.usergrouprepository.name is not "Public":
             instance.send_new_role_email(self.request.user)
         return response
 
@@ -454,7 +458,7 @@ class RepositoryExampleViewSet(
         url_name="repository-upload-examples",
         parser_classes=[parsers.MultiPartParser],
         serializer_class=RepositoryUpload,
-        permission_classes=[RepositoryeUploadExamplePermission]
+        permission_classes=[RepositoryeUploadExamplePermission],
     )
     def upload_examples(self, request, **kwargs):
         try:
@@ -465,7 +469,7 @@ class RepositoryExampleViewSet(
             raise PermissionDenied()
 
         user_authorization = repository.get_user_authorization(request.user)
-        if not user_authorization.check_permission('write.repositoryuploadexamples'):
+        if not user_authorization.check_permission("write.repositoryuploadexamples"):
             raise PermissionDenied()
 
         f = request.FILES.get("file")

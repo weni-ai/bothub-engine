@@ -19,7 +19,7 @@ from .utils import create_user_and_token
 
 
 class ListEvaluateTestCase(TestCase):
-    fixtures = ['permissions.json']
+    fixtures = ["permissions.json"]
 
     def setUp(self):
         self.factory = RequestFactory()
@@ -34,7 +34,7 @@ class ListEvaluateTestCase(TestCase):
             language=languages.LANGUAGE_EN,
         )
 
-        self.repository.get_user_authorization(self.owner, 'Contributor')
+        self.repository.get_user_authorization(self.owner, "Contributor")
 
         self.repository_update = RepositoryUpdate.objects.create(
             repository=self.repository,
@@ -72,7 +72,7 @@ class ListEvaluateTestCase(TestCase):
 
 
 class NewEvaluateTestCase(TestCase):
-    fixtures = ['permissions.json']
+    fixtures = ["permissions.json"]
 
     def setUp(self):
         self.factory = RequestFactory()
@@ -87,7 +87,7 @@ class NewEvaluateTestCase(TestCase):
             language=languages.LANGUAGE_EN,
         )
 
-        self.repository.get_user_authorization(self.owner, 'Contributor')
+        self.repository.get_user_authorization(self.owner, "Contributor")
 
         self.repository_update = RepositoryUpdate.objects.create(
             repository=self.repository,
@@ -171,7 +171,7 @@ class NewEvaluateTestCase(TestCase):
 
 
 class EvaluateDestroyTestCase(TestCase):
-    fixtures = ['permissions.json']
+    fixtures = ["permissions.json"]
 
     def setUp(self):
         self.factory = RequestFactory()
@@ -186,7 +186,7 @@ class EvaluateDestroyTestCase(TestCase):
             language=languages.LANGUAGE_EN,
         )
 
-        self.repository.get_user_authorization(self.owner, 'Contributor')
+        self.repository.get_user_authorization(self.owner, "Contributor")
 
         self.repository_update = RepositoryUpdate.objects.create(
             repository=self.repository, language="en", algorithm="statistical_model"
@@ -233,7 +233,7 @@ class EvaluateDestroyTestCase(TestCase):
 
 
 class EvaluateUpdateTestCase(TestCase):
-    fixtures = ['permissions.json']
+    fixtures = ["permissions.json"]
 
     def setUp(self):
         self.factory = RequestFactory()
@@ -248,7 +248,7 @@ class EvaluateUpdateTestCase(TestCase):
             language=languages.LANGUAGE_EN,
         )
 
-        self.repository.get_user_authorization(self.owner, 'Contributor')
+        self.repository.get_user_authorization(self.owner, "Contributor")
 
         self.repository_update = RepositoryUpdate.objects.create(
             repository=self.repository, language="en", algorithm="statistical_model"
@@ -312,7 +312,7 @@ class EvaluateUpdateTestCase(TestCase):
 
 
 class ListEvaluateResultTestCase(TestCase):
-    fixtures = ['permissions.json']
+    fixtures = ["permissions.json"]
 
     def setUp(self):
         self.factory = RequestFactory()
@@ -327,7 +327,7 @@ class ListEvaluateResultTestCase(TestCase):
             language=languages.LANGUAGE_EN,
         )
 
-        self.repository.get_user_authorization(self.owner, 'Contributor')
+        self.repository.get_user_authorization(self.owner, "Contributor")
 
         for x in range(0, 2):
             intent_results = RepositoryEvaluateResultScore.objects.create(
@@ -458,7 +458,7 @@ class ListEvaluateResultTestCase(TestCase):
 
 
 class ListEvaluateResultTestFilterCase(TestCase):
-    fixtures = ['permissions.json']
+    fixtures = ["permissions.json"]
 
     def setUp(self):
         self.factory = RequestFactory()
@@ -473,7 +473,7 @@ class ListEvaluateResultTestFilterCase(TestCase):
             language=languages.LANGUAGE_EN,
         )
 
-        self.repository.get_user_authorization(self.owner, 'Contributor')
+        self.repository.get_user_authorization(self.owner, "Contributor")
 
         intent_results = RepositoryEvaluateResultScore.objects.create(
             f1_score=0.976, precision=0.978, accuracy=0.976

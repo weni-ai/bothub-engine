@@ -18,7 +18,11 @@ class RepositoryPermission(permissions.BasePermission):
         if request.method in READ_METHODS and not request.user.is_authenticated:
             return True
 
-        if request.user.is_authenticated and obj.is_private and usergrouprepository.name == 'Public':
+        if (
+            request.user.is_authenticated
+            and obj.is_private
+            and usergrouprepository.name == "Public"
+        ):
             return False
 
         if request.user.is_authenticated:

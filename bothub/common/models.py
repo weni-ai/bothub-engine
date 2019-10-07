@@ -222,7 +222,7 @@ class Repository(models.Model):
                 code=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
 
-    def create_permissions(self, return_group='Public'):
+    def create_permissions(self, return_group="Public"):
         if UserGroupRepository.objects.filter(repository=self).count() == 0:
 
             group_return = None
@@ -237,12 +237,15 @@ class Repository(models.Model):
 
                 for perm in value:
                     UserPermissionRepository.objects.create(
-                        codename=PermissionsCode.objects.get(codename=perm), usergrouprepository=usergroup
+                        codename=PermissionsCode.objects.get(codename=perm),
+                        usergrouprepository=usergroup,
                     )
 
             return group_return
         else:
-            usergroup = UserGroupRepository.objects.get(repository=self, name=return_group)
+            usergroup = UserGroupRepository.objects.get(
+                repository=self, name=return_group
+            )
             return usergroup
 
     @property
@@ -350,7 +353,8 @@ class Repository(models.Model):
         admins = [self.owner] + [
             authorization.user
             for authorization in self.authorizations.filter(
-                Q(usergrouprepository__name='Owner') | Q(usergrouprepository__name='Admin')
+                Q(usergrouprepository__name="Owner")
+                | Q(usergrouprepository__name="Admin")
             )
         ]
         return list(set(admins))
@@ -440,17 +444,20 @@ class Repository(models.Model):
             language=language, by__isnull=False, trained_at__isnull=False
         ).first()
 
-    def get_user_authorization(self, user, return_group='Public'):
+    def get_user_authorization(self, user, return_group="Public"):
         if user.is_anonymous:
             return RepositoryAuthorization(repository=self)
 
-        if RepositoryAuthorization.objects.filter(user=user, repository=self).count() > 0:
-            return RepositoryAuthorization.objects.get(
-                user=user, repository=self
-            )
+        if (
+            RepositoryAuthorization.objects.filter(user=user, repository=self).count()
+            > 0
+        ):
+            return RepositoryAuthorization.objects.get(user=user, repository=self)
         else:
             return RepositoryAuthorization.objects.create(
-                user=user, repository=self, usergrouprepository=self.create_permissions(return_group=return_group)
+                user=user,
+                repository=self,
+                usergrouprepository=self.create_permissions(return_group=return_group),
             )
 
     def get_absolute_url(self):
@@ -626,17 +633,19 @@ class RepositoryUpdate(models.Model):
     def __str__(self):
         return "Repository Update #{}".format(self.id)  # pragma: no cover
 
-    def validate_init_train(self, by=None, permission='Public'):
+    def validate_init_train(self, by=None, permission="Public"):
         if self.trained_at:
             raise RepositoryUpdateAlreadyTrained()
         if self.training_started_at:
             raise RepositoryUpdateAlreadyStartedTraining()
         if by:
-            authorization = self.repository.get_user_authorization(by, return_group=permission)
-            if not authorization.check_permission('view.repository_train'):
+            authorization = self.repository.get_user_authorization(
+                by, return_group=permission
+            )
+            if not authorization.check_permission("view.repository_train"):
                 raise TrainingNotAllowed()
 
-    def start_training(self, by, permission='Public'):
+    def start_training(self, by, permission="Public"):
         self.validate_init_train(by, permission)
         self.by = by
         self.training_started_at = timezone.now()
@@ -1048,8 +1057,8 @@ class RepositoryAuthorization(models.Model):
 
     def check_permission(self, code_permission):
         print(code_permission)
-        if self.usergrouprepository.name == 'Public' and self.repository.is_private:
-            print('entrou aqui')
+        if self.usergrouprepository.name == "Public" and self.repository.is_private:
+            print("entrou aqui")
             return False
 
         permission = UserPermissionRepository.objects.filter(
@@ -1057,10 +1066,9 @@ class RepositoryAuthorization(models.Model):
         )
 
         return permission.filter(
-            codename=PermissionsCode.objects.filter(
-                codename=code_permission
-            ).first()
+            codename=PermissionsCode.objects.filter(codename=code_permission).first()
         ).exists()
+
     #
     # @property
     # def can_contribute(self):
@@ -1378,7 +1386,7 @@ def set_user_role_on_approved(instance, **kwargs):
         return False
 
     if current.approved_by is None and current.approved_by is not instance.approved_by:
-        instance.repository.get_user_authorization(instance.user, return_group='Public')
+        instance.repository.get_user_authorization(instance.user, return_group="Public")
         instance.send_request_approved_email()
     else:
         raise ValidationError(_("You can change approved_by just one time."))

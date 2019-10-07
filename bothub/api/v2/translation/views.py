@@ -47,6 +47,6 @@ class RepositoryTranslatedExampleViewSet(
 
     def list(self, request, *args, **kwargs):
         self.queryset = RepositoryTranslatedExample.objects.all()
-        print('fdasdasdasdas')
+        print("fdasdasdasdas")
         self.filter_class = TranslationsFilter
         return super().list(request, *args, **kwargs)

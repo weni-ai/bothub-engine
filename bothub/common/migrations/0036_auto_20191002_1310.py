@@ -7,47 +7,88 @@ import uuid
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('common', '0035_auto_20190902_1455'),
-    ]
+    dependencies = [("common", "0035_auto_20190902_1455")]
 
     operations = [
         migrations.CreateModel(
-            name='PermissionsCode',
+            name="PermissionsCode",
             fields=[
-                ('uuid', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False, verbose_name='UUID')),
-                ('codename', models.TextField(verbose_name='CodeName')),
-                ('name', models.TextField(null=True, verbose_name='Name')),
+                (
+                    "uuid",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="UUID",
+                    ),
+                ),
+                ("codename", models.TextField(verbose_name="CodeName")),
+                ("name", models.TextField(null=True, verbose_name="Name")),
             ],
-            options={
-                'verbose_name': 'permissions code',
-            },
+            options={"verbose_name": "permissions code"},
         ),
         migrations.CreateModel(
-            name='UserGroupRepository',
+            name="UserGroupRepository",
             fields=[
-                ('uuid', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False, verbose_name='UUID')),
-                ('name', models.TextField(verbose_name='Group Name')),
-                ('repository', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='common.Repository')),
+                (
+                    "uuid",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="UUID",
+                    ),
+                ),
+                ("name", models.TextField(verbose_name="Group Name")),
+                (
+                    "repository",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="common.Repository",
+                    ),
+                ),
             ],
-            options={
-                'verbose_name': 'User Group Repository',
-            },
+            options={"verbose_name": "User Group Repository"},
         ),
         migrations.CreateModel(
-            name='UserPermissionRepository',
+            name="UserPermissionRepository",
             fields=[
-                ('uuid', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False, verbose_name='UUID')),
-                ('codename', models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, to='common.PermissionsCode')),
-                ('usergrouprepository', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='common.UserGroupRepository')),
+                (
+                    "uuid",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="UUID",
+                    ),
+                ),
+                (
+                    "codename",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        to="common.PermissionsCode",
+                    ),
+                ),
+                (
+                    "usergrouprepository",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="common.UserGroupRepository",
+                    ),
+                ),
             ],
-            options={
-                'verbose_name': 'repository user authorization',
-            },
+            options={"verbose_name": "repository user authorization"},
         ),
         migrations.AddField(
-            model_name='repositoryauthorization',
-            name='usergrouprepository',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='common.UserGroupRepository'),
+            model_name="repositoryauthorization",
+            name="usergrouprepository",
+            field=models.ForeignKey(
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                to="common.UserGroupRepository",
+            ),
         ),
     ]

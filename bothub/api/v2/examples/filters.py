@@ -55,7 +55,7 @@ class ExamplesFilter(filters.FilterSet):
         try:
             repository = Repository.objects.get(uuid=value)
             authorization = repository.get_user_authorization(request.user)
-            if not authorization.check_permission('view.repositoryexample'):
+            if not authorization.check_permission("view.repositoryexample"):
                 raise PermissionDenied()
             return repository.examples(queryset=queryset)
         except Repository.DoesNotExist:
