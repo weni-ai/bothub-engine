@@ -293,6 +293,9 @@ class RepositorySerializer(serializers.ModelSerializer):
                 ).count() > 0:
             return True
 
+        if authorization.usergrouprepository.name != 'Public':
+            return False
+
         if authorization.is_owner:
             return False
         try:

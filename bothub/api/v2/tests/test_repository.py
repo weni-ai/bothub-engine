@@ -7,7 +7,7 @@ from django.test import RequestFactory
 from django.test.client import MULTIPART_CONTENT
 from rest_framework import status
 
-from bothub.common.models import RepositoryCategory
+from bothub.common.models import RepositoryCategory, UserGroupRepository
 from bothub.common.models import RepositoryVote
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import Repository
@@ -873,6 +873,9 @@ class UpdateAuthorizationRoleTestCase(TestCase):
 
         self.repository.get_user_authorization(self.owner, 'Owner')
 
+        self.contributor = UserGroupRepository.objects.get(repository=self.repository, name='Contributor')
+
+
     def request(self, repository, token, user, data):
         authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
         request = self.factory.patch(
@@ -896,17 +899,17 @@ class UpdateAuthorizationRoleTestCase(TestCase):
             self.repository,
             self.owner_token,
             self.user,
-            {"role": RepositoryAuthorization.ROLE_CONTRIBUTOR},
+            {"usergrouprepository": str(self.contributor.pk)},
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
-            content_data.get("role"), RepositoryAuthorization.ROLE_CONTRIBUTOR
+            content_data.get("usergrouprepository"), str(self.contributor.pk)
         )
 
         user_authorization = self.repository.get_user_authorization(self.user)
         self.assertEqual(
-            user_authorization.role, RepositoryAuthorization.ROLE_CONTRIBUTOR
+            user_authorization.usergrouprepository.pk, self.contributor.pk
         )
 
     def test_forbidden(self):
@@ -914,7 +917,7 @@ class UpdateAuthorizationRoleTestCase(TestCase):
             self.repository,
             self.user_token,
             self.user,
-            {"role": RepositoryAuthorization.ROLE_CONTRIBUTOR},
+            {"usergrouprepository": str(self.contributor.pk)},
         )
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -924,7 +927,7 @@ class UpdateAuthorizationRoleTestCase(TestCase):
             self.repository,
             self.owner_token,
             self.owner,
-            {"role": RepositoryAuthorization.ROLE_CONTRIBUTOR},
+            {"usergrouprepository": str(self.contributor.pk)},
         )
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -1761,8 +1764,9 @@ class RetrieveRepositoryTestCase(TestCase):
         self.assertFalse(content_data.get("available_request_authorization"))
 
     def test_user_not_available_request_authorization(self):
-        self.repository.get_user_authorization(self.user)
+        self.repository.get_user_authorization(self.user, 'Contributor')
         response, content_data = self.request(self.repository, self.user_token)
+        print(content_data)
         self.assertFalse(content_data.get("available_request_authorization"))
 
     def test_requested_not_available_request_authorization(self):
