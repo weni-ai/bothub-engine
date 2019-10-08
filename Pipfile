@@ -18,6 +18,7 @@ gevent = "*"
 packaging = "*"
 django-environ = "*"
 boto3 = "*"
+validators = "*"
 
 [dev-packages]
 "flake8" = "*"

@@ -1,7 +1,7 @@
 import base64
 import json
-import re
 import requests
+import validators
 
 from django.conf import settings
 from django.db import models
@@ -420,18 +420,7 @@ class RepositoryUpdateInterpretersViewSet(
         check_auth(request)
         update = self.get_object()
 
-        regex = re.compile(
-            r"^(?:http|ftp)s?://"  # http:// or https://
-            r"(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|"
-            r"[A-Z0-9-]{2,}\.?)|"
-            r"localhost|"
-            r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})"
-            r"(?::\d+)?"
-            r"(?:/?|[/?]\S+)$",
-            re.IGNORECASE,
-        )
-
-        if re.match(regex, update.bot_data) is not None:
+        if validators.url(str(update.bot_data).lower()):
             try:
                 download = requests.get(update.bot_data)
                 bot_data = base64.b64encode(download.content)
