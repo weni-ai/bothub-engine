@@ -14,7 +14,7 @@ from bothub.api.v2.repository.validators import ExampleWithIntentOrEntityValidat
 from bothub.api.v2.repository.validators import IntentAndSentenceNotExistsValidator
 from bothub.common import languages
 from bothub.common.languages import LANGUAGE_CHOICES
-from bothub.common.models import Repository
+from bothub.common.models import Repository, UserGroupRepository, UserPermissionRepository
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryCategory
 from bothub.common.models import RepositoryEntityLabel
@@ -548,3 +548,22 @@ class RepositoryUpdateSerializer(serializers.ModelSerializer):
 
 class RepositoryUpload(serializers.Serializer):
     pass
+
+
+class RepositoryGroupPermissionsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserGroupRepository
+        fields = ["uuid", "name", "permission"]
+        ref_name = None
+
+    permission = serializers.SerializerMethodField()
+
+    def get_permission(self, obj):
+        data = []
+        for perm in UserPermissionRepository.objects.filter(usergrouprepository=obj):
+            data.append({
+                'uuid': perm.codename.pk,
+                'codename': perm.codename.codename,
+                'name': perm.codename.name
+            })
+        return data

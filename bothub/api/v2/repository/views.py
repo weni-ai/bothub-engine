@@ -23,7 +23,7 @@ from rest_framework.exceptions import APIException
 
 from bothub.api.v2.mixins import MultipleFieldLookupMixin
 from bothub.authentication.models import User
-from bothub.common.models import Repository
+from bothub.common.models import Repository, UserGroupRepository
 from bothub.common.models import RepositoryVote
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryCategory
@@ -32,7 +32,7 @@ from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryUpdate
 
 from ..metadata import Metadata
-from .serializers import RepositorySerializer
+from .serializers import RepositorySerializer, RepositoryGroupPermissionsSerializer
 from .serializers import RepositoryAuthorizationRoleSerializer
 from .serializers import RepositoryContributionsSerializer
 from .serializers import RepositoryVotesSerializer
@@ -508,3 +508,14 @@ class RepositoryUpdatesViewSet(mixins.ListModelMixin, GenericViewSet):
     serializer_class = RepositoryUpdateSerializer
     filter_class = RepositoryUpdatesFilter
     permission_classes = [IsAuthenticated, RepositoryUpdateHasPermission]
+
+
+class RepositoryGroupPermissionsViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, GenericViewSet):
+    queryset = UserGroupRepository.objects
+    serializer_class = RepositoryGroupPermissionsSerializer
+    permission_classes = [IsAuthenticated]
+    lookup_field = 'pk'
+
+    def list(self, request, *args, **kwargs):
+        self.queryset = UserGroupRepository.objects.filter(repository=request.query_params.get('repository'))
+        return super().list(request, *args, **kwargs)
