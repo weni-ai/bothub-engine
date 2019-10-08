@@ -328,15 +328,15 @@ class RepositoryAuthorizationTestCase(TestCase):
             self.owner, return_group="Owner"
         )
         self.assertTrue(authorization_owner.check_permission("view.repository"))
-        # # secondary user in public repository
+        # secondary user in public repository
         authorization_user = self.repository.get_user_authorization(self.user)
         self.assertTrue(authorization_user.check_permission("view.repository"))
-        # # private repository owner
+        # private repository owner
         private_authorization_owner = self.private_repository.get_user_authorization(
             self.owner, return_group="Owner"
         )
         self.assertTrue(private_authorization_owner.check_permission("view.repository"))
-        # # secondary user in private repository
+        # secondary user in private repository
         private_authorization_user = self.private_repository.get_user_authorization(
             self.user
         )

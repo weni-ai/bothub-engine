@@ -1067,25 +1067,6 @@ class RepositoryAuthorization(models.Model):
             codename=PermissionsCode.objects.filter(codename=code_permission).first()
         ).exists()
 
-    #
-    # @property
-    # def can_contribute(self):
-    #     return True
-    #     # return self.level in [
-    #     #     RepositoryAuthorization.LEVEL_CONTRIBUTOR,
-    #     #     RepositoryAuthorization.LEVEL_ADMIN,
-    #     # ]
-    #
-    # @property
-    # def can_write(self):
-    #     return True
-    #     # return self.level in [RepositoryAuthorization.LEVEL_ADMIN]
-    #
-    # @property
-    # def is_admin(self):
-    #     return True
-    #     # return self.level == RepositoryAuthorization.LEVEL_ADMIN
-
     @property
     def is_owner(self):
         try:

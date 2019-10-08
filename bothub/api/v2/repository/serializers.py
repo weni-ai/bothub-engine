@@ -553,7 +553,7 @@ class RepositoryUpload(serializers.Serializer):
 class RepositoryGroupPermissionsSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserGroupRepository
-        fields = ["uuid", "name", "permission"]
+        fields = ["uuid", "repository", "name", "permission"]
         ref_name = None
 
     permission = serializers.SerializerMethodField()
