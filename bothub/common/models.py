@@ -453,7 +453,7 @@ class RepositoryUpdate(models.Model):
     use_competing_intents = models.BooleanField(default=False)
     use_name_entities = models.BooleanField(default=False)
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
-    bot_data = models.URLField(_("bot data"), blank=True)
+    bot_data = models.TextField(_("bot data"), blank=True)
     by = models.ForeignKey(User, models.CASCADE, blank=True, null=True)
     training_started_at = models.DateTimeField(
         _("training started at"), blank=True, null=True
