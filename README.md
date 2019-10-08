@@ -88,3 +88,4 @@ You can set environment variables in your OS, write on ```.env``` file or pass v
 | BOTHUB_ENGINE_AWS_ACCESS_KEY_ID | ```string``` | ```None``` | 
 | BOTHUB_ENGINE_AWS_SECRET_ACCESS_KEY | ```string``` | ```None``` | 
 | BOTHUB_ENGINE_AWS_REGION_NAME | ```string``` | ```None``` | 
+| BOTHUB_ENGINE_AWS_SEND |  ```bool``` | ```False``` | 
