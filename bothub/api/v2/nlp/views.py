@@ -1,12 +1,13 @@
 import base64
 import json
 import requests
-import validators
 
 from django.conf import settings
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.shortcuts import get_object_or_404
+from django.core.validators import URLValidator
+from django.core.exceptions import ValidationError
 
 from rest_framework import mixins
 from rest_framework import exceptions
@@ -420,7 +421,15 @@ class RepositoryUpdateInterpretersViewSet(
         check_auth(request)
         update = self.get_object()
 
-        if validators.url(str(update.bot_data).lower()):
+        validator = URLValidator()
+
+        try:
+            validator(str(update.bot_data))
+            url_valid = True
+        except ValidationError:
+            url_valid = False
+
+        if url_valid:
             try:
                 download = requests.get(update.bot_data)
                 bot_data = base64.b64encode(download.content)
