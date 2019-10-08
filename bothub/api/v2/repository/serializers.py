@@ -32,8 +32,6 @@ class RequestRepositoryAuthorizationSerializer(serializers.ModelSerializer):
         model = RequestRepositoryAuthorization
         fields = [
             "id",
-            "user",
-            "user__nickname",
             "repository",
             "text",
             "approved_by",
@@ -45,17 +43,11 @@ class RequestRepositoryAuthorizationSerializer(serializers.ModelSerializer):
     repository = serializers.PrimaryKeyRelatedField(
         queryset=Repository.objects, style={"show": False}, required=False
     )
-    user = serializers.HiddenField(
-        default=serializers.CurrentUserDefault(), style={"show": False}
-    )
     text = TextField(
         label=_("Leave a message for repository administrators"),
         min_length=5,
         max_length=RequestRepositoryAuthorization._meta.get_field("text").max_length,
         required=False,
-    )
-    user__nickname = serializers.SlugRelatedField(
-        source="user", slug_field="nickname", read_only=True
     )
     approved_by__nickname = serializers.SlugRelatedField(
         source="approved_by", slug_field="nickname", read_only=True

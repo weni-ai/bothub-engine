@@ -1365,7 +1365,7 @@ def set_user_role_on_approved(instance, **kwargs):
         return False
 
     if current.approved_by is None and current.approved_by is not instance.approved_by:
-        instance.repository.get_user_authorization(instance.user, return_group="Public")
+        instance.repository.get_user_authorization(instance.user, return_group="Contributor")
         instance.send_request_approved_email()
     else:
         raise ValidationError(_("You can change approved_by just one time."))
