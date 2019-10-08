@@ -820,7 +820,7 @@ class RequestRepositoryAuthorizationTestCase(TestCase):
         self.ra.approved_by = self.owner
         self.ra.save()
         user_authorization = self.ra.repository.get_user_authorization(self.ra.user)
-        self.assertEqual(user_authorization.usergrouprepository.name, "Public")
+        self.assertEqual(user_authorization.usergrouprepository.name, "Contributor")
 
     def test_approve_twice(self):
         self.ra.approved_by = self.owner
