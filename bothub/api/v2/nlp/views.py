@@ -425,18 +425,14 @@ class RepositoryUpdateInterpretersViewSet(
 
         try:
             validator(str(update.bot_data))
-            url_valid = True
-        except ValidationError:
-            url_valid = False
-
-        if url_valid:
             try:
                 download = requests.get(update.bot_data)
                 bot_data = base64.b64encode(download.content)
             except Exception:
                 bot_data = b""
-        else:
+        except ValidationError:
             bot_data = update.bot_data
+
         return Response(
             {
                 "update_id": update.id,
