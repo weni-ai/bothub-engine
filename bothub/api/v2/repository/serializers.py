@@ -14,7 +14,10 @@ from bothub.api.v2.repository.validators import ExampleWithIntentOrEntityValidat
 from bothub.api.v2.repository.validators import IntentAndSentenceNotExistsValidator
 from bothub.common import languages
 from bothub.common.languages import LANGUAGE_CHOICES
-from bothub.common.models import Repository, UserGroupRepository, UserPermissionRepository
+from bothub.common.models import Repository
+from bothub.common.models import UserGroupRepository
+from bothub.common.models import UserPermissionRepository
+from bothub.common.models import PermissionsCode
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryCategory
 from bothub.common.models import RepositoryEntityLabel
@@ -65,7 +68,7 @@ class RequestRepositoryAuthorizationSerializer(serializers.ModelSerializer):
     )
 
     def update(self, instance, validated_data):
-        validated_data.pop('user')
+        validated_data.pop("user")
         validated_data.update({"approved_by": self.context["request"].user})
         return super().update(instance, validated_data)
 
@@ -551,20 +554,77 @@ class RepositoryUpload(serializers.Serializer):
     pass
 
 
+class RepositoryPermissionsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PermissionsCode
+        fields = ["uuid", "name", "codename"]
+        ref_name = None
+
+
 class RepositoryGroupPermissionsSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserGroupRepository
-        fields = ["uuid", "repository", "name", "permission"]
+        fields = [
+            "uuid",
+            "name",
+            "permission",
+            "standard",
+            "repository",
+            "permission_list",
+        ]
+        read_only = ["uuid", "standard"]
         ref_name = None
 
     permission = serializers.SerializerMethodField()
+    standard = serializers.BooleanField(read_only=True, default=False)
+    permission_list = serializers.ListField(
+        child=serializers.UUIDField(write_only=True, required=False),
+        write_only=True,
+        help_text=_("UUID Permission Code"),
+    )
 
     def get_permission(self, obj):
         data = []
         for perm in UserPermissionRepository.objects.filter(usergrouprepository=obj):
-            data.append({
-                'uuid': perm.codename.pk,
-                'codename': perm.codename.codename,
-                'name': perm.codename.name
-            })
+            data.append(
+                {
+                    "uuid": perm.codename.pk,
+                    "codename": perm.codename.codename,
+                    "name": perm.codename.name,
+                }
+            )
         return data
+
+    def create(self, validated_data):
+        permission_list = validated_data.pop("permission_list")
+        validated_data["standard"] = False
+        usergrouprepository = super().create(validated_data)
+
+        for perm in permission_list:
+            if PermissionsCode.objects.filter(pk=perm).count() > 0:
+                UserPermissionRepository.objects.create(
+                    codename=PermissionsCode.objects.get(pk=perm),
+                    usergrouprepository=usergrouprepository,
+                )
+
+        return usergrouprepository
+
+    def update(self, instance, validated_data):
+        permission_list = validated_data.pop("permission_list")
+
+        if (
+            UserPermissionRepository.objects.filter(
+                usergrouprepository=instance
+            ).count()
+            > 0
+        ):
+            UserPermissionRepository.objects.get(usergrouprepository=instance).delete()
+
+            for perm in permission_list:
+                if PermissionsCode.objects.filter(pk=perm).count() > 0:
+                    UserPermissionRepository.objects.create(
+                        codename=PermissionsCode.objects.get(pk=perm),
+                        usergrouprepository=instance,
+                    )
+
+        return super().update(instance, validated_data)

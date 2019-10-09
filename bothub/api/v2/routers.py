@@ -1,6 +1,8 @@
 from rest_framework import routers
 
-from .repository.views import RepositoryViewSet, RepositoryGroupPermissionsViewSet
+from .repository.views import RepositoryViewSet
+from .repository.views import RepositoryGroupPermissionsViewSet
+from .repository.views import RepositoryPermissionsViewSet
 from .repository.views import RepositoryVotesViewSet
 from .repository.views import RepositoriesViewSet
 from .repository.views import RepositoriesContributionsViewSet
@@ -114,6 +116,7 @@ router.register("repository/examples", ExamplesViewSet)
 router.register("repository/search-repositories", SearchRepositoriesViewSet)
 router.register("repository/authorizations", RepositoryAuthorizationViewSet)
 router.register("repository/groups-permissions", RepositoryGroupPermissionsViewSet)
+router.register("repository/permissions", RepositoryPermissionsViewSet)
 router.register(
     "repository/authorization-requests", RepositoryAuthorizationRequestsViewSet
 )

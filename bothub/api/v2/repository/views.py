@@ -23,7 +23,9 @@ from rest_framework.exceptions import APIException
 
 from bothub.api.v2.mixins import MultipleFieldLookupMixin
 from bothub.authentication.models import User
-from bothub.common.models import Repository, UserGroupRepository
+from bothub.common.models import Repository
+from bothub.common.models import UserGroupRepository
+from bothub.common.models import PermissionsCode
 from bothub.common.models import RepositoryVote
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryCategory
@@ -32,7 +34,9 @@ from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryUpdate
 
 from ..metadata import Metadata
-from .serializers import RepositorySerializer, RepositoryGroupPermissionsSerializer
+from .serializers import RepositorySerializer
+from .serializers import RepositoryGroupPermissionsSerializer
+from .serializers import RepositoryPermissionsSerializer
 from .serializers import RepositoryAuthorizationRoleSerializer
 from .serializers import RepositoryContributionsSerializer
 from .serializers import RepositoryVotesSerializer
@@ -45,12 +49,11 @@ from .serializers import AnalyzeTextSerializer
 from .serializers import EvaluateSerializer
 from .serializers import RepositoryUpdateSerializer
 from .serializers import RepositoryUpload
-from .permissions import (
-    RepositoryPermission,
-    RepositoryAuthorizationPermission,
-    RepositoryeUploadExamplePermission,
-    RepositoryAuthorizationRequestsPermission,
-)
+from .permissions import RepositoryPermission
+from .permissions import RepositoryAuthorizationPermission
+from .permissions import RepositoryeUploadExamplePermission
+from .permissions import RepositoryAuthorizationRequestsPermission
+from .permissions import RepositoryGroupPermissionsPermission
 from .permissions import RepositoryTrainPermission
 from .permissions import RepositoryEvaluatePermission
 from .permissions import RepositoryAnalyzePermission
@@ -510,12 +513,27 @@ class RepositoryUpdatesViewSet(mixins.ListModelMixin, GenericViewSet):
     permission_classes = [IsAuthenticated, RepositoryUpdateHasPermission]
 
 
-class RepositoryGroupPermissionsViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, GenericViewSet):
+class RepositoryPermissionsViewSet(mixins.ListModelMixin, GenericViewSet):
+    queryset = PermissionsCode.objects.all()
+    serializer_class = RepositoryPermissionsSerializer
+    permission_classes = [IsAuthenticated]
+
+
+class RepositoryGroupPermissionsViewSet(
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.CreateModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    GenericViewSet,
+):
     queryset = UserGroupRepository.objects
     serializer_class = RepositoryGroupPermissionsSerializer
-    permission_classes = [IsAuthenticated]
-    lookup_field = 'pk'
+    permission_classes = [IsAuthenticated, RepositoryGroupPermissionsPermission]
+    lookup_field = "pk"
 
     def list(self, request, *args, **kwargs):
-        self.queryset = UserGroupRepository.objects.filter(repository=request.query_params.get('repository'))
+        self.queryset = UserGroupRepository.objects.filter(
+            repository=request.query_params.get("repository")
+        )
         return super().list(request, *args, **kwargs)

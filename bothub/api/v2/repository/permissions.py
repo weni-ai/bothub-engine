@@ -1,4 +1,5 @@
 from rest_framework import permissions
+from rest_framework import serializers
 
 from bothub.common.models import UserPermissionRepository, PermissionsCode
 from .. import READ_METHODS
@@ -255,4 +256,17 @@ class RepositoryAuthorizationRequestsPermission(permissions.BasePermission):
                         codename="delete.repositoryauthorizationrequests"
                     ).first()
                 ).exists()
+        return False
+
+
+class RepositoryGroupPermissionsPermission(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+
+        if request.user.is_authenticated:
+            if request.method in EDIT_METHODS:
+                if obj.standard:
+                    raise serializers.ValidationError(
+                        "Cannot edit the name of a default permission."
+                    )
+            return True
         return False
