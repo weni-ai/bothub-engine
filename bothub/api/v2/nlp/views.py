@@ -106,62 +106,59 @@ class RepositoryAuthorizationTrainViewSet(
             }
         )
 
-    @action(detail=True, methods=["GET"], url_name="gettext", lookup_field=[])
-    def get_text(self, request, **kwargs):
+    @action(detail=True, methods=["GET"], url_name="get_entities_and_labels", lookup_field=[])
+    def get_entities_and_labels(self, request, **kwargs):
         check_auth(request)
 
         try:
-            update_id = int(request.query_params.get("update_id"))
-            example_id = int(request.query_params.get("example_id"))
+            examples = request.data.get('examples')
+            label_examples_query = request.data.get('label_examples_query')
+            update_id = request.data.get('update_id')
         except ValueError:
             raise exceptions.NotFound()
 
-        repository = get_object_or_404(
-            get_object_or_404(RepositoryUpdate, pk=update_id).examples, pk=example_id
-        ).get_text(request.query_params.get("language"))
+        repository_update = RepositoryUpdate.objects.get(pk=update_id)
 
-        return Response({"get_text": repository})
+        examples_return = []
+        label_examples = []
 
-    @action(detail=True, methods=["GET"], url_name="get_entities", lookup_field=[])
-    def get_entities(self, request, **kwargs):
-        check_auth(request)
+        for example in examples:
+            try:
+                repository = repository_update.examples.get(pk=example.get('example_id'))
 
-        try:
-            update_id = int(request.query_params.get("update_id"))
-            example_id = int(request.query_params.get("example_id"))
-        except ValueError:
-            raise exceptions.NotFound()
+                get_entities = repository.get_entities(request.query_params.get("language"))
 
-        repository = get_object_or_404(
-            get_object_or_404(RepositoryUpdate, pk=update_id).examples, pk=example_id
-        ).get_entities(request.query_params.get("language"))
+                get_text = repository.get_text(request.query_params.get("language"))
 
-        entities = [entit.rasa_nlu_data for entit in repository]
+                examples_return.append({
+                    'text': get_text,
+                    'intent': example.get("example_intent"),
+                    'entities': [entit.rasa_nlu_data for entit in get_entities]
+                })
 
-        return Response({"entities": entities})
+            except Exception:
+                pass
 
-    @action(
-        detail=True, methods=["GET"], url_name="get_entities_label", lookup_field=[]
-    )
-    def get_entities_label(self, request, **kwargs):
-        check_auth(request)
+        for example in label_examples_query:
+            try:
+                repository_examples = repository_update.examples.get(pk=example.get('example_id'))
 
-        try:
-            update_id = int(request.query_params.get("update_id"))
-            example_id = int(request.query_params.get("example_id"))
-        except ValueError:
-            raise exceptions.NotFound()
+                entities = [
+                    example_entity.get_rasa_nlu_data(label_as_entity=True)
+                    for example_entity in filter(
+                        lambda ee: ee.entity.label,
+                        repository_examples.get_entities(request.query_params.get("language"))
+                    )
+                ]
 
-        repository = get_object_or_404(
-            get_object_or_404(RepositoryUpdate, pk=update_id).examples, pk=example_id
-        ).get_entities(request.query_params.get("language"))
+                label_examples.append({
+                    'entities': entities,
+                    'text': repository_examples.get_text(request.query_params.get("language"))
+                })
+            except Exception:
+                pass
 
-        entities = [
-            example_entity.get_rasa_nlu_data(label_as_entity=True)
-            for example_entity in filter(lambda ee: ee.entity.label, repository)
-        ]
-
-        return Response({"entities": entities})
+        return Response({'examples': examples_return, 'label_examples': label_examples})
 
     @action(detail=True, methods=["POST"], url_name="train_fail", lookup_field=[])
     def train_fail(self, request, **kwargs):
@@ -195,13 +192,16 @@ class RepositoryAuthorizationParseViewSet(mixins.RetrieveModelMixin, GenericView
         update = repository.last_trained_update(
             str(request.query_params.get("language"))
         )
-        return Response(
-            {
-                "update": False if update is None else True,
-                "update_id": update.id,
-                "language": update.language,
-            }
-        )
+        try:
+            return Response(
+                {
+                    "update": False if update is None else True,
+                    "update_id": update.id,
+                    "language": update.language,
+                }
+            )
+        except Exception:
+            return Response({}, status=400)
 
     @action(detail=True, methods=["GET"], url_name="repository_entity", lookup_field=[])
     def repository_entity(self, request, **kwargs):
@@ -217,7 +217,7 @@ class RepositoryAuthorizationParseViewSet(mixins.RetrieveModelMixin, GenericView
 
         return Response(
             {
-                "label": repository_entity.label,
+                "label": True if repository_entity.label else False,
                 "label_value": repository_entity.label.value,
             }
         )
