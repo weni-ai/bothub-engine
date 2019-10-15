@@ -1086,7 +1086,7 @@ class RepositoryVote(models.Model):
 
     user = models.ForeignKey(User, models.CASCADE, related_name="repository_votes")
     repository = models.ForeignKey(Repository, models.CASCADE, related_name="votes")
-    created = models.DateTimeField(editable=False, auto_now_add=True)
+    created = models.DateTimeField(editable=False, default=timezone.now)
 
 
 class RequestRepositoryAuthorization(models.Model):
