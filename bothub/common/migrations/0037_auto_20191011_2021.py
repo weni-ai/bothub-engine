@@ -27,35 +27,32 @@ def update_repository(apps, schema_editor):
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('common', '0031_auto_20190502_1732'),
-    ]
+    dependencies = [("common", "0031_auto_20190502_1732")]
 
     operations = [
-        migrations.RemoveField(
-            model_name='repositoryvote',
-            name='vote',
+        migrations.RemoveField(model_name="repositoryvote", name="vote"),
+        migrations.AddField(
+            model_name="repository",
+            name="nlp_server",
+            field=models.URLField(blank=True, null=True, verbose_name="Base URL NLP"),
         ),
         migrations.AddField(
-            model_name='repository',
-            name='nlp_server',
-            field=models.URLField(blank=True, null=True, verbose_name='Base URL NLP'),
-        ),
-        migrations.AddField(
-            model_name='repository',
-            name='total_updates',
-            field=models.IntegerField(default=0, verbose_name='total updates'),
+            model_name="repository",
+            name="total_updates",
+            field=models.IntegerField(default=0, verbose_name="total updates"),
         ),
         migrations.RunPython(updateRepository),
         migrations.AddField(
-            model_name='repositoryvote',
-            name='created',
-            field=models.DateTimeField(default=django.utils.timezone.now, editable=False),
+            model_name="repositoryvote",
+            name="created",
+            field=models.DateTimeField(
+                default=django.utils.timezone.now, editable=False
+            ),
         ),
         migrations.RunPython(update_repository),
         migrations.AlterField(
-            model_name='repositoryupdate',
-            name='bot_data',
-            field=models.TextField(blank=True, verbose_name='bot data'),
+            model_name="repositoryupdate",
+            name="bot_data",
+            field=models.TextField(blank=True, verbose_name="bot data"),
         ),
     ]

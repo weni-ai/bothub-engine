@@ -106,14 +106,19 @@ class RepositoryAuthorizationTrainViewSet(
             }
         )
 
-    @action(detail=True, methods=["GET"], url_name="get_entities_and_labels", lookup_field=[])
+    @action(
+        detail=True,
+        methods=["GET"],
+        url_name="get_entities_and_labels",
+        lookup_field=[],
+    )
     def get_entities_and_labels(self, request, **kwargs):
         check_auth(request)
 
         try:
-            examples = request.data.get('examples')
-            label_examples_query = request.data.get('label_examples_query')
-            update_id = request.data.get('update_id')
+            examples = request.data.get("examples")
+            label_examples_query = request.data.get("label_examples_query")
+            update_id = request.data.get("update_id")
         except ValueError:
             raise exceptions.NotFound()
 
@@ -124,41 +129,55 @@ class RepositoryAuthorizationTrainViewSet(
 
         for example in examples:
             try:
-                repository = repository_update.examples.get(pk=example.get('example_id'))
+                repository = repository_update.examples.get(
+                    pk=example.get("example_id")
+                )
 
-                get_entities = repository.get_entities(request.query_params.get("language"))
+                get_entities = repository.get_entities(
+                    request.query_params.get("language")
+                )
 
                 get_text = repository.get_text(request.query_params.get("language"))
 
-                examples_return.append({
-                    'text': get_text,
-                    'intent': example.get("example_intent"),
-                    'entities': [entit.rasa_nlu_data for entit in get_entities]
-                })
+                examples_return.append(
+                    {
+                        "text": get_text,
+                        "intent": example.get("example_intent"),
+                        "entities": [entit.rasa_nlu_data for entit in get_entities],
+                    }
+                )
 
             except Exception:
                 pass
 
         for example in label_examples_query:
             try:
-                repository_examples = repository_update.examples.get(pk=example.get('example_id'))
+                repository_examples = repository_update.examples.get(
+                    pk=example.get("example_id")
+                )
 
                 entities = [
                     example_entity.get_rasa_nlu_data(label_as_entity=True)
                     for example_entity in filter(
                         lambda ee: ee.entity.label,
-                        repository_examples.get_entities(request.query_params.get("language"))
+                        repository_examples.get_entities(
+                            request.query_params.get("language")
+                        ),
                     )
                 ]
 
-                label_examples.append({
-                    'entities': entities,
-                    'text': repository_examples.get_text(request.query_params.get("language"))
-                })
+                label_examples.append(
+                    {
+                        "entities": entities,
+                        "text": repository_examples.get_text(
+                            request.query_params.get("language")
+                        ),
+                    }
+                )
             except Exception:
                 pass
 
-        return Response({'examples': examples_return, 'label_examples': label_examples})
+        return Response({"examples": examples_return, "label_examples": label_examples})
 
     @action(detail=True, methods=["POST"], url_name="train_fail", lookup_field=[])
     def train_fail(self, request, **kwargs):
