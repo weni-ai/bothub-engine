@@ -1,24 +1,21 @@
 from django.utils.decorators import method_decorator
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.filters import SearchFilter
-from rest_framework.generics import get_object_or_404
-from rest_framework.viewsets import GenericViewSet
-from rest_framework.response import Response
-from rest_framework.authtoken.models import Token
-from rest_framework import status, mixins
-from rest_framework import permissions
 from drf_yasg.utils import swagger_auto_schema
+from rest_framework import permissions
+from rest_framework import status, mixins
+from rest_framework.authtoken.models import Token
+from rest_framework.filters import SearchFilter
+from rest_framework.response import Response
+from rest_framework.viewsets import GenericViewSet
 
-from bothub.api.v2 import WRITE_METHODS
 from bothub.api.v2.metadata import Metadata
 from bothub.authentication.models import User
-
+from .serializers import ChangePasswordSerializer
 from .serializers import LoginSerializer
 from .serializers import RegisterUserSerializer
-from .serializers import ChangePasswordSerializer
 from .serializers import RequestResetPasswordSerializer
-from .serializers import UserSerializer
 from .serializers import ResetPasswordSerializer
+from .serializers import UserSerializer
 
 
 @method_decorator(
@@ -114,12 +111,35 @@ class RequestResetPasswordViewSet(mixins.CreateModelMixin, GenericViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class UserProfileViewSet(
-    mixins.ListModelMixin,
-    mixins.RetrieveModelMixin,
-    mixins.UpdateModelMixin,
-    GenericViewSet,
+class MyUserProfileViewSet(
+    mixins.RetrieveModelMixin, mixins.UpdateModelMixin, GenericViewSet
 ):
+    """
+    Manager current user profile.
+    retrieve:
+    Get current user profile
+    update:
+    Update current user profile.
+    partial_update:
+    Update, partially, current user profile.
+    """
+
+    serializer_class = UserSerializer
+    queryset = User.objects
+    lookup_field = None
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self, *args, **kwargs):
+        request = self.request
+        user = request.user
+
+        # May raise a permission denied
+        self.check_object_permissions(self.request, user)
+
+        return user
+
+
+class UserProfileViewSet(mixins.RetrieveModelMixin, GenericViewSet):
     """
     Get user profile
     """
@@ -127,25 +147,6 @@ class UserProfileViewSet(
     serializer_class = UserSerializer
     queryset = User.objects
     lookup_field = "nickname"
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-
-    def get_object(self, *args, **kwargs):
-        request = self.request
-        user = request.user
-
-        if request.method in WRITE_METHODS:
-            # May raise a permission denied
-            self.check_object_permissions(self.request, user)
-            return user
-        return super().get_object(*args, **kwargs)
-
-    def list(self, request, *args, **kwargs):
-        self.permission_classes = [permissions.IsAuthenticated]
-        self.lookup_field = None
-        serializer = self.get_serializer(
-            get_object_or_404(User, email=request.user), many=False
-        )
-        return Response(serializer.data)
 
 
 class SearchUserViewSet(mixins.ListModelMixin, GenericViewSet):
