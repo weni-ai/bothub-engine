@@ -5,14 +5,6 @@ from django.db import migrations, models
 from django.conf import settings
 from bothub.utils import send_bot_data_file_aws
 from bothub.common.models import RepositoryUpdate
-from bothub.common.models import Repository
-
-
-def updateRepository(apps, schema_editor):
-    for update in RepositoryUpdate.objects.all().filter(trained_at__isnull=False):
-        repository = Repository.objects.get(uuid=update.repository.uuid)
-        repository.total_updates += 1
-        repository.save()
 
 
 def update_repository(apps, schema_editor):
@@ -27,7 +19,7 @@ def update_repository(apps, schema_editor):
 
 class Migration(migrations.Migration):
 
-    dependencies = [("common", "0031_auto_20190502_1732")]
+    dependencies = [("common", "0032_repository_total_updates")]
 
     operations = [
         migrations.RemoveField(model_name="repositoryvote", name="vote"),
@@ -36,12 +28,6 @@ class Migration(migrations.Migration):
             name="nlp_server",
             field=models.URLField(blank=True, null=True, verbose_name="Base URL NLP"),
         ),
-        migrations.AddField(
-            model_name="repository",
-            name="total_updates",
-            field=models.IntegerField(default=0, verbose_name="total updates"),
-        ),
-        migrations.RunPython(updateRepository),
         migrations.AddField(
             model_name="repositoryvote",
             name="created",
