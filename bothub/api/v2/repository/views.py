@@ -325,7 +325,8 @@ class SearchRepositoriesViewSet(mixins.ListModelMixin, GenericViewSet):
                 return self.queryset.filter(
                     owner__nickname=self.request.query_params.get(
                         "nickname", self.request.user
-                    )
+                    ),
+                    is_private=False
                 )
             else:
                 return self.queryset.filter(owner=self.request.user)
