@@ -13,6 +13,7 @@ from ..account.views import ChangePasswordViewSet
 from ..account.views import RequestResetPasswordViewSet
 from ..account.views import ResetPasswordViewSet
 from ..account.views import UserProfileViewSet
+from ..account.views import MyUserProfileViewSet
 
 from .utils import create_user_and_token
 
@@ -215,7 +216,7 @@ class ListUserProfileTestCase(TestCase):
         self.factory = RequestFactory()
         self.user, self.user_token = create_user_and_token()
 
-    def request(self, token, nickname):
+    def request(self, nickname):
         request = self.factory.get("/v2/account/user-profile/{}/".format(nickname))
         response = UserProfileViewSet.as_view({"get": "retrieve"})(
             request, nickname=nickname
@@ -225,14 +226,33 @@ class ListUserProfileTestCase(TestCase):
         return (response, content_data)
 
     def test_okay(self):
-        response, content_data = self.request(self.user_token, self.user.nickname)
+        response, content_data = self.request(self.user.nickname)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(content_data.get("nickname"), self.user.nickname)
 
     def test_not_exists(self):
-        response, content_data = self.request(self.user_token, "no_exists")
+        response, content_data = self.request("no_exists")
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertEqual(content_data.get("detail"), "Not found.")
+
+
+class ListMyProfileTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.user, self.user_token = create_user_and_token()
+
+    def request(self, token):
+        authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
+        request = self.factory.get("/v2/account/my-profile/", **authorization_header)
+        response = MyUserProfileViewSet.as_view({"get": "retrieve"})(request)
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data)
+
+    def test_okay(self):
+        response, content_data = self.request(self.user_token)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(content_data.get("nickname"), self.user.nickname)
 
 
 class UserUpdateTestCase(TestCase):
@@ -243,13 +263,13 @@ class UserUpdateTestCase(TestCase):
     def request(self, user, data, token):
         authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
         request = self.factory.patch(
-            "/v2/account/user-profile/{}/".format(self.user.nickname),
+            "/v2/account/my-profile/",
             self.factory._encode_data(data, MULTIPART_CONTENT),
             MULTIPART_CONTENT,
             **authorization_header
         )
-        response = UserProfileViewSet.as_view({"patch": "update"})(
-            request, pk=user.pk, nickname=user.nickname, partial=True
+        response = MyUserProfileViewSet.as_view({"patch": "update"})(
+            request, pk=user.pk, partial=True
         )
         response.render()
         content_data = json.loads(response.content)
