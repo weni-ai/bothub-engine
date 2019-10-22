@@ -106,6 +106,10 @@ class Metadata(BaseMetadata):
         elif getattr(field, "fields", None):
             field_info["children"] = self.get_serializer_info(field)
 
+        if field_info.get("style").get("disabled_options"):
+            field_info["disabled_options"] = field_info["style"]["disabled_options"]
+            field_info["style"].pop("disabled_options")
+
         if not field_info.get("read_only") and hasattr(field, "choices"):
             field_info["choices"] = [
                 {

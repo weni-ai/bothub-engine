@@ -391,6 +391,7 @@ class RepositoryAuthorizationRequestsViewSet(
     serializer_class = RequestRepositoryAuthorizationSerializer
     filter_class = RepositoryAuthorizationRequestsFilter
     permission_classes = [IsAuthenticated]
+    metadata_class = Metadata
 
     def create(self, request, *args, **kwargs):
         self.queryset = RequestRepositoryAuthorization.objects
