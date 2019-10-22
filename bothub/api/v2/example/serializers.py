@@ -73,3 +73,8 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
         ref_name = None
 
     entities = RepositoryExampleEntitySerializer(many=True, read_only=True)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if kwargs.get('context').get('request').method == 'GET':
+            self.fields["entities"] = RepositoryExampleEntitySerializer(many=True, read_only=True, data='GET')
