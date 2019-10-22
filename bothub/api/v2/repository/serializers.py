@@ -79,6 +79,7 @@ class RequestRepositoryAuthorizationSerializer(serializers.ModelSerializer):
     created_at = serializers.DateTimeField(required=False, read_only=True, style={"show": False})
 
     def update(self, instance, validated_data):
+        validated_data.pop('user')
         validated_data.update({"approved_by": self.context["request"].user})
         return super().update(instance, validated_data)
 
