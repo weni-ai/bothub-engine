@@ -43,17 +43,17 @@ class RequestRepositoryAuthorizationSerializer(serializers.ModelSerializer):
         ref_name = None
 
     id = serializers.IntegerField(
-        read_only=True, required=False, label="ID", style={"disabled_options": True}
+        read_only=True, required=False, label="ID", style={"show": False}
     )
 
     repository = serializers.PrimaryKeyRelatedField(
         queryset=Repository.objects,
-        style={"show": False, "disabled_options": True},
+        style={"show": False},
         required=False,
     )
     user = serializers.HiddenField(
         default=serializers.CurrentUserDefault(),
-        style={"show": False, "disabled_options": True},
+        style={"show": False},
     )
     text = TextField(
         label=_("Leave a message for repository administrators"),
@@ -65,17 +65,18 @@ class RequestRepositoryAuthorizationSerializer(serializers.ModelSerializer):
         source="user",
         slug_field="nickname",
         read_only=True,
-        style={"disabled_options": True},
+        style={"show": False},
     )
     approved_by__nickname = serializers.SlugRelatedField(
         source="approved_by",
         slug_field="nickname",
         read_only=True,
-        style={"disabled_options": True},
+        style={"show": False},
     )
     approved_by = serializers.PrimaryKeyRelatedField(
-        read_only=True, style={"show": False, "disabled_options": True}
+        read_only=True, style={"show": False}
     )
+    created_at = serializers.DateTimeField(required=False, read_only=True, style={"show": False})
 
     def update(self, instance, validated_data):
         validated_data.update({"approved_by": self.context["request"].user})
