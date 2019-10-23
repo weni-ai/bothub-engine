@@ -92,7 +92,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     def send_welcome_email(self):
         if not settings.SEND_EMAILS:
             return False  # pragma: no cover
-        context = {"name": self.name}
+        context = {"name": self.name, "base_url": settings.BASE_URL}
         send_mail(
             _("Welcome to Bothub"),
             render_to_string("authentication/emails/welcome.txt", context),
@@ -113,7 +113,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         reset_url = "{}reset-password/{}/{}/".format(
             settings.BOTHUB_WEBAPP_BASE_URL, self.nickname, token
         )
-        context = {"reset_url": reset_url}
+        context = {"reset_url": reset_url, "base_url": settings.BASE_URL}
         send_mail(
             _("Reset your bothub password"),
             render_to_string("authentication/emails/reset_password.txt", context),

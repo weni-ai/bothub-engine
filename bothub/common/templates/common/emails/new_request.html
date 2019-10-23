@@ -4,7 +4,7 @@
 
 {% block before-content %}
     <div style="text-align: center; padding-top: 20px;">
-        <img src="{% static 'common/emails/request.gif' %}" alt="{% trans 'New Authorization Request' %}" style="margin: auto; width: 100%; max-width: 456px; display: block;" />
+        <img src="{{ base_url }}{% static 'common/emails/request.gif' %}" alt="{% trans 'New Authorization Request' %}" style="margin: auto; width: 100%; max-width: 456px; display: block;" />
         <h1 style="font-size: 1.5rem;">{% trans 'New Authorization Request' %}</h1>
     </div>
 {% endblock %}
