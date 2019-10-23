@@ -1126,7 +1126,10 @@ class RequestRepositoryAuthorization(models.Model):
     def send_request_rejected_email(self):
         if not settings.SEND_EMAILS:
             return False  # pragma: no cover
-        context = {"repository_name": self.repository.name, "base_url": settings.BASE_URL}
+        context = {
+            "repository_name": self.repository.name,
+            "base_url": settings.BASE_URL,
+        }
         send_mail(
             _("Access denied to {}").format(self.repository.name),
             render_to_string("common/emails/request_rejected.txt", context),

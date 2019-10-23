@@ -56,7 +56,9 @@ if settings.DEBUG:
                     path(
                         "welcome/",
                         render_template(
-                            "authentication/emails/welcome.html", name="User", base_url=settings.BASE_URL
+                            "authentication/emails/welcome.html",
+                            name="User",
+                            base_url=settings.BASE_URL,
                         ),
                     ),
                     path(

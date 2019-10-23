@@ -90,7 +90,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         return PasswordResetTokenGenerator()
 
     def send_welcome_email(self):
-        if not settings.SEND_EMAILS
+        if not settings.SEND_EMAILS:
             return False  # pragma: no cover
         context = {"name": self.name, "base_url": settings.BASE_URL}
         send_mail(
@@ -113,7 +113,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         reset_url = "{}reset-password/{}/{}/".format(
             settings.BOTHUB_WEBAPP_BASE_URL, self.nickname, token
         )
-        context = {"reset_url": reset_url, 'base_url': settings.BASE_URL}
+        context = {"reset_url": reset_url, "base_url": settings.BASE_URL}
         send_mail(
             _("Reset your bothub password"),
             render_to_string("authentication/emails/reset_password.txt", context),
