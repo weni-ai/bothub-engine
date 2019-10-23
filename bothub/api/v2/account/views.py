@@ -1,3 +1,4 @@
+from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg.utils import swagger_auto_schema
@@ -38,6 +39,10 @@ class LoginViewSet(mixins.CreateModelMixin, GenericViewSet):
         )
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data["user"]
+
+        user.last_login = timezone.now()
+        user.save(update_fields=["last_login"])
+
         token, created = Token.objects.get_or_create(user=user)
         return Response(
             {"token": token.key},

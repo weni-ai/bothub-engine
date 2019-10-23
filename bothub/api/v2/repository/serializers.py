@@ -47,13 +47,10 @@ class RequestRepositoryAuthorizationSerializer(serializers.ModelSerializer):
     )
 
     repository = serializers.PrimaryKeyRelatedField(
-        queryset=Repository.objects,
-        style={"show": False},
-        required=False,
+        queryset=Repository.objects, style={"show": False}, required=False
     )
     user = serializers.HiddenField(
-        default=serializers.CurrentUserDefault(),
-        style={"show": False},
+        default=serializers.CurrentUserDefault(), style={"show": False}
     )
     text = TextField(
         label=_("Leave a message for repository administrators"),
@@ -62,10 +59,7 @@ class RequestRepositoryAuthorizationSerializer(serializers.ModelSerializer):
         required=False,
     )
     user__nickname = serializers.SlugRelatedField(
-        source="user",
-        slug_field="nickname",
-        read_only=True,
-        style={"show": False},
+        source="user", slug_field="nickname", read_only=True, style={"show": False}
     )
     approved_by__nickname = serializers.SlugRelatedField(
         source="approved_by",
@@ -76,10 +70,12 @@ class RequestRepositoryAuthorizationSerializer(serializers.ModelSerializer):
     approved_by = serializers.PrimaryKeyRelatedField(
         read_only=True, style={"show": False}
     )
-    created_at = serializers.DateTimeField(required=False, read_only=True, style={"show": False})
+    created_at = serializers.DateTimeField(
+        required=False, read_only=True, style={"show": False}
+    )
 
     def update(self, instance, validated_data):
-        validated_data.pop('user')
+        validated_data.pop("user")
         validated_data.update({"approved_by": self.context["request"].user})
         return super().update(instance, validated_data)
 
