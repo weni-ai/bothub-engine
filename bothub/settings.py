@@ -258,6 +258,19 @@ SWAGGER_SETTINGS = {
     },
 }
 
+DRF_YASG_EXCLUDE_VIEWS = (
+    [
+        "bothub.api.v2.nlp.views.RepositoryAuthorizationTrainViewSet",
+        "bothub.api.v2.nlp.views.RepositoryAuthorizationParseViewSet",
+        "bothub.api.v2.nlp.views.RepositoryAuthorizationInfoViewSet",
+        "bothub.api.v2.nlp.views.RepositoryAuthorizationEvaluateViewSet",
+        "bothub.api.v2.nlp.views.NLPLangsViewSet",
+        "bothub.api.v2.nlp.views.RepositoryUpdateInterpretersViewSet",
+    ]
+    if not DEBUG
+    else []
+)
+
 
 # AWS
 AWS_SEND = env.bool("BOTHUB_ENGINE_AWS_SEND")

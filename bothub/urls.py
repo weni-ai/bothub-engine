@@ -8,6 +8,7 @@ from drf_yasg import openapi
 
 from bothub.api.v1.routers import router as bothub_api_routers
 from bothub.api.v2 import urls as bothub_api_v2_urls
+from bothub.api.v2.swagger import CustomOpenAPISchemaGenerator
 from bothub.health.views import ping
 from bothub.health.views import r200
 from bothub.common.views import download_bot_data
@@ -23,7 +24,8 @@ schema_view = get_schema_view(
         license=openapi.License(name="GPL-3.0"),
     ),
     public=True,
-    permission_classes=[permissions.AllowAny],
+    permission_classes=(permissions.AllowAny,),
+    generator_class=CustomOpenAPISchemaGenerator,
 )
 
 urlpatterns = [
