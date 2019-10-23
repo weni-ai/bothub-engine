@@ -6,15 +6,17 @@ import django.utils.timezone
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('common', '0006_repositoryupdate_failed_at'),
-    ]
+    dependencies = [("common", "0006_repositoryupdate_failed_at")]
 
     operations = [
         migrations.AddField(
-            model_name='repositorytranslatedexample',
-            name='created_at',
-            field=models.DateTimeField(auto_now_add=True, default=django.utils.timezone.now, verbose_name='created at'),
+            model_name="repositorytranslatedexample",
+            name="created_at",
+            field=models.DateTimeField(
+                auto_now_add=True,
+                default=django.utils.timezone.now,
+                verbose_name="created at",
+            ),
             preserve_default=False,
-        ),
+        )
     ]

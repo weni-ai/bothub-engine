@@ -1,6 +1,14 @@
+<p align="center">
+    <img src="https://user-images.githubusercontent.com/5360835/65427083-1af35900-de01-11e9-86ef-59f1eee79a68.png" width="230" height="70" alt="Bothub" />
+</p>
+
 # Bothub
 
-[![Build Status](https://travis-ci.org/Ilhasoft/bothub-engine.svg?branch=master)](https://travis-ci.org/Ilhasoft/bothub-engine) [![Coverage Status](https://coveralls.io/repos/github/Ilhasoft/bothub-engine/badge.svg?branch=master)](https://coveralls.io/github/Ilhasoft/bothub-engine?branch=master) [![Python Version](https://img.shields.io/badge/python-3.6-blue.svg)](https://www.python.org/) [![License GPL-3.0](https://img.shields.io/badge/license-%20GPL--3.0-yellow.svg)](https://github.com/Ilhasoft/bothub-engine/blob/master/LICENSE)
+[![Build Status](https://travis-ci.org/Ilhasoft/bothub-engine.svg?branch=master)](https://travis-ci.org/Ilhasoft/bothub-engine)
+[![Coverage Status](https://coveralls.io/repos/github/Ilhasoft/bothub-engine/badge.svg?branch=master)](https://coveralls.io/github/Ilhasoft/bothub-engine?branch=master)
+[![Code Climate](https://codeclimate.com/github/Ilhasoft/bothub-engine/badges/gpa.svg)](https://codeclimate.com/github/Ilhasoft/bothub-engine)
+[![Python Version](https://img.shields.io/badge/python-3.6-blue.svg)](https://www.python.org/)
+[![License GPL-3.0](https://img.shields.io/badge/license-%20GPL--3.0-yellow.svg)](https://github.com/Ilhasoft/bothub-engine/blob/master/LICENSE)
 
 ## Development
 
@@ -29,13 +37,23 @@ Run ```pipenv run python ./manage.py fill_db_using_fake_data``` to fill database
 | nickname | email | password | is superuser |
 |---|---|---|---|
 | admin | admin@bothub.it | admin | yes |
-| douglas | douglas@bothub.it | douglas | no |
 | user | user@bothub.it | user | no |
 
 
 ## Production
 
 Docker images available in [Bothub's Docker Hub repository](https://hub.docker.com/r/ilha/bothub/).
+
+
+# Deployment
+
+
+## Heroku
+Host your own Bothub Engine with [One-Click Deploy] (https://heroku.com/deploy).
+
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
+
+
 
 ## Environment Variables
 
@@ -66,3 +84,8 @@ You can set environment variables in your OS, write on ```.env``` file or pass v
 | BOTHUB_NLP_BASE_URL | ```string``` | ```http://localhost:2657/``` | The bothub-blp production application URL. Used to proxy requests.
 | CHECK_ACCESSIBLE_API_URL | ```string``` | ```http://localhost/api/repositories/``` | URL used by ```bothub.health.check.check_accessible_api``` to make a HTTP request. The response status code must be 200.
 | SEND_EMAILS | ```boolean``` | ```True``` | Send emails flag.
+| BOTHUB_ENGINE_AWS_S3_BUCKET_NAME | ```string``` | ```None``` | 
+| BOTHUB_ENGINE_AWS_ACCESS_KEY_ID | ```string``` | ```None``` | 
+| BOTHUB_ENGINE_AWS_SECRET_ACCESS_KEY | ```string``` | ```None``` | 
+| BOTHUB_ENGINE_AWS_REGION_NAME | ```string``` | ```None``` | 
+| BOTHUB_ENGINE_AWS_SEND |  ```bool``` | ```False``` | 

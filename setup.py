@@ -7,10 +7,9 @@ setup(
     description='Bothub Engine',
     packages=find_packages(),
     install_requires=[
-        'django==2.1.3',
-        'dj-database-url==0.5.0',
-        'python-decouple==3.1',
-        'djangorestframework==3.9.0',
+        'django==2.1.11',
+        'django-environ==0.4.5',
+        'djangorestframework==3.9.1',
         'django-filter==2.0.0',
         'django-cors-headers==2.4.0',
         'requests==2.20.1',

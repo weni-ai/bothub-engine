@@ -23,7 +23,7 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - 80:80
+      - ${ENGINE_PORT:-80}:80
     networks:
       - default
       - bothub
@@ -51,6 +51,10 @@ services:
       - SEND_EMAILS=${SEND_EMAILS:-true}
       - SUPPORTED_LANGUAGES=${SUPPORTED_LANGUAGES:-en|pt}
       - BASE_URL=${BOTHUB_BACKEND_BASE_URL:-https://api.bothub.ti/}
+      - BOTHUB_ENGINE_AWS_ACCESS_KEY_ID=${BOTHUB_ENGINE_AWS_ACCESS_KEY_ID}
+      - BOTHUB_ENGINE_AWS_SECRET_ACCESS_KEY=${BOTHUB_ENGINE_AWS_SECRET_ACCESS_KEY}
+      - BOTHUB_ENGINE_AWS_S3_BUCKET_NAME=${BOTHUB_ENGINE_AWS_S3_BUCKET_NAME}
+      - BOTHUB_ENGINE_AWS_REGION_NAME=${BOTHUB_ENGINE_AWS_REGION_NAME}
 
 
 networks:
