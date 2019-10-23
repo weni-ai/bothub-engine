@@ -45,7 +45,7 @@ env = environ.Env(
     BOTHUB_ENGINE_AWS_S3_BUCKET_NAME=(str, ""),
     BOTHUB_ENGINE_AWS_REGION_NAME=(str, "us-east-1"),
     BOTHUB_ENGINE_AWS_SEND=(bool, False),
-    BASE_URL=(str, "http://api.bothub.it/"),
+    BASE_URL=(str, "http://api.bothub.it"),
 )
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
