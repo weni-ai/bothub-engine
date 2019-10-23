@@ -75,7 +75,7 @@ class RequestRepositoryAuthorizationSerializer(serializers.ModelSerializer):
     )
 
     def update(self, instance, validated_data):
-        if 'user' in validated_data:
+        if "user" in validated_data:
             validated_data.pop("user")
         validated_data.update({"approved_by": self.context["request"].user})
         return super().update(instance, validated_data)
@@ -382,7 +382,7 @@ class RepositoryAuthorizationRoleSerializer(serializers.ModelSerializer):
     def validate(self, data):
         if self.instance.user == self.instance.repository.owner:
             raise PermissionDenied(_("The owner role can't be changed."))
-        if data.get('role') == RepositoryAuthorization.LEVEL_NOTHING:
+        if data.get("role") == RepositoryAuthorization.LEVEL_NOTHING:
             raise PermissionDenied(_("You cannot set user role 0"))
         return data
 
