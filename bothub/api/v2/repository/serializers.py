@@ -135,6 +135,7 @@ class RepositoryAuthorizationSerializer(serializers.ModelSerializer):
             "can_write",
             "is_admin",
             "created_at",
+            "id_request_authorizations"
         ]
         read_only = ["user", "user__nickname", "repository", "role", "created_at"]
         ref_name = None
@@ -142,6 +143,14 @@ class RepositoryAuthorizationSerializer(serializers.ModelSerializer):
     user__nickname = serializers.SlugRelatedField(
         source="user", slug_field="nickname", read_only=True
     )
+
+    id_request_authorizations = serializers.SerializerMethodField()
+
+    def get_id_request_authorizations(self, obj):
+        id_auth = RequestRepositoryAuthorization.objects.filter(repository=obj.repository, user=obj.user)
+        if id_auth.count() == 1:
+            return id_auth.first().pk
+        return None
 
 
 class RepositorySerializer(serializers.ModelSerializer):
