@@ -4,7 +4,7 @@
 
 {% block before-content %}
 <div style="text-align: center; padding-top: 20px;">
-    <img src="{% static 'authentication/emails/welcome.png' %}" alt="{% trans 'Welcome to Bothub' %}" style="margin: auto; width: 100%; max-width: 388px; display: block;" />
+    <img src="{{ base_url }}{% static 'authentication/emails/welcome.png' %}" alt="{% trans 'Welcome to Bothub' %}" style="margin: auto; width: 100%; max-width: 388px; display: block;" />
     <h1 style="font-size: 24px;">{% trans 'Welcome to Bothub' %}</h1>
 </div>
 {% endblock %}

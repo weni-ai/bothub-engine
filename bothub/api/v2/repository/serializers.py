@@ -42,6 +42,10 @@ class RequestRepositoryAuthorizationSerializer(serializers.ModelSerializer):
         ]
         ref_name = None
 
+    id = serializers.IntegerField(
+        read_only=True, required=False, label="ID", style={"show": False}
+    )
+
     repository = serializers.PrimaryKeyRelatedField(
         queryset=Repository.objects, style={"show": False}, required=False
     )
@@ -55,16 +59,24 @@ class RequestRepositoryAuthorizationSerializer(serializers.ModelSerializer):
         required=False,
     )
     user__nickname = serializers.SlugRelatedField(
-        source="user", slug_field="nickname", read_only=True
+        source="user", slug_field="nickname", read_only=True, style={"show": False}
     )
     approved_by__nickname = serializers.SlugRelatedField(
-        source="approved_by", slug_field="nickname", read_only=True
+        source="approved_by",
+        slug_field="nickname",
+        read_only=True,
+        style={"show": False},
     )
     approved_by = serializers.PrimaryKeyRelatedField(
-        read_only=True, style={"show": False}
+        read_only=True, style={"show": False}, required=False
+    )
+    created_at = serializers.DateTimeField(
+        required=False, read_only=True, style={"show": False}
     )
 
     def update(self, instance, validated_data):
+        if "user" in validated_data:
+            validated_data.pop("user")
         validated_data.update({"approved_by": self.context["request"].user})
         return super().update(instance, validated_data)
 
@@ -123,6 +135,7 @@ class RepositoryAuthorizationSerializer(serializers.ModelSerializer):
             "can_write",
             "is_admin",
             "created_at",
+            "id_request_authorizations"
         ]
         read_only = ["user", "user__nickname", "repository", "role", "created_at"]
         ref_name = None
@@ -130,6 +143,14 @@ class RepositoryAuthorizationSerializer(serializers.ModelSerializer):
     user__nickname = serializers.SlugRelatedField(
         source="user", slug_field="nickname", read_only=True
     )
+
+    id_request_authorizations = serializers.SerializerMethodField()
+
+    def get_id_request_authorizations(self, obj):
+        id_auth = RequestRepositoryAuthorization.objects.filter(repository=obj.repository, user=obj.user)
+        if id_auth.count() == 1:
+            return id_auth.first().pk
+        return None
 
 
 class RepositorySerializer(serializers.ModelSerializer):
@@ -370,6 +391,8 @@ class RepositoryAuthorizationRoleSerializer(serializers.ModelSerializer):
     def validate(self, data):
         if self.instance.user == self.instance.repository.owner:
             raise PermissionDenied(_("The owner role can't be changed."))
+        if data.get("role") == RepositoryAuthorization.LEVEL_NOTHING:
+            raise PermissionDenied(_("You cannot set user role 0"))
         return data
 
 

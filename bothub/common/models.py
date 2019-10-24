@@ -1063,6 +1063,7 @@ class RepositoryAuthorization(models.Model):
             responsible and responsible.name or self.repository.owner.name
         )
         context = {
+            "base_url": settings.BASE_URL,
             "responsible_name": responsible_name,
             "user_name": self.user.name,
             "repository_name": self.repository.name,
@@ -1105,6 +1106,7 @@ class RequestRepositoryAuthorization(models.Model):
         if not settings.SEND_EMAILS:
             return False  # pragma: no cover
         context = {
+            "base_url": settings.BASE_URL,
             "user_name": self.user.name,
             "repository_name": self.repository.name,
             "text": self.text,
@@ -1124,7 +1126,10 @@ class RequestRepositoryAuthorization(models.Model):
     def send_request_rejected_email(self):
         if not settings.SEND_EMAILS:
             return False  # pragma: no cover
-        context = {"repository_name": self.repository.name}
+        context = {
+            "repository_name": self.repository.name,
+            "base_url": settings.BASE_URL,
+        }
         send_mail(
             _("Access denied to {}").format(self.repository.name),
             render_to_string("common/emails/request_rejected.txt", context),
@@ -1139,6 +1144,7 @@ class RequestRepositoryAuthorization(models.Model):
         if not settings.SEND_EMAILS:
             return False  # pragma: no cover
         context = {
+            "base_url": settings.BASE_URL,
             "admin_name": self.approved_by.name,
             "repository_name": self.repository.name,
         }
@@ -1358,4 +1364,6 @@ def send_new_request_email_to_admins_on_created(instance, created, **kwargs):
 
 @receiver(models.signals.post_delete, sender=RequestRepositoryAuthorization)
 def send_request_rejected_email(instance, **kwargs):
+    user_authorization = instance.repository.get_user_authorization(instance.user)
+    user_authorization.delete()
     instance.send_request_rejected_email()
