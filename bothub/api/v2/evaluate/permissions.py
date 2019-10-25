@@ -8,8 +8,11 @@ from .. import WRITE_METHODS
 class RepositoryEvaluatePermission(permissions.BasePermission):
     def has_permission(self, request, view):
         try:
-            repository_uuid = request.data.get("repository") \
-                if request.method in WRITE_METHODS else request.GET.get("repository_uuid")
+            repository_uuid = (
+                request.data.get("repository")
+                if request.method in WRITE_METHODS
+                else request.GET.get("repository_uuid")
+            )
             repository = Repository.objects.get(uuid=repository_uuid)
             authorization = repository.get_user_authorization(request.user)
 
