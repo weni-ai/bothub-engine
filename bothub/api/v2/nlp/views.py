@@ -1,5 +1,4 @@
 import base64
-import json
 import requests
 
 from django.conf import settings
@@ -337,7 +336,7 @@ class RepositoryAuthorizationEvaluateViewSet(mixins.RetrieveModelMixin, GenericV
             intent_results=intents_score,
             matrix_chart=request.data.get("matrix_chart"),
             confidence_chart=request.data.get("confidence_chart"),
-            log=json.dumps(request.data.get("log")),
+            log=request.data.get("log"),
         )
 
         return Response(
