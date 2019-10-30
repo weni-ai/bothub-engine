@@ -13,7 +13,7 @@
             <div style="background-color: #f9f9f9; font-size: 1.25rem; color: #222222;">
                 {% block content %}
                 <a style="display: block; padding: 16px;" rel="nofollow" href="https://bothub.it/" target="_blank">
-                    <img src="{% static 'bothub/emails/logo.png' %}" alt="Bothub" width="124" height="26" style="display: block; margin: auto;" />
+                    <img src="{{ base_url }}{% static 'bothub/emails/logo.png' %}" alt="Bothub" width="124" height="26" style="display: block; margin: auto;" />
                 </a>
                 {% endblock %}
                 <div>{% block before-content %}{% endblock %}</div>
@@ -34,10 +34,10 @@
                 <div style="padding: 32px 24px;">
                     <div style="display: flex;">
                         <a style="padding: 0 8px;" rel="nofollow" href="https://www.facebook.com/bothub.it/" target="_blank">
-                            <img src="{% static 'bothub/emails/facebook.png' %}" alt="Facebook" width="38" height="38" style="display: block;" border="0" />
+                            <img src="{{ base_url }}{% static 'bothub/emails/facebook.png' %}" alt="Facebook" width="38" height="38" style="display: block;" border="0" />
                         </a>
                         <a style="padding: 0 8px;" rel="nofollow" href="https://www.linkedin.com/company/bothubit/" target="_blank">
-                            <img src="{% static 'bothub/emails/linkedin.png' %}" alt="LinkedIn" width="38" height="38" style="display: block;" border="0" />
+                            <img src="{{ base_url }}{% static 'bothub/emails/linkedin.png' %}" alt="LinkedIn" width="38" height="38" style="display: block;" border="0" />
                         </a>
                     </div>
                 </div>

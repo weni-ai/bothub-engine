@@ -45,6 +45,7 @@ env = environ.Env(
     BOTHUB_ENGINE_AWS_S3_BUCKET_NAME=(str, ""),
     BOTHUB_ENGINE_AWS_REGION_NAME=(str, "us-east-1"),
     BOTHUB_ENGINE_AWS_SEND=(bool, False),
+    BASE_URL=(str, "http://api.bothub.it"),
 )
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -59,6 +60,7 @@ DEBUG = env.bool("DEBUG")
 
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
 
+BASE_URL = env.str("BASE_URL")
 
 # Application definition
 
@@ -255,6 +257,19 @@ SWAGGER_SETTINGS = {
         "api_key": {"type": "apiKey", "name": "Authorization", "in": "header"}
     },
 }
+
+DRF_YASG_EXCLUDE_VIEWS = (
+    [
+        "bothub.api.v2.nlp.views.RepositoryAuthorizationTrainViewSet",
+        "bothub.api.v2.nlp.views.RepositoryAuthorizationParseViewSet",
+        "bothub.api.v2.nlp.views.RepositoryAuthorizationInfoViewSet",
+        "bothub.api.v2.nlp.views.RepositoryAuthorizationEvaluateViewSet",
+        "bothub.api.v2.nlp.views.NLPLangsViewSet",
+        "bothub.api.v2.nlp.views.RepositoryUpdateInterpretersViewSet",
+    ]
+    if not DEBUG
+    else []
+)
 
 
 # AWS

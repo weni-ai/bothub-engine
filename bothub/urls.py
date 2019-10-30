@@ -7,6 +7,7 @@ from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 
 from bothub.api.v2 import urls as bothub_api_v2_urls
+from bothub.api.v2.swagger import CustomOpenAPISchemaGenerator
 from bothub.health.views import ping
 from bothub.health.views import r200
 from bothub.common.views import download_bot_data
@@ -22,7 +23,8 @@ schema_view = get_schema_view(
         license=openapi.License(name="GPL-3.0"),
     ),
     public=True,
-    permission_classes=[permissions.AllowAny],
+    permission_classes=(permissions.AllowAny,),
+    generator_class=CustomOpenAPISchemaGenerator,
 )
 
 urlpatterns = [
@@ -54,13 +56,16 @@ if settings.DEBUG:
                     path(
                         "welcome/",
                         render_template(
-                            "authentication/emails/welcome.html", name="User"
+                            "authentication/emails/welcome.html",
+                            name="User",
+                            base_url=settings.BASE_URL,
                         ),
                     ),
                     path(
                         "new-role/",
                         render_template(
                             "common/emails/new_role.html",
+                            base_url=settings.BASE_URL,
                             responsible_name="User",
                             user_name="Michael",
                             repository_name="Repository 1",
@@ -72,6 +77,7 @@ if settings.DEBUG:
                         "new-request/",
                         render_template(
                             "common/emails/new_request.html",
+                            base_url=settings.BASE_URL,
                             user_name="Michael",
                             repository_name="Repository 1",
                             text="Lorem ipsum dolor sit amet, consectetur "
@@ -86,6 +92,7 @@ if settings.DEBUG:
                         "request-rejected/",
                         render_template(
                             "common/emails/request_rejected.html",
+                            base_url=settings.BASE_URL,
                             repository_name="Repository 1",
                         ),
                     ),
@@ -93,6 +100,7 @@ if settings.DEBUG:
                         "request-approved/",
                         render_template(
                             "common/emails/request_approved.html",
+                            base_url=settings.BASE_URL,
                             admin_name="User",
                             repository_name="Repository 1",
                             repository_url="http://localhost:8080/user/repo1/",
