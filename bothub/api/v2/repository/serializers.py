@@ -14,10 +14,8 @@ from bothub.api.v2.repository.validators import ExampleWithIntentOrEntityValidat
 from bothub.api.v2.repository.validators import IntentAndSentenceNotExistsValidator
 from bothub.common import languages
 from bothub.common.languages import LANGUAGE_CHOICES
-from bothub.common.models import Repository
-from bothub.common.models import UserGroupRepository
-from bothub.common.models import UserPermissionRepository
 from bothub.common.models import PermissionsCode
+from bothub.common.models import Repository
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryCategory
 from bothub.common.models import RepositoryEntityLabel
@@ -27,6 +25,8 @@ from bothub.common.models import RepositoryTranslatedExampleEntity
 from bothub.common.models import RepositoryUpdate
 from bothub.common.models import RepositoryVote
 from bothub.common.models import RequestRepositoryAuthorization
+from bothub.common.models import UserGroupRepository
+from bothub.common.models import UserPermissionRepository
 from .validators import CanContributeInRepositoryTranslatedExampleValidator
 
 
@@ -413,7 +413,7 @@ class RepositoryAuthorizationRoleSerializer(serializers.ModelSerializer):
     def validate(self, data):
         if self.instance.user == self.instance.repository.owner:
             raise PermissionDenied(_("The owner role can't be changed."))
-        if data.get("role") == RepositoryAuthorization.LEVEL_NOTHING:
+        if data.get("usergrouprepository").name == "Public":
             raise PermissionDenied(_("You cannot set user role 0"))
         return data
 

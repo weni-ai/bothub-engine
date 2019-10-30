@@ -115,8 +115,8 @@ class RepositoryAuthorizationTrainViewSet(
         check_auth(request)
 
         try:
-            examples = request.data.get("examples")
-            label_examples_query = request.data.get("label_examples_query")
+            examples = request.data.get("examples", default=[])
+            label_examples_query = request.data.get("label_examples_query", default=[])
             update_id = request.data.get("update_id")
         except ValueError:
             raise exceptions.NotFound()
