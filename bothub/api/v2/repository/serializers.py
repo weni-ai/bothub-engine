@@ -151,6 +151,9 @@ class RepositoryAuthorizationSerializer(serializers.ModelSerializer):
 
     id_request_authorizations = serializers.SerializerMethodField()
 
+    def get_usergrouprepository(self, obj):
+        return obj.usergrouprepository.name
+
     def get_id_request_authorizations(self, obj):
         id_auth = RequestRepositoryAuthorization.objects.filter(
             repository=obj.repository, user=obj.user
