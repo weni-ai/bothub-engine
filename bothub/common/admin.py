@@ -17,6 +17,7 @@ class RepositoryUpdateInline(admin.TabularInline):
         "algorithm",
         "use_competing_intents",
         "use_name_entities",
+        "use_analyze_char",
         "created_at",
         "by",
         "training_started_at",

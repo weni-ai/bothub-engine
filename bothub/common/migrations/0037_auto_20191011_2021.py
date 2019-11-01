@@ -2,19 +2,6 @@
 
 import django.utils.timezone
 from django.db import migrations, models
-from django.conf import settings
-from bothub.utils import send_bot_data_file_aws
-from bothub.common.models import RepositoryUpdate
-
-
-def update_repository(apps, schema_editor):
-    if settings.AWS_SEND:
-        for update in RepositoryUpdate.objects.all().exclude(bot_data__exact=""):
-            repository_update = RepositoryUpdate.objects.get(pk=update.pk)
-            bot_data = send_bot_data_file_aws(update.pk, update.bot_data)
-            repository_update.bot_data = bot_data
-            repository_update.save(update_fields=["bot_data"])
-            print("Updating bot_data repository_update {}".format(str(update.pk)))
 
 
 class Migration(migrations.Migration):
@@ -35,7 +22,6 @@ class Migration(migrations.Migration):
                 default=django.utils.timezone.now, editable=False
             ),
         ),
-        migrations.RunPython(update_repository),
         migrations.AlterField(
             model_name="repositoryupdate",
             name="bot_data",

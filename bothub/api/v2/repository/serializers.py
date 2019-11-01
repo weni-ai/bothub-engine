@@ -193,6 +193,7 @@ class RepositorySerializer(serializers.ModelSerializer):
             "use_language_model_featurizer",
             "use_competing_intents",
             "use_name_entities",
+            "use_analyze_char",
             "nlp_server",
         ]
         read_only = [
