@@ -100,6 +100,7 @@ class RepositoryAuthorizationTrainViewSet(
                 "algorithm": repository.algorithm,
                 "use_name_entities": repository.use_name_entities,
                 "use_competing_intents": repository.use_competing_intents,
+                "use_analyze_char": repository.use_analyze_char,
                 "ALGORITHM_STATISTICAL_MODEL": Repository.ALGORITHM_STATISTICAL_MODEL,
                 "ALGORITHM_NEURAL_NETWORK_EXTERNAL": Repository.ALGORITHM_NEURAL_NETWORK_EXTERNAL,
             }

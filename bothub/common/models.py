@@ -149,6 +149,7 @@ class Repository(models.Model):
         ),
         default=False,
     )
+    use_analyze_char = models.BooleanField(_("Use analyze char"), default=False)
     categories = models.ManyToManyField(
         RepositoryCategory, help_text=CATEGORIES_HELP_TEXT
     )
@@ -497,6 +498,7 @@ class RepositoryUpdate(models.Model):
     trained_at = models.DateTimeField(_("trained at"), blank=True, null=True)
     failed_at = models.DateTimeField(_("failed at"), blank=True, null=True)
     training_log = models.TextField(_("training log"), blank=True, editable=False)
+    use_analyze_char = models.BooleanField(default=False)
 
     @property
     def examples(self):
@@ -595,6 +597,8 @@ class RepositoryUpdate(models.Model):
                 is not self.repository.use_name_entities
             ):
                 return True
+            if previous_update.use_analyze_char is not self.repository.use_analyze_char:
+                return True
             if previous_update.failed_at:
                 return True
 
@@ -652,6 +656,7 @@ class RepositoryUpdate(models.Model):
         self.algorithm = self.repository.algorithm
         self.use_competing_intents = self.repository.use_competing_intents
         self.use_name_entities = self.repository.use_name_entities
+        self.use_analyze_char = self.repository.use_analyze_char
         self.save(
             update_fields=[
                 "by",
@@ -659,6 +664,7 @@ class RepositoryUpdate(models.Model):
                 "algorithm",
                 "use_competing_intents",
                 "use_name_entities",
+                "use_analyze_char",
             ]
         )
 
