@@ -1,24 +1,21 @@
 import json
 
-from django.test import TestCase
 from django.test import RequestFactory
+from django.test import TestCase
 from django.test.client import MULTIPART_CONTENT
 from rest_framework import status
 
 from bothub.authentication.models import User
 from bothub.common import languages
 from bothub.common.models import Repository
-from bothub.common.models import RepositoryExample
-
-from ..account.views import RegisterUserViewSet
-from ..account.views import LoginViewSet
+from .utils import create_user_and_token
 from ..account.views import ChangePasswordViewSet
+from ..account.views import LoginViewSet
+from ..account.views import MyUserProfileViewSet
+from ..account.views import RegisterUserViewSet
 from ..account.views import RequestResetPasswordViewSet
 from ..account.views import ResetPasswordViewSet
 from ..account.views import UserProfileViewSet
-from ..account.views import MyUserProfileViewSet
-
-from .utils import create_user_and_token
 
 
 class LoginTestCase(TestCase):
