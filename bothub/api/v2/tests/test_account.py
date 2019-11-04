@@ -6,6 +6,9 @@ from django.test.client import MULTIPART_CONTENT
 from rest_framework import status
 
 from bothub.authentication.models import User
+from bothub.common import languages
+from bothub.common.models import Repository
+from bothub.common.models import RepositoryExample
 
 from ..account.views import RegisterUserViewSet
 from ..account.views import LoginViewSet
@@ -253,6 +256,31 @@ class ListMyProfileTestCase(TestCase):
         response, content_data = self.request(self.user_token)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(content_data.get("nickname"), self.user.nickname)
+
+
+class DestroyMyProfileTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.user, self.user_token = create_user_and_token()
+
+        self.repository = Repository.objects.create(
+            owner=self.user, name="Testing", slug="test", language=languages.LANGUAGE_EN
+        )
+
+    def request(self, token):
+        authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
+        request = self.factory.delete("/v2/account/my-profile/", **authorization_header)
+        response = MyUserProfileViewSet.as_view({"delete": "destroy"})(request)
+        response.render()
+        return response
+
+    def test_okay(self):
+        response = self.request(self.user_token)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+        repository = Repository.objects.get(pk=self.repository.pk)
+
+        self.assertEqual(repository.owner, User.generate_repository_user_bot())
 
 
 class UserUpdateTestCase(TestCase):

@@ -100,3 +100,6 @@ You can set environment variables in your OS, write on ```.env``` file or pass v
 | BOTHUB_ENGINE_AWS_SECRET_ACCESS_KEY | ```string``` | ```None``` | 
 | BOTHUB_ENGINE_AWS_REGION_NAME | ```string``` | ```None``` | 
 | BOTHUB_ENGINE_AWS_SEND |  ```bool``` | ```False``` | 
+| BOTHUB_BOT_EMAIL |  ```string``` | ```bot_repository@bothub.it``` | Email that the system will automatically create for existing repositories that the owner deleted the account
+| BOTHUB_BOT_NAME |  ```string``` | ```Bot Repository``` | Name that the system will use to create the account
+| BOTHUB_BOT_NICKNAME |  ```string``` | ```bot_repository``` | Nickname that the system will use to create the account
