@@ -11,6 +11,8 @@ from rest_framework.viewsets import GenericViewSet
 
 from bothub.api.v2.metadata import Metadata
 from bothub.authentication.models import User
+from bothub.common.models import Repository
+from bothub.common.models import RepositoryUpdate
 from .serializers import ChangePasswordSerializer
 from .serializers import LoginSerializer
 from .serializers import RegisterUserSerializer
@@ -117,7 +119,10 @@ class RequestResetPasswordViewSet(mixins.CreateModelMixin, GenericViewSet):
 
 
 class MyUserProfileViewSet(
-    mixins.RetrieveModelMixin, mixins.UpdateModelMixin, GenericViewSet
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    GenericViewSet,
 ):
     """
     Manager current user profile.
@@ -142,6 +147,17 @@ class MyUserProfileViewSet(
         self.check_object_permissions(self.request, user)
 
         return user
+
+    def destroy(self, request, *args, **kwargs):
+        repositories = Repository.objects.filter(owner=self.request.user)
+        repository_update = RepositoryUpdate.objects.filter(by=self.request.user)
+        user = User.generate_repository_user_bot()
+
+        if repositories.count() > 0:
+            repositories.update(owner_id=user.pk)
+        if repository_update.count() > 0:
+            repository_update.update(by=user.pk)
+        return super().destroy(request, *args, **kwargs)
 
 
 class UserProfileViewSet(mixins.RetrieveModelMixin, GenericViewSet):

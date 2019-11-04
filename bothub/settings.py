@@ -46,6 +46,9 @@ env = environ.Env(
     BOTHUB_ENGINE_AWS_REGION_NAME=(str, "us-east-1"),
     BOTHUB_ENGINE_AWS_SEND=(bool, False),
     BASE_URL=(str, "http://api.bothub.it"),
+    BOTHUB_BOT_EMAIL=(str, "bot_repository@bothub.it"),
+    BOTHUB_BOT_NAME=(str, "Bot Repository"),
+    BOTHUB_BOT_NICKNAME=(str, "bot_repository"),
 )
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -278,3 +281,10 @@ AWS_ACCESS_KEY_ID = env.str("BOTHUB_ENGINE_AWS_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY = env.str("BOTHUB_ENGINE_AWS_SECRET_ACCESS_KEY")
 AWS_BUCKET_NAME = env.str("BOTHUB_ENGINE_AWS_S3_BUCKET_NAME")
 AWS_REGION_NAME = env.str("BOTHUB_ENGINE_AWS_REGION_NAME")
+
+
+# Account System for bots deleted
+
+BOTHUB_BOT_EMAIL = env.str("BOTHUB_BOT_EMAIL")
+BOTHUB_BOT_NAME = env.str("BOTHUB_BOT_NAME")
+BOTHUB_BOT_NICKNAME = env.str("BOTHUB_BOT_NICKNAME")

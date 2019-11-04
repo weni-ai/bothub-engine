@@ -127,6 +127,18 @@ class User(AbstractBaseUser, PermissionsMixin):
     def check_password_reset_token(self, token):
         return self.token_generator.check_token(self, token)
 
+    @staticmethod
+    def generate_repository_user_bot():
+        user, create = User.objects.get_or_create(
+            email=settings.BOTHUB_BOT_EMAIL,
+            name=settings.BOTHUB_BOT_NAME,
+            nickname=settings.BOTHUB_BOT_NICKNAME,
+            locale="",
+            is_staff=False,
+            is_active=False,
+        )
+        return user
+
 
 @receiver(models.signals.post_save, sender=User)
 def send_welcome_email(instance, created, **kwargs):
