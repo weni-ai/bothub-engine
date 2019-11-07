@@ -8,7 +8,7 @@ from django.shortcuts import get_object_or_404
 from django.core.validators import URLValidator
 from django.core.exceptions import ValidationError
 
-from rest_framework import mixins
+from rest_framework import mixins, pagination
 from rest_framework import exceptions
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -40,12 +40,17 @@ def check_auth(request):
         raise exceptions.AuthenticationFailed(msg)
 
 
+class NLPPagination(pagination.PageNumberPagination):
+    page_size = 2
+
+
 class RepositoryAuthorizationTrainViewSet(
     mixins.RetrieveModelMixin, mixins.CreateModelMixin, GenericViewSet
 ):
     queryset = RepositoryAuthorization.objects
     serializer_class = NLPSerializer
     permission_classes = [AllowAny]
+    pagination_class = NLPPagination
 
     def retrieve(self, request, *args, **kwargs):
         check_auth(request)
@@ -63,6 +68,42 @@ class RepositoryAuthorizationTrainViewSet(
             }
         )
 
+    @action(detail=True, methods=["GET"], url_name="get_examples", lookup_field=[])
+    def get_examples(self, request, **kwargs):
+        check_auth(request)
+        queryset = get_object_or_404(
+            RepositoryUpdate, pk=request.query_params.get("update_id")
+        )
+
+        page = self.paginate_queryset(queryset.examples)
+
+        examples = [
+            {"example_id": example.id, "example_intent": example.intent}
+            for example in page
+        ]
+        return self.get_paginated_response(examples)
+
+    @action(
+        detail=True, methods=["GET"], url_name="get_examples_labels", lookup_field=[]
+    )
+    def get_examples_labels(self, request, **kwargs):
+        check_auth(request)
+        queryset = get_object_or_404(
+            RepositoryUpdate, pk=request.query_params.get("update_id")
+        )
+
+        page = self.paginate_queryset(
+            queryset.examples.filter(entities__entity__label__isnull=False)
+            .annotate(entities_count=models.Count("entities"))
+            .filter(entities_count__gt=0)
+        )
+
+        label_examples_query = []
+
+        for label_examples in page:
+            label_examples_query.append({"example_id": label_examples.id})
+        return self.get_paginated_response(label_examples_query)
+
     @action(detail=True, methods=["POST"], url_name="start_training", lookup_field=[])
     def start_training(self, request, **kwargs):
         check_auth(request)
@@ -71,31 +112,15 @@ class RepositoryAuthorizationTrainViewSet(
             RepositoryUpdate, pk=request.data.get("update_id")
         )
 
-        examples = [
-            {"example_id": example.id, "example_intent": example.intent}
-            for example in repository.examples
-        ]
-
         repository.start_training(
             get_object_or_404(User, pk=request.data.get("by_user"))
         )
-
-        label_examples_query = []
-
-        for label_examples in (
-            repository.examples.filter(entities__entity__label__isnull=False)
-            .annotate(entities_count=models.Count("entities"))
-            .filter(entities_count__gt=0)
-        ):
-            label_examples_query.append({"example_id": label_examples.id})
 
         return Response(
             {
                 "language": repository.language,
                 "update_id": repository.id,
                 "repository_uuid": str(repository.repository.uuid),
-                "examples": examples,
-                "label_examples_query": label_examples_query,
                 "intent": repository.intents,
                 "algorithm": repository.algorithm,
                 "use_name_entities": repository.use_name_entities,
