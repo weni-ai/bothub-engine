@@ -210,31 +210,48 @@ class RepositorySerializer(serializers.ModelSerializer):
         ]
         ref_name = None
 
+    uuid = serializers.UUIDField(style={"show": False}, read_only=True)
+    available_languages = serializers.ReadOnlyField(style={"show": False})
+    entities_list = serializers.ReadOnlyField(style={"show": False})
+    labels_list = serializers.ReadOnlyField(style={"show": False})
+    ready_for_train = serializers.ReadOnlyField(style={"show": False})
+    created_at = serializers.DateTimeField(style={"show": False}, read_only=True)
+    requirements_to_train = serializers.ReadOnlyField(style={"show": False})
+    languages_ready_for_train = serializers.ReadOnlyField(style={"show": False})
+    languages_warnings = serializers.ReadOnlyField(style={"show": False})
+    use_language_model_featurizer = serializers.ReadOnlyField(style={"show": False})
+
     language = serializers.ChoiceField(
-        LANGUAGE_CHOICES, label=Repository._meta.get_field("language").verbose_name
+        LANGUAGE_CHOICES, label=_("Language")
     )
-    owner = serializers.PrimaryKeyRelatedField(read_only=True)
+    owner = serializers.PrimaryKeyRelatedField(read_only=True, style={"show": False})
     owner__nickname = serializers.SlugRelatedField(
-        source="owner", slug_field="nickname", read_only=True
+        source="owner", slug_field="nickname", read_only=True, style={"show": False}
     )
-    intents = serializers.SerializerMethodField()
-    intents_list = serializers.SerializerMethodField()
-    categories = RepositoryCategorySerializer(many=True, read_only=True)
+    intents = serializers.SerializerMethodField(style={"show": False})
+    intents_list = serializers.SerializerMethodField(style={"show": False})
     categories_list = serializers.SlugRelatedField(
-        source="categories", slug_field="name", many=True, read_only=True
+        source="categories", slug_field="name", many=True, read_only=True, style={"show": False}
+    )
+    categories = serializers.ManyRelatedField(
+        child_relation=serializers.PrimaryKeyRelatedField(
+            queryset=RepositoryCategory.objects.all()
+        ),
+        allow_empty=False,
+        help_text=Repository.CATEGORIES_HELP_TEXT,
     )
     labels = RepositoryEntityLabelSerializer(
-        source="current_labels", many=True, read_only=True
+        source="current_labels", many=True, read_only=True, style={"show": False}
     )
-    other_label = serializers.SerializerMethodField()
-    examples__count = serializers.SerializerMethodField()
-    evaluate_languages_count = serializers.SerializerMethodField()
-    absolute_url = serializers.SerializerMethodField()
-    authorization = serializers.SerializerMethodField()
-    request_authorization = serializers.SerializerMethodField()
-    available_request_authorization = serializers.SerializerMethodField()
-    entities = serializers.SerializerMethodField()
-    nlp_server = serializers.SerializerMethodField()
+    other_label = serializers.SerializerMethodField(style={"show": False})
+    examples__count = serializers.SerializerMethodField(style={"show": False})
+    evaluate_languages_count = serializers.SerializerMethodField(style={"show": False})
+    absolute_url = serializers.SerializerMethodField(style={"show": False})
+    authorization = serializers.SerializerMethodField(style={"show": False})
+    request_authorization = serializers.SerializerMethodField(style={"show": False})
+    available_request_authorization = serializers.SerializerMethodField(style={"show": False})
+    entities = serializers.SerializerMethodField(style={"show": False})
+    nlp_server = serializers.SerializerMethodField(style={"show": False})
 
     def get_nlp_server(self, obj):
         if obj.nlp_server:
