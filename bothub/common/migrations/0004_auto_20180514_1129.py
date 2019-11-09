@@ -5,13 +5,15 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('common', '0003_auto_20180503_1223'),
-    ]
+    dependencies = [("common", "0003_auto_20180503_1223")]
 
     operations = [
         migrations.AlterModelOptions(
-            name='repositoryexample',
-            options={'ordering': ['-created_at'], 'verbose_name': 'repository example', 'verbose_name_plural': 'repository examples'},
-        ),
+            name="repositoryexample",
+            options={
+                "ordering": ["-created_at"],
+                "verbose_name": "repository example",
+                "verbose_name_plural": "repository examples",
+            },
+        )
     ]

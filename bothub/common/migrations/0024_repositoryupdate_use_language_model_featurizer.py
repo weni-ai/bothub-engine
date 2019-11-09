@@ -5,14 +5,12 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('common', '0023_repository_use_language_model_featurizer'),
-    ]
+    dependencies = [("common", "0023_repository_use_language_model_featurizer")]
 
     operations = [
         migrations.AddField(
-            model_name='repositoryupdate',
-            name='use_language_model_featurizer',
+            model_name="repositoryupdate",
+            name="use_language_model_featurizer",
             field=models.BooleanField(default=True),
-        ),
+        )
     ]

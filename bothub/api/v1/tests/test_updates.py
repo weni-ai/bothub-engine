@@ -15,64 +15,46 @@ class UpdatesTestCase(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
 
-        self.owner, self.owner_token = create_user_and_token('owner')
+        self.owner, self.owner_token = create_user_and_token("owner")
 
         self.repository = Repository.objects.create(
             owner=self.owner,
-            name='Testing',
-            slug='test',
-            language=languages.LANGUAGE_EN)
+            name="Testing",
+            slug="test",
+            language=languages.LANGUAGE_EN,
+        )
         current_update = self.repository.current_update()
         RepositoryExample.objects.create(
-            repository_update=current_update,
-            text='my name is Douglas',
-            intent='greet')
+            repository_update=current_update, text="my name is user", intent="greet"
+        )
         RepositoryExample.objects.create(
-            repository_update=current_update,
-            text='my name is John',
-            intent='greet')
+            repository_update=current_update, text="my name is John", intent="greet"
+        )
         current_update.start_training(self.owner)
 
     def request(self, data, token=None):
-        authorization_header = {
-            'HTTP_AUTHORIZATION': 'Token {}'.format(token.key),
-        } if token else {}
-        request = self.factory.get(
-            '/api/updates/',
-            data,
-            **authorization_header)
-        response = RepositoryUpdatesViewSet.as_view(
-            {'get': 'list'})(request)
+        authorization_header = (
+            {"HTTP_AUTHORIZATION": "Token {}".format(token.key)} if token else {}
+        )
+        request = self.factory.get("/v1/updates/", data, **authorization_header)
+        response = RepositoryUpdatesViewSet.as_view({"get": "list"})(request)
         response.render()
         content_data = json.loads(response.content)
-        return (response, content_data,)
+        return (response, content_data)
 
     def test_okay(self):
         response, content_data = self.request(
-            {
-                'repository_uuid': str(self.repository.uuid),
-            },
-            self.owner_token)
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_200_OK)
-        self.assertEqual(
-            content_data.get('count'),
-            1)
+            {"repository_uuid": str(self.repository.uuid)}, self.owner_token
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(content_data.get("count"), 1)
 
     def test_not_authenticated(self):
         response, content_data = self.request(
-            {
-                'repository_uuid': str(self.repository.uuid),
-            })
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_401_UNAUTHORIZED)
+            {"repository_uuid": str(self.repository.uuid)}
+        )
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_without_repository(self):
-        response, content_data = self.request(
-            {},
-            self.owner_token)
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_400_BAD_REQUEST)
+        response, content_data = self.request({}, self.owner_token)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

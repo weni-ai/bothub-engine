@@ -6,24 +6,36 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('common', '0013_auto_20180706_1212'),
-    ]
+    dependencies = [("common", "0013_auto_20180706_1212")]
 
     operations = [
         migrations.AlterField(
-            model_name='repository',
-            name='language',
-            field=models.CharField(help_text="Repository's examples language. The examples can be translated to other languages.", max_length=2, validators=[bothub.common.languages.validate_language], verbose_name='language'),
+            model_name="repository",
+            name="language",
+            field=models.CharField(
+                help_text="Repository's examples language. The examples can be translated to other languages.",
+                max_length=2,
+                validators=[bothub.common.languages.validate_language],
+                verbose_name="language",
+            ),
         ),
         migrations.AlterField(
-            model_name='repositorytranslatedexample',
-            name='language',
-            field=models.CharField(help_text='Translation language', max_length=2, validators=[bothub.common.languages.validate_language], verbose_name='language'),
+            model_name="repositorytranslatedexample",
+            name="language",
+            field=models.CharField(
+                help_text="Translation language",
+                max_length=2,
+                validators=[bothub.common.languages.validate_language],
+                verbose_name="language",
+            ),
         ),
         migrations.AlterField(
-            model_name='repositoryupdate',
-            name='language',
-            field=models.CharField(max_length=2, validators=[bothub.common.languages.validate_language], verbose_name='language'),
+            model_name="repositoryupdate",
+            name="language",
+            field=models.CharField(
+                max_length=2,
+                validators=[bothub.common.languages.validate_language],
+                verbose_name="language",
+            ),
         ),
     ]

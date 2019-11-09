@@ -10,153 +10,370 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-    ]
+    dependencies = [migrations.swappable_dependency(settings.AUTH_USER_MODEL)]
 
     operations = [
         migrations.CreateModel(
-            name='Repository',
+            name="Repository",
             fields=[
-                ('uuid', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False, verbose_name='UUID')),
-                ('name', models.CharField(max_length=64, verbose_name='name')),
-                ('slug', models.SlugField(max_length=32, unique=True, verbose_name='slug')),
-                ('language', models.CharField(choices=[('en', 'English'), ('de', 'German'), ('es', 'Spanish'), ('pt', 'Portuguese'), ('fr', 'French'), ('it', 'Italian'), ('nl', 'Dutch')], max_length=2, verbose_name='language')),
-                ('description', models.TextField(blank=True, verbose_name='description')),
-                ('is_private', models.BooleanField(default=False, verbose_name='private')),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='created at')),
+                (
+                    "uuid",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="UUID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=64, verbose_name="name")),
+                (
+                    "slug",
+                    models.SlugField(max_length=32, unique=True, verbose_name="slug"),
+                ),
+                (
+                    "language",
+                    models.CharField(
+                        choices=[
+                            ("en", "English"),
+                            ("de", "German"),
+                            ("es", "Spanish"),
+                            ("pt", "Portuguese"),
+                            ("fr", "French"),
+                            ("it", "Italian"),
+                            ("nl", "Dutch"),
+                        ],
+                        max_length=2,
+                        verbose_name="language",
+                    ),
+                ),
+                (
+                    "description",
+                    models.TextField(blank=True, verbose_name="description"),
+                ),
+                (
+                    "is_private",
+                    models.BooleanField(default=False, verbose_name="private"),
+                ),
+                (
+                    "created_at",
+                    models.DateTimeField(auto_now_add=True, verbose_name="created at"),
+                ),
             ],
             options={
-                'verbose_name': 'repository',
-                'verbose_name_plural': 'repositories',
+                "verbose_name": "repository",
+                "verbose_name_plural": "repositories",
             },
         ),
         migrations.CreateModel(
-            name='RepositoryAuthorization',
+            name="RepositoryAuthorization",
             fields=[
-                ('uuid', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False, verbose_name='UUID')),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='created at')),
-                ('repository', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='common.Repository')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                (
+                    "uuid",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="UUID",
+                    ),
+                ),
+                (
+                    "created_at",
+                    models.DateTimeField(auto_now_add=True, verbose_name="created at"),
+                ),
+                (
+                    "repository",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="common.Repository",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'repository authorization',
-                'verbose_name_plural': 'repository authorizations',
+                "verbose_name": "repository authorization",
+                "verbose_name_plural": "repository authorizations",
             },
         ),
         migrations.CreateModel(
-            name='RepositoryCategory',
+            name="RepositoryCategory",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=32, verbose_name='name')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=32, verbose_name="name")),
             ],
             options={
-                'verbose_name': 'repository category',
-                'verbose_name_plural': 'repository categories',
+                "verbose_name": "repository category",
+                "verbose_name_plural": "repository categories",
             },
         ),
         migrations.CreateModel(
-            name='RepositoryExample',
+            name="RepositoryExample",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('text', models.TextField(verbose_name='text')),
-                ('intent', models.CharField(blank=True, max_length=64, verbose_name='intent')),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='created at')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("text", models.TextField(verbose_name="text")),
+                (
+                    "intent",
+                    models.CharField(blank=True, max_length=64, verbose_name="intent"),
+                ),
+                (
+                    "created_at",
+                    models.DateTimeField(auto_now_add=True, verbose_name="created at"),
+                ),
             ],
             options={
-                'verbose_name': 'repository example',
-                'verbose_name_plural': 'repository examples',
+                "verbose_name": "repository example",
+                "verbose_name_plural": "repository examples",
             },
         ),
         migrations.CreateModel(
-            name='RepositoryExampleEntity',
+            name="RepositoryExampleEntity",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('start', models.PositiveIntegerField(verbose_name='start')),
-                ('end', models.PositiveIntegerField(verbose_name='end')),
-                ('entity', models.CharField(max_length=64, verbose_name='entity')),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='created at')),
-                ('repository_example', models.ForeignKey(editable=False, on_delete=django.db.models.deletion.CASCADE, related_name='entities', to='common.RepositoryExample')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("start", models.PositiveIntegerField(verbose_name="start")),
+                ("end", models.PositiveIntegerField(verbose_name="end")),
+                ("entity", models.CharField(max_length=64, verbose_name="entity")),
+                (
+                    "created_at",
+                    models.DateTimeField(auto_now_add=True, verbose_name="created at"),
+                ),
+                (
+                    "repository_example",
+                    models.ForeignKey(
+                        editable=False,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="entities",
+                        to="common.RepositoryExample",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'repository example entity',
-                'verbose_name_plural': 'repository example entities',
-                'abstract': False,
+                "verbose_name": "repository example entity",
+                "verbose_name_plural": "repository example entities",
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='RepositoryTranslatedExample',
+            name="RepositoryTranslatedExample",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('language', models.CharField(choices=[('en', 'English'), ('de', 'German'), ('es', 'Spanish'), ('pt', 'Portuguese'), ('fr', 'French'), ('it', 'Italian'), ('nl', 'Dutch')], max_length=2, verbose_name='language')),
-                ('text', models.TextField(verbose_name='text')),
-                ('original_example', models.ForeignKey(editable=False, on_delete=django.db.models.deletion.CASCADE, related_name='translations', to='common.RepositoryExample')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "language",
+                    models.CharField(
+                        choices=[
+                            ("en", "English"),
+                            ("de", "German"),
+                            ("es", "Spanish"),
+                            ("pt", "Portuguese"),
+                            ("fr", "French"),
+                            ("it", "Italian"),
+                            ("nl", "Dutch"),
+                        ],
+                        max_length=2,
+                        verbose_name="language",
+                    ),
+                ),
+                ("text", models.TextField(verbose_name="text")),
+                (
+                    "original_example",
+                    models.ForeignKey(
+                        editable=False,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="translations",
+                        to="common.RepositoryExample",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'repository translated example',
-                'verbose_name_plural': 'repository translated examples',
+                "verbose_name": "repository translated example",
+                "verbose_name_plural": "repository translated examples",
             },
         ),
         migrations.CreateModel(
-            name='RepositoryTranslatedExampleEntity',
+            name="RepositoryTranslatedExampleEntity",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('start', models.PositiveIntegerField(verbose_name='start')),
-                ('end', models.PositiveIntegerField(verbose_name='end')),
-                ('entity', models.CharField(max_length=64, verbose_name='entity')),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='created at')),
-                ('repository_translated_example', models.ForeignKey(editable=False, on_delete=django.db.models.deletion.CASCADE, related_name='entities', to='common.RepositoryTranslatedExample')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("start", models.PositiveIntegerField(verbose_name="start")),
+                ("end", models.PositiveIntegerField(verbose_name="end")),
+                ("entity", models.CharField(max_length=64, verbose_name="entity")),
+                (
+                    "created_at",
+                    models.DateTimeField(auto_now_add=True, verbose_name="created at"),
+                ),
+                (
+                    "repository_translated_example",
+                    models.ForeignKey(
+                        editable=False,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="entities",
+                        to="common.RepositoryTranslatedExample",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'repository example entity',
-                'verbose_name_plural': 'repository example entities',
-                'abstract': False,
+                "verbose_name": "repository example entity",
+                "verbose_name_plural": "repository example entities",
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='RepositoryUpdate',
+            name="RepositoryUpdate",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('language', models.CharField(choices=[('en', 'English'), ('de', 'German'), ('es', 'Spanish'), ('pt', 'Portuguese'), ('fr', 'French'), ('it', 'Italian'), ('nl', 'Dutch')], max_length=2, verbose_name='language')),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='created at')),
-                ('bot_data', models.TextField(blank=True, editable=False, verbose_name='bot data')),
-                ('training_started_at', models.DateTimeField(blank=True, null=True, verbose_name='training started at')),
-                ('trained_at', models.DateTimeField(blank=True, null=True, verbose_name='trained at')),
-                ('by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
-                ('repository', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='updates', to='common.Repository')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "language",
+                    models.CharField(
+                        choices=[
+                            ("en", "English"),
+                            ("de", "German"),
+                            ("es", "Spanish"),
+                            ("pt", "Portuguese"),
+                            ("fr", "French"),
+                            ("it", "Italian"),
+                            ("nl", "Dutch"),
+                        ],
+                        max_length=2,
+                        verbose_name="language",
+                    ),
+                ),
+                (
+                    "created_at",
+                    models.DateTimeField(auto_now_add=True, verbose_name="created at"),
+                ),
+                (
+                    "bot_data",
+                    models.TextField(
+                        blank=True, editable=False, verbose_name="bot data"
+                    ),
+                ),
+                (
+                    "training_started_at",
+                    models.DateTimeField(
+                        blank=True, null=True, verbose_name="training started at"
+                    ),
+                ),
+                (
+                    "trained_at",
+                    models.DateTimeField(
+                        blank=True, null=True, verbose_name="trained at"
+                    ),
+                ),
+                (
+                    "by",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "repository",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="updates",
+                        to="common.Repository",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'repository update',
-                'verbose_name_plural': 'repository updates',
-                'ordering': ['-created_at'],
+                "verbose_name": "repository update",
+                "verbose_name_plural": "repository updates",
+                "ordering": ["-created_at"],
             },
         ),
         migrations.AddField(
-            model_name='repositoryexample',
-            name='deleted_in',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='deleted', to='common.RepositoryUpdate'),
+            model_name="repositoryexample",
+            name="deleted_in",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="deleted",
+                to="common.RepositoryUpdate",
+            ),
         ),
         migrations.AddField(
-            model_name='repositoryexample',
-            name='repository_update',
-            field=models.ForeignKey(editable=False, on_delete=django.db.models.deletion.CASCADE, related_name='added', to='common.RepositoryUpdate'),
+            model_name="repositoryexample",
+            name="repository_update",
+            field=models.ForeignKey(
+                editable=False,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="added",
+                to="common.RepositoryUpdate",
+            ),
         ),
         migrations.AddField(
-            model_name='repository',
-            name='categories',
-            field=models.ManyToManyField(to='common.RepositoryCategory'),
+            model_name="repository",
+            name="categories",
+            field=models.ManyToManyField(to="common.RepositoryCategory"),
         ),
         migrations.AddField(
-            model_name='repository',
-            name='owner',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL),
+            model_name="repository",
+            name="owner",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL
+            ),
         ),
         migrations.AlterUniqueTogether(
-            name='repositorytranslatedexample',
-            unique_together={('original_example', 'language')},
+            name="repositorytranslatedexample",
+            unique_together={("original_example", "language")},
         ),
         migrations.AlterUniqueTogether(
-            name='repositoryauthorization',
-            unique_together={('user', 'repository')},
+            name="repositoryauthorization", unique_together={("user", "repository")}
         ),
     ]
