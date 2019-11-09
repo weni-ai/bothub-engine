@@ -221,9 +221,7 @@ class RepositorySerializer(serializers.ModelSerializer):
     languages_warnings = serializers.ReadOnlyField(style={"show": False})
     use_language_model_featurizer = serializers.ReadOnlyField(style={"show": False})
 
-    language = serializers.ChoiceField(
-        LANGUAGE_CHOICES, label=_("Language")
-    )
+    language = serializers.ChoiceField(LANGUAGE_CHOICES, label=_("Language"))
     owner = serializers.PrimaryKeyRelatedField(read_only=True, style={"show": False})
     owner__nickname = serializers.SlugRelatedField(
         source="owner", slug_field="nickname", read_only=True, style={"show": False}
@@ -231,7 +229,11 @@ class RepositorySerializer(serializers.ModelSerializer):
     intents = serializers.SerializerMethodField(style={"show": False})
     intents_list = serializers.SerializerMethodField(style={"show": False})
     categories_list = serializers.SlugRelatedField(
-        source="categories", slug_field="name", many=True, read_only=True, style={"show": False}
+        source="categories",
+        slug_field="name",
+        many=True,
+        read_only=True,
+        style={"show": False},
     )
     categories = serializers.ManyRelatedField(
         child_relation=serializers.PrimaryKeyRelatedField(
@@ -249,7 +251,9 @@ class RepositorySerializer(serializers.ModelSerializer):
     absolute_url = serializers.SerializerMethodField(style={"show": False})
     authorization = serializers.SerializerMethodField(style={"show": False})
     request_authorization = serializers.SerializerMethodField(style={"show": False})
-    available_request_authorization = serializers.SerializerMethodField(style={"show": False})
+    available_request_authorization = serializers.SerializerMethodField(
+        style={"show": False}
+    )
     entities = serializers.SerializerMethodField(style={"show": False})
     nlp_server = serializers.SerializerMethodField(style={"show": False})
 

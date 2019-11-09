@@ -148,7 +148,15 @@ class Repository(models.Model):
         ),
         default=False,
     )
-    use_analyze_char = models.BooleanField(_("Use analyze char"), default=False)
+    use_analyze_char = models.BooleanField(
+        _("Use analyze char"),
+        help_text=_(
+            "When selected, the algorithm will learn the patterns of "
+            + "individual characters instead of whole words. "
+            + "This approach works better for some languages."
+        ),
+        default=False,
+    )
     categories = models.ManyToManyField(
         RepositoryCategory, help_text=CATEGORIES_HELP_TEXT
     )
