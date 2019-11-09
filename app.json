@@ -1,0 +1,22 @@
+{
+  "name": "Bothub Engine",
+  "image": "heroku/python",
+  "repository": "https://github.com/Ilhasoft/bothub-engine/",
+  "logo": "https://avatars0.githubusercontent.com/u/8379703?s=200&v=4",
+  "keywords": ["bothub", "ia", "django", "python"],
+  "website": "https://bothub.it", 
+  "addons": [ "heroku-postgresql" ],
+  "env": {
+      "DISABLE_COLLECTSTATIC": "1",
+      "SECRET_KEY": "SK",
+      "DEBUG": "1"
+  },
+  "environments": {
+    "test": {
+      "scripts": {
+        "test-setup": "python manage.py collectstatic --noinput",
+        "test": "python manage.py test"
+      }
+    }
+  }
+}

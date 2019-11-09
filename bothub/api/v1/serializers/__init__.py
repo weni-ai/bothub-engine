@@ -5,13 +5,10 @@ from .repository import (  # noqa: F401
     AnalyzeTextSerializer,
     EvaluateSerializer,
     EditRepositorySerializer,
-    VoteSerializer,
     RepositoryAuthorizationRoleSerializer,
 )
 
-from .category import (  # noqa: F401
-    RepositoryCategorySerializer,
-)
+from .category import RepositoryCategorySerializer  # noqa: F401
 
 from .example import (  # noqa: F401
     RepositoryExampleEntitySerializer,
@@ -41,6 +38,4 @@ from .request import (  # noqa: F401
     ReviewAuthorizationRequestSerializer,
 )
 
-from .update import (  # noqa: F401
-    RepositoryUpdateSerializer,
-)
+from .update import RepositoryUpdateSerializer  # noqa: F401

@@ -7,34 +7,48 @@ import re
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('authentication', '0001_initial'),
-    ]
+    dependencies = [("authentication", "0001_initial")]
 
     operations = [
-        migrations.RenameField(
-            model_name='user',
-            old_name='nick',
-            new_name='nickname',
+        migrations.RenameField(model_name="user", old_name="nick", new_name="nickname"),
+        migrations.AlterField(
+            model_name="user",
+            name="nickname",
+            field=models.CharField(
+                help_text="User's nickname, using letters, numbers, underscores and hyphens without spaces.",
+                max_length=16,
+                validators=[
+                    django.core.validators.RegexValidator(
+                        re.compile("^[-a-zA-Z0-9_]+\\Z"),
+                        "Enter a valid 'nickname' consisting of letters, numbers, underscores or hyphens.",
+                        "invalid",
+                    )
+                ],
+                verbose_name="nickname",
+            ),
         ),
         migrations.AlterField(
-            model_name='user',
-            name='nickname',
-            field=models.CharField(help_text="User's nickname, using letters, numbers, underscores and hyphens without spaces.", max_length=16, validators=[django.core.validators.RegexValidator(re.compile('^[-a-zA-Z0-9_]+\\Z'), "Enter a valid 'nickname' consisting of letters, numbers, underscores or hyphens.", 'invalid')], verbose_name='nickname'),
+            model_name="user",
+            name="email",
+            field=models.EmailField(
+                help_text="User's email.",
+                max_length=254,
+                unique=True,
+                verbose_name="email",
+            ),
         ),
         migrations.AlterField(
-            model_name='user',
-            name='email',
-            field=models.EmailField(help_text="User's email.", max_length=254, unique=True, verbose_name='email'),
+            model_name="user",
+            name="locale",
+            field=models.CharField(
+                help_text="User's locale.", max_length=48, verbose_name="locale"
+            ),
         ),
         migrations.AlterField(
-            model_name='user',
-            name='locale',
-            field=models.CharField(help_text="User's locale.", max_length=48, verbose_name='locale'),
-        ),
-        migrations.AlterField(
-            model_name='user',
-            name='name',
-            field=models.CharField(help_text="User's name.", max_length=32, verbose_name='name'),
+            model_name="user",
+            name="name",
+            field=models.CharField(
+                help_text="User's name.", max_length=32, verbose_name="name"
+            ),
         ),
     ]

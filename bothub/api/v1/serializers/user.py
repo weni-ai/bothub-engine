@@ -13,18 +13,10 @@ from ..fields import PasswordField
 class RegisterUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = [
-            'email',
-            'name',
-            'nickname',
-            'password',
-        ]
+        fields = ["email", "name", "nickname", "password"]
+        ref_name = None
 
-    password = PasswordField(
-        write_only=True,
-        validators=[
-            validate_password,
-        ])
+    password = PasswordField(write_only=True, validators=[validate_password])
 
     def validate_password(self, value):
         return make_password(value)
@@ -33,62 +25,45 @@ class RegisterUserSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = [
-            'nickname',
-            'name',
-            'locale',
-        ]
+        fields = ["nickname", "name", "locale"]
+        ref_name = None
 
 
 class ChangePasswordSerializer(serializers.Serializer):
-    current_password = PasswordField(
-        required=True)
-    password = PasswordField(
-        required=True,
-        validators=[
-            validate_password,
-        ])
+    current_password = PasswordField(required=True)
+    password = PasswordField(required=True, validators=[validate_password])
 
     def validate_current_password(self, value):
-        request = self.context.get('request')
+        request = self.context.get("request")
         if not request.user.check_password(value):
-            raise ValidationError(_('Wrong password'))
+            raise ValidationError(_("Wrong password"))
         return value
 
 
 class RequestResetPasswordSerializer(serializers.Serializer):
-    email = serializers.EmailField(
-        label=_('Email'),
-        required=True)
+    email = serializers.EmailField(label=_("Email"), required=True)
 
     def validate_email(self, value):
         try:
             User.objects.get(email=value)
             return value
         except User.DoesNotExist:
-            raise ValidationError(_('No user registered with this email'))
+            raise ValidationError(_("No user registered with this email"))
 
 
 class ResetPasswordSerializer(serializers.Serializer):
-    token = serializers.CharField(
-        label=_('Token'),
-        style={'show': False})
+    token = serializers.CharField(label=_("Token"), style={"show": False})
     password = PasswordField(
-        label=_('New Password'),
-        required=True,
-        validators=[
-            validate_password,
-        ])
+        label=_("New Password"), required=True, validators=[validate_password]
+    )
 
     def validate_token(self, value):
-        user = self.context.get('view').get_object()
+        user = self.context.get("view").get_object()
         if not user.check_password_reset_token(value):
-            raise ValidationError(_('Invalid token for this user'))
+            raise ValidationError(_("Invalid token for this user"))
         return value
 
 
 class LoginSerializer(AuthTokenSerializer):
     username = serializers.EmailField(label=_("Email"))
-    password = PasswordField(
-        label=_("Password")
-    )
+    password = PasswordField(label=_("Password"))

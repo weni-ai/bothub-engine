@@ -8,14 +8,24 @@ import re
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('common', '0019_auto_20180725_1657'),
-    ]
+    dependencies = [("common", "0019_auto_20180725_1657")]
 
     operations = [
         migrations.AlterField(
-            model_name='repositoryentitylabel',
-            name='value',
-            field=models.CharField(blank=True, max_length=64, validators=[django.core.validators.RegexValidator(re.compile('^[-a-z0-9_]+\\Z'), 'Enter a valid value consisting of lowercase letters, numbers, underscores or hyphens.', 'invalid'), bothub.common.models.can_t_be_other], verbose_name='label'),
-        ),
+            model_name="repositoryentitylabel",
+            name="value",
+            field=models.CharField(
+                blank=True,
+                max_length=64,
+                validators=[
+                    django.core.validators.RegexValidator(
+                        re.compile("^[-a-z0-9_]+\\Z"),
+                        "Enter a valid value consisting of lowercase letters, numbers, underscores or hyphens.",
+                        "invalid",
+                    ),
+                    bothub.common.models.can_t_be_other,
+                ],
+                verbose_name="label",
+            ),
+        )
     ]
