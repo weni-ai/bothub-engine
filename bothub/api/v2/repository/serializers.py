@@ -5,6 +5,7 @@ from rest_framework.exceptions import PermissionDenied
 
 from bothub.api.v2.example.serializers import RepositoryExampleEntitySerializer
 from bothub.api.v2.fields import TextField
+from bothub.api.v2.fields import ModelMultipleChoiceField
 from bothub.api.v2.fields import EntityText
 from bothub.api.v2.repository.validators import (
     CanContributeInRepositoryExampleValidator,
@@ -228,20 +229,14 @@ class RepositorySerializer(serializers.ModelSerializer):
     )
     intents = serializers.SerializerMethodField(style={"show": False})
     intents_list = serializers.SerializerMethodField(style={"show": False})
-    categories_list = serializers.SlugRelatedField(
-        source="categories",
-        slug_field="name",
-        many=True,
-        read_only=True,
-        style={"show": False},
-    )
-    categories = serializers.ManyRelatedField(
+    categories = ModelMultipleChoiceField(
         child_relation=serializers.PrimaryKeyRelatedField(
             queryset=RepositoryCategory.objects.all()
         ),
         allow_empty=False,
         help_text=Repository.CATEGORIES_HELP_TEXT,
     )
+    categories_list = serializers.SerializerMethodField(style={"show": False})
     labels = RepositoryEntityLabelSerializer(
         source="current_labels", many=True, read_only=True, style={"show": False}
     )
@@ -256,6 +251,9 @@ class RepositorySerializer(serializers.ModelSerializer):
     )
     entities = serializers.SerializerMethodField(style={"show": False})
     nlp_server = serializers.SerializerMethodField(style={"show": False})
+
+    def get_categories_list(self, obj):
+        return RepositoryCategorySerializer(obj.categories, many=True).data
 
     def get_nlp_server(self, obj):
         if obj.nlp_server:
