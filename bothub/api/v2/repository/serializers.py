@@ -5,6 +5,7 @@ from rest_framework.exceptions import PermissionDenied
 
 from bothub.api.v2.example.serializers import RepositoryExampleEntitySerializer
 from bothub.api.v2.fields import TextField
+from bothub.api.v2.fields import ModelMultipleChoiceField
 from bothub.api.v2.fields import EntityText
 from bothub.api.v2.repository.validators import (
     CanContributeInRepositoryExampleValidator,
@@ -235,7 +236,7 @@ class RepositorySerializer(serializers.ModelSerializer):
         read_only=True,
         style={"show": False},
     )
-    categories = serializers.ManyRelatedField(
+    categories = ModelMultipleChoiceField(
         child_relation=serializers.PrimaryKeyRelatedField(
             queryset=RepositoryCategory.objects.all()
         ),
