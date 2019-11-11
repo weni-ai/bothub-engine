@@ -212,9 +212,6 @@ class RepositorySerializer(serializers.ModelSerializer):
         ref_name = None
 
     uuid = serializers.UUIDField(style={"show": False}, read_only=True)
-    description = TextField(
-        allow_blank=True, help_text=Repository.DESCRIPTION_HELP_TEXT
-    )
     available_languages = serializers.ReadOnlyField(style={"show": False})
     entities_list = serializers.ReadOnlyField(style={"show": False})
     labels_list = serializers.ReadOnlyField(style={"show": False})
