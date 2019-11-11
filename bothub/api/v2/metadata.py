@@ -39,7 +39,7 @@ class Metadata(BaseMetadata):
             serializers.HiddenField: "hidden",
             PasswordField: "password",
             ModelMultipleChoiceField: "multiple choice",
-            TextField: "text",
+            TextField: "textarea",
             EntityText: "entity text",
         }
     )
