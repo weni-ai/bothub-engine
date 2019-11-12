@@ -262,7 +262,9 @@ class RepositoryAuthorizationParseViewSet(mixins.RetrieveModelMixin, GenericView
         return Response(
             {
                 "label": True if repository_entity.label else False,
-                "label_value": repository_entity.label.value,
+                "label_value": repository_entity.label.value
+                if repository_entity.label
+                else None,
             }
         )
 
