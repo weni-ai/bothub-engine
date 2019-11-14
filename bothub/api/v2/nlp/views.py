@@ -41,7 +41,7 @@ def check_auth(request):
 
 
 class NLPPagination(pagination.PageNumberPagination):
-    page_size = 2
+    page_size = 200
 
 
 class RepositoryAuthorizationTrainViewSet(
