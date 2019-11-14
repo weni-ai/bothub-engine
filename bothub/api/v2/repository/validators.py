@@ -53,7 +53,10 @@ class IntentAndSentenceNotExistsValidator(object):
         sentence = attrs.get("text")
 
         if RepositoryExample.objects.filter(
-            text=sentence, intent=intent, repository_update__repository=repository
+            text=sentence,
+            intent=intent,
+            repository_update__repository=repository,
+            deleted_in__isnull=True,
         ).count():
             raise ValidationError(_("Intention and Sentence already exists"))
 
