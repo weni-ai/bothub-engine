@@ -233,9 +233,13 @@ class RepositoryAuthorizationParseViewSet(mixins.RetrieveModelMixin, GenericView
         check_auth(request)
         repository_authorization = self.get_object()
         repository = repository_authorization.repository
-        update = repository.last_trained_update(
-            str(request.query_params.get("language"))
-        )
+
+        language = request.query_params.get("language")
+
+        if language == "None" or language is None:
+            language = str(repository.language)
+
+        update = repository.last_trained_update(language)
         try:
             return Response(
                 {
