@@ -38,6 +38,7 @@ def get_valid_mockups(categories):
         {
             "name": "Repository 1",
             "slug": "repository-1",
+            "description": "",
             "language": languages.LANGUAGE_EN,
             "categories": [category.pk for category in categories],
             "is_private": True,
@@ -45,6 +46,7 @@ def get_valid_mockups(categories):
         {
             "name": "Repository 2",
             "slug": "repo2",
+            "description": "",
             "language": languages.LANGUAGE_PT,
             "categories": [category.pk for category in categories],
             "is_private": False,

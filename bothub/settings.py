@@ -1,8 +1,10 @@
 import os
 
 import environ
+import sentry_sdk
 
 from django.utils.log import DEFAULT_LOGGING
+from sentry_sdk.integrations.django import DjangoIntegration
 
 from .utils import cast_supported_languages
 from .utils import cast_empty_str_to_none
@@ -49,6 +51,8 @@ env = environ.Env(
     BOTHUB_BOT_EMAIL=(str, "bot_repository@bothub.it"),
     BOTHUB_BOT_NAME=(str, "Bot Repository"),
     BOTHUB_BOT_NICKNAME=(str, "bot_repository"),
+    BOTHUB_ENGINE_USE_SENTRY=(bool, False),
+    BOTHUB_ENGINE_SENTRY=(str, None),
 )
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -288,3 +292,15 @@ AWS_REGION_NAME = env.str("BOTHUB_ENGINE_AWS_REGION_NAME")
 BOTHUB_BOT_EMAIL = env.str("BOTHUB_BOT_EMAIL")
 BOTHUB_BOT_NAME = env.str("BOTHUB_BOT_NAME")
 BOTHUB_BOT_NICKNAME = env.str("BOTHUB_BOT_NICKNAME")
+
+# Sentry Environment
+
+BOTHUB_ENGINE_USE_SENTRY = env.bool("BOTHUB_ENGINE_USE_SENTRY")
+
+
+# Sentry
+
+if BOTHUB_ENGINE_USE_SENTRY:
+    sentry_sdk.init(
+        dsn=env.str("BOTHUB_ENGINE_SENTRY"), integrations=[DjangoIntegration()]
+    )

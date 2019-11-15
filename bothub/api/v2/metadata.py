@@ -39,7 +39,7 @@ class Metadata(BaseMetadata):
             serializers.HiddenField: "hidden",
             PasswordField: "password",
             ModelMultipleChoiceField: "multiple choice",
-            TextField: "text",
+            TextField: "textarea",
             EntityText: "entity text",
         }
     )
@@ -100,6 +100,15 @@ class Metadata(BaseMetadata):
                     if isinstance(value, dict)
                     else force_text(value, strings_only=True)
                 )
+
+        if isinstance(field, ModelMultipleChoiceField):
+            field_info["choices"] = [
+                {
+                    "value": choice_value,
+                    "display_name": force_text(choice_name, strings_only=True),
+                }
+                for choice_value, choice_name in field.choices.items()
+            ]
 
         if getattr(field, "child", None):
             field_info["child"] = self.get_field_info(field.child)
