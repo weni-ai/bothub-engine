@@ -41,7 +41,7 @@ def check_auth(request):
 
 
 class NLPPagination(pagination.PageNumberPagination):
-    page_size = 2
+    page_size = 200
 
 
 class RepositoryAuthorizationTrainViewSet(
@@ -233,9 +233,13 @@ class RepositoryAuthorizationParseViewSet(mixins.RetrieveModelMixin, GenericView
         check_auth(request)
         repository_authorization = self.get_object()
         repository = repository_authorization.repository
-        update = repository.last_trained_update(
-            str(request.query_params.get("language"))
-        )
+
+        language = request.query_params.get("language")
+
+        if language == "None" or language is None:
+            language = str(repository.language)
+
+        update = repository.last_trained_update(language)
         try:
             return Response(
                 {
@@ -262,7 +266,9 @@ class RepositoryAuthorizationParseViewSet(mixins.RetrieveModelMixin, GenericView
         return Response(
             {
                 "label": True if repository_entity.label else False,
-                "label_value": repository_entity.label.value,
+                "label_value": repository_entity.label.value
+                if repository_entity.label
+                else None,
             }
         )
 
