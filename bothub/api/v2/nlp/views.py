@@ -1,5 +1,4 @@
 import base64
-import requests
 
 from django.conf import settings
 from django.db import models
@@ -473,10 +472,12 @@ class RepositoryUpdateInterpretersViewSet(
 
         validator = URLValidator()
 
+        aws = False
+
         try:
             validator(str(update.bot_data))
-            download = requests.get(update.bot_data)
-            bot_data = base64.b64encode(download.content)
+            bot_data = update.bot_data
+            aws = True
         except ValidationError:
             bot_data = update.bot_data
         except Exception:
@@ -487,6 +488,7 @@ class RepositoryUpdateInterpretersViewSet(
                 "update_id": update.id,
                 "repository_uuid": update.repository.uuid,
                 "bot_data": str(bot_data),
+                "from_aws": aws,
             }
         )
 
