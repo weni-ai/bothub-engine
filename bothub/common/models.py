@@ -489,7 +489,7 @@ class RepositoryUpdate(models.Model):
 
         else:
             examples = examples.exclude(deleted_in__isnull=False)
-        return examples.annotate(Count('id'))
+        return examples.annotate(Count("id"))
 
     @property
     def requirements_to_train(self):
