@@ -488,7 +488,7 @@ class RepositoryUpdate(models.Model):
 
         else:
             examples = examples.exclude(deleted_in__isnull=False)
-        return examples.distinct()
+        return examples
 
     @property
     def requirements_to_train(self):
