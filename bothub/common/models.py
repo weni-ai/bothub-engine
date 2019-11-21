@@ -3,7 +3,6 @@ import requests
 
 from functools import reduce
 from django.db import models
-from django.db.models import Count
 from django.utils.translation import gettext as _
 from django.utils import timezone
 from django.conf import settings
@@ -489,7 +488,7 @@ class RepositoryUpdate(models.Model):
 
         else:
             examples = examples.exclude(deleted_in__isnull=False)
-        return examples.annotate(Count("id"))
+        return examples.distinct()
 
     @property
     def requirements_to_train(self):
