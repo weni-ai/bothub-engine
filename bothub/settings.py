@@ -240,6 +240,25 @@ LOGGING["loggers"]["bothub.health.checks"] = {
     "handlers": ["bothub.health"],
     "level": "DEBUG",
 }
+LOGGING["formatters"]["verbose"] = {
+    "format": "%(levelname)s  %(asctime)s  %(module)s "
+    "%(process)d  %(thread)d  %(message)s"
+}
+LOGGING["handlers"]["console"] = {
+    "level": "DEBUG",
+    "class": "logging.StreamHandler",
+    "formatter": "verbose",
+}
+LOGGING["loggers"]["django.db.backends"] = {
+    "level": "ERROR",
+    "handlers": ["console"],
+    "propagate": False,
+}
+LOGGING["loggers"]["sentry.errors"] = {
+    "level": "DEBUG",
+    "handlers": ["console"],
+    "propagate": False,
+}
 
 
 # Supported Languages
