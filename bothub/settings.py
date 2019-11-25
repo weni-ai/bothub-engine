@@ -14,6 +14,7 @@ environ.Env.read_env(env_file=(environ.Path(__file__) - 2)(".env"))
 
 env = environ.Env(
     # set casting, default value
+    ENVIRONMENT=(str, "production"),
     DEBUG=(bool, False),
     ALLOWED_HOSTS=(lambda v: [s.strip() for s in v.split(",")], "*"),
     LANGUAGE_CODE=(str, "en-us"),
@@ -321,5 +322,7 @@ BOTHUB_ENGINE_USE_SENTRY = env.bool("BOTHUB_ENGINE_USE_SENTRY")
 
 if BOTHUB_ENGINE_USE_SENTRY:
     sentry_sdk.init(
-        dsn=env.str("BOTHUB_ENGINE_SENTRY"), integrations=[DjangoIntegration()]
+        dsn=env.str("BOTHUB_ENGINE_SENTRY"),
+        integrations=[DjangoIntegration()],
+        environment=env.str("ENVIRONMENT"),
     )
