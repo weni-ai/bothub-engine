@@ -422,7 +422,7 @@ class Repository(models.Model):
     def last_trained_update(self, language=None):
         language = language or self.language
         return self.updates.filter(
-            language=language, by__isnull=False, trained_at__isnull=False
+            language=language, by__isnull=False, trained_at__isnull=False, publish=True
         ).first()
 
     def get_user_authorization(self, user):
@@ -471,6 +471,7 @@ class RepositoryUpdate(models.Model):
     failed_at = models.DateTimeField(_("failed at"), blank=True, null=True)
     training_log = models.TextField(_("training log"), blank=True, editable=False)
     use_analyze_char = models.BooleanField(default=False)
+    publish = models.BooleanField(default=False)
 
     @property
     def examples(self):
