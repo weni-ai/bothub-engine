@@ -42,6 +42,16 @@ Run ```pipenv run python ./manage.py update_repository_tests``` update repositor
 Run ```pipenv run python ./manage.py transfer_train_aws``` Migrate all trainings to an aws bucket defined in project settings.
 
 
+### Update Last Train for Version System
+
+Run ```pipenv run python ./manage.py update_last_train```
+
+
+### Update Train Column Rasa Update Version
+
+Run ```pipenv run python ./manage.py update_train_rasa_version```
+
+
 #### Fake users infos:
 
 | nickname | email | password | is superuser |
