@@ -425,6 +425,12 @@ class Repository(models.Model):
             language=language, by__isnull=False, trained_at__isnull=False, publish=True
         ).first()
 
+    def get_trained_update_by_id(self, language=None, update=None):
+        language = language or self.language
+        return self.updates.filter(
+            language=language, by__isnull=False, trained_at__isnull=False, pk=update
+        ).first()
+
     def get_user_authorization(self, user):
         if user.is_anonymous:
             return RepositoryAuthorization(repository=self)
