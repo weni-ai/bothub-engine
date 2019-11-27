@@ -506,9 +506,7 @@ class RepositoryUpdatesViewSet(
     mixins.ListModelMixin, mixins.UpdateModelMixin, GenericViewSet
 ):
     queryset = (
-        RepositoryUpdate.objects.filter(
-            training_started_at__isnull=False, trained_at__isnull=False
-        )
+        RepositoryUpdate.objects.filter(training_started_at__isnull=False)
         .order_by("-trained_at")
         .order_by("-publish")
     )

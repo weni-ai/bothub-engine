@@ -635,6 +635,15 @@ class RepositoryUpdate(models.Model):
         self.use_competing_intents = self.repository.use_competing_intents
         self.use_name_entities = self.repository.use_name_entities
         self.use_analyze_char = self.repository.use_analyze_char
+
+        if (
+            RepositoryUpdate.objects.filter(
+                repository=self.repository, publish=True
+            ).count()
+            == 0
+        ):
+            self.define_publish()
+
         self.save(
             update_fields=[
                 "by",

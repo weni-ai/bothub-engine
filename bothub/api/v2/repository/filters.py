@@ -86,6 +86,10 @@ class RepositoryUpdatesFilter(filters.FilterSet):
         help_text=_("Repository's UUID"),
     )
 
+    trained = filters.BooleanFilter(
+        field_name="trained_at__isnull", required=False, method="filter_trained_at"
+    )
+
     def filter_repository_uuid(self, queryset, name, value):
         request = self.request
         try:
@@ -98,3 +102,6 @@ class RepositoryUpdatesFilter(filters.FilterSet):
             raise NotFound(_("Repository {} does not exist").format(value))
         except DjangoValidationError:
             raise NotFound(_("Invalid repository UUID"))
+
+    def filter_trained_at(self, queryset, name, value):
+        return queryset.filter(trained_at__isnull=not value)
