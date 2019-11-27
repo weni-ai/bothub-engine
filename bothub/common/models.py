@@ -650,6 +650,10 @@ class RepositoryUpdate(models.Model):
         self.repository.save()
         self.save(update_fields=["trained_at", "bot_data"])
 
+    def define_publish(self):
+        self.publish = True
+        self.save(update_fields=["publish"])
+
     def get_bot_data(self):
         return self.bot_data
 

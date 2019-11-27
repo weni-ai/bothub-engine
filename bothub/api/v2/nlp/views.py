@@ -496,6 +496,13 @@ class RepositoryUpdateInterpretersViewSet(
         check_auth(request)
         id = request.data.get("id")
         repository = get_object_or_404(RepositoryUpdate, pk=id)
+
+        if (
+            RepositoryUpdate.objects.filter(repository=repository.repository).count()
+            == 0
+        ):
+            repository.define_publish()
+
         if settings.AWS_SEND:
             bot_data = base64.b64decode(request.data.get("bot_data"))
             repository.save_training(send_bot_data_file_aws(id, bot_data))

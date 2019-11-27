@@ -544,11 +544,6 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
         return example
 
 
-class AnalyzeTextSerializer(serializers.Serializer):
-    language = serializers.ChoiceField(LANGUAGE_CHOICES, required=True)
-    text = serializers.CharField(allow_blank=False)
-
-
 class EvaluateSerializer(serializers.Serializer):
     language = serializers.ChoiceField(LANGUAGE_CHOICES, required=True)
 
@@ -566,12 +561,39 @@ class RepositoryUpdateSerializer(serializers.ModelSerializer):
             "training_started_at",
             "trained_at",
             "failed_at",
+            "publish",
+        ]
+
+        read_only_fields = [
+            "id",
+            "repository",
+            "language",
+            "created_at",
+            "by",
+            "by__nickname",
+            "training_started_at",
+            "trained_at",
+            "failed_at",
         ]
         ref_name = None
 
     by__nickname = serializers.SlugRelatedField(
         source="by", slug_field="nickname", read_only=True
     )
+
+    def update(self, instance, validated_data):
+        RepositoryUpdate.objects.filter(repository=instance.repository).update(
+            publish=False
+        )
+        return super().update(instance, validated_data)
+
+
+class AnalyzeTextSerializer(serializers.Serializer):
+    language = serializers.ChoiceField(LANGUAGE_CHOICES, required=True)
+    update = serializers.PrimaryKeyRelatedField(
+        queryset=RepositoryUpdate.objects, write_only=True, required=False
+    )
+    text = serializers.CharField(allow_blank=False)
 
 
 class RepositoryUpload(serializers.Serializer):

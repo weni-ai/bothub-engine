@@ -5,14 +5,12 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('common', '0039_auto_20191114_2018'),
-    ]
+    dependencies = [("common", "0039_auto_20191114_2018")]
 
     operations = [
         migrations.AddField(
-            model_name='repositoryupdate',
-            name='publish',
+            model_name="repositoryupdate",
+            name="publish",
             field=models.BooleanField(default=False),
-        ),
+        )
     ]
