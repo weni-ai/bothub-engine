@@ -369,6 +369,17 @@ class RepositoryAuthorizationViewSet(
         response = super().update(*args, **kwargs)
         instance = self.get_object()
         if instance.role is not RepositoryAuthorization.ROLE_NOT_SETTED:
+            if (
+                RequestRepositoryAuthorization.objects.filter(
+                    user=instance.user, repository=instance.repository
+                ).count()
+                == 0
+            ):
+                RequestRepositoryAuthorization.objects.create(
+                    user=instance.user,
+                    repository=instance.repository,
+                    approved_by=self.request.user,
+                )
             instance.send_new_role_email(self.request.user)
         return response
 
