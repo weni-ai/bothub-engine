@@ -234,11 +234,16 @@ class RepositoryAuthorizationParseViewSet(mixins.RetrieveModelMixin, GenericView
         repository = repository_authorization.repository
 
         language = request.query_params.get("language")
+        update_id = request.query_params.get("update_id")
 
         if language == "None" or language is None:
             language = str(repository.language)
 
-        update = repository.last_trained_update(language)
+        if update_id:
+            update = repository.get_trained_update_by_id(language, update_id)
+        else:
+            update = repository.last_trained_update(language)
+
         try:
             return Response(
                 {
@@ -496,6 +501,13 @@ class RepositoryUpdateInterpretersViewSet(
         check_auth(request)
         id = request.data.get("id")
         repository = get_object_or_404(RepositoryUpdate, pk=id)
+
+        if (
+            RepositoryUpdate.objects.filter(repository=repository.repository).count()
+            == 0
+        ):
+            repository.define_publish()
+
         if settings.AWS_SEND:
             bot_data = base64.b64decode(request.data.get("bot_data"))
             repository.save_training(send_bot_data_file_aws(id, bot_data))

@@ -124,6 +124,16 @@ class RepositoryViewSet(
         user_authorization = repository.get_user_authorization(request.user)
         serializer = AnalyzeTextSerializer(data=request.data)  # pragma: no cover
         serializer.is_valid(raise_exception=True)  # pragma: no cover
+
+        if (
+            request.data.get("update")
+            and RepositoryUpdate.objects.filter(
+                pk=request.data.get("update"), repository=kwargs.get("uuid")
+            ).count()
+            == 0
+        ):
+            raise PermissionDenied()
+
         request = repository.request_nlp_analyze(
             user_authorization, serializer.data
         )  # pragma: no cover
@@ -492,10 +502,19 @@ class RepositoryExampleViewSet(
         obj.delete()
 
 
-class RepositoryUpdatesViewSet(mixins.ListModelMixin, GenericViewSet):
-    queryset = RepositoryUpdate.objects.filter(
-        training_started_at__isnull=False
-    ).order_by("-trained_at")
+class RepositoryUpdatesViewSet(
+    mixins.ListModelMixin, mixins.UpdateModelMixin, GenericViewSet
+):
+    queryset = (
+        RepositoryUpdate.objects.filter(
+            training_started_at__isnull=False, updated_rasa=True
+        )
+        .order_by("-trained_at")
+        .order_by("-publish")
+    )
     serializer_class = RepositoryUpdateSerializer
-    filter_class = RepositoryUpdatesFilter
     permission_classes = [IsAuthenticated, RepositoryUpdateHasPermission]
+
+    def list(self, request, *args, **kwargs):
+        self.filter_class = RepositoryUpdatesFilter
+        return super().list(request, *args, **kwargs)

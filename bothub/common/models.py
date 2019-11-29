@@ -422,7 +422,21 @@ class Repository(models.Model):
     def last_trained_update(self, language=None):
         language = language or self.language
         return self.updates.filter(
-            language=language, by__isnull=False, trained_at__isnull=False
+            language=language,
+            by__isnull=False,
+            trained_at__isnull=False,
+            publish=True,
+            updated_rasa=True,
+        ).first()
+
+    def get_trained_update_by_id(self, language=None, update=None):
+        language = language or self.language
+        return self.updates.filter(
+            language=language,
+            by__isnull=False,
+            trained_at__isnull=False,
+            updated_rasa=True,
+            pk=update,
         ).first()
 
     def get_user_authorization(self, user):
@@ -471,6 +485,8 @@ class RepositoryUpdate(models.Model):
     failed_at = models.DateTimeField(_("failed at"), blank=True, null=True)
     training_log = models.TextField(_("training log"), blank=True, editable=False)
     use_analyze_char = models.BooleanField(default=False)
+    publish = models.BooleanField(default=False)
+    updated_rasa = models.BooleanField(default=False)
 
     @property
     def examples(self):
@@ -628,6 +644,16 @@ class RepositoryUpdate(models.Model):
         self.use_competing_intents = self.repository.use_competing_intents
         self.use_name_entities = self.repository.use_name_entities
         self.use_analyze_char = self.repository.use_analyze_char
+        self.updated_rasa = True
+
+        if (
+            RepositoryUpdate.objects.filter(
+                repository=self.repository, publish=True
+            ).count()
+            == 0
+        ):
+            self.define_publish()
+
         self.save(
             update_fields=[
                 "by",
@@ -636,6 +662,7 @@ class RepositoryUpdate(models.Model):
                 "use_competing_intents",
                 "use_name_entities",
                 "use_analyze_char",
+                "updated_rasa",
             ]
         )
 
@@ -648,6 +675,10 @@ class RepositoryUpdate(models.Model):
         self.repository.total_updates += 1
         self.repository.save()
         self.save(update_fields=["trained_at", "bot_data"])
+
+    def define_publish(self):
+        self.publish = True
+        self.save(update_fields=["publish"])
 
     def get_bot_data(self):
         return self.bot_data
