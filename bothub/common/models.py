@@ -415,14 +415,14 @@ class Repository(models.Model):
     def current_update(self, language=None):
         language = language or self.language
         repository_update, created = self.updates.get_or_create(
-            language=language, training_started_at=None
+            language=language
         )
         return repository_update
 
     def last_trained_update(self, language=None):
         language = language or self.language
         return self.updates.filter(
-            language=language, by__isnull=False, trained_at__isnull=False
+            language=language, by__isnull=False#, trained_at__isnull=False
         ).first()
 
     def get_user_authorization(self, user):
@@ -544,17 +544,12 @@ class RepositoryUpdate(models.Model):
 
     @property
     def ready_for_train(self):
-        if self.training_started_at:
-            return False  # pragma: no cover
-
         if len(self.requirements_to_train) > 0:
             return False
 
         previous_update = self.repository.updates.filter(
             language=self.language,
             by__isnull=False,
-            training_started_at__isnull=False,
-            created_at__lt=self.created_at,
         ).first()
 
         if previous_update:
@@ -611,10 +606,10 @@ class RepositoryUpdate(models.Model):
         return "Repository Update #{}".format(self.id)  # pragma: no cover
 
     def validate_init_train(self, by=None):
-        if self.trained_at:
-            raise RepositoryUpdateAlreadyTrained()
-        if self.training_started_at:
-            raise RepositoryUpdateAlreadyStartedTraining()
+        # if self.trained_at:
+        #     raise RepositoryUpdateAlreadyTrained()
+        # if self.training_started_at:
+        #     raise RepositoryUpdateAlreadyStartedTraining()
         if by:
             authorization = self.repository.get_user_authorization(by)
             if not authorization.can_write:
@@ -623,7 +618,7 @@ class RepositoryUpdate(models.Model):
     def start_training(self, by):
         self.validate_init_train(by)
         self.by = by
-        self.training_started_at = timezone.now()
+        # self.training_started_at = timezone.now()
         self.algorithm = self.repository.algorithm
         self.use_competing_intents = self.repository.use_competing_intents
         self.use_name_entities = self.repository.use_name_entities
@@ -631,7 +626,7 @@ class RepositoryUpdate(models.Model):
         self.save(
             update_fields=[
                 "by",
-                "training_started_at",
+                # "training_started_at",
                 "algorithm",
                 "use_competing_intents",
                 "use_name_entities",
@@ -640,14 +635,17 @@ class RepositoryUpdate(models.Model):
         )
 
     def save_training(self, bot_data):
-        if self.trained_at:
-            raise RepositoryUpdateAlreadyTrained()
+        # if self.trained_at:
+        #     raise RepositoryUpdateAlreadyTrained()
 
-        self.trained_at = timezone.now()
+        # self.trained_at = timezone.now()
         self.bot_data = bot_data
         self.repository.total_updates += 1
         self.repository.save()
-        self.save(update_fields=["trained_at", "bot_data"])
+        self.save(update_fields=[
+            # "trained_at",
+            "bot_data"
+        ])
 
     def get_bot_data(self):
         return self.bot_data

@@ -504,9 +504,7 @@ class RepositoryExampleViewSet(
 
 
 class RepositoryUpdatesViewSet(mixins.ListModelMixin, GenericViewSet):
-    queryset = RepositoryUpdate.objects.filter(
-        training_started_at__isnull=False
-    ).order_by("-trained_at")
+    queryset = RepositoryUpdate.objects.order_by("-trained_at")
     serializer_class = RepositoryUpdateSerializer
     filter_class = RepositoryUpdatesFilter
     permission_classes = [IsAuthenticated, RepositoryUpdateHasPermission]
