@@ -502,7 +502,7 @@ class RepositoryUpdate(models.Model):
     failed_at = models.DateTimeField(_("failed at"), blank=True, null=True)
     training_log = models.TextField(_("training log"), blank=True, editable=False)
     use_analyze_char = models.BooleanField(default=False)
-    last_update = models.DateTimeField(_("bot data"))
+    last_update = models.DateTimeField(_("last update"), auto_now_add=True)
 
     @property
     def examples(self):
