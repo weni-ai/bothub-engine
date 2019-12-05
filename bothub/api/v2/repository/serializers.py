@@ -1,31 +1,31 @@
-from django.utils.translation import gettext as _
 from django.conf import settings
+from django.utils.translation import gettext as _
 from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied
 
 from bothub.api.v2.example.serializers import RepositoryExampleEntitySerializer
-from bothub.api.v2.fields import TextField
-from bothub.api.v2.fields import ModelMultipleChoiceField
 from bothub.api.v2.fields import EntityText
+from bothub.api.v2.fields import ModelMultipleChoiceField
+from bothub.api.v2.fields import TextField
 from bothub.api.v2.repository.validators import (
     CanContributeInRepositoryExampleValidator,
     CanContributeInRepositoryUpdateValidator,
+    APIExceptionCustom,
 )
-from bothub.api.v2.repository.validators import IntentAndSentenceNotExistsValidator
-from bothub.api.v2.repository.validators import ExampleWithIntentOrEntityValidator
 from bothub.api.v2.repository.validators import CanContributeInRepositoryValidator
+from bothub.api.v2.repository.validators import ExampleWithIntentOrEntityValidator
 from bothub.common import languages
+from bothub.common.languages import LANGUAGE_CHOICES
 from bothub.common.models import Repository
-from bothub.common.models import RepositoryVote
+from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryCategory
 from bothub.common.models import RepositoryEntityLabel
-from bothub.common.models import RepositoryAuthorization
-from bothub.common.models import RequestRepositoryAuthorization
-from bothub.common.models import RepositoryTranslatedExample
 from bothub.common.models import RepositoryExample
+from bothub.common.models import RepositoryTranslatedExample
 from bothub.common.models import RepositoryTranslatedExampleEntity
 from bothub.common.models import RepositoryUpdate
-from bothub.common.languages import LANGUAGE_CHOICES
+from bothub.common.models import RepositoryVote
+from bothub.common.models import RequestRepositoryAuthorization
 from .validators import CanContributeInRepositoryTranslatedExampleValidator
 
 
@@ -531,8 +531,6 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
                 many=True, style={"text_field": "text"}, data="GET"
             )
         self.validators.append(ExampleWithIntentOrEntityValidator())
-        # Todo: tem que ajustar essa validação, precisa checar se está selecionando um versionamento
-        self.validators.append(IntentAndSentenceNotExistsValidator())
 
     def create(self, validated_data):
         entities_data = validated_data.pop("entities")
@@ -549,8 +547,32 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
                 update_id.pk, language or None
             )
             validated_data.pop("update_id")
+
+            if RepositoryExample.objects.filter(
+                text=validated_data.get("text"),
+                intent=validated_data.get("intent"),
+                repository_update__repository=repository,
+                repository_update=update_id,
+                deleted_in__isnull=True,
+                repository_update__language=repository_update.language,
+            ):
+                raise APIExceptionCustom(
+                    detail=_("Intention and Sentence already exists")
+                )
         else:
             repository_update = repository.current_update(language or None)
+
+            if RepositoryExample.objects.filter(
+                text=validated_data.get("text"),
+                intent=validated_data.get("intent"),
+                repository_update=repository_update,
+                repository_update__selected=True,
+                deleted_in__isnull=True,
+                repository_update__language=repository_update.language,
+            ):
+                raise APIExceptionCustom(
+                    detail=_("Intention and Sentence already exists")
+                )
 
         validated_data.update({"repository_update": repository_update})
         example = self.Meta.model.objects.create(**validated_data)

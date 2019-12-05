@@ -1,5 +1,6 @@
 from django.utils.translation import gettext as _
-from rest_framework.exceptions import PermissionDenied
+from rest_framework import status
+from rest_framework.exceptions import PermissionDenied, APIException
 from rest_framework.exceptions import ValidationError
 
 
@@ -54,22 +55,6 @@ class ExampleWithIntentOrEntityValidator(object):
             raise ValidationError(_("Define a intent or one entity"))
 
 
-class IntentAndSentenceNotExistsValidator(object):
-    def __call__(self, attrs):
-        # repository = attrs.get("repository")
-        # intent = attrs.get("intent")
-        # sentence = attrs.get("text")
-
-        # if RepositoryExample.objects.filter(
-        #     text=sentence,
-        #     intent=intent,
-        #     repository_update__repository=repository,
-        #     deleted_in__isnull=True,
-        # ).count():
-        #     raise ValidationError(_("Intention and Sentence already exists"))
-        pass
-
-
 class EntityNotEqualLabelValidator(object):
     def __call__(self, attrs):
         entity = attrs.get("entity")
@@ -79,3 +64,12 @@ class EntityNotEqualLabelValidator(object):
             raise ValidationError(
                 {"label": _("Label name can't be equal to entity name")}
             )
+
+
+class APIExceptionCustom(APIException):
+    """Readers error class"""
+
+    def __init__(self, detail):
+        APIException.__init__(self, detail)
+        self.status_code = status.HTTP_400_BAD_REQUEST
+        self.message = detail
