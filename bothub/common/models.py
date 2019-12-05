@@ -456,6 +456,9 @@ class Repository(models.Model):
             language=language, by__isnull=False, trained_at__isnull=False
         ).first()
 
+    def get_specific_train(self, update_id=None):
+        return self.updates.filter(pk=update_id).first()
+
     def get_user_authorization(self, user):
         if user.is_anonymous:
             return RepositoryAuthorization(repository=self)
@@ -503,6 +506,7 @@ class RepositoryUpdate(models.Model):
     training_log = models.TextField(_("training log"), blank=True, editable=False)
     use_analyze_char = models.BooleanField(default=False)
     last_update = models.DateTimeField(_("last update"), auto_now_add=True)
+    selected = models.BooleanField(default=True)
 
     @property
     def examples(self):
