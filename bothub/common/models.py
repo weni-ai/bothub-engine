@@ -461,7 +461,9 @@ class Repository(models.Model):
             language=language, by__isnull=False, trained_at__isnull=False, selected=True
         ).first()
 
-    def get_specific_train(self, update_id=None):
+    def get_specific_update(self, update_id=None, language=None):
+        if language:
+            return self.updates.filter(pk=update_id, language=language).first()
         return self.updates.filter(pk=update_id).first()
 
     def get_user_authorization(self, user):

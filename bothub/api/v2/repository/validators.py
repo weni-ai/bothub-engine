@@ -1,8 +1,6 @@
-from rest_framework.exceptions import PermissionDenied
 from django.utils.translation import gettext as _
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.exceptions import ValidationError
-
-from bothub.common.models import RepositoryExample
 
 
 class CanContributeInRepositoryExampleValidator(object):
@@ -37,6 +35,16 @@ class CanContributeInRepositoryValidator(object):
         self.request = serializer.context.get("request")
 
 
+class CanContributeInRepositoryUpdateValidator(object):
+    def __call__(self, value):
+        user_authorization = value.repository.get_user_authorization(self.request.user)
+        if not user_authorization.can_contribute:
+            raise PermissionDenied(_("You can't contribute in this repository"))
+
+    def set_context(self, serializer):
+        self.request = serializer.context.get("request")
+
+
 class ExampleWithIntentOrEntityValidator(object):
     def __call__(self, attrs):
         intent = attrs.get("intent")
@@ -48,17 +56,18 @@ class ExampleWithIntentOrEntityValidator(object):
 
 class IntentAndSentenceNotExistsValidator(object):
     def __call__(self, attrs):
-        repository = attrs.get("repository")
-        intent = attrs.get("intent")
-        sentence = attrs.get("text")
+        # repository = attrs.get("repository")
+        # intent = attrs.get("intent")
+        # sentence = attrs.get("text")
 
-        if RepositoryExample.objects.filter(
-            text=sentence,
-            intent=intent,
-            repository_update__repository=repository,
-            deleted_in__isnull=True,
-        ).count():
-            raise ValidationError(_("Intention and Sentence already exists"))
+        # if RepositoryExample.objects.filter(
+        #     text=sentence,
+        #     intent=intent,
+        #     repository_update__repository=repository,
+        #     deleted_in__isnull=True,
+        # ).count():
+        #     raise ValidationError(_("Intention and Sentence already exists"))
+        pass
 
 
 class EntityNotEqualLabelValidator(object):

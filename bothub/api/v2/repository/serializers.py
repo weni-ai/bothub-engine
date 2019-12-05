@@ -9,6 +9,7 @@ from bothub.api.v2.fields import ModelMultipleChoiceField
 from bothub.api.v2.fields import EntityText
 from bothub.api.v2.repository.validators import (
     CanContributeInRepositoryExampleValidator,
+    CanContributeInRepositoryUpdateValidator,
 )
 from bothub.api.v2.repository.validators import IntentAndSentenceNotExistsValidator
 from bothub.api.v2.repository.validators import ExampleWithIntentOrEntityValidator
@@ -492,6 +493,7 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
             "created_at",
             "entities",
             "translations",
+            "update_id",
         ]
         read_only_fields = ["deleted_in"]
         ref_name = None
@@ -515,6 +517,12 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
         many=True, style={"text_field": "text"}, required=False
     )
     translations = RepositoryTranslatedExampleSerializer(many=True, read_only=True)
+    update_id = serializers.PrimaryKeyRelatedField(
+        queryset=RepositoryUpdate.objects,
+        style={"show": False},
+        required=False,
+        validators=[CanContributeInRepositoryUpdateValidator()],
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -523,17 +531,27 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
                 many=True, style={"text_field": "text"}, data="GET"
             )
         self.validators.append(ExampleWithIntentOrEntityValidator())
+        # Todo: tem que ajustar essa validação, precisa checar se está selecionando um versionamento
         self.validators.append(IntentAndSentenceNotExistsValidator())
 
     def create(self, validated_data):
         entities_data = validated_data.pop("entities")
         repository = validated_data.pop("repository")
+        update_id = validated_data.get("update_id")
 
         try:
             language = validated_data.pop("language")
         except KeyError:
             language = None
-        repository_update = repository.current_update(language or None)
+
+        if update_id:
+            repository_update = repository.get_specific_update(
+                update_id.pk, language or None
+            )
+            validated_data.pop("update_id")
+        else:
+            repository_update = repository.current_update(language or None)
+
         validated_data.update({"repository_update": repository_update})
         example = self.Meta.model.objects.create(**validated_data)
         for entity_data in entities_data:
