@@ -458,7 +458,7 @@ class Repository(models.Model):
     def last_trained_update(self, language=None):
         language = language or self.language
         return self.updates.filter(
-            language=language, by__isnull=False, trained_at__isnull=False
+            language=language, by__isnull=False, trained_at__isnull=False, selected=True
         ).first()
 
     def get_specific_train(self, update_id=None):

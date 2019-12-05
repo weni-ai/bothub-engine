@@ -1,10 +1,8 @@
-from django.utils.translation import gettext as _
 from django.core.exceptions import ValidationError as DjangoValidationError
-from django.db.models import Q
-from django.db.models import Count
-from rest_framework.exceptions import PermissionDenied
-from rest_framework.exceptions import NotFound
+from django.utils.translation import gettext as _
 from django_filters import rest_framework as filters
+from rest_framework.exceptions import NotFound
+from rest_framework.exceptions import PermissionDenied
 
 from bothub.common.models import Repository
 from bothub.common.models import RepositoryUpdate
