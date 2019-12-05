@@ -5,13 +5,6 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('common', '0044_auto_20191205_1310'),
-    ]
+    dependencies = [("common", "0044_auto_20191205_1310")]
 
-    operations = [
-        migrations.RemoveField(
-            model_name='repositoryupdate',
-            name='version',
-        ),
-    ]
+    operations = [migrations.RemoveField(model_name="repositoryupdate", name="version")]

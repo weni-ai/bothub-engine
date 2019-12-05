@@ -6,9 +6,17 @@ from bothub.common.models import RepositoryUpdate
 from .filters import VersioningFilter
 
 
-class VersioningViewSet(mixins.ListModelMixin, mixins.UpdateModelMixin, GenericViewSet):
-    queryset = RepositoryUpdate.objects.order_by('-selected')
+class VersioningViewSet(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    mixins.UpdateModelMixin,
+    GenericViewSet,
+):
+    queryset = RepositoryUpdate.objects.order_by("-selected")
     serializer_class = RepositoryVersionSeralizer
-    filter_class = VersioningFilter
     # filter_backends = [OrderingFilter, SearchFilter, DjangoFilterBackend]
     # search_fields = ["$text", "^text", "=text"]
+
+    def list(self, request, *args, **kwargs):
+        self.filter_class = VersioningFilter
+        return super().list(request, *args, **kwargs)

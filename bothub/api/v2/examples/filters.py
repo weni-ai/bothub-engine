@@ -49,6 +49,11 @@ class ExamplesFilter(filters.FilterSet):
         method="filter_entity",
         help_text=_("Filter for examples with entity."),
     )
+    update_id = filters.CharFilter(
+        field_name="repository_update",
+        method="filter_repository_update",
+        help_text=_("Filter for examples with update_id."),
+    )
 
     def filter_repository_uuid(self, queryset, name, value):
         request = self.request
@@ -57,6 +62,8 @@ class ExamplesFilter(filters.FilterSet):
             authorization = repository.get_user_authorization(request.user)
             if not authorization.can_read:
                 raise PermissionDenied()
+            if request.query_params.get("update_id"):
+                return repository.examples(queryset=queryset, master=False)
             return repository.examples(queryset=queryset)
         except Repository.DoesNotExist:
             raise NotFound(_("Repository {} does not exist").format(value))
@@ -65,6 +72,9 @@ class ExamplesFilter(filters.FilterSet):
 
     def filter_language(self, queryset, name, value):
         return queryset.filter(repository_update__language=value)
+
+    def filter_repository_update(self, queryset, name, value):
+        return queryset.filter(repository_update__pk=value)
 
     def filter_has_translation(self, queryset, name, value):
         annotated_queryset = queryset.annotate(translation_count=Count("translations"))

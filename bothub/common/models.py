@@ -382,10 +382,13 @@ class Repository(models.Model):
             self.name, self.owner.nickname, self.slug
         )  # pragma: no cover
 
-    def examples(self, language=None, exclude_deleted=True, queryset=None):
+    def examples(self, language=None, exclude_deleted=True, queryset=None, master=True):
         if queryset is None:
             queryset = RepositoryExample.objects
         query = queryset.filter(repository_update__repository=self)
+
+        if master:
+            query = query.filter(repository_update__selected=True)
         if language:
             query = query.filter(repository_update__language=language)
         if exclude_deleted:
@@ -447,7 +450,9 @@ class Repository(models.Model):
 
     def current_update(self, language=None):
         language = language or self.language
-        repository_update, created = self.updates.get_or_create(language=language)
+        repository_update, created = self.updates.get_or_create(
+            language=language, selected=True
+        )
         return repository_update
 
     def last_trained_update(self, language=None):
@@ -756,8 +761,19 @@ class RepositoryExample(models.Model):
 
 
 class RepositoryTranslatedExampleManager(models.Manager):
-    def create(self, *args, original_example=None, language=None, **kwargs):
+    def create(
+        self,
+        *args,
+        original_example=None,
+        language=None,
+        clone_repository=False,
+        **kwargs
+    ):
         repository = original_example.repository_update.repository
+        if clone_repository:
+            return super().create(
+                *args, original_example=original_example, language=language, **kwargs
+            )
         return super().create(
             *args,
             repository_update=repository.current_update(language),

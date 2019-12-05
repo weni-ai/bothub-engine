@@ -12,7 +12,7 @@ from .filters import ExamplesFilter
 
 
 class ExamplesViewSet(mixins.ListModelMixin, GenericViewSet):
-    queryset = RepositoryExample.objects.filter(repository_update__selected=True)
+    queryset = RepositoryExample.objects
     serializer_class = RepositoryExampleSerializer
     filter_class = ExamplesFilter
     filter_backends = [OrderingFilter, SearchFilter, DjangoFilterBackend]

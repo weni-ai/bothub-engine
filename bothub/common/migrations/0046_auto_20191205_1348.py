@@ -5,14 +5,12 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('common', '0045_remove_repositoryupdate_version'),
-    ]
+    dependencies = [("common", "0045_remove_repositoryupdate_version")]
 
     operations = [
         migrations.AlterField(
-            model_name='repositoryupdate',
-            name='selected',
+            model_name="repositoryupdate",
+            name="selected",
             field=models.BooleanField(default=True),
-        ),
+        )
     ]
