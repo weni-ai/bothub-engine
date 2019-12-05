@@ -182,6 +182,39 @@ class Repository(models.Model):
 
     objects = RepositoryManager()
 
+    __algorithm = None
+    __use_competing_intents = None
+    __use_name_entities = None
+    __use_analyze_char = None
+
+    def __init__(self, *args, **kwargs):
+        super(Repository, self).__init__(*args, **kwargs)
+        self.__algorithm = self.algorithm
+        self.__use_competing_intents = self.use_competing_intents
+        self.__use_name_entities = self.use_name_entities
+        self.__use_analyze_char = self.use_analyze_char
+
+    def save(
+        self, force_insert=False, force_update=False, using=None, update_fields=None
+    ):
+        if (
+            self.algorithm != self.__algorithm
+            or self.use_competing_intents != self.__use_competing_intents
+            or self.use_name_entities != self.__use_name_entities
+            or self.use_analyze_char != self.__use_analyze_char
+        ):
+
+            update = self.current_update(self.language)
+            update.last_update = timezone.now()
+            update.save(update_fields=["last_update"])
+
+        super(Repository, self).save(force_insert, force_update, using, update_fields)
+
+        self.__algorithm = self.algorithm
+        self.__use_competing_intents = self.use_competing_intents
+        self.__use_name_entities = self.use_name_entities
+        self.__use_analyze_char = self.use_analyze_char
+
     def request_nlp_train(self, user_authorization):
         try:  # pragma: no cover
             r = requests.post(  # pragma: no cover
@@ -414,15 +447,13 @@ class Repository(models.Model):
 
     def current_update(self, language=None):
         language = language or self.language
-        repository_update, created = self.updates.get_or_create(
-            language=language
-        )
+        repository_update, created = self.updates.get_or_create(language=language)
         return repository_update
 
     def last_trained_update(self, language=None):
         language = language or self.language
         return self.updates.filter(
-            language=language, by__isnull=False#, trained_at__isnull=False
+            language=language, by__isnull=False, trained_at__isnull=False
         ).first()
 
     def get_user_authorization(self, user):
@@ -556,8 +587,7 @@ class RepositoryUpdate(models.Model):
             ).first()
         else:
             previous_update = self.repository.updates.filter(
-                language=self.language,
-                by__isnull=False,
+                language=self.language, by__isnull=False
             ).first()
 
         if previous_update:
@@ -650,10 +680,7 @@ class RepositoryUpdate(models.Model):
         self.bot_data = bot_data
         self.repository.total_updates += 1
         self.repository.save()
-        self.save(update_fields=[
-            "trained_at",
-            "bot_data"
-        ])
+        self.save(update_fields=["trained_at", "bot_data"])
 
     def get_bot_data(self):
         return self.bot_data
@@ -689,7 +716,7 @@ class RepositoryExample(models.Model):
     def save(self, *args, **kwargs):
         self.last_update = timezone.now()
         self.repository_update.last_update = timezone.now()
-        self.repository_update.save(update_fields=['last_update'])
+        self.repository_update.save(update_fields=["last_update"])
         super(RepositoryExample, self).save(*args, **kwargs)
 
     @property
