@@ -471,6 +471,7 @@ class RepositoryUpdate(models.Model):
     failed_at = models.DateTimeField(_("failed at"), blank=True, null=True)
     training_log = models.TextField(_("training log"), blank=True, editable=False)
     use_analyze_char = models.BooleanField(default=False)
+    last_update = models.DateTimeField(_("bot data"))
 
     @property
     def examples(self):
@@ -478,10 +479,10 @@ class RepositoryUpdate(models.Model):
             models.Q(repository_update__language=self.language)
             | models.Q(translations__language=self.language)
         )
-        if self.training_started_at:
+        if self.trained_at and (self.trained_at >= self.last_update):
             t_started_at = self.training_started_at
             examples = examples.exclude(
-                models.Q(repository_update__created_at__gt=t_started_at)
+                models.Q(last_update__lte=self.trained_at)
                 | models.Q(deleted_in=self)
                 | models.Q(deleted_in__training_started_at__lt=t_started_at)
             )
@@ -547,10 +548,17 @@ class RepositoryUpdate(models.Model):
         if len(self.requirements_to_train) > 0:
             return False
 
-        previous_update = self.repository.updates.filter(
-            language=self.language,
-            by__isnull=False,
-        ).first()
+        if self.trained_at:
+            previous_update = self.repository.updates.filter(
+                language=self.language,
+                last_update__gte=self.trained_at,
+                by__isnull=False,
+            ).first()
+        else:
+            previous_update = self.repository.updates.filter(
+                language=self.language,
+                by__isnull=False,
+            ).first()
 
         if previous_update:
             if previous_update.algorithm != self.repository.algorithm:
@@ -618,7 +626,7 @@ class RepositoryUpdate(models.Model):
     def start_training(self, by):
         self.validate_init_train(by)
         self.by = by
-        # self.training_started_at = timezone.now()
+        self.training_started_at = timezone.now()
         self.algorithm = self.repository.algorithm
         self.use_competing_intents = self.repository.use_competing_intents
         self.use_name_entities = self.repository.use_name_entities
@@ -626,7 +634,7 @@ class RepositoryUpdate(models.Model):
         self.save(
             update_fields=[
                 "by",
-                # "training_started_at",
+                "training_started_at",
                 "algorithm",
                 "use_competing_intents",
                 "use_name_entities",
@@ -638,12 +646,12 @@ class RepositoryUpdate(models.Model):
         # if self.trained_at:
         #     raise RepositoryUpdateAlreadyTrained()
 
-        # self.trained_at = timezone.now()
+        self.trained_at = timezone.now()
         self.bot_data = bot_data
         self.repository.total_updates += 1
         self.repository.save()
         self.save(update_fields=[
-            # "trained_at",
+            "trained_at",
             "bot_data"
         ])
 
@@ -676,6 +684,13 @@ class RepositoryExample(models.Model):
         validators=[validate_item_key],
     )
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
+    last_update = models.DateTimeField(_("last update"))
+
+    def save(self, *args, **kwargs):
+        self.last_update = timezone.now()
+        self.repository_update.last_update = timezone.now()
+        self.repository_update.save(update_fields=['last_update'])
+        super(RepositoryExample, self).save(*args, **kwargs)
 
     @property
     def language(self):
