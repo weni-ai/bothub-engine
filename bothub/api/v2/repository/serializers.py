@@ -7,15 +7,13 @@ from bothub.api.v2.example.serializers import RepositoryExampleEntitySerializer
 from bothub.api.v2.fields import EntityText
 from bothub.api.v2.fields import ModelMultipleChoiceField
 from bothub.api.v2.fields import TextField
-from bothub.api.v2.repository.validators import (
-    CanContributeInRepositoryExampleValidator,
-    CanContributeInRepositoryUpdateValidator,
-    APIExceptionCustom,
-)
-from bothub.api.v2.repository.validators import CanContributeInRepositoryValidator
-from bothub.api.v2.repository.validators import ExampleWithIntentOrEntityValidator
+from .validators import CanContributeInRepositoryExampleValidator
+from .validators import CanContributeInRepositoryUpdateValidator
+from .validators import APIExceptionCustom
+from .validators import CanContributeInRepositoryValidator
+from .validators import ExampleWithIntentOrEntityValidator
+from .validators import CanContributeInRepositoryTranslatedExampleValidator
 from bothub.common import languages
-from bothub.common.languages import LANGUAGE_CHOICES
 from bothub.common.models import Repository
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryCategory
@@ -26,7 +24,7 @@ from bothub.common.models import RepositoryTranslatedExampleEntity
 from bothub.common.models import RepositoryUpdate
 from bothub.common.models import RepositoryVote
 from bothub.common.models import RequestRepositoryAuthorization
-from .validators import CanContributeInRepositoryTranslatedExampleValidator
+from bothub.common.languages import LANGUAGE_CHOICES
 
 
 class RequestRepositoryAuthorizationSerializer(serializers.ModelSerializer):
