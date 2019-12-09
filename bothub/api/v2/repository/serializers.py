@@ -14,14 +14,14 @@ from .validators import CanContributeInRepositoryValidator
 from .validators import ExampleWithIntentOrEntityValidator
 from .validators import CanContributeInRepositoryTranslatedExampleValidator
 from bothub.common import languages
-from bothub.common.models import Repository
+from bothub.common.models import Repository, RepositoryVersion
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryCategory
 from bothub.common.models import RepositoryEntityLabel
 from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryTranslatedExample
 from bothub.common.models import RepositoryTranslatedExampleEntity
-from bothub.common.models import RepositoryUpdate
+# from bothub.common.models import RepositoryUpdate
 from bothub.common.models import RepositoryVote
 from bothub.common.models import RequestRepositoryAuthorization
 from bothub.common.languages import LANGUAGE_CHOICES
@@ -483,7 +483,7 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "repository",
-            "repository_update",
+            "repository_version_language",
             "deleted_in",
             "text",
             "intent",
@@ -504,7 +504,7 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
         write_only=True,
         style={"show": False},
     )
-    repository_update = serializers.PrimaryKeyRelatedField(
+    repository_version_language = serializers.PrimaryKeyRelatedField(
         read_only=True, style={"show": False}, required=False
     )
     language = serializers.ChoiceField(
@@ -516,7 +516,7 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
     )
     translations = RepositoryTranslatedExampleSerializer(many=True, read_only=True)
     update_id = serializers.PrimaryKeyRelatedField(
-        queryset=RepositoryUpdate.objects,
+        queryset=RepositoryVersion.objects,
         style={"show": False},
         required=False,
         validators=[CanContributeInRepositoryUpdateValidator()],
@@ -541,7 +541,7 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
             language = None
 
         if update_id:
-            repository_update = repository.get_specific_update(
+            repository_version_language = repository.get_specific_update(
                 update_id.pk, language or None
             )
             validated_data.pop("update_id")
@@ -552,27 +552,27 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
                 repository_update__repository=repository,
                 repository_update=update_id,
                 deleted_in__isnull=True,
-                repository_update__language=repository_update.language,
+                repository_update__language=repository_version_language.language,
             ):
                 raise APIExceptionCustom(
                     detail=_("Intention and Sentence already exists")
                 )
         else:
-            repository_update = repository.current_update(language or None)
+            repository_version_language = repository.current_update(language or None)
 
             if RepositoryExample.objects.filter(
                 text=validated_data.get("text"),
                 intent=validated_data.get("intent"),
-                repository_update=repository_update,
-                repository_update__selected=True,
+                repository_version_language=repository_version_language,
+                repository_version_language__repository_version__is_default=True,
                 deleted_in__isnull=True,
-                repository_update__language=repository_update.language,
+                repository_version_language__language=repository_version_language.language,
             ):
                 raise APIExceptionCustom(
                     detail=_("Intention and Sentence already exists")
                 )
 
-        validated_data.update({"repository_update": repository_update})
+        validated_data.update({"repository_version_language": repository_version_language})
         example = self.Meta.model.objects.create(**validated_data)
         for entity_data in entities_data:
             entity_data.update({"repository_example": example.pk})
@@ -593,21 +593,17 @@ class EvaluateSerializer(serializers.Serializer):
 
 class RepositoryUpdateSerializer(serializers.ModelSerializer):
     class Meta:
-        model = RepositoryUpdate
+        model = RepositoryVersion
         fields = [
             "id",
             "repository",
-            "language",
             "created_at",
-            "by",
-            "by__nickname",
-            "training_started_at",
-            "trained_at",
-            "failed_at",
+            "created_by",
+            "created_by__nickname",
         ]
         ref_name = None
 
-    by__nickname = serializers.SlugRelatedField(
+    created_by__nickname = serializers.SlugRelatedField(
         source="by", slug_field="nickname", read_only=True
     )
 

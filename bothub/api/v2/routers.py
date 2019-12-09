@@ -1,7 +1,7 @@
 from rest_framework import routers
 
 from bothub.api.v2.versionning.views import VersioningViewSet
-from .repository.views import RepositoryViewSet
+from .repository.views import RepositoryViewSet, RepositoryUpdatesViewSet
 from .repository.views import RepositoryVotesViewSet
 from .repository.views import RepositoriesViewSet
 from .repository.views import RepositoriesContributionsViewSet
@@ -10,7 +10,6 @@ from .repository.views import SearchRepositoriesViewSet
 from .repository.views import RepositoryAuthorizationViewSet
 from .repository.views import RepositoryAuthorizationRequestsViewSet
 from .repository.views import RepositoryExampleViewSet
-from .repository.views import RepositoryUpdatesViewSet
 from .nlp.views import RepositoryAuthorizationTrainViewSet
 from .nlp.views import RepositoryAuthorizationParseViewSet
 from .nlp.views import RepositoryAuthorizationInfoViewSet
@@ -123,7 +122,7 @@ router.register("repository/evaluate/results", ResultsListViewSet)
 router.register("repository/evaluate", EvaluateViewSet)
 router.register("repository/translation", RepositoryTranslatedExampleViewSet)
 router.register("repository/updates", RepositoryUpdatesViewSet)
-router.register("repository/version", VersioningViewSet)
+# router.register("repository/version", VersioningViewSet)
 router.register(
     "repository/nlp/authorization/train", RepositoryAuthorizationTrainViewSet
 )

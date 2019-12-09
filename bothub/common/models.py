@@ -56,19 +56,22 @@ class RepositoryQuerySet(models.QuerySet):
         return self.filter(is_private=False)
 
     def order_by_relevance(self):
-        return self.annotate(examples_sum=models.Sum("updates__added")).order_by(
-            "-total_updates", "-examples_sum", "-created_at"
+        return self.annotate(examples_sum=models.Sum("versions")).order_by(
+            "-versions__repositoryversionlanguage__total_training_end", "-examples_sum", "-created_at"
         )
 
     def supported_language(self, language):
         valid_examples = RepositoryExample.objects.filter(deleted_in__isnull=True)
-        valid_updates = RepositoryUpdate.objects.filter(added__in=valid_examples)
+        valid_updates = RepositoryVersionLanguage.objects.filter(added__in=valid_examples)
         return self.filter(
             models.Q(language=language)
-            | models.Q(updates__in=valid_updates, updates__language=language)
             | models.Q(
-                updates__in=valid_updates,
-                updates__added__translations__language=language,
+                versions__repositoryversionlanguage__in=valid_updates,
+                versions__repositoryversionlanguage__language=language
+            )
+            | models.Q(
+                versions__repositoryversionlanguage__in=valid_updates,
+                versions__repositoryversionlanguage__added__translations__language=language,
             )
         )
 
@@ -174,10 +177,6 @@ class Repository(models.Model):
     )
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
 
-    total_updates = models.IntegerField(
-        _("total updates"), default=0, blank=False, null=False
-    )
-
     nlp_server = models.URLField(_("Base URL NLP"), null=True, blank=True)
 
     objects = RepositoryManager()
@@ -197,6 +196,7 @@ class Repository(models.Model):
     def save(
         self, force_insert=False, force_update=False, using=None, update_fields=None
     ):
+        print(update_fields)
         if (
             self.algorithm != self.__algorithm
             or self.use_competing_intents != self.__use_competing_intents
@@ -267,7 +267,7 @@ class Repository(models.Model):
     def available_languages(self):
         examples = self.examples()
         examples_languages = examples.values_list(
-            "repository_update__language", flat=True
+            "repository_version_language__language", flat=True
         )
         translations_languages = (
             examples.annotate(translations_count=models.Count("translations"))
@@ -385,12 +385,12 @@ class Repository(models.Model):
     def examples(self, language=None, exclude_deleted=True, queryset=None, master=True):
         if queryset is None:
             queryset = RepositoryExample.objects
-        query = queryset.filter(repository_update__repository=self)
+        query = queryset.filter(repository_version_language__repository_version__repository=self)
 
-        if master:
-            query = query.filter(repository_update__selected=True)
+        # if master:
+        #     query = query.filter(repository_version_language__selected=True)
         if language:
-            query = query.filter(repository_update__language=language)
+            query = query.filter(repository_version_language__language=language)
         if exclude_deleted:
             return query.exclude(deleted_in__isnull=False)
         return query
@@ -398,9 +398,9 @@ class Repository(models.Model):
     def evaluations(self, language=None, exclude_deleted=True, queryset=None):
         if queryset is None:
             queryset = RepositoryEvaluate.objects
-        query = queryset.filter(repository_update__repository=self)
+        query = queryset.filter(repository_version_language__repository_version__repository=self)
         if language:
-            query = query.filter(repository_update__language=language)
+            query = query.filter(repository_version_language__language=language)
         if exclude_deleted:
             return query.exclude(deleted_in__isnull=False)
         return query  # pragma: no cover
@@ -408,7 +408,7 @@ class Repository(models.Model):
     def evaluations_results(self, queryset=None):
         if queryset is None:
             queryset = RepositoryEvaluateResult.objects
-        query = queryset.filter(repository_update__repository=self)
+        query = queryset.filter(repository_version_language__repository_version__repository=self)
         return query
 
     def language_status(self, language):
@@ -448,23 +448,34 @@ class Repository(models.Model):
             },
         }
 
-    def current_update(self, language=None):
+    def current_update(self, language=None, is_default=True):
         language = language or self.language
-        repository_update, created = self.updates.get_or_create(
-            language=language, selected=True
+
+        repository_version, created = self.versions.get_or_create(
+            name='',
+            is_default=is_default,
         )
-        return repository_update
+
+        repository_version_language, created = RepositoryVersionLanguage.objects.get_or_create(
+            repository_version=repository_version,
+            language=language
+        )
+        return repository_version_language
 
     def last_trained_update(self, language=None):
         language = language or self.language
-        return self.updates.filter(
-            language=language, by__isnull=False, trained_at__isnull=False, selected=True
+        version = self.versions.filter(
+            created_by__isnull=False, is_default=True
         ).first()
+
+        if version:
+            return version.version_languages.filter(language=language, training_end_at__isnull=False).first()
+        return RepositoryVersionLanguage.objects.none()
 
     def get_specific_update(self, update_id=None, language=None):
         if language:
-            return self.updates.filter(pk=update_id, language=language).first()
-        return self.updates.filter(pk=update_id).first()
+            return self.versions.filter(pk=update_id, language=language).first()
+        return self.versions.filter(pk=update_id).first()
 
     def get_user_authorization(self, user):
         if user.is_anonymous:
@@ -480,51 +491,68 @@ class Repository(models.Model):
         )
 
 
-class RepositoryUpdate(models.Model):
+class RepositoryVersion(models.Model):
     class Meta:
-        verbose_name = _("repository update")
-        verbose_name_plural = _("repository updates")
+        verbose_name = _("repository version")
+
+    name = models.CharField(max_length=40)
+    last_update = models.DateTimeField(_("last update"), auto_now_add=True)
+    is_default = models.BooleanField(default=True)
+    repository = models.ForeignKey(Repository, models.CASCADE, related_name="versions")  # updates related_name
+    created_by = models.ForeignKey(User, models.CASCADE, blank=True, null=True)
+    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
+
+    @property
+    def version_languages(self):
+        return RepositoryVersionLanguage.objects.filter(repository_version=self)
+
+
+class RepositoryVersionLanguage(models.Model):
+    class Meta:
+        verbose_name = _("repository version language")
+        verbose_name_plural = _("repository version languages")
         ordering = ["-created_at"]
 
     MIN_EXAMPLES_PER_INTENT = 2
     MIN_EXAMPLES_PER_ENTITY = 2
     RECOMMENDED_INTENTS = 2
 
-    repository = models.ForeignKey(Repository, models.CASCADE, related_name="updates")
     language = models.CharField(
         _("language"), max_length=5, validators=[languages.validate_language]
     )
+    bot_data = models.TextField(_("bot data"), blank=True)
+    training_started_at = models.DateTimeField(
+        _("training started at"), blank=True, null=True
+    )
+    training_end_at = models.DateTimeField(_("trained at"), blank=True, null=True)
+    failed_at = models.DateTimeField(_("failed at"), blank=True, null=True)
+    use_analyze_char = models.BooleanField(default=False)
+    use_name_entities = models.BooleanField(default=False)
+    use_competing_intents = models.BooleanField(default=False)
     algorithm = models.CharField(
         _("algorithm"),
         max_length=24,
         choices=Repository.ALGORITHM_CHOICES,
         default=Repository.ALGORITHM_STATISTICAL_MODEL,
     )
-    use_competing_intents = models.BooleanField(default=False)
-    use_name_entities = models.BooleanField(default=False)
-    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
-    bot_data = models.TextField(_("bot data"), blank=True)
-    by = models.ForeignKey(User, models.CASCADE, blank=True, null=True)
-    training_started_at = models.DateTimeField(
-        _("training started at"), blank=True, null=True
-    )
-    trained_at = models.DateTimeField(_("trained at"), blank=True, null=True)
-    failed_at = models.DateTimeField(_("failed at"), blank=True, null=True)
+    repository_version = models.ForeignKey(RepositoryVersion, models.CASCADE)  # updates related_name
     training_log = models.TextField(_("training log"), blank=True, editable=False)
-    use_analyze_char = models.BooleanField(default=False)
+    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
     last_update = models.DateTimeField(_("last update"), auto_now_add=True)
-    selected = models.BooleanField(default=True)
+    total_training_end = models.IntegerField(
+        _("total training end"), default=0, blank=False, null=False
+    )
 
     @property
     def examples(self):
-        examples = self.repository.examples(exclude_deleted=False).filter(
-            models.Q(repository_update__language=self.language)
+        examples = self.repository_version.repository.examples(exclude_deleted=False).filter(
+            models.Q(repository_version_language__language=self.language)
             | models.Q(translations__language=self.language)
         )
-        if self.trained_at and (self.trained_at >= self.last_update):
+        if self.training_end_at and (self.training_end_at >= self.last_update):
             t_started_at = self.training_started_at
             examples = examples.exclude(
-                models.Q(last_update__lte=self.trained_at)
+                models.Q(last_update__lte=self.training_end_at)
                 | models.Q(deleted_in=self)
                 | models.Q(deleted_in__training_started_at__lt=t_started_at)
             )
@@ -551,9 +579,9 @@ class RepositoryUpdate(models.Model):
 
         weak_intents = (
             self.examples.values("intent")
-            .annotate(intent_count=models.Count("id"))
-            .order_by()
-            .exclude(intent_count__gte=self.MIN_EXAMPLES_PER_INTENT)
+                .annotate(intent_count=models.Count("id"))
+                .order_by()
+                .exclude(intent_count__gte=self.MIN_EXAMPLES_PER_INTENT)
         )
         if weak_intents.exists():
             for i in weak_intents:
@@ -567,11 +595,11 @@ class RepositoryUpdate(models.Model):
 
         weak_entities = (
             self.examples.annotate(es_count=models.Count("entities"))
-            .filter(es_count__gte=1)
-            .values("entities__entity__value")
-            .annotate(entities_count=models.Count("id"))
-            .order_by()
-            .exclude(entities_count__gte=self.MIN_EXAMPLES_PER_ENTITY)
+                .filter(es_count__gte=1)
+                .values("entities__entity__value")
+                .annotate(entities_count=models.Count("id"))
+                .order_by()
+                .exclude(entities_count__gte=self.MIN_EXAMPLES_PER_ENTITY)
         )
         if weak_entities.exists():
             for e in weak_entities:
@@ -587,34 +615,38 @@ class RepositoryUpdate(models.Model):
 
     @property
     def ready_for_train(self):
+        previous_update = None
         if len(self.requirements_to_train) > 0:
             return False
 
-        if self.trained_at:
-            previous_update = self.repository.updates.filter(
-                language=self.language,
-                last_update__gte=self.trained_at,
-                by__isnull=False,
+        if self.training_end_at:
+            previous = self.repository_version.repository.versions.filter(
+                repositoryversionlanguage__language=self.language,
+                last_update__gte=self.training_end_at,
+                created_by__isnull=False,
             ).first()
         else:
-            previous_update = self.repository.updates.filter(
-                language=self.language, by__isnull=False
+            previous = self.repository_version.repository.versions.filter(
+                repositoryversionlanguage__language=self.language, created_by__isnull=False
             ).first()
 
+        if previous:
+            previous_update = previous.version_languages.filter(language=self.language).first()
+
         if previous_update:
-            if previous_update.algorithm != self.repository.algorithm:
+            if previous_update.algorithm != self.repository_version.repository.algorithm:
                 return True
             if (
                 previous_update.use_competing_intents
-                is not self.repository.use_competing_intents
+                is not self.repository_version.repository.use_competing_intents
             ):
                 return True
             if (
                 previous_update.use_name_entities
-                is not self.repository.use_name_entities
+                is not self.repository_version.repository.use_name_entities
             ):
                 return True
-            if previous_update.use_analyze_char is not self.repository.use_analyze_char:
+            if previous_update.use_analyze_char is not self.repository_version.repository.use_analyze_char:
                 return True
             if previous_update.failed_at:
                 return True
@@ -660,21 +692,20 @@ class RepositoryUpdate(models.Model):
         # if self.training_started_at:
         #     raise RepositoryUpdateAlreadyStartedTraining()
         if by:
-            authorization = self.repository.get_user_authorization(by)
+            authorization = self.repository_version.repository.get_user_authorization(by)
             if not authorization.can_write:
                 raise TrainingNotAllowed()
 
-    def start_training(self, by):
-        self.validate_init_train(by)
-        self.by = by
+    def start_training(self, created_by):
+        self.validate_init_train(created_by)
+        self.repository_version.created_by = created_by
         self.training_started_at = timezone.now()
-        self.algorithm = self.repository.algorithm
-        self.use_competing_intents = self.repository.use_competing_intents
-        self.use_name_entities = self.repository.use_name_entities
-        self.use_analyze_char = self.repository.use_analyze_char
+        self.algorithm = self.repository_version.repository.algorithm
+        self.use_competing_intents = self.repository_version.repository.use_competing_intents
+        self.use_name_entities = self.repository_version.repository.use_name_entities
+        self.use_analyze_char = self.repository_version.repository.use_analyze_char
         self.save(
             update_fields=[
-                "by",
                 "training_started_at",
                 "algorithm",
                 "use_competing_intents",
@@ -682,16 +713,16 @@ class RepositoryUpdate(models.Model):
                 "use_analyze_char",
             ]
         )
+        self.repository_version.save(update_fields=['created_by'])
 
     def save_training(self, bot_data):
         # if self.trained_at:
         #     raise RepositoryUpdateAlreadyTrained()
 
-        self.trained_at = timezone.now()
+        self.training_end_at = timezone.now()
         self.bot_data = bot_data
-        self.repository.total_updates += 1
-        self.repository.save()
-        self.save(update_fields=["trained_at", "bot_data"])
+        self.total_training_end += 1
+        self.save(update_fields=["total_training_end", "training_end_at", "bot_data"])
 
     def get_bot_data(self):
         return self.bot_data
@@ -707,11 +738,11 @@ class RepositoryExample(models.Model):
         verbose_name_plural = _("repository examples")
         ordering = ["-created_at"]
 
-    repository_update = models.ForeignKey(
-        RepositoryUpdate, models.CASCADE, related_name="added", editable=False
+    repository_version_language = models.ForeignKey(
+        RepositoryVersionLanguage, models.CASCADE, related_name="added", editable=False
     )
     deleted_in = models.ForeignKey(
-        RepositoryUpdate, models.CASCADE, related_name="deleted", blank=True, null=True
+        RepositoryVersionLanguage, models.CASCADE, related_name="deleted", blank=True, null=True
     )
     text = models.TextField(_("text"), help_text=_("Example text"))
     intent = models.CharField(
@@ -726,16 +757,16 @@ class RepositoryExample(models.Model):
 
     def save(self, *args, **kwargs):
         self.last_update = timezone.now()
-        self.repository_update.last_update = timezone.now()
-        self.repository_update.save(update_fields=["last_update"])
+        self.repository_version_language.last_update = timezone.now()
+        self.repository_version_language.save(update_fields=["last_update"])
         super(RepositoryExample, self).save(*args, **kwargs)
 
     @property
     def language(self):
-        return self.repository_update.language
+        return self.repository_version_language.language
 
     def has_valid_entities(self, language=None):  # pragma: no cover
-        if not language or language == self.repository_update.language:
+        if not language or language == self.repository_version_language.language:
             return True
         return self.get_translation(language).has_valid_entities
 
@@ -746,18 +777,18 @@ class RepositoryExample(models.Model):
             raise DoesNotHaveTranslation()
 
     def get_text(self, language=None):  # pragma: no cover
-        if not language or language == self.repository_update.language:
+        if not language or language == self.repository_version_language.language:
             return self.text
         return self.get_translation(language).text
 
     def get_entities(self, language):  # pragma: no cover
-        if not language or language == self.repository_update.language:
+        if not language or language == self.repository_version_language.language:
             return self.entities.all()
         return self.get_translation(language).entities.all()
 
     def delete(self):
-        self.deleted_in = self.repository_update.repository.current_update(
-            self.repository_update.language
+        self.deleted_in = self.repository_version_language.repository_version.repository.current_update(
+            self.repository_version_language.language
         )
         self.save(update_fields=["deleted_in"])
 
@@ -771,14 +802,14 @@ class RepositoryTranslatedExampleManager(models.Manager):
         clone_repository=False,
         **kwargs
     ):
-        repository = original_example.repository_update.repository
+        repository = original_example.repository_version_language.repository_version.repository
         if clone_repository:
             return super().create(
                 *args, original_example=original_example, language=language, **kwargs
             )
         return super().create(
             *args,
-            repository_update=repository.current_update(language),
+            repository_version_language=repository.current_update(language),
             original_example=original_example,
             language=language,
             **kwargs
@@ -792,8 +823,8 @@ class RepositoryTranslatedExample(models.Model):
         unique_together = ["original_example", "language"]
         ordering = ["-created_at"]
 
-    repository_update = models.ForeignKey(
-        RepositoryUpdate,
+    repository_version_language = models.ForeignKey(
+        RepositoryVersionLanguage,
         models.CASCADE,
         related_name="translated_added",
         editable=False,
@@ -948,9 +979,9 @@ class EntityBaseQueryset(models.QuerySet):  # pragma: no cover
                 repository = evaluate.repository_update.repository
             elif "evaluate_result_id" in instance.__dict__:
                 result = instance.evaluate_result
-                repository = result.repository_update.repository
+                repository = result.repository_version_language.repository_version.repository
             else:
-                repository = instance.example.repository_update.repository
+                repository = instance.example.repository_version_language.repository_version.repository
 
             entity = RepositoryEntity.objects.get(repository=repository, value=entity)
 
@@ -1243,11 +1274,11 @@ class RepositoryEvaluate(models.Model):
         ordering = ["-created_at"]
         db_table = "common_repository_evaluate"
 
-    repository_update = models.ForeignKey(
-        RepositoryUpdate, models.CASCADE, related_name="added_evaluate", editable=False
+    repository_version_language = models.ForeignKey(
+        RepositoryVersionLanguage, models.CASCADE, related_name="added_evaluate", editable=False
     )
     deleted_in = models.ForeignKey(
-        RepositoryUpdate,
+        RepositoryVersionLanguage,
         models.CASCADE,
         related_name="deleted_evaluate",
         blank=True,
@@ -1265,21 +1296,21 @@ class RepositoryEvaluate(models.Model):
 
     @property
     def language(self):
-        return self.repository_update.language
+        return self.repository_version_language.language
 
     def get_text(self, language=None):  # pragma: no cover
-        if not language or language == self.repository_update.language:
+        if not language or language == self.repository_version_language.language:
             return self.text
         return None
 
     def get_entities(self, language):  # pragma: no cover
-        if not language or language == self.repository_update.language:
+        if not language or language == self.repository_version_language.language:
             return self.entities.all()
         return None
 
     def delete(self):
-        self.deleted_in = self.repository_update.repository.current_update(
-            self.repository_update.language
+        self.deleted_in = self.repository_version_language.repository_version.repository.current_update(
+            self.repository_version_language.language
         )
         self.save(update_fields=["deleted_in"])
 
@@ -1328,8 +1359,8 @@ class RepositoryEvaluateResult(models.Model):
         verbose_name_plural = _("evaluate results")
         ordering = ["-created_at"]
 
-    repository_update = models.ForeignKey(
-        RepositoryUpdate, models.CASCADE, editable=False, related_name="results"
+    repository_version_language = models.ForeignKey(
+        RepositoryVersionLanguage, models.CASCADE, editable=False, related_name="results"
     )
 
     intent_results = models.ForeignKey(
@@ -1363,7 +1394,7 @@ class RepositoryEvaluateResult(models.Model):
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
 
     def save(self, *args, **kwargs):
-        repository = self.repository_update.repository
+        repository = self.repository_version_language.repository_version.repository
         self.version = repository.evaluations_results().count() + 1
         return super().save(*args, **kwargs)
 

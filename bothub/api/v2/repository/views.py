@@ -23,13 +23,12 @@ from rest_framework.exceptions import APIException
 
 from bothub.api.v2.mixins import MultipleFieldLookupMixin
 from bothub.authentication.models import User
-from bothub.common.models import Repository
+from bothub.common.models import Repository, RepositoryVersion
 from bothub.common.models import RepositoryVote
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryCategory
 from bothub.common.models import RequestRepositoryAuthorization
 from bothub.common.models import RepositoryExample
-from bothub.common.models import RepositoryUpdate
 
 from ..metadata import Metadata
 from .serializers import RepositorySerializer
@@ -504,7 +503,7 @@ class RepositoryExampleViewSet(
 
 
 class RepositoryUpdatesViewSet(mixins.ListModelMixin, GenericViewSet):
-    queryset = RepositoryUpdate.objects.order_by("-trained_at")
+    queryset = RepositoryVersion.objects
     serializer_class = RepositoryUpdateSerializer
     filter_class = RepositoryUpdatesFilter
     permission_classes = [IsAuthenticated, RepositoryUpdateHasPermission]

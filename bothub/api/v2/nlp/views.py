@@ -17,13 +17,12 @@ from rest_framework.permissions import AllowAny
 from bothub.api.v2.repository.serializers import RepositorySerializer
 from bothub.api.v2.nlp.serializers import NLPSerializer
 from bothub.authentication.models import User
-from bothub.common.models import RepositoryAuthorization
+from bothub.common.models import RepositoryAuthorization, RepositoryVersionLanguage
 from bothub.common.models import RepositoryEntity
 from bothub.common.models import RepositoryEvaluateResult
 from bothub.common.models import RepositoryEvaluateResultScore
 from bothub.common.models import RepositoryEvaluateResultIntent
 from bothub.common.models import RepositoryEvaluateResultEntity
-from bothub.common.models import RepositoryUpdate
 from bothub.common.models import Repository
 from bothub.common import languages
 from bothub.utils import send_bot_data_file_aws
@@ -71,7 +70,7 @@ class RepositoryAuthorizationTrainViewSet(
     def get_examples(self, request, **kwargs):
         check_auth(request)
         queryset = get_object_or_404(
-            RepositoryUpdate, pk=request.query_params.get("update_id")
+            RepositoryVersionLanguage, pk=request.query_params.get("update_id")
         )
 
         page = self.paginate_queryset(queryset.examples)
@@ -88,7 +87,7 @@ class RepositoryAuthorizationTrainViewSet(
     def get_examples_labels(self, request, **kwargs):
         check_auth(request)
         queryset = get_object_or_404(
-            RepositoryUpdate, pk=request.query_params.get("update_id")
+            RepositoryVersionLanguage, pk=request.query_params.get("update_id")
         )
 
         page = self.paginate_queryset(
@@ -108,7 +107,7 @@ class RepositoryAuthorizationTrainViewSet(
         check_auth(request)
 
         repository = get_object_or_404(
-            RepositoryUpdate, pk=request.data.get("update_id")
+            RepositoryVersionLanguage, pk=request.data.get("update_id")
         )
 
         repository.start_training(
@@ -119,7 +118,7 @@ class RepositoryAuthorizationTrainViewSet(
             {
                 "language": repository.language,
                 "update_id": repository.id,
-                "repository_uuid": str(repository.repository.uuid),
+                "repository_uuid": str(repository.repository_version.repository.uuid),
                 "intent": repository.intents,
                 "algorithm": repository.algorithm,
                 "use_name_entities": repository.use_name_entities,
@@ -146,7 +145,7 @@ class RepositoryAuthorizationTrainViewSet(
         except ValueError:
             raise exceptions.NotFound()
 
-        repository_update = RepositoryUpdate.objects.get(pk=update_id)
+        repository_update = RepositoryVersionLanguage.objects.get(pk=update_id)
 
         examples_return = []
         label_examples = []
@@ -207,7 +206,7 @@ class RepositoryAuthorizationTrainViewSet(
     def train_fail(self, request, **kwargs):
         check_auth(request)
         repository = get_object_or_404(
-            RepositoryUpdate, pk=request.data.get("update_id")
+            RepositoryVersionLanguage, pk=request.data.get("update_id")
         )
         repository.train_fail()
         return Response({})
@@ -216,7 +215,7 @@ class RepositoryAuthorizationTrainViewSet(
     def training_log(self, request, **kwargs):
         check_auth(request)
         repository = get_object_or_404(
-            RepositoryUpdate, pk=request.data.get("update_id")
+            RepositoryVersionLanguage, pk=request.data.get("update_id")
         )
         repository.training_log = request.data.get("training_log")
         repository.save(update_fields=["training_log"])
@@ -254,11 +253,11 @@ class RepositoryAuthorizationParseViewSet(mixins.RetrieveModelMixin, GenericView
     def repository_entity(self, request, **kwargs):
         check_auth(request)
         repository_update = get_object_or_404(
-            RepositoryUpdate, pk=request.query_params.get("update_id")
+            RepositoryVersionLanguage, pk=request.query_params.get("update_id")
         )
         repository_entity = get_object_or_404(
             RepositoryEntity,
-            repository=repository_update.repository,
+            repository=repository_update.repository_version.repository,
             value=request.query_params.get("entity"),
         )
 
@@ -310,9 +309,9 @@ class RepositoryAuthorizationEvaluateViewSet(mixins.RetrieveModelMixin, GenericV
     def evaluations(self, request, **kwargs):
         check_auth(request)
         repository_update = get_object_or_404(
-            RepositoryUpdate, pk=request.query_params.get("update_id")
+            RepositoryVersionLanguage, pk=request.query_params.get("update_id")
         )
-        evaluations = repository_update.repository.evaluations(
+        evaluations = repository_update.repository_version.repository.evaluations(
             language=repository_update.language
         )
 
@@ -346,7 +345,7 @@ class RepositoryAuthorizationEvaluateViewSet(mixins.RetrieveModelMixin, GenericV
     def evaluate_results(self, request, **kwargs):
         check_auth(request)
         repository_update = get_object_or_404(
-            RepositoryUpdate, pk=request.data.get("update_id")
+            RepositoryVersionLanguage, pk=request.data.get("update_id")
         )
 
         intents_score = RepositoryEvaluateResultScore.objects.create(
@@ -362,7 +361,7 @@ class RepositoryAuthorizationEvaluateViewSet(mixins.RetrieveModelMixin, GenericV
         )
 
         evaluate_result = RepositoryEvaluateResult.objects.create(
-            repository_update=repository_update,
+            repository_version_language=repository_update,
             entity_results=entities_score,
             intent_results=intents_score,
             matrix_chart=request.data.get("matrix_chart"),
@@ -419,7 +418,7 @@ class RepositoryAuthorizationEvaluateViewSet(mixins.RetrieveModelMixin, GenericV
         )
 
         repository_update = get_object_or_404(
-            RepositoryUpdate, pk=request.data.get("update_id")
+            RepositoryVersionLanguage, pk=request.data.get("update_id")
         )
 
         entity_score = RepositoryEvaluateResultScore.objects.create(
@@ -431,7 +430,7 @@ class RepositoryAuthorizationEvaluateViewSet(mixins.RetrieveModelMixin, GenericV
 
         RepositoryEvaluateResultEntity.objects.create(
             entity=RepositoryEntity.objects.get(
-                repository=repository_update.repository,
+                repository=repository_update.repository_version.repository,
                 value=request.data.get("entity_key"),
                 create_entity=False,
             ),
@@ -462,7 +461,7 @@ class NLPLangsViewSet(mixins.ListModelMixin, GenericViewSet):
 class RepositoryUpdateInterpretersViewSet(
     mixins.RetrieveModelMixin, mixins.CreateModelMixin, GenericViewSet
 ):
-    queryset = RepositoryUpdate.objects
+    queryset = RepositoryVersionLanguage.objects
     serializer_class = NLPSerializer
     permission_classes = [AllowAny]
 
@@ -495,7 +494,7 @@ class RepositoryUpdateInterpretersViewSet(
     def create(self, request, *args, **kwargs):
         check_auth(request)
         id = request.data.get("id")
-        repository = get_object_or_404(RepositoryUpdate, pk=id)
+        repository = get_object_or_404(RepositoryVersionLanguage, pk=id)
         if settings.AWS_SEND:
             bot_data = base64.b64decode(request.data.get("bot_data"))
             repository.save_training(send_bot_data_file_aws(id, bot_data))

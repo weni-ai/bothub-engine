@@ -7,7 +7,7 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 from bothub.common.models import Repository
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RequestRepositoryAuthorization
-from bothub.common.models import RepositoryUpdate
+# from bothub.common.models import RepositoryUpdate
 
 
 class RepositoriesFilter(filters.FilterSet):
@@ -76,7 +76,7 @@ class RepositoryAuthorizationRequestsFilter(filters.FilterSet):
 
 class RepositoryUpdatesFilter(filters.FilterSet):
     class Meta:
-        model = RepositoryUpdate
+        # model = RepositoryUpdate
         fields = ["repository_uuid"]
 
     repository_uuid = filters.CharFilter(

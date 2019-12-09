@@ -30,8 +30,8 @@ class TranslationsFilter(filters.FilterSet):
         help_text="Filter by translated language",
     )
     update_id = filters.CharFilter(
-        field_name="repository_update",
-        method="filter_repository_update",
+        field_name="repository_version_language",
+        method="filter_repository_version_language",
         help_text="Filter by repository update version",
     )
 
@@ -47,8 +47,8 @@ class TranslationsFilter(filters.FilterSet):
                     original_example__repository_update__repository=repository
                 )
             return RepositoryTranslatedExample.objects.filter(
-                original_example__repository_update__repository=repository,
-                repository_update__selected=True,
+                original_example__repository_version_language__repository_version__repository=repository,
+                repository_version_language__repository_version__is_default=True,
             )
         except Repository.DoesNotExist:
             raise NotFound(_("Repository {} does not exist").format(value))
@@ -56,10 +56,10 @@ class TranslationsFilter(filters.FilterSet):
             raise NotFound(_("Invalid repository_uuid"))
 
     def filter_from_language(self, queryset, name, value):
-        return queryset.filter(original_example__repository_update__language=value)
+        return queryset.filter(original_example__repository_version_language__language=value)
 
     def filter_to_language(self, queryset, name, value):
         return queryset.filter(language=value)
 
-    def filter_repository_update(self, queryset, name, value):
-        return queryset.filter(repository_update__pk=value)
+    def filter_repository_version_language(self, queryset, name, value):
+        return queryset.filter(repository_version_language__pk=value)

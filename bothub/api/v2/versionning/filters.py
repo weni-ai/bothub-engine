@@ -5,12 +5,12 @@ from rest_framework.exceptions import NotFound
 from rest_framework.exceptions import PermissionDenied
 
 from bothub.common.models import Repository
-from bothub.common.models import RepositoryUpdate
+# from bothub.common.models import RepositoryUpdate
 
 
 class VersioningFilter(filters.FilterSet):
     class Meta:
-        model = RepositoryUpdate
+        # model = RepositoryUpdate
         fields = ["repository"]
 
     repository = filters.CharFilter(

@@ -61,8 +61,8 @@ class RepositoryEvaluateSerializer(serializers.ModelSerializer):
         repository = validated_data.pop("repository")
         language = validated_data.pop("language")
 
-        repository_update = repository.current_update(language)
-        validated_data.update({"repository_update": repository_update})
+        repository_version_language = repository.current_update(language)
+        validated_data.update({"repository_version_language": repository_version_language})
         evaluate = RepositoryEvaluate.objects.create(**validated_data)
 
         for entity in entities:
@@ -99,7 +99,7 @@ class RepositoryEvaluateResultVersionsSerializer(serializers.ModelSerializer):
     language = serializers.SerializerMethodField()
 
     def get_language(self, obj):
-        return obj.repository_update.language
+        return obj.repository_version_language.language
 
 
 class RepositoryEvaluateResultScore(serializers.ModelSerializer):

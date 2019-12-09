@@ -11,8 +11,7 @@ from rest_framework.viewsets import GenericViewSet
 
 from bothub.api.v2.metadata import Metadata
 from bothub.authentication.models import User
-from bothub.common.models import Repository
-from bothub.common.models import RepositoryUpdate
+from bothub.common.models import Repository, RepositoryVersion
 from .serializers import ChangePasswordSerializer
 from .serializers import LoginSerializer
 from .serializers import RegisterUserSerializer
@@ -150,13 +149,13 @@ class MyUserProfileViewSet(
 
     def destroy(self, request, *args, **kwargs):
         repositories = Repository.objects.filter(owner=self.request.user)
-        repository_update = RepositoryUpdate.objects.filter(by=self.request.user)
+        repository_version = RepositoryVersion.objects.filter(created_by=self.request.user)
         user = User.generate_repository_user_bot()
 
         if repositories.count() > 0:
-            repositories.update(owner_id=user.pk)
-        if repository_update.count() > 0:
-            repository_update.update(by=user.pk)
+            repositories.update(owner_id=user)
+        if repository_version.count() > 0:
+            repository_version.update(created_by=user)
         return super().destroy(request, *args, **kwargs)
 
 

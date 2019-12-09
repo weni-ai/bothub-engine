@@ -50,8 +50,8 @@ class ExamplesFilter(filters.FilterSet):
         help_text=_("Filter for examples with entity."),
     )
     update_id = filters.CharFilter(
-        field_name="repository_update",
-        method="filter_repository_update",
+        field_name="repository_version_language",
+        method="filter_repository_version_language",
         help_text=_("Filter for examples with update_id."),
     )
 
@@ -71,9 +71,9 @@ class ExamplesFilter(filters.FilterSet):
             raise NotFound(_("Invalid repository_uuid"))
 
     def filter_language(self, queryset, name, value):
-        return queryset.filter(repository_update__language=value)
+        return queryset.filter(repository_version_language__language=value)
 
-    def filter_repository_update(self, queryset, name, value):
+    def filter_repository_version_language(self, queryset, name, value):
         return queryset.filter(repository_update__pk=value)
 
     def filter_has_translation(self, queryset, name, value):
