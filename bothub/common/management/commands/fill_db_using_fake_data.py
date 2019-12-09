@@ -79,25 +79,25 @@ class Command(BaseCommand):
         # Examples
 
         example_1 = RepositoryExample.objects.create(
-            repository_update=repository_1.current_update(), text="hi", intent="greet"
+            repository_version_language=repository_1.current_update(), text="hi", intent="greet"
         )
 
         example_2 = RepositoryExample.objects.create(
-            repository_update=repository_1.current_update(),
+            repository_version_language=repository_1.current_update(),
             text="hello",
             intent="greet",
         )
 
         example_3 = RepositoryExample.objects.create(
-            repository_update=repository_1.current_update(), text="yes", intent="affirm"
+            repository_version_language=repository_1.current_update(), text="yes", intent="affirm"
         )
 
         RepositoryExample.objects.create(
-            repository_update=repository_1.current_update(), text="yep", intent="affirm"
+            repository_version_language=repository_1.current_update(), text="yep", intent="affirm"
         )
 
         example_5 = RepositoryExample.objects.create(
-            repository_update=repository_1.current_update(),
+            repository_version_language=repository_1.current_update(),
             text="show me chinese restaurants",
             intent="restaurant_search",
         )
@@ -144,23 +144,23 @@ class Command(BaseCommand):
         # Evaluates
 
         evalute_1 = RepositoryEvaluate.objects.create(
-            repository_update=repository_1.current_update(),
+            repository_version_language=repository_1.current_update(),
             text="show me chinese restaurants",
             intent="restaurant_search",
         )
 
         evalute_2 = RepositoryEvaluate.objects.create(
-            repository_update=repository_1.current_update(),
+            repository_version_language=repository_1.current_update(),
             text="hello",
             intent="greet",
         )
 
         RepositoryEvaluate.objects.create(
-            repository_update=repository_1.current_update(), text="yes", intent="affirm"
+            repository_version_language=repository_1.current_update(), text="yes", intent="affirm"
         )
 
         RepositoryEvaluate.objects.create(
-            repository_update=repository_1.current_update(), text="yep", intent="affirm"
+            repository_version_language=repository_1.current_update(), text="yep", intent="affirm"
         )
 
         RepositoryEvaluateEntity.objects.create(
@@ -223,7 +223,7 @@ class Command(BaseCommand):
 
             sample_url = "https://s3.amazonaws.com/bothub-sample"
             evaluate_result = RepositoryEvaluateResult.objects.create(
-                repository_update=repository_1.current_update(),
+                repository_version_language=repository_1.current_update(),
                 intent_results=intent_results,
                 entity_results=entity_results,
                 matrix_chart="{}/confmat.png".format(sample_url),

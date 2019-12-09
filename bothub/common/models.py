@@ -976,7 +976,7 @@ class EntityBaseQueryset(models.QuerySet):  # pragma: no cover
             instance = self.model(**kwargs)
             if "repository_evaluate_id" in instance.__dict__:
                 evaluate = instance.repository_evaluate
-                repository = evaluate.repository_update.repository
+                repository = evaluate.repository_version_language.repository_version.repository
             elif "evaluate_result_id" in instance.__dict__:
                 result = instance.evaluate_result
                 repository = result.repository_version_language.repository_version.repository
