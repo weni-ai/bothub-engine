@@ -7,7 +7,11 @@ from rest_framework import status
 from bothub.api.v2.nlp.views import RepositoryAuthorizationTrainViewSet
 from bothub.api.v2.nlp.views import RepositoryAuthorizationInfoViewSet
 from bothub.common import languages
-from bothub.common.models import RepositoryAuthorization, RepositoryVersion, RepositoryVersionLanguage
+from bothub.common.models import (
+    RepositoryAuthorization,
+    RepositoryVersion,
+    RepositoryVersionLanguage,
+)
 from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryExampleEntity
 from bothub.common.models import Repository
@@ -38,7 +42,9 @@ class TrainStartTrainingTestCase(TestCase):
         )
 
         self.repository_version_language = RepositoryVersionLanguage.objects.create(
-            repository_version=self.repository_version, language=languages.LANGUAGE_EN, algorithm="statistical_model"
+            repository_version=self.repository_version,
+            language=languages.LANGUAGE_EN,
+            algorithm="statistical_model",
         )
 
     def request(self, token):
@@ -46,7 +52,10 @@ class TrainStartTrainingTestCase(TestCase):
         request = self.factory.post(
             "/v2/repository/nlp/authorization/train/start_training/",
             json.dumps(
-                {"update_id": self.repository_version_language.pk, "by_user": self.user.pk}
+                {
+                    "update_id": self.repository_version_language.pk,
+                    "by_user": self.user.pk,
+                }
             ),
             content_type="application/json",
             **authorization_header
@@ -90,7 +99,9 @@ class TrainFailTestCase(TestCase):
         )
 
         self.repository_version_language = RepositoryVersionLanguage.objects.create(
-            repository_version=self.repository_version, language=languages.LANGUAGE_EN, algorithm="statistical_model"
+            repository_version=self.repository_version,
+            language=languages.LANGUAGE_EN,
+            algorithm="statistical_model",
         )
 
     def request(self, token):
@@ -111,7 +122,9 @@ class TrainFailTestCase(TestCase):
     def test_ok(self):
         response, content_data = self.request(str(self.repository_authorization.uuid))
         self.assertIsNotNone(
-            RepositoryVersionLanguage.objects.get(pk=self.repository_version_language.pk).failed_at
+            RepositoryVersionLanguage.objects.get(
+                pk=self.repository_version_language.pk
+            ).failed_at
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -143,11 +156,15 @@ class AuthorizationInfoTestCase(TestCase):
         )
 
         self.repository_version_language = RepositoryVersionLanguage.objects.create(
-            repository_version=self.repository_version, language=languages.LANGUAGE_EN, algorithm="statistical_model"
+            repository_version=self.repository_version,
+            language=languages.LANGUAGE_EN,
+            algorithm="statistical_model",
         )
 
         self.repository_examples = RepositoryExample.objects.create(
-            repository_version_language=self.repository_version_language, text="hello", intent="greet"
+            repository_version_language=self.repository_version_language,
+            text="hello",
+            intent="greet",
         )
 
         self.repository_entity = RepositoryExampleEntity.objects.create(

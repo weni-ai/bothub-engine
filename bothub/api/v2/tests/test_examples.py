@@ -27,7 +27,7 @@ class ListExamplesAPITestCase(TestCase):
             language=languages.LANGUAGE_EN,
         )
         self.example_1 = RepositoryExample.objects.create(
-            repository_version_language=self.repository.current_update(),
+            repository_version_language=self.repository.current_version(),
             text="hi",
             intent="greet",
         )
@@ -37,17 +37,17 @@ class ListExamplesAPITestCase(TestCase):
         entity_1.entity.set_label("greet")
         entity_1.entity.save()
         self.example_2 = RepositoryExample.objects.create(
-            repository_version_language=self.repository.current_update(),
+            repository_version_language=self.repository.current_version(),
             text="hello",
             intent="greet",
         )
         self.example_3 = RepositoryExample.objects.create(
-            repository_version_language=self.repository.current_update(),
+            repository_version_language=self.repository.current_version(),
             text="bye",
             intent="farewell",
         )
         self.example_4 = RepositoryExample.objects.create(
-            repository_version_language=self.repository.current_update(),
+            repository_version_language=self.repository.current_version(),
             text="bye bye",
             intent="farewell",
         )
@@ -59,12 +59,14 @@ class ListExamplesAPITestCase(TestCase):
             language=languages.LANGUAGE_EN,
         )
         self.example_5 = RepositoryExample.objects.create(
-            repository_version_language=self.repository_2.current_update(),
+            repository_version_language=self.repository_2.current_version(),
             text="hi",
             intent="greet",
         )
         self.example_6 = RepositoryExample.objects.create(
-            repository_version_language=self.repository_2.current_update(languages.LANGUAGE_PT),
+            repository_version_language=self.repository_2.current_version(
+                languages.LANGUAGE_PT
+            ),
             text="oi",
             intent="greet",
         )

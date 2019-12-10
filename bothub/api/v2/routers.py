@@ -122,7 +122,7 @@ router.register("repository/evaluate/results", ResultsListViewSet)
 router.register("repository/evaluate", EvaluateViewSet)
 router.register("repository/translation", RepositoryTranslatedExampleViewSet)
 router.register("repository/updates", RepositoryUpdatesViewSet)
-# router.register("repository/version", VersioningViewSet)
+router.register("repository/version", VersioningViewSet)
 router.register(
     "repository/nlp/authorization/train", RepositoryAuthorizationTrainViewSet
 )

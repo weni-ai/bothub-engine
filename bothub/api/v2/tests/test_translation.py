@@ -28,7 +28,7 @@ class TranslateExampleTestCase(TestCase):
             language=languages.LANGUAGE_EN,
         )
         self.example = RepositoryExample.objects.create(
-            repository_version_language=self.repository.current_update(), text="hi"
+            repository_version_language=self.repository.current_version(), text="hi"
         )
 
     def request(self, data, user_token):
@@ -94,7 +94,8 @@ class TranslateExampleTestCase(TestCase):
 
     def test_okay_with_entities(self):
         example = RepositoryExample.objects.create(
-            repository_version_language=self.repository.current_update(), text="my name is user"
+            repository_version_language=self.repository.current_version(),
+            text="my name is user",
         )
         RepositoryExampleEntity.objects.create(
             repository_example=example, start=11, end=18, entity="name"
@@ -113,7 +114,8 @@ class TranslateExampleTestCase(TestCase):
 
     def test_entities_no_valid(self):
         example = RepositoryExample.objects.create(
-            repository_version_language=self.repository.current_update(), text="my name is user"
+            repository_version_language=self.repository.current_version(),
+            text="my name is user",
         )
         RepositoryExampleEntity.objects.create(
             repository_example=self.example, start=11, end=18, entity="name"
@@ -132,7 +134,8 @@ class TranslateExampleTestCase(TestCase):
 
     def test_entities_no_valid_2(self):
         example = RepositoryExample.objects.create(
-            repository_version_language=self.repository.current_update(), text="my name is user"
+            repository_version_language=self.repository.current_version(),
+            text="my name is user",
         )
         RepositoryExampleEntity.objects.create(
             repository_example=self.example, start=11, end=18, entity="name"
@@ -179,7 +182,7 @@ class RepositoryTranslatedExampleRetrieveTestCase(TestCase):
             language=languages.LANGUAGE_EN,
         )
         self.example = RepositoryExample.objects.create(
-            repository_version_language=self.repository.current_update(), text="hi"
+            repository_version_language=self.repository.current_version(), text="hi"
         )
         self.translated = RepositoryTranslatedExample.objects.create(
             original_example=self.example, language=languages.LANGUAGE_PT, text="oi"
@@ -193,7 +196,8 @@ class RepositoryTranslatedExampleRetrieveTestCase(TestCase):
             is_private=True,
         )
         self.private_example = RepositoryExample.objects.create(
-            repository_version_language=self.private_repository.current_update(), text="hi"
+            repository_version_language=self.private_repository.current_version(),
+            text="hi",
         )
         self.private_translated = RepositoryTranslatedExample.objects.create(
             original_example=self.private_example,
@@ -243,7 +247,7 @@ class RepositoryTranslatedExampleDestroyTestCase(TestCase):
             language=languages.LANGUAGE_EN,
         )
         self.example = RepositoryExample.objects.create(
-            repository_version_language=self.repository.current_update(), text="hi"
+            repository_version_language=self.repository.current_version(), text="hi"
         )
         self.translated = RepositoryTranslatedExample.objects.create(
             original_example=self.example, language=languages.LANGUAGE_PT, text="oi"
@@ -283,7 +287,7 @@ class TranslationsViewTest(TestCase):
             language=languages.LANGUAGE_EN,
         )
         self.example = RepositoryExample.objects.create(
-            repository_version_language=self.repository.current_update(), text="hi"
+            repository_version_language=self.repository.current_version(), text="hi"
         )
         self.translated = RepositoryTranslatedExample.objects.create(
             original_example=self.example, language=languages.LANGUAGE_PT, text="oi"
@@ -336,7 +340,9 @@ class TranslationsViewTest(TestCase):
 
     def test_filter_from_language(self):
         example = RepositoryExample.objects.create(
-            repository_version_language=self.repository.current_update(languages.LANGUAGE_ES),
+            repository_version_language=self.repository.current_version(
+                languages.LANGUAGE_ES
+            ),
             text="hola",
         )
         translated = RepositoryTranslatedExample.objects.create(
@@ -365,7 +371,9 @@ class TranslationsViewTest(TestCase):
 
     def test_filter_to_language(self):
         example = RepositoryExample.objects.create(
-            repository_version_language=self.repository.current_update(languages.LANGUAGE_ES),
+            repository_version_language=self.repository.current_version(
+                languages.LANGUAGE_ES
+            ),
             text="hola",
         )
         RepositoryTranslatedExample.objects.create(

@@ -57,17 +57,21 @@ class RepositoryQuerySet(models.QuerySet):
 
     def order_by_relevance(self):
         return self.annotate(examples_sum=models.Sum("versions")).order_by(
-            "-versions__repositoryversionlanguage__total_training_end", "-examples_sum", "-created_at"
+            "-versions__repositoryversionlanguage__total_training_end",
+            "-examples_sum",
+            "-created_at",
         )
 
     def supported_language(self, language):
         valid_examples = RepositoryExample.objects.filter(deleted_in__isnull=True)
-        valid_updates = RepositoryVersionLanguage.objects.filter(added__in=valid_examples)
+        valid_updates = RepositoryVersionLanguage.objects.filter(
+            added__in=valid_examples
+        )
         return self.filter(
             models.Q(language=language)
             | models.Q(
                 versions__repositoryversionlanguage__in=valid_updates,
-                versions__repositoryversionlanguage__language=language
+                versions__repositoryversionlanguage__language=language,
             )
             | models.Q(
                 versions__repositoryversionlanguage__in=valid_updates,
@@ -204,7 +208,7 @@ class Repository(models.Model):
             or self.use_analyze_char != self.__use_analyze_char
         ):
 
-            update = self.current_update(self.language)
+            update = self.current_version(self.language)
             update.last_update = timezone.now()
             update.save(update_fields=["last_update"])
 
@@ -292,8 +296,8 @@ class Repository(models.Model):
         )
 
     @property
-    def current_updates(self):
-        return map(lambda lang: self.current_update(lang), self.available_languages)
+    def current_versions(self):
+        return map(lambda lang: self.current_version(lang), self.available_languages)
 
     @property
     def requirements_to_train(self):
@@ -302,7 +306,7 @@ class Repository(models.Model):
                 lambda l: l[1],
                 map(
                     lambda u: (u.language, u.requirements_to_train),
-                    self.current_updates,
+                    self.current_versions,
                 ),
             )
         )
@@ -310,13 +314,15 @@ class Repository(models.Model):
     @property
     def languages_ready_for_train(self):
         return dict(
-            map(lambda u: (u.language, u.ready_for_train), self.current_updates)
+            map(lambda u: (u.language, u.ready_for_train), self.current_versions)
         )
 
     @property
     def ready_for_train(self):
         return reduce(
-            lambda current, u: u.ready_for_train or current, self.current_updates, False
+            lambda current, u: u.ready_for_train or current,
+            self.current_versions,
+            False,
         )
 
     @property
@@ -324,7 +330,7 @@ class Repository(models.Model):
         return dict(
             filter(
                 lambda w: len(w[1]) > 0,
-                map(lambda u: (u.language, u.warnings), self.current_updates),
+                map(lambda u: (u.language, u.warnings), self.current_versions),
             )
         )
 
@@ -382,23 +388,37 @@ class Repository(models.Model):
             self.name, self.owner.nickname, self.slug
         )  # pragma: no cover
 
-    def examples(self, language=None, exclude_deleted=True, queryset=None, master=True):
+    def examples(
+        self, language=None, exclude_deleted=True, queryset=None, version_default=True
+    ):
         if queryset is None:
             queryset = RepositoryExample.objects
-        query = queryset.filter(repository_version_language__repository_version__repository=self)
+        query = queryset.filter(
+            repository_version_language__repository_version__repository=self
+        )
 
-        # if master:
-        #     query = query.filter(repository_version_language__selected=True)
+        if version_default:
+            query = query.filter(
+                repository_version_language__repository_version__is_default=True
+            )
         if language:
             query = query.filter(repository_version_language__language=language)
         if exclude_deleted:
             return query.exclude(deleted_in__isnull=False)
         return query
 
-    def evaluations(self, language=None, exclude_deleted=True, queryset=None):
+    def evaluations(
+        self, language=None, exclude_deleted=True, queryset=None, version_default=True
+    ):
         if queryset is None:
             queryset = RepositoryEvaluate.objects
-        query = queryset.filter(repository_version_language__repository_version__repository=self)
+        query = queryset.filter(
+            repository_version_language__repository_version__repository=self
+        )
+        if version_default:
+            query = query.filter(
+                repository_version_language__repository_version__is_default=True
+            )
         if language:
             query = query.filter(repository_version_language__language=language)
         if exclude_deleted:
@@ -408,7 +428,9 @@ class Repository(models.Model):
     def evaluations_results(self, queryset=None):
         if queryset is None:
             queryset = RepositoryEvaluateResult.objects
-        query = queryset.filter(repository_version_language__repository_version__repository=self)
+        query = queryset.filter(
+            repository_version_language__repository_version__repository=self
+        )
         return query
 
     def language_status(self, language):
@@ -448,17 +470,15 @@ class Repository(models.Model):
             },
         }
 
-    def current_update(self, language=None, is_default=True):
+    def current_version(self, language=None, is_default=True):
         language = language or self.language
 
         repository_version, created = self.versions.get_or_create(
-            name='',
-            is_default=is_default,
+            name="", is_default=is_default
         )
 
         repository_version_language, created = RepositoryVersionLanguage.objects.get_or_create(
-            repository_version=repository_version,
-            language=language
+            repository_version=repository_version, language=language
         )
         return repository_version_language
 
@@ -469,13 +489,18 @@ class Repository(models.Model):
         ).first()
 
         if version:
-            return version.version_languages.filter(language=language, training_end_at__isnull=False).first()
+            return version.version_languages.filter(
+                language=language, training_end_at__isnull=False
+            ).first()
         return RepositoryVersionLanguage.objects.none()
 
-    def get_specific_update(self, update_id=None, language=None):
+    def get_specific_version_language(self, language=None):
+        query = RepositoryVersionLanguage.objects.filter(
+            repository_version__repository=self
+        )
         if language:
-            return self.versions.filter(pk=update_id, language=language).first()
-        return self.versions.filter(pk=update_id).first()
+            query = query.filter(language=language)
+        return query.first()
 
     def get_user_authorization(self, user):
         if user.is_anonymous:
@@ -498,7 +523,9 @@ class RepositoryVersion(models.Model):
     name = models.CharField(max_length=40)
     last_update = models.DateTimeField(_("last update"), auto_now_add=True)
     is_default = models.BooleanField(default=True)
-    repository = models.ForeignKey(Repository, models.CASCADE, related_name="versions")  # updates related_name
+    repository = models.ForeignKey(
+        Repository, models.CASCADE, related_name="versions"
+    )  # updates related_name
     created_by = models.ForeignKey(User, models.CASCADE, blank=True, null=True)
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
 
@@ -535,7 +562,9 @@ class RepositoryVersionLanguage(models.Model):
         choices=Repository.ALGORITHM_CHOICES,
         default=Repository.ALGORITHM_STATISTICAL_MODEL,
     )
-    repository_version = models.ForeignKey(RepositoryVersion, models.CASCADE)  # updates related_name
+    repository_version = models.ForeignKey(
+        RepositoryVersion, models.CASCADE
+    )  # updates related_name
     training_log = models.TextField(_("training log"), blank=True, editable=False)
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
     last_update = models.DateTimeField(_("last update"), auto_now_add=True)
@@ -545,7 +574,9 @@ class RepositoryVersionLanguage(models.Model):
 
     @property
     def examples(self):
-        examples = self.repository_version.repository.examples(exclude_deleted=False).filter(
+        examples = self.repository_version.repository.examples(
+            exclude_deleted=False
+        ).filter(
             models.Q(repository_version_language__language=self.language)
             | models.Q(translations__language=self.language)
         )
@@ -579,9 +610,9 @@ class RepositoryVersionLanguage(models.Model):
 
         weak_intents = (
             self.examples.values("intent")
-                .annotate(intent_count=models.Count("id"))
-                .order_by()
-                .exclude(intent_count__gte=self.MIN_EXAMPLES_PER_INTENT)
+            .annotate(intent_count=models.Count("id"))
+            .order_by()
+            .exclude(intent_count__gte=self.MIN_EXAMPLES_PER_INTENT)
         )
         if weak_intents.exists():
             for i in weak_intents:
@@ -595,11 +626,11 @@ class RepositoryVersionLanguage(models.Model):
 
         weak_entities = (
             self.examples.annotate(es_count=models.Count("entities"))
-                .filter(es_count__gte=1)
-                .values("entities__entity__value")
-                .annotate(entities_count=models.Count("id"))
-                .order_by()
-                .exclude(entities_count__gte=self.MIN_EXAMPLES_PER_ENTITY)
+            .filter(es_count__gte=1)
+            .values("entities__entity__value")
+            .annotate(entities_count=models.Count("id"))
+            .order_by()
+            .exclude(entities_count__gte=self.MIN_EXAMPLES_PER_ENTITY)
         )
         if weak_entities.exists():
             for e in weak_entities:
@@ -627,14 +658,20 @@ class RepositoryVersionLanguage(models.Model):
             ).first()
         else:
             previous = self.repository_version.repository.versions.filter(
-                repositoryversionlanguage__language=self.language, created_by__isnull=False
+                repositoryversionlanguage__language=self.language,
+                created_by__isnull=False,
             ).first()
 
         if previous:
-            previous_update = previous.version_languages.filter(language=self.language).first()
+            previous_update = previous.version_languages.filter(
+                language=self.language
+            ).first()
 
         if previous_update:
-            if previous_update.algorithm != self.repository_version.repository.algorithm:
+            if (
+                previous_update.algorithm
+                != self.repository_version.repository.algorithm
+            ):
                 return True
             if (
                 previous_update.use_competing_intents
@@ -646,7 +683,10 @@ class RepositoryVersionLanguage(models.Model):
                 is not self.repository_version.repository.use_name_entities
             ):
                 return True
-            if previous_update.use_analyze_char is not self.repository_version.repository.use_analyze_char:
+            if (
+                previous_update.use_analyze_char
+                is not self.repository_version.repository.use_analyze_char
+            ):
                 return True
             if previous_update.failed_at:
                 return True
@@ -684,7 +724,7 @@ class RepositoryVersionLanguage(models.Model):
         return self.algorithm != Repository.ALGORITHM_NEURAL_NETWORK_INTERNAL
 
     def __str__(self):
-        return "Repository Update #{}".format(self.id)  # pragma: no cover
+        return "Repository Version Language #{}".format(self.id)  # pragma: no cover
 
     def validate_init_train(self, by=None):
         # if self.trained_at:
@@ -692,7 +732,9 @@ class RepositoryVersionLanguage(models.Model):
         # if self.training_started_at:
         #     raise RepositoryUpdateAlreadyStartedTraining()
         if by:
-            authorization = self.repository_version.repository.get_user_authorization(by)
+            authorization = self.repository_version.repository.get_user_authorization(
+                by
+            )
             if not authorization.can_write:
                 raise TrainingNotAllowed()
 
@@ -701,7 +743,9 @@ class RepositoryVersionLanguage(models.Model):
         self.repository_version.created_by = created_by
         self.training_started_at = timezone.now()
         self.algorithm = self.repository_version.repository.algorithm
-        self.use_competing_intents = self.repository_version.repository.use_competing_intents
+        self.use_competing_intents = (
+            self.repository_version.repository.use_competing_intents
+        )
         self.use_name_entities = self.repository_version.repository.use_name_entities
         self.use_analyze_char = self.repository_version.repository.use_analyze_char
         self.save(
@@ -713,7 +757,7 @@ class RepositoryVersionLanguage(models.Model):
                 "use_analyze_char",
             ]
         )
-        self.repository_version.save(update_fields=['created_by'])
+        self.repository_version.save(update_fields=["created_by"])
 
     def save_training(self, bot_data):
         # if self.trained_at:
@@ -742,7 +786,11 @@ class RepositoryExample(models.Model):
         RepositoryVersionLanguage, models.CASCADE, related_name="added", editable=False
     )
     deleted_in = models.ForeignKey(
-        RepositoryVersionLanguage, models.CASCADE, related_name="deleted", blank=True, null=True
+        RepositoryVersionLanguage,
+        models.CASCADE,
+        related_name="deleted",
+        blank=True,
+        null=True,
     )
     text = models.TextField(_("text"), help_text=_("Example text"))
     intent = models.CharField(
@@ -787,7 +835,7 @@ class RepositoryExample(models.Model):
         return self.get_translation(language).entities.all()
 
     def delete(self):
-        self.deleted_in = self.repository_version_language.repository_version.repository.current_update(
+        self.deleted_in = self.repository_version_language.repository_version.repository.current_version(
             self.repository_version_language.language
         )
         self.save(update_fields=["deleted_in"])
@@ -802,14 +850,16 @@ class RepositoryTranslatedExampleManager(models.Manager):
         clone_repository=False,
         **kwargs
     ):
-        repository = original_example.repository_version_language.repository_version.repository
+        repository = (
+            original_example.repository_version_language.repository_version.repository
+        )
         if clone_repository:
             return super().create(
                 *args, original_example=original_example, language=language, **kwargs
             )
         return super().create(
             *args,
-            repository_version_language=repository.current_update(language),
+            repository_version_language=repository.current_version(language),
             original_example=original_example,
             language=language,
             **kwargs
@@ -976,12 +1026,18 @@ class EntityBaseQueryset(models.QuerySet):  # pragma: no cover
             instance = self.model(**kwargs)
             if "repository_evaluate_id" in instance.__dict__:
                 evaluate = instance.repository_evaluate
-                repository = evaluate.repository_version_language.repository_version.repository
+                repository = (
+                    evaluate.repository_version_language.repository_version.repository
+                )
             elif "evaluate_result_id" in instance.__dict__:
                 result = instance.evaluate_result
-                repository = result.repository_version_language.repository_version.repository
+                repository = (
+                    result.repository_version_language.repository_version.repository
+                )
             else:
-                repository = instance.example.repository_version_language.repository_version.repository
+                repository = (
+                    instance.example.repository_version_language.repository_version.repository
+                )
 
             entity = RepositoryEntity.objects.get(repository=repository, value=entity)
 
@@ -1275,7 +1331,10 @@ class RepositoryEvaluate(models.Model):
         db_table = "common_repository_evaluate"
 
     repository_version_language = models.ForeignKey(
-        RepositoryVersionLanguage, models.CASCADE, related_name="added_evaluate", editable=False
+        RepositoryVersionLanguage,
+        models.CASCADE,
+        related_name="added_evaluate",
+        editable=False,
     )
     deleted_in = models.ForeignKey(
         RepositoryVersionLanguage,
@@ -1309,7 +1368,7 @@ class RepositoryEvaluate(models.Model):
         return None
 
     def delete(self):
-        self.deleted_in = self.repository_version_language.repository_version.repository.current_update(
+        self.deleted_in = self.repository_version_language.repository_version.repository.current_version(
             self.repository_version_language.language
         )
         self.save(update_fields=["deleted_in"])
@@ -1360,7 +1419,10 @@ class RepositoryEvaluateResult(models.Model):
         ordering = ["-created_at"]
 
     repository_version_language = models.ForeignKey(
-        RepositoryVersionLanguage, models.CASCADE, editable=False, related_name="results"
+        RepositoryVersionLanguage,
+        models.CASCADE,
+        editable=False,
+        related_name="results",
     )
 
     intent_results = models.ForeignKey(

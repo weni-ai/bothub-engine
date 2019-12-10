@@ -354,7 +354,7 @@ class IntentsInRepositorySerializerTestCase(TestCase):
             language=languages.LANGUAGE_EN,
         )
         RepositoryExample.objects.create(
-            repository_version_language=self.repository.current_update(),
+            repository_version_language=self.repository.current_version(),
             text="hi",
             intent="greet",
         )
@@ -366,7 +366,7 @@ class IntentsInRepositorySerializerTestCase(TestCase):
 
     def test_example_deleted(self):
         example = RepositoryExample.objects.create(
-            repository_version_language =self.repository.current_update(),
+            repository_version_language=self.repository.current_version(),
             text="hi",
             intent="greet",
         )
@@ -468,7 +468,7 @@ class RepositoriesLanguageFilterTestCase(TestCase):
     def test_example_language(self):
         language = languages.LANGUAGE_ES
         example = RepositoryExample.objects.create(
-            repository_version_language=self.repository_en_1.current_update(language),
+            repository_version_language=self.repository_en_1.current_version(language),
             text="hi",
             intent="greet",
         )
@@ -483,7 +483,7 @@ class RepositoriesLanguageFilterTestCase(TestCase):
     def test_translated_example(self):
         language = languages.LANGUAGE_ES
         example = RepositoryExample.objects.create(
-            repository_version_language=self.repository_en_1.current_update(),
+            repository_version_language=self.repository_en_1.current_version(),
             text="hi",
             intent="greet",
         )
@@ -1084,7 +1084,8 @@ class RepositoryExampleRetrieveTestCase(TestCase):
             language=languages.LANGUAGE_EN,
         )
         self.example = RepositoryExample.objects.create(
-            repository_version_language=self.repository.current_update(), text="my name is user"
+            repository_version_language=self.repository.current_version(),
+            text="my name is user",
         )
         self.example_entity = RepositoryExampleEntity.objects.create(
             repository_example=self.example, start=11, end=18, entity="name"
@@ -1098,7 +1099,8 @@ class RepositoryExampleRetrieveTestCase(TestCase):
             is_private=True,
         )
         self.private_example = RepositoryExample.objects.create(
-            repository_version_language=self.private_repository.current_update(), text="hi"
+            repository_version_language=self.private_repository.current_version(),
+            text="hi",
         )
 
     def request(self, example, token):
@@ -1232,7 +1234,7 @@ class RepositoryExampleDestroyTestCase(TestCase):
             language=languages.LANGUAGE_EN,
         )
         self.example = RepositoryExample.objects.create(
-            repository_version_language=self.repository.current_update(), text="hi"
+            repository_version_language=self.repository.current_version(), text="hi"
         )
 
         self.private_repository = Repository.objects.create(
@@ -1243,7 +1245,8 @@ class RepositoryExampleDestroyTestCase(TestCase):
             is_private=True,
         )
         self.private_example = RepositoryExample.objects.create(
-            repository_version_language=self.private_repository.current_update(), text="hi"
+            repository_version_language=self.private_repository.current_version(),
+            text="hi",
         )
 
     def request(self, example, token):
@@ -1293,7 +1296,7 @@ class RepositoryExampleUpdateTestCase(TestCase):
             language=languages.LANGUAGE_EN,
         )
         self.example = RepositoryExample.objects.create(
-            repository_version_language=self.repository.current_update(), text="hi"
+            repository_version_language=self.repository.current_version(), text="hi"
         )
 
         self.private_repository = Repository.objects.create(
@@ -1304,7 +1307,8 @@ class RepositoryExampleUpdateTestCase(TestCase):
             is_private=True,
         )
         self.private_example = RepositoryExample.objects.create(
-            repository_version_language=self.private_repository.current_update(), text="hi"
+            repository_version_language=self.private_repository.current_version(),
+            text="hi",
         )
 
     def request(self, example, token, data):
@@ -1329,7 +1333,12 @@ class RepositoryExampleUpdateTestCase(TestCase):
         response, content_data = self.request(
             self.example,
             self.owner_token,
-            {"repository": str(self.repository.uuid), "text": text, "intent": intent},
+            {
+                "repository": str(self.repository.uuid),
+                "language": languages.LANGUAGE_EN,
+                "text": text,
+                "intent": intent,
+            },
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -1380,6 +1389,7 @@ class NewRepositoryExampleTestCase(TestCase):
             self.owner_token,
             {
                 "repository": str(self.repository.uuid),
+                "language": languages.LANGUAGE_EN,
                 "text": text,
                 "intent": intent,
                 "entities": [],
@@ -1407,7 +1417,9 @@ class NewRepositoryExampleTestCase(TestCase):
         self.assertEqual(content_data.get("text"), text)
         self.assertEqual(content_data.get("intent"), intent)
         repository_version_language_pk = content_data.get("repository_version_language")
-        repository_version_language = RepositoryVersionLanguage.objects.get(pk=repository_version_language_pk)
+        repository_version_language = RepositoryVersionLanguage.objects.get(
+            pk=repository_version_language_pk
+        )
         self.assertEqual(repository_version_language.language, language)
 
     def test_forbidden(self):
@@ -1453,6 +1465,7 @@ class NewRepositoryExampleTestCase(TestCase):
             self.owner_token,
             {
                 "repository": str(self.repository.uuid),
+                "language": languages.LANGUAGE_EN,
                 "text": "my name is user",
                 "intent": "greet",
                 "entities": [{"start": 11, "end": 18, "entity": "name"}],
@@ -1470,6 +1483,7 @@ class NewRepositoryExampleTestCase(TestCase):
                 "repository": str(self.repository.uuid),
                 "text": text,
                 "intent": intent,
+                "language": languages.LANGUAGE_EN,
                 "entities": [],
             },
         )
@@ -1497,6 +1511,7 @@ class NewRepositoryExampleTestCase(TestCase):
             self.owner_token,
             {
                 "repository": str(self.repository.uuid),
+                "language": languages.LANGUAGE_EN,
                 "text": "my name is user",
                 "intent": "greet",
                 "entities": [
@@ -1791,14 +1806,18 @@ class UpdatesTestCase(TestCase):
             slug="test",
             language=languages.LANGUAGE_EN,
         )
-        current_update = self.repository.current_update()
+        current_version = self.repository.current_version()
         RepositoryExample.objects.create(
-            repository_version_language=current_update, text="my name is Douglas", intent="greet"
+            repository_version_language=current_version,
+            text="my name is Douglas",
+            intent="greet",
         )
         RepositoryExample.objects.create(
-            repository_version_language=current_update, text="my name is John", intent="greet"
+            repository_version_language=current_version,
+            text="my name is John",
+            intent="greet",
         )
-        current_update.start_training(self.owner)
+        current_version.start_training(self.owner)
 
     def request(self, data, token=None):
         authorization_header = (

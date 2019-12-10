@@ -4,13 +4,12 @@ from django_filters import rest_framework as filters
 from rest_framework.exceptions import NotFound
 from rest_framework.exceptions import PermissionDenied
 
-from bothub.common.models import Repository
-# from bothub.common.models import RepositoryUpdate
+from bothub.common.models import Repository, RepositoryVersion
 
 
 class VersioningFilter(filters.FilterSet):
     class Meta:
-        # model = RepositoryUpdate
+        model = RepositoryVersion
         fields = ["repository"]
 
     repository = filters.CharFilter(
@@ -27,7 +26,7 @@ class VersioningFilter(filters.FilterSet):
             authorization = repository.get_user_authorization(request.user)
             if not authorization.can_read:
                 raise PermissionDenied()
-            return RepositoryUpdate.objects.filter(repository=repository)
+            return RepositoryVersion.objects.filter(repository=repository)
         except Repository.DoesNotExist:
             raise NotFound(_("Repository {} does not exist").format(value))
         except DjangoValidationError:

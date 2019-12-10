@@ -5,7 +5,7 @@ from rest_framework.fields import empty
 from bothub.api.v2.fields import EntityValueField
 from bothub.api.v2.fields import LabelValueField
 from bothub.api.v2.repository.validators import EntityNotEqualLabelValidator
-from bothub.common.models import RepositoryExample
+from bothub.common.models import RepositoryExample, RepositoryVersion
 from bothub.common.models import RepositoryExampleEntity
 
 
@@ -73,6 +73,9 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
         ref_name = None
 
     entities = RepositoryExampleEntitySerializer(many=True, read_only=True)
+    repository_version_language = serializers.PrimaryKeyRelatedField(
+        queryset=RepositoryVersion.objects, style={"show": False}, required=False
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

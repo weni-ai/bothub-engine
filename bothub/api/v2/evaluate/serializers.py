@@ -61,8 +61,10 @@ class RepositoryEvaluateSerializer(serializers.ModelSerializer):
         repository = validated_data.pop("repository")
         language = validated_data.pop("language")
 
-        repository_version_language = repository.current_update(language)
-        validated_data.update({"repository_version_language": repository_version_language})
+        repository_version_language = repository.current_version(language)
+        validated_data.update(
+            {"repository_version_language": repository_version_language}
+        )
         evaluate = RepositoryEvaluate.objects.create(**validated_data)
 
         for entity in entities:
@@ -78,7 +80,7 @@ class RepositoryEvaluateSerializer(serializers.ModelSerializer):
 
         instance.text = validated_data.get("text", instance.text)
         instance.intent = validated_data.get("intent", instance.intent)
-        instance.repository_update = repository.current_update(language)
+        instance.repository_update = repository.current_version(language)
         instance.save()
         instance.delete_entities()
 

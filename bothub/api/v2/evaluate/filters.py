@@ -40,6 +40,12 @@ class EvaluatesFilter(filters.FilterSet):
         help_text=_("Filter evaluations with an entity."),
     )
 
+    repository_version_language = filters.CharFilter(
+        field_name="repository_version_language",
+        method="filter_repository_version_language",
+        help_text=_("Filter for examples with version id."),
+    )
+
     def filter_repository_uuid(self, queryset, name, value):
         request = self.request
         try:
@@ -47,6 +53,8 @@ class EvaluatesFilter(filters.FilterSet):
             authorization = repository.get_user_authorization(request.user)
             if not authorization.can_read:
                 raise PermissionDenied()
+            if request.query_params.get("repository_version_language"):
+                return repository.evaluations(queryset=queryset, version_default=False)
             return repository.evaluations(queryset=queryset)
         except Repository.DoesNotExist:
             raise NotFound(_("Repository {} does not exist").format(value))
@@ -54,7 +62,12 @@ class EvaluatesFilter(filters.FilterSet):
             raise NotFound(_("Invalid repository_uuid"))
 
     def filter_language(self, queryset, name, value):
-        return queryset.filter(repository_update__language=value)
+        return queryset.filter(repository_version_language__language=value)
+
+    def filter_repository_version_language(self, queryset, name, value):
+        return queryset.filter(
+            repository_version_language__repository_version__pk=value
+        )
 
     def filter_label(self, queryset, name, value):
         if value == "other":

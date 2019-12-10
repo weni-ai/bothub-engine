@@ -36,7 +36,7 @@ class CanContributeInRepositoryValidator(object):
         self.request = serializer.context.get("request")
 
 
-class CanContributeInRepositoryUpdateValidator(object):
+class CanContributeInRepositoryVersionValidator(object):
     def __call__(self, value):
         user_authorization = value.repository.get_user_authorization(self.request.user)
         if not user_authorization.can_contribute:

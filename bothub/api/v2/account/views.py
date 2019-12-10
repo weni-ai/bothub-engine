@@ -149,7 +149,9 @@ class MyUserProfileViewSet(
 
     def destroy(self, request, *args, **kwargs):
         repositories = Repository.objects.filter(owner=self.request.user)
-        repository_version = RepositoryVersion.objects.filter(created_by=self.request.user)
+        repository_version = RepositoryVersion.objects.filter(
+            created_by=self.request.user
+        )
         user = User.generate_repository_user_bot()
 
         if repositories.count() > 0:

@@ -4,7 +4,11 @@ from django.test import TestCase
 from rest_framework import status
 from bothub.api.v2.evaluate.views import EvaluateViewSet, ResultsListViewSet
 from bothub.common import languages
-from bothub.common.models import RepositoryExample, RepositoryVersion, RepositoryVersionLanguage
+from bothub.common.models import (
+    RepositoryExample,
+    RepositoryVersion,
+    RepositoryVersionLanguage,
+)
 from bothub.common.models import Repository
 from bothub.common.models import RepositoryEvaluate
 from bothub.common.models import RepositoryEvaluateResultScore
@@ -36,15 +40,21 @@ class ListEvaluateTestCase(TestCase):
         )
 
         self.repository_version_language = RepositoryVersionLanguage.objects.create(
-            repository_version=self.repository_version, language=languages.LANGUAGE_EN, algorithm="statistical_model"
+            repository_version=self.repository_version,
+            language=languages.LANGUAGE_EN,
+            algorithm="statistical_model",
         )
 
         self.example_1 = RepositoryExample.objects.create(
-            repository_version_language=self.repository_version_language, text="test", intent="greet"
+            repository_version_language=self.repository_version_language,
+            text="test",
+            intent="greet",
         )
 
         self.repository_evaluate = RepositoryEvaluate.objects.create(
-            repository_version_language=self.repository_version_language, text="test", intent="greet"
+            repository_version_language=self.repository_version_language,
+            text="test",
+            intent="greet",
         )
 
     def request(self, token):
@@ -87,11 +97,15 @@ class NewEvaluateTestCase(TestCase):
         )
 
         self.repository_version_language = RepositoryVersionLanguage.objects.create(
-            repository_version=self.repository_version, language=languages.LANGUAGE_EN, algorithm="statistical_model"
+            repository_version=self.repository_version,
+            language=languages.LANGUAGE_EN,
+            algorithm="statistical_model",
         )
 
         self.example_1 = RepositoryExample.objects.create(
-            repository_version_language=self.repository_version_language, text="test", intent="greet"
+            repository_version_language=self.repository_version_language,
+            text="test",
+            intent="greet",
         )
 
     def request(self, data, token):
@@ -184,15 +198,21 @@ class EvaluateDestroyTestCase(TestCase):
         )
 
         self.repository_version_language = RepositoryVersionLanguage.objects.create(
-            repository_version=self.repository_version, language="en", algorithm="statistical_model"
+            repository_version=self.repository_version,
+            language="en",
+            algorithm="statistical_model",
         )
 
         self.example_1 = RepositoryExample.objects.create(
-            repository_version_language=self.repository_version_language, text="test", intent="greet"
+            repository_version_language=self.repository_version_language,
+            text="test",
+            intent="greet",
         )
 
         self.repository_evaluate = RepositoryEvaluate.objects.create(
-            repository_version_language=self.repository_version_language, text="test", intent="greet"
+            repository_version_language=self.repository_version_language,
+            text="test",
+            intent="greet",
         )
 
     def request(self, token):
@@ -246,15 +266,21 @@ class EvaluateUpdateTestCase(TestCase):
         )
 
         self.repository_version_language = RepositoryVersionLanguage.objects.create(
-            repository_version=self.repository_version, language="en", algorithm="statistical_model"
+            repository_version=self.repository_version,
+            language="en",
+            algorithm="statistical_model",
         )
 
         self.example_1 = RepositoryExample.objects.create(
-            repository_version_language=self.repository_version_language, text="test", intent="greet"
+            repository_version_language=self.repository_version_language,
+            text="test",
+            intent="greet",
         )
 
         self.repository_evaluate = RepositoryEvaluate.objects.create(
-            repository_version_language=self.repository_version_language, text="test", intent="greet"
+            repository_version_language=self.repository_version_language,
+            text="test",
+            intent="greet",
         )
 
     def request(self, data, token):
@@ -370,7 +396,7 @@ class ListEvaluateResultTestCase(TestCase):
 
             sample_url = "https://s3.amazonaws.com/bothub-sample"
             evaluate_result = RepositoryEvaluateResult.objects.create(
-                repository_version_language=self.repository.current_update(),
+                repository_version_language=self.repository.current_version(),
                 intent_results=intent_results,
                 entity_results=entity_results,
                 matrix_chart="{}/confmat.png".format(sample_url),
@@ -511,7 +537,7 @@ class ListEvaluateResultTestFilterCase(TestCase):
 
         sample_url = "https://s3.amazonaws.com/bothub-sample"
         self.evaluate_result = RepositoryEvaluateResult.objects.create(
-            repository_version_language=self.repository.current_update(),
+            repository_version_language=self.repository.current_version(),
             intent_results=intent_results,
             entity_results=entity_results,
             matrix_chart="{}/confmat.png".format(sample_url),
