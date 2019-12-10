@@ -132,3 +132,80 @@ class ListRepositoryVersionAPITestCase(TestCase):
         self.assertEqual(content_data.get('results')[0].get('id'), self.repository.current_version().pk)
         self.assertEqual(content_data.get('results')[0].get('repository'), str(self.repository.pk))
         self.assertEqual(content_data.get('results')[0].get('is_default'), True)
+
+
+class DefaultRepositoryVersionAPITestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.owner, self.owner_token = create_user_and_token("owner")
+        self.user, self.user_token = create_user_and_token("user")
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name="Repository 1",
+            slug="repo",
+            language=languages.LANGUAGE_EN,
+        )
+
+        self.example_1 = RepositoryExample.objects.create(
+            repository_version_language=self.repository.current_version(),
+            text="hi",
+            intent="greet",
+        )
+
+        self.version = RepositoryVersion.objects.create(
+            name=self.repository.current_version().repository_version.name,
+            last_update=self.repository.current_version().repository_version.last_update,
+            is_default=False,
+            repository=self.repository.current_version().repository_version.repository,
+            created_by=self.repository.current_version().repository_version.created_by,
+        )
+
+        self.version_language = RepositoryVersionLanguage.objects.create(
+            language=self.repository.current_version().language,
+            bot_data=self.repository.current_version().bot_data,
+            training_started_at=self.repository.current_version().training_started_at,
+            training_end_at=self.repository.current_version().training_end_at,
+            failed_at=self.repository.current_version().failed_at,
+            use_analyze_char=self.repository.current_version().use_analyze_char,
+            use_name_entities=self.repository.current_version().use_name_entities,
+            use_competing_intents=self.repository.current_version().use_competing_intents,
+            algorithm=self.repository.current_version().algorithm,
+            repository_version=self.version,
+            training_log=self.repository.current_version().training_log,
+            last_update=self.repository.current_version().last_update,
+            total_training_end=self.repository.current_version().total_training_end,
+        )
+
+    def request(self, data={}, token=None):
+        authorization_header = (
+            {"HTTP_AUTHORIZATION": "Token {}".format(token.key)} if token else {}
+        )
+
+        request = self.factory.patch(
+            f"/v2/repository/version/{self.version.pk}/",
+            data,
+            content_type="application/json",
+            **authorization_header
+        )
+
+        response = VersioningViewSet.as_view({"patch": "update"})(request, pk=self.version.pk)
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data)
+
+    def test_okay(self):
+        self.assertEqual(self.version.is_default, False)
+        response, content_data = self.request(
+            {"repository": self.repository.uuid, "id": self.version.pk},
+            self.owner_token
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        version = RepositoryVersion.objects.get(pk=self.version.pk)
+
+        self.assertEqual(version.is_default, True)
+
+
