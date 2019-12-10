@@ -504,7 +504,9 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
         write_only=True,
         style={"show": False},
     )
-    language = serializers.ChoiceField(languages.LANGUAGE_CHOICES, required=True)
+    language = serializers.ChoiceField(
+        languages.LANGUAGE_CHOICES, allow_blank=True, required=False
+    )
 
     entities = RepositoryExampleEntitySerializer(
         many=True, style={"text_field": "text"}, required=False
@@ -565,8 +567,6 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
                 raise APIExceptionCustom(
                     detail=_("Intention and Sentence already exists")
                 )
-
-        print(repository_version_language)
 
         validated_data.update(
             {"repository_version_language": repository_version_language}

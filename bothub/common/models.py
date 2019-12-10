@@ -200,7 +200,6 @@ class Repository(models.Model):
     def save(
         self, force_insert=False, force_update=False, using=None, update_fields=None
     ):
-        print(update_fields)
         if (
             self.algorithm != self.__algorithm
             or self.use_competing_intents != self.__use_competing_intents

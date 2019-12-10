@@ -45,7 +45,6 @@ class RepositoryVersionSeralizer(serializers.ModelSerializer):
         instance.save()
 
         for version in clone.version_languages:
-            print(version)
 
             version_language = RepositoryVersionLanguage.objects.create(
                 language=version.language,

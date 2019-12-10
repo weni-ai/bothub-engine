@@ -1333,12 +1333,7 @@ class RepositoryExampleUpdateTestCase(TestCase):
         response, content_data = self.request(
             self.example,
             self.owner_token,
-            {
-                "repository": str(self.repository.uuid),
-                "language": languages.LANGUAGE_EN,
-                "text": text,
-                "intent": intent,
-            },
+            {"repository": str(self.repository.uuid), "text": text, "intent": intent},
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -1494,6 +1489,7 @@ class NewRepositoryExampleTestCase(TestCase):
             self.owner_token,
             {
                 "repository": str(self.repository.uuid),
+                "language": languages.LANGUAGE_EN,
                 "text": text,
                 "intent": intent,
                 "entities": [],
