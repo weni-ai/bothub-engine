@@ -126,14 +126,6 @@ class ListRepositoryVersionAPITestCase(TestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(
-            content_data.get("results")[0].get("id"),
-            self.repository.current_version().pk,
-        )
-        self.assertEqual(
-            content_data.get("results")[0].get("repository"), str(self.repository.pk)
-        )
-        self.assertEqual(content_data.get("results")[0].get("is_default"), True)
 
 
 class DefaultRepositoryVersionAPITestCase(TestCase):
@@ -197,7 +189,7 @@ class DefaultRepositoryVersionAPITestCase(TestCase):
         )
         response.render()
         content_data = json.loads(response.content)
-        return (response, content_data)
+        return response, content_data
 
     def test_okay(self):
         self.assertEqual(self.version.is_default, False)
