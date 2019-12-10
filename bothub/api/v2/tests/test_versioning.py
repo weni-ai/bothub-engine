@@ -16,7 +16,7 @@ from bothub.common.models import (
 )
 
 
-class CloneRepositoryAPITestCase(TestCase):
+class CloneRepositoryVersionAPITestCase(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
 
@@ -84,3 +84,51 @@ class CloneRepositoryAPITestCase(TestCase):
 
         self.assertEqual(example.text, self.example_1.text)
         self.assertEqual(example.intent, self.example_1.intent)
+
+
+class ListRepositoryVersionAPITestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.owner, self.owner_token = create_user_and_token("owner")
+        self.user, self.user_token = create_user_and_token("user")
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name="Repository 1",
+            slug="repo",
+            language=languages.LANGUAGE_EN,
+        )
+
+        self.example_1 = RepositoryExample.objects.create(
+            repository_version_language=self.repository.current_version(),
+            text="hi",
+            intent="greet",
+        )
+
+    def request(self, data={}, token=None):
+        authorization_header = (
+            {"HTTP_AUTHORIZATION": "Token {}".format(token.key)} if token else {}
+        )
+
+        request = self.factory.get(
+            f"/v2/repository/version/",
+            data,
+            **authorization_header
+        )
+
+        response = VersioningViewSet.as_view({"get": "list"})(request)
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data)
+
+    def test_okay(self):
+        response, content_data = self.request(
+            {"repository": self.repository.uuid},
+            self.owner_token
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(content_data.get('results')[0].get('id'), self.repository.current_version().pk)
+        self.assertEqual(content_data.get('results')[0].get('repository'), str(self.repository.pk))
+        self.assertEqual(content_data.get('results')[0].get('is_default'), True)
