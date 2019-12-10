@@ -112,9 +112,7 @@ class ListRepositoryVersionAPITestCase(TestCase):
         )
 
         request = self.factory.get(
-            f"/v2/repository/version/",
-            data,
-            **authorization_header
+            f"/v2/repository/version/", data, **authorization_header
         )
 
         response = VersioningViewSet.as_view({"get": "list"})(request)
@@ -124,14 +122,18 @@ class ListRepositoryVersionAPITestCase(TestCase):
 
     def test_okay(self):
         response, content_data = self.request(
-            {"repository": self.repository.uuid},
-            self.owner_token
+            {"repository": self.repository.uuid}, self.owner_token
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(content_data.get('results')[0].get('id'), self.repository.current_version().pk)
-        self.assertEqual(content_data.get('results')[0].get('repository'), str(self.repository.pk))
-        self.assertEqual(content_data.get('results')[0].get('is_default'), True)
+        self.assertEqual(
+            content_data.get("results")[0].get("id"),
+            self.repository.current_version().pk,
+        )
+        self.assertEqual(
+            content_data.get("results")[0].get("repository"), str(self.repository.pk)
+        )
+        self.assertEqual(content_data.get("results")[0].get("is_default"), True)
 
 
 class DefaultRepositoryVersionAPITestCase(TestCase):
@@ -187,10 +189,12 @@ class DefaultRepositoryVersionAPITestCase(TestCase):
             f"/v2/repository/version/{self.version.pk}/",
             data,
             content_type="application/json",
-            **authorization_header
+            **authorization_header,
         )
 
-        response = VersioningViewSet.as_view({"patch": "update"})(request, pk=self.version.pk)
+        response = VersioningViewSet.as_view({"patch": "update"})(
+            request, pk=self.version.pk
+        )
         response.render()
         content_data = json.loads(response.content)
         return (response, content_data)
@@ -199,7 +203,7 @@ class DefaultRepositoryVersionAPITestCase(TestCase):
         self.assertEqual(self.version.is_default, False)
         response, content_data = self.request(
             {"repository": self.repository.uuid, "id": self.version.pk},
-            self.owner_token
+            self.owner_token,
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -207,5 +211,3 @@ class DefaultRepositoryVersionAPITestCase(TestCase):
         version = RepositoryVersion.objects.get(pk=self.version.pk)
 
         self.assertEqual(version.is_default, True)
-
-
