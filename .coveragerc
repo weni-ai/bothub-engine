@@ -9,6 +9,7 @@ omit =
     ./bothub/common/apps.py
     ./bothub/api/v2/swagger.py
     ./bothub/api/v2/tests/*
+    ./bothub/api/v2/nlp/*
     ./bothub/authentication/tests.py
     ./bothub/common/tests.py
     ./bothub/common/management/commands/fll_db_using_fake_data.py
