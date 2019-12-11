@@ -9,6 +9,7 @@ from bothub.common.models import (
     RepositoryEvaluate,
     RepositoryEvaluateEntity,
     RepositoryVersionLanguage,
+    Repository,
 )
 
 
@@ -18,10 +19,13 @@ class RepositoryVersionSeralizer(serializers.ModelSerializer):
         fields = ["id", "repository", "is_default", "created_at"]
         ref_name = None
 
-        read_only = ["is_default"]
+        read_only = ["is_default", "repository"]
 
     is_default = serializers.BooleanField(default=True, read_only=True, required=False)
     id = serializers.IntegerField()
+    repository = serializers.PrimaryKeyRelatedField(
+        queryset=Repository.objects, style={"show": False}, required=False
+    )
 
     def update(self, instance, validated_data):
         validated_data.pop("repository")

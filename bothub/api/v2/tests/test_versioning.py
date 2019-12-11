@@ -5,7 +5,7 @@ from django.test import TestCase
 from rest_framework import status
 
 from bothub.api.v2.tests.utils import create_user_and_token
-from bothub.api.v2.versionning.views import VersioningViewSet
+from bothub.api.v2.versionning.views import RepositoryVersionViewSet
 from bothub.common import languages
 from bothub.common.models import (
     Repository,
@@ -50,7 +50,9 @@ class CloneRepositoryVersionAPITestCase(TestCase):
             "/v2/repository/version/", data, **authorization_header
         )
 
-        response = VersioningViewSet.as_view({"post": "create"})(request)
+        response = RepositoryVersionViewSet.as_view({"post": "create"})(
+            request, pk=self.repository.current_version().repository_version.pk
+        )
         response.render()
         content_data = json.loads(response.content)
         return (response, content_data)
@@ -59,7 +61,7 @@ class CloneRepositoryVersionAPITestCase(TestCase):
         response, content_data = self.request(
             {
                 "repository": str(self.repository.pk),
-                "id": int(self.repository.current_version().pk),
+                "id": self.repository.current_version().repository_version.pk,
             },
             self.owner_token,
         )
@@ -115,7 +117,7 @@ class ListRepositoryVersionAPITestCase(TestCase):
             f"/v2/repository/version/", data, **authorization_header
         )
 
-        response = VersioningViewSet.as_view({"get": "list"})(request)
+        response = RepositoryVersionViewSet.as_view({"get": "list"})(request)
         response.render()
         content_data = json.loads(response.content)
         return (response, content_data)
@@ -172,30 +174,27 @@ class DefaultRepositoryVersionAPITestCase(TestCase):
             total_training_end=self.repository.current_version().total_training_end,
         )
 
-    def request(self, data={}, token=None):
-        authorization_header = (
-            {"HTTP_AUTHORIZATION": "Token {}".format(token.key)} if token else {}
-        )
-
+    def request(self, version, token, data):
+        authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
         request = self.factory.patch(
-            f"/v2/repository/version/{self.version.pk}/",
-            data,
+            "/v2/repository/version/{}/".format(version.pk),
+            json.dumps(data),
             content_type="application/json",
             **authorization_header,
         )
-
-        response = VersioningViewSet.as_view({"patch": "update"})(
-            request, pk=self.version.pk
+        response = RepositoryVersionViewSet.as_view({"patch": "update"})(
+            request, pk=version.pk
         )
         response.render()
         content_data = json.loads(response.content)
-        return response, content_data
+        return (response, content_data)
 
     def test_okay(self):
         self.assertEqual(self.version.is_default, False)
         response, content_data = self.request(
-            {"repository": self.repository.uuid, "id": self.version.pk},
+            self.version,
             self.owner_token,
+            {"repository": str(self.repository.uuid), "id": self.version.pk},
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
