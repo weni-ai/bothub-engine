@@ -789,8 +789,6 @@ class RepositoryExample(models.Model):
         self.last_update = timezone.now()
         self.repository_version_language.last_update = timezone.now()
         self.repository_version_language.save(update_fields=["last_update"])
-        print(args)
-        print(kwargs)
         super(RepositoryExample, self).save(*args, **kwargs)
 
     @property
@@ -817,6 +815,11 @@ class RepositoryExample(models.Model):
         if not language or language == self.repository_version_language.language:
             return self.entities.all()
         return self.get_translation(language).entities.all()
+
+    def delete(self, using=None, keep_parents=False):
+        self.repository_version_language.last_update = timezone.now()
+        self.repository_version_language.save(update_fields=['last_update'])
+        return super().delete(using, keep_parents)
 
 
 class RepositoryTranslatedExampleManager(models.Manager):
