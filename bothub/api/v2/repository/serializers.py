@@ -482,7 +482,6 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "repository",
-            "deleted_in",
             "text",
             "intent",
             "language",
@@ -491,7 +490,7 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
             "translations",
             "repository_version",
         ]
-        read_only_fields = ["deleted_in"]
+        read_only_fields = []
         ref_name = None
 
     id = serializers.PrimaryKeyRelatedField(read_only=True, style={"show": False})
@@ -547,7 +546,6 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
                 intent=validated_data.get("intent"),
                 repository_version_language__repository_version__repository=repository,
                 repository_version_language__language=language,
-                deleted_in__isnull=True,
             ):
                 raise APIExceptionCustom(
                     detail=_("Intention and Sentence already exists")
@@ -560,7 +558,6 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
                 intent=validated_data.get("intent"),
                 repository_version_language=repository_version_language,
                 repository_version_language__repository_version__is_default=True,
-                deleted_in__isnull=True,
                 repository_version_language__language=language,
             ):
                 raise APIExceptionCustom(

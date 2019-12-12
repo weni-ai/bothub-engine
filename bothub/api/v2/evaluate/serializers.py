@@ -44,7 +44,7 @@ class RepositoryEvaluateSerializer(serializers.ModelSerializer):
             "entities",
             "created_at",
         ]
-        read_only_fields = ["deleted_in", "created_at"]
+        read_only_fields = ["created_at"]
         ref_name = None
 
     entities = RepositoryEvaluateEntitySerializer(many=True, required=False)

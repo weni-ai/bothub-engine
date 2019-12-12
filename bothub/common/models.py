@@ -63,7 +63,7 @@ class RepositoryQuerySet(models.QuerySet):
         )
 
     def supported_language(self, language):
-        valid_examples = RepositoryExample.objects.filter(deleted_in__isnull=True)
+        valid_examples = RepositoryExample.objects.all()
         valid_updates = RepositoryVersionLanguage.objects.filter(
             added__in=valid_examples
         )
@@ -402,8 +402,6 @@ class Repository(models.Model):
             )
         if language:
             query = query.filter(repository_version_language__language=language)
-        if exclude_deleted:
-            return query.exclude(deleted_in__isnull=False)
         return query
 
     def evaluations(
@@ -420,8 +418,6 @@ class Repository(models.Model):
             )
         if language:
             query = query.filter(repository_version_language__language=language)
-        if exclude_deleted:
-            return query.exclude(deleted_in__isnull=False)
         return query  # pragma: no cover
 
     def evaluations_results(self, queryset=None, version_default=True):
@@ -587,12 +583,7 @@ class RepositoryVersionLanguage(models.Model):
             t_started_at = self.training_started_at
             examples = examples.exclude(
                 models.Q(last_update__lte=self.training_end_at)
-                | models.Q(deleted_in=self)
-                | models.Q(deleted_in__training_started_at__lt=t_started_at)
             )
-
-        else:
-            examples = examples.exclude(deleted_in__isnull=False)
         return examples.distinct()
 
     @property
@@ -697,7 +688,6 @@ class RepositoryVersionLanguage(models.Model):
         if (
             not self.added.exists()
             and not self.translated_added.exists()
-            and not self.deleted.exists()
         ):
             return False
 
@@ -784,13 +774,6 @@ class RepositoryExample(models.Model):
     repository_version_language = models.ForeignKey(
         RepositoryVersionLanguage, models.CASCADE, related_name="added", editable=False
     )
-    deleted_in = models.ForeignKey(
-        RepositoryVersionLanguage,
-        models.CASCADE,
-        related_name="deleted",
-        blank=True,
-        null=True,
-    )
     text = models.TextField(_("text"), help_text=_("Example text"))
     intent = models.CharField(
         _("intent"),
@@ -834,17 +817,6 @@ class RepositoryExample(models.Model):
         if not language or language == self.repository_version_language.language:
             return self.entities.all()
         return self.get_translation(language).entities.all()
-
-    # def delete(self):
-    #     print('entrou aqui')
-    #     print(self.repository_version_language.repository_version.repository.current_version(
-    #         self.repository_version_language.language
-    #     ))
-    #     self.deleted_in = self.repository_version_language.repository_version.repository.current_version(
-    #         self.repository_version_language.language
-    #     )
-    #     print(self.deleted_in)
-    #     self.save(update_fields=["deleted_in"])
 
 
 class RepositoryTranslatedExampleManager(models.Manager):

@@ -295,10 +295,6 @@ class RepositoryExampleTestCase(TestCase):
         )
         self.assertEqual(self.example.language, self.language)
 
-    def test_delete(self):
-        self.example.delete()
-        self.assertEqual(self.example.deleted_in, self.repository.current_version())
-
 
 class RepositoryAuthorizationTestCase(TestCase):
     def setUp(self):
@@ -483,7 +479,6 @@ class RepositoryVersionExamplesTestCase(TestCase):
             intent="greet",
         )
         example.delete()
-        print(example.deleted_in)
 
         self.update = self.repository.current_version()
         self.update.start_training(self.owner)
@@ -500,64 +495,9 @@ class RepositoryVersionExamplesTestCase(TestCase):
         RepositoryExample.objects.create(
             repository_version_language=new_update_2, text="good morning", intent="greet"
         )
-
-        print(self.update.examples)
-
-        for t in self.update.examples:
-            print(t.deleted_in)
-
-        self.assertEqual(self.update.examples.count(), 1)
-        self.assertEqual(new_update_1.examples.count(), 2)
+        self.assertEqual(self.update.examples.count(), 2)
+        self.assertEqual(new_update_1.examples.count(), 3)
         self.assertEqual(new_update_2.examples.count(), 3)
-
-    # def test_examples_deleted_consistency(self):
-    #     new_update_1 = self.repository.current_version()
-    #     RepositoryExample.objects.create(
-    #         repository_update=new_update_1, text="hello", intent="greet"
-    #     )
-    #     RepositoryExample.objects.create(
-    #         repository_update=new_update_1, text="hello d1", intent="greet"
-    #     ).delete()
-    #     examples_1_count = new_update_1.examples.count()
-    #     new_update_1.start_training(self.owner)
-    #
-    #     new_update_2 = self.repository.current_version()
-    #     RepositoryExample.objects.create(
-    #         repository_update=new_update_2, text="hellow", intent="greet"
-    #     )
-    #     examples_2_count = new_update_2.examples.count()
-    #     new_update_2.start_training(self.owner)
-    #
-    #     new_update_3 = self.repository.current_version()
-    #     RepositoryExample.objects.create(
-    #         repository_update=new_update_3, text="hellow", intent="greet"
-    #     )
-    #     RepositoryExample.objects.create(
-    #         repository_update=new_update_3, text="hello d2", intent="greet"
-    #     ).delete()
-    #     RepositoryExample.objects.create(
-    #         repository_update=new_update_3, text="hello d3", intent="greet"
-    #     ).delete()
-    #     RepositoryExample.objects.create(
-    #         repository_update=new_update_3, text="hello d4", intent="greet"
-    #     ).delete()
-    #     examples_3_count = new_update_3.examples.count()
-    #     new_update_3.start_training(self.owner)
-    #
-    #     new_update_4 = self.repository.current_version()
-    #     RepositoryExample.objects.create(
-    #         repository_update=new_update_4, text="hellow", intent="greet"
-    #     )
-    #     examples_4_count = new_update_4.examples.count()
-    #     new_update_4.start_training(self.owner)
-    #
-    #     self.assertEqual(examples_1_count, new_update_1.examples.count())
-    #
-    #     self.assertEqual(examples_2_count, new_update_2.examples.count())
-    #
-    #     self.assertEqual(examples_3_count, new_update_3.examples.count())
-    #
-    #     self.assertEqual(examples_4_count, new_update_4.examples.count())
 
 
 class RepositoryReadyForTrain(TestCase):

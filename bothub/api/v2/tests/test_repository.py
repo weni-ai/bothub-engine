@@ -1277,7 +1277,7 @@ class RepositoryExampleDestroyTestCase(TestCase):
         self.example.delete()
 
         response = self.request(self.example, self.owner_token)
-        self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 
 class RepositoryExampleUpdateTestCase(TestCase):

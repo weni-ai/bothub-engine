@@ -492,8 +492,3 @@ class RepositoryExampleViewSet(
                 not_added.append(data)
 
         return Response({"added": count_added, "not_added": not_added})
-
-    def perform_destroy(self, obj):
-        if obj.deleted_in:
-            raise APIException(_("Example already deleted"))
-        obj.delete()
