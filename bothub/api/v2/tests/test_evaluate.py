@@ -57,11 +57,12 @@ class ListEvaluateTestCase(TestCase):
             intent="greet",
         )
 
-    def request(self, token):
+    def request(self, token, version=None):
         authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
         request = self.factory.get(
-            "/v2/evaluate/?repository_uuid={}".format(self.repository.uuid),
-            **authorization_header
+            f"/v2/evaluate/?repository_uuid={self.repository.uuid}"
+            + (f"&repository_version={version}" if version else ""),
+            **authorization_header,
         )
         response = EvaluateViewSet.as_view({"get": "list"})(
             request, repository_uuid=self.repository.uuid
@@ -75,6 +76,38 @@ class ListEvaluateTestCase(TestCase):
 
         self.assertEqual(content_data["count"], 1)
         self.assertEqual(len(content_data["results"]), 1)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_with_version(self):
+        repository_version = RepositoryVersion.objects.create(
+            repository=self.repository, name="new_test"
+        )
+
+        repository_version_language = RepositoryVersionLanguage.objects.create(
+            repository_version=repository_version,
+            language=languages.LANGUAGE_EN,
+            algorithm="statistical_model",
+        )
+
+        RepositoryExample.objects.create(
+            repository_version_language=repository_version_language,
+            text="test",
+            intent="greet",
+        )
+
+        RepositoryEvaluate.objects.create(
+            repository_version_language=repository_version_language,
+            text="test",
+            intent="greet",
+        )
+
+        response, content_data = self.request(self.owner_token, repository_version.pk)
+
+        self.assertEqual(content_data["count"], 1)
+        self.assertEqual(len(content_data["results"]), 1)
+        self.assertEqual(
+            content_data["results"][0].get("repository_version"), repository_version.pk
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 
@@ -114,7 +147,7 @@ class NewEvaluateTestCase(TestCase):
             "/v2/evaluate/?repository_uuid={}".format(self.repository.uuid),
             json.dumps(data),
             content_type="application/json",
-            **authorization_header
+            **authorization_header,
         )
         response = EvaluateViewSet.as_view({"post": "create"})(request)
         response.render()
@@ -178,6 +211,43 @@ class NewEvaluateTestCase(TestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
+    def test_with_version(self):
+        repository_version = RepositoryVersion.objects.create(
+            repository=self.repository, name="new_test"
+        )
+
+        repository_version_language = RepositoryVersionLanguage.objects.create(
+            repository_version=repository_version,
+            language=languages.LANGUAGE_EN,
+            algorithm="statistical_model",
+        )
+
+        RepositoryExample.objects.create(
+            repository_version_language=repository_version_language,
+            text="test",
+            intent="greet",
+        )
+
+        RepositoryEvaluate.objects.create(
+            repository_version_language=repository_version_language,
+            text="test",
+            intent="greet",
+        )
+
+        response, content_data = self.request(
+            {
+                "repository": str(self.repository.uuid),
+                "text": "haha",
+                "language": languages.LANGUAGE_EN,
+                "intent": "greet",
+                "entities": [],
+                "repository_version": repository_version.pk,
+            },
+            self.owner_token,
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(content_data.get("repository_version"), repository_version.pk)
+
 
 class EvaluateDestroyTestCase(TestCase):
     def setUp(self):
@@ -221,7 +291,7 @@ class EvaluateDestroyTestCase(TestCase):
             "/v2/evaluate/{}/?repository_uuid={}".format(
                 self.repository_evaluate.id, self.repository.uuid
             ),
-            **authorization_header
+            **authorization_header,
         )
         response = EvaluateViewSet.as_view({"delete": "destroy"})(
             request,
@@ -291,7 +361,7 @@ class EvaluateUpdateTestCase(TestCase):
             ),
             json.dumps(data),
             content_type="application/json",
-            **authorization_header
+            **authorization_header,
         )
         response = EvaluateViewSet.as_view({"patch": "update"})(
             request,
@@ -458,7 +528,7 @@ class ListEvaluateResultTestCase(TestCase):
         authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
         request = self.factory.get(
             "/v2/evaluate/results/?repository_uuid={}".format(self.repository.uuid),
-            **authorization_header
+            **authorization_header,
         )
         response = ResultsListViewSet.as_view({"get": "list"})(
             request, repository_uuid=self.repository.uuid
@@ -599,7 +669,7 @@ class ListEvaluateResultTestFilterCase(TestCase):
         authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
         request = self.factory.get(
             "/v2/evaluate/results/{}/{}".format(self.evaluate_result.id, params),
-            **authorization_header
+            **authorization_header,
         )
         response = ResultsListViewSet.as_view({"get": "retrieve"})(
             request, pk=self.evaluate_result.id, repository_uuid=self.repository.uuid
