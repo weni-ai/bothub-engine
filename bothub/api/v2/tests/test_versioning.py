@@ -62,6 +62,7 @@ class CloneRepositoryVersionAPITestCase(TestCase):
             {
                 "repository": str(self.repository.pk),
                 "id": self.repository.current_version().repository_version.pk,
+                "name": "test",
             },
             self.owner_token,
         )
@@ -201,7 +202,11 @@ class DefaultRepositoryVersionAPITestCase(TestCase):
         response, content_data = self.request(
             self.version,
             self.owner_token,
-            {"repository": str(self.repository.uuid), "id": self.version.pk},
+            {
+                "repository": str(self.repository.uuid),
+                "id": self.version.pk,
+                "name": "test",
+            },
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)

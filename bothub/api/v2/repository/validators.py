@@ -1,3 +1,5 @@
+import re
+
 from django.utils.translation import gettext as _
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied, APIException
@@ -24,6 +26,12 @@ class CanContributeInRepositoryTranslatedExampleValidator(object):
 
     def set_context(self, serializer):
         self.request = serializer.context.get("request")
+
+
+class CanUseNameVersionValidator(object):
+    def __call__(self, value):
+        if re.search("[^A-Za-z0-9]+", value):
+            raise ValidationError(_("Only letters and numbers allowed"))
 
 
 class CanContributeInRepositoryValidator(object):

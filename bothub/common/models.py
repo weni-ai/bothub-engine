@@ -476,9 +476,11 @@ class Repository(models.Model):
     def current_version(self, language=None, is_default=True):
         language = language or self.language
 
-        repository_version, created = self.versions.get_or_create(
-            name="", is_default=is_default
-        )
+        repository_version, created = self.versions.get_or_create(is_default=is_default)
+
+        if repository_version.created_by is None:
+            repository_version.created_by = repository_version.repository.owner
+            repository_version.save(update_fields=["created_by"])
 
         repository_version_language, created = RepositoryVersionLanguage.objects.get_or_create(
             repository_version=repository_version, language=language
@@ -522,13 +524,12 @@ class Repository(models.Model):
 class RepositoryVersion(models.Model):
     class Meta:
         verbose_name = _("repository version")
+        ordering = ["-is_default"]
 
-    name = models.CharField(max_length=40)
+    name = models.CharField(max_length=40, default="master")
     last_update = models.DateTimeField(_("last update"), auto_now_add=True)
     is_default = models.BooleanField(default=True)
-    repository = models.ForeignKey(
-        Repository, models.CASCADE, related_name="versions"
-    )  # updates related_name
+    repository = models.ForeignKey(Repository, models.CASCADE, related_name="versions")
     created_by = models.ForeignKey(User, models.CASCADE, blank=True, null=True)
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
 

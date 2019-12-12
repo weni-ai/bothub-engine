@@ -1,5 +1,10 @@
 from rest_framework import serializers
+from rest_framework.generics import get_object_or_404
 
+from bothub.api.v2.repository.validators import (
+    CanContributeInRepositoryValidator,
+    CanUseNameVersionValidator,
+)
 from bothub.common.models import (
     RepositoryVersion,
     RepositoryExample,
@@ -16,15 +21,21 @@ from bothub.common.models import (
 class RepositoryVersionSeralizer(serializers.ModelSerializer):
     class Meta:
         model = RepositoryVersion
-        fields = ["id", "repository", "is_default", "created_at"]
+        fields = ["id", "repository", "name", "is_default", "created_at"]
         ref_name = None
 
-        read_only = ["is_default", "repository"]
+        read_only = ["is_default"]
 
     is_default = serializers.BooleanField(default=True, read_only=True, required=False)
     id = serializers.IntegerField()
+    name = serializers.CharField(
+        max_length=40, required=True, validators=[CanUseNameVersionValidator()]
+    )
     repository = serializers.PrimaryKeyRelatedField(
-        queryset=Repository.objects, style={"show": False}, required=False
+        queryset=Repository.objects,
+        validators=[CanContributeInRepositoryValidator()],
+        write_only=True,
+        style={"show": False},
     )
 
     def update(self, instance, validated_data):
@@ -37,10 +48,12 @@ class RepositoryVersionSeralizer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         id_clone = validated_data.pop("id")
-        clone = RepositoryVersion.objects.get(pk=id_clone)
+        repository = validated_data.get("repository")
+        name = validated_data.get("name")
+        clone = get_object_or_404(RepositoryVersion, pk=id_clone, repository=repository)
 
         instance = self.Meta.model(
-            name=clone.name,
+            name=name,
             last_update=clone.last_update,
             is_default=False,
             repository=clone.repository,

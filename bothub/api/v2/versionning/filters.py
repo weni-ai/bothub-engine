@@ -1,7 +1,7 @@
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.utils.translation import gettext as _
 from django_filters import rest_framework as filters
-from rest_framework.exceptions import NotFound
+from rest_framework.exceptions import NotFound, PermissionDenied
 
 from bothub.common.models import Repository, RepositoryVersion
 
@@ -19,8 +19,12 @@ class VersioningFilter(filters.FilterSet):
     )
 
     def filter_repository_uuid(self, queryset, name, value):
+        request = self.request
         try:
             repository = Repository.objects.get(uuid=value)
+            authorization = repository.get_user_authorization(request.user)
+            if not authorization.can_read:
+                raise PermissionDenied()
             return RepositoryVersion.objects.filter(repository=repository)
         except Repository.DoesNotExist:
             raise NotFound(_("Repository {} does not exist").format(value))
