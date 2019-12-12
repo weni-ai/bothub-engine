@@ -4,16 +4,11 @@ from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied
 
 from bothub.api.v2.example.serializers import RepositoryExampleEntitySerializer
-from bothub.api.v2.fields import EntityText
+from bothub.api.v2.fields import EntityText, RepositoryVersionRelatedField
 from bothub.api.v2.fields import ModelMultipleChoiceField
 from bothub.api.v2.fields import TextField
-from .validators import CanContributeInRepositoryExampleValidator
-from .validators import CanContributeInRepositoryVersionValidator
-from .validators import APIExceptionCustom
-from .validators import CanContributeInRepositoryValidator
-from .validators import ExampleWithIntentOrEntityValidator
-from .validators import CanContributeInRepositoryTranslatedExampleValidator
 from bothub.common import languages
+from bothub.common.languages import LANGUAGE_CHOICES
 from bothub.common.models import Repository, RepositoryVersion
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryCategory
@@ -21,11 +16,14 @@ from bothub.common.models import RepositoryEntityLabel
 from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryTranslatedExample
 from bothub.common.models import RepositoryTranslatedExampleEntity
-
-# from bothub.common.models import RepositoryUpdate
 from bothub.common.models import RepositoryVote
 from bothub.common.models import RequestRepositoryAuthorization
-from bothub.common.languages import LANGUAGE_CHOICES
+from .validators import APIExceptionCustom
+from .validators import CanContributeInRepositoryExampleValidator
+from .validators import CanContributeInRepositoryTranslatedExampleValidator
+from .validators import CanContributeInRepositoryValidator
+from .validators import CanContributeInRepositoryVersionValidator
+from .validators import ExampleWithIntentOrEntityValidator
 
 
 class RequestRepositoryAuthorizationSerializer(serializers.ModelSerializer):
@@ -491,7 +489,7 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
             "created_at",
             "entities",
             "translations",
-            "repository_version_language",
+            "repository_version",
         ]
         read_only_fields = ["deleted_in"]
         ref_name = None
@@ -512,7 +510,8 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
         many=True, style={"text_field": "text"}, required=False
     )
     translations = RepositoryTranslatedExampleSerializer(many=True, read_only=True)
-    repository_version_language = serializers.PrimaryKeyRelatedField(
+    repository_version = RepositoryVersionRelatedField(
+        source="repository_version_language",
         queryset=RepositoryVersion.objects,
         style={"show": False},
         required=False,

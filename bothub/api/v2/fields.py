@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from bothub.common.models import RepositoryEntity
+from bothub.common.models import RepositoryEntity, RepositoryVersionLanguage
 from bothub.common.models import RepositoryEntityLabel
 
 
@@ -56,3 +56,11 @@ class LabelValueField(serializers.CharField):  # pragma: no cover
 
     def to_representation(self, obj):
         return obj.value  # pragma: no cover
+
+
+class RepositoryVersionRelatedField(serializers.PrimaryKeyRelatedField):
+    def to_representation(self, value):
+        version = RepositoryVersionLanguage.objects.get(
+            pk=int(value.pk)
+        ).repository_version.pk
+        return version

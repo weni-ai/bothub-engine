@@ -2,34 +2,32 @@ import json
 import uuid
 
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import TestCase
 from django.test import RequestFactory
+from django.test import TestCase
 from django.test.client import MULTIPART_CONTENT
 from rest_framework import status
 
-from bothub.common.models import RepositoryCategory, RepositoryVersionLanguage
-from bothub.common.models import RepositoryVote
-from bothub.common.models import RepositoryAuthorization
-from bothub.common.models import Repository
-from bothub.common.models import RequestRepositoryAuthorization
-from bothub.common.models import RepositoryExample
-from bothub.common.models import RepositoryTranslatedExample
-from bothub.common.models import RepositoryExampleEntity
-from bothub.common import languages
-
-from bothub.api.v2.tests.utils import create_user_and_token
-
-from bothub.api.v2.repository.views import RepositoryViewSet
+from bothub.api.v2.repository.serializers import RepositorySerializer
 from bothub.api.v2.repository.views import RepositoriesContributionsViewSet
 from bothub.api.v2.repository.views import RepositoriesViewSet
-from bothub.api.v2.repository.views import RepositoryVotesViewSet
-from bothub.api.v2.repository.views import RepositoryCategoriesView
-from bothub.api.v2.repository.views import SearchRepositoriesViewSet
-from bothub.api.v2.repository.views import RepositoryAuthorizationViewSet
 from bothub.api.v2.repository.views import RepositoryAuthorizationRequestsViewSet
+from bothub.api.v2.repository.views import RepositoryAuthorizationViewSet
+from bothub.api.v2.repository.views import RepositoryCategoriesView
 from bothub.api.v2.repository.views import RepositoryExampleViewSet
 from bothub.api.v2.repository.views import RepositoryUpdatesViewSet
-from bothub.api.v2.repository.serializers import RepositorySerializer
+from bothub.api.v2.repository.views import RepositoryViewSet
+from bothub.api.v2.repository.views import RepositoryVotesViewSet
+from bothub.api.v2.repository.views import SearchRepositoriesViewSet
+from bothub.api.v2.tests.utils import create_user_and_token
+from bothub.common import languages
+from bothub.common.models import Repository
+from bothub.common.models import RepositoryAuthorization
+from bothub.common.models import RepositoryCategory
+from bothub.common.models import RepositoryExample
+from bothub.common.models import RepositoryExampleEntity
+from bothub.common.models import RepositoryTranslatedExample
+from bothub.common.models import RepositoryVote
+from bothub.common.models import RequestRepositoryAuthorization
 
 
 def get_valid_mockups(categories):
@@ -1411,11 +1409,7 @@ class NewRepositoryExampleTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(content_data.get("text"), text)
         self.assertEqual(content_data.get("intent"), intent)
-        repository_version_language_pk = content_data.get("repository_version_language")
-        repository_version_language = RepositoryVersionLanguage.objects.get(
-            pk=repository_version_language_pk
-        )
-        self.assertEqual(repository_version_language.language, language)
+        self.assertEqual(content_data.get("language"), language)
 
     def test_forbidden(self):
         response, content_data = self.request(

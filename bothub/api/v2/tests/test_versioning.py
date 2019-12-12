@@ -114,7 +114,7 @@ class ListRepositoryVersionAPITestCase(TestCase):
         )
 
         request = self.factory.get(
-            f"/v2/repository/version/", data, **authorization_header
+            "/v2/repository/version/", data, **authorization_header
         )
 
         response = RepositoryVersionViewSet.as_view({"get": "list"})(request)
@@ -128,6 +128,13 @@ class ListRepositoryVersionAPITestCase(TestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_repository_no_exist(self):
+        response, content_data = self.request(
+            {"repository": "00000000-0000-0000-0000-000000000000"}, self.owner_token
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 
 class DefaultRepositoryVersionAPITestCase(TestCase):
