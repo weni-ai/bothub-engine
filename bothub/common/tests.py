@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.test import TestCase
+from django.utils import timezone
 
 from bothub.authentication.models import User
 from . import languages
@@ -17,7 +18,7 @@ from .models import RepositoryTranslatedExampleEntity
 from .models import RequestRepositoryAuthorization
 
 
-class RepositoryUpdateTestCase(TestCase):
+class RepositoryVersionTestCase(TestCase):
     def setUp(self):
         owner = User.objects.create_user("fake@user.com", "user", "123456")
         self.repository = Repository.objects.create(owner=owner, slug="test")
@@ -32,12 +33,12 @@ class RepositoryUpdateTestCase(TestCase):
     def test_repository_example_entity(self):
         self.assertEqual(self.entity.value, "User")
 
-    # def test_repository_current_update(self):
-    #     update1 = self.repository.current_version("en")
-    #     self.assertEqual(update1, self.repository.current_version("en"))
-    #     update1.training_started_at = timezone.now()
-    #     update1.save()
-    #     self.assertNotEqual(update1, self.repository.current_version("en"))
+    def test_repository_current_version(self):
+        update1 = self.repository.current_version("en")
+        self.assertEqual(update1, self.repository.current_version("en"))
+        update1.training_started_at = timezone.now()
+        update1.save()
+        self.assertEqual(update1, self.repository.current_version("en"))
 
 
 class TranslateTestCase(TestCase):
@@ -439,7 +440,7 @@ class RepositoryAuthorizationTestCase(TestCase):
         self.assertTrue(authorization_user.can_contribute)
 
 
-class RepositoryUpdateTrainingTestCase(TestCase):
+class RepositoryVersionTrainingTestCase(TestCase):
     def setUp(self):
         self.owner = User.objects.create_user("owner@user.com", "user")
 
@@ -456,23 +457,6 @@ class RepositoryUpdateTrainingTestCase(TestCase):
         update.save_training(bot_data)
         self.assertEqual(update.get_bot_data(), bot_data)
 
-    # def test_already_started_trained(self):
-    #     update = self.repository.current_version()
-    #     update.start_training(self.owner)
-    #     with self.assertRaises(RepositoryUpdateAlreadyStartedTraining):
-    #         update.start_training(self.owner)
-
-    # def test_already_trained(self):
-    #     update = self.repository.current_version()
-    #     update.start_training(self.owner)
-    #     update.save_training(b"")
-    #
-    #     with self.assertRaises(RepositoryUpdateAlreadyTrained):
-    #         update.start_training(self.owner)
-    #
-    #     with self.assertRaises(RepositoryUpdateAlreadyTrained):
-    #         update.save_training(self.owner)
-
     def test_training_not_allowed(self):
         user = User.objects.create_user("fake@user.com", "fake")
 
@@ -481,7 +465,7 @@ class RepositoryUpdateTrainingTestCase(TestCase):
             update.start_training(user)
 
 
-class RepositoryUpdateExamplesTestCase(TestCase):
+class RepositoryVersionExamplesTestCase(TestCase):
     def setUp(self):
         self.owner = User.objects.create_user("owner@user.com", "user")
 
@@ -489,36 +473,42 @@ class RepositoryUpdateExamplesTestCase(TestCase):
             owner=self.owner, name="Test", slug="test", language=languages.LANGUAGE_EN
         )
         RepositoryExample.objects.create(
-            repository_update=self.repository.current_version(),
+            repository_version_language=self.repository.current_version(),
             text="hi",
             intent="greet",
         )
         example = RepositoryExample.objects.create(
-            repository_update=self.repository.current_version(),
+            repository_version_language=self.repository.current_version(),
             text="hello1",
             intent="greet",
         )
         example.delete()
+        print(example.deleted_in)
 
         self.update = self.repository.current_version()
         self.update.start_training(self.owner)
         self.update.save_training(b"")
 
-    # def test_okay(self):
-    #     new_update_1 = self.repository.current_version()
-    #     RepositoryExample.objects.create(
-    #         repository_update=new_update_1, text="hello", intent="greet"
-    #     )
-    #     new_update_1.start_training(self.owner)
-    #
-    #     new_update_2 = self.repository.current_version()
-    #     RepositoryExample.objects.create(
-    #         repository_update=new_update_2, text="good morning", intent="greet"
-    #     )
-    #
-    #     self.assertEqual(self.update.examples.count(), 1)
-    #     self.assertEqual(new_update_1.examples.count(), 2)
-    #     self.assertEqual(new_update_2.examples.count(), 3)
+    def test_okay(self):
+        new_update_1 = self.repository.current_version()
+        RepositoryExample.objects.create(
+            repository_version_language=new_update_1, text="hello", intent="greet"
+        )
+        new_update_1.start_training(self.owner)
+
+        new_update_2 = self.repository.current_version()
+        RepositoryExample.objects.create(
+            repository_version_language=new_update_2, text="good morning", intent="greet"
+        )
+
+        print(self.update.examples)
+
+        for t in self.update.examples:
+            print(t.deleted_in)
+
+        self.assertEqual(self.update.examples.count(), 1)
+        self.assertEqual(new_update_1.examples.count(), 2)
+        self.assertEqual(new_update_2.examples.count(), 3)
 
     # def test_examples_deleted_consistency(self):
     #     new_update_1 = self.repository.current_version()

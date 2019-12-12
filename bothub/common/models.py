@@ -478,10 +478,6 @@ class Repository(models.Model):
 
         repository_version, created = self.versions.get_or_create(is_default=is_default)
 
-        if repository_version.created_by is None:
-            repository_version.created_by = repository_version.repository.owner
-            repository_version.save(update_fields=["created_by"])
-
         repository_version_language, created = RepositoryVersionLanguage.objects.get_or_create(
             repository_version=repository_version, language=language
         )
@@ -568,10 +564,13 @@ class RepositoryVersionLanguage(models.Model):
     )
     repository_version = models.ForeignKey(
         RepositoryVersion, models.CASCADE
-    )  # updates related_name
+    )
     training_log = models.TextField(_("training log"), blank=True, editable=False)
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
-    last_update = models.DateTimeField(_("last update"), auto_now_add=True)
+    last_update = models.DateTimeField(
+        _("last update"),
+        null=True
+    )
     total_training_end = models.IntegerField(
         _("total training end"), default=0, blank=False, null=False
     )
@@ -731,10 +730,6 @@ class RepositoryVersionLanguage(models.Model):
         return "Repository Version Language #{}".format(self.id)  # pragma: no cover
 
     def validate_init_train(self, by=None):
-        # if self.trained_at:
-        #     raise RepositoryUpdateAlreadyTrained()
-        # if self.training_started_at:
-        #     raise RepositoryUpdateAlreadyStartedTraining()
         if by:
             authorization = self.repository_version.repository.get_user_authorization(
                 by
@@ -764,13 +759,13 @@ class RepositoryVersionLanguage(models.Model):
         self.repository_version.save(update_fields=["created_by"])
 
     def save_training(self, bot_data):
-        # if self.trained_at:
-        #     raise RepositoryUpdateAlreadyTrained()
+        last_time = timezone.now()
 
-        self.training_end_at = timezone.now()
+        self.training_end_at = last_time
+        self.last_update = last_time
         self.bot_data = bot_data
         self.total_training_end += 1
-        self.save(update_fields=["total_training_end", "training_end_at", "bot_data"])
+        self.save(update_fields=["total_training_end", "training_end_at", "bot_data", "last_update"])
 
     def get_bot_data(self):
         return self.bot_data
@@ -811,6 +806,8 @@ class RepositoryExample(models.Model):
         self.last_update = timezone.now()
         self.repository_version_language.last_update = timezone.now()
         self.repository_version_language.save(update_fields=["last_update"])
+        print(args)
+        print(kwargs)
         super(RepositoryExample, self).save(*args, **kwargs)
 
     @property
@@ -838,11 +835,16 @@ class RepositoryExample(models.Model):
             return self.entities.all()
         return self.get_translation(language).entities.all()
 
-    def delete(self):
-        self.deleted_in = self.repository_version_language.repository_version.repository.current_version(
-            self.repository_version_language.language
-        )
-        self.save(update_fields=["deleted_in"])
+    # def delete(self):
+    #     print('entrou aqui')
+    #     print(self.repository_version_language.repository_version.repository.current_version(
+    #         self.repository_version_language.language
+    #     ))
+    #     self.deleted_in = self.repository_version_language.repository_version.repository.current_version(
+    #         self.repository_version_language.language
+    #     )
+    #     print(self.deleted_in)
+    #     self.save(update_fields=["deleted_in"])
 
 
 class RepositoryTranslatedExampleManager(models.Manager):
