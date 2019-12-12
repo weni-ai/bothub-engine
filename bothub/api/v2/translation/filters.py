@@ -29,10 +29,10 @@ class TranslationsFilter(filters.FilterSet):
         method="filter_to_language",
         help_text="Filter by translated language",
     )
-    repository_version_language = filters.CharFilter(
+    repository_version = filters.CharFilter(
         field_name="repository_version_language",
-        method="filter_repository_version_language",
-        help_text="Filter by repository update version",
+        method="filter_repository_version",
+        help_text=_("Filter for examples with version id."),
     )
 
     def filter_repository_uuid(self, queryset, name, value):
@@ -42,7 +42,7 @@ class TranslationsFilter(filters.FilterSet):
             authorization = repository.get_user_authorization(request.user)
             if not authorization.can_read:
                 raise PermissionDenied()
-            if request.query_params.get("repository_version_language"):
+            if request.query_params.get("repository_version"):
                 return RepositoryTranslatedExample.objects.filter(
                     original_example__repository_version_language__repository_version__repository=repository
                 )
@@ -63,7 +63,7 @@ class TranslationsFilter(filters.FilterSet):
     def filter_to_language(self, queryset, name, value):
         return queryset.filter(language=value)
 
-    def filter_repository_version_language(self, queryset, name, value):
+    def filter_repository_version(self, queryset, name, value):
         return queryset.filter(
             repository_version_language__repository_version__pk=value
         )

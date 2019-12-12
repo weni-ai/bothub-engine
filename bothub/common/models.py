@@ -424,9 +424,13 @@ class Repository(models.Model):
             return query.exclude(deleted_in__isnull=False)
         return query  # pragma: no cover
 
-    def evaluations_results(self, queryset=None):
+    def evaluations_results(self, queryset=None, version_default=True):
         if queryset is None:
             queryset = RepositoryEvaluateResult.objects
+        if version_default:
+            queryset = queryset.filter(
+                repository_version_language__repository_version__is_default=True
+            )
         query = queryset.filter(
             repository_version_language__repository_version__repository=self
         )
