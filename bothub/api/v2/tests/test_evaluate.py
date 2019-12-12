@@ -57,11 +57,12 @@ class ListEvaluateTestCase(TestCase):
             intent="greet",
         )
 
-    def request(self, token, version=None):
+    def request(self, token, version=None, language=None):
         authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
         request = self.factory.get(
             f"/v2/evaluate/?repository_uuid={self.repository.uuid}"
-            + (f"&repository_version={version}" if version else ""),
+            + (f"&repository_version={version}" if version else "")
+            + (f"&language={language}" if language else ""),
             **authorization_header,
         )
         response = EvaluateViewSet.as_view({"get": "list"})(
@@ -76,6 +77,41 @@ class ListEvaluateTestCase(TestCase):
 
         self.assertEqual(content_data["count"], 1)
         self.assertEqual(len(content_data["results"]), 1)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_okay_language(self):
+        repository_version_language = RepositoryVersionLanguage.objects.create(
+            repository_version=self.repository_version,
+            language=languages.LANGUAGE_PT,
+            algorithm="statistical_model",
+        )
+
+        RepositoryExample.objects.create(
+            repository_version_language=repository_version_language,
+            text="test",
+            intent="greet",
+        )
+
+        RepositoryEvaluate.objects.create(
+            repository_version_language=repository_version_language,
+            text="test",
+            intent="greet",
+        )
+
+        RepositoryEvaluate.objects.create(
+            repository_version_language=repository_version_language,
+            text="test2",
+            intent="greet",
+        )
+        response, content_data = self.request(
+            self.owner_token, language=languages.LANGUAGE_PT
+        )
+
+        self.assertEqual(content_data["count"], 2)
+        self.assertEqual(len(content_data["results"]), 2)
+        self.assertEqual(
+            content_data["results"][0].get("language"), languages.LANGUAGE_PT
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_with_version(self):
