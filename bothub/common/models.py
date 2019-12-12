@@ -63,7 +63,7 @@ class RepositoryQuerySet(models.QuerySet):
         )
 
     def supported_language(self, language):
-        valid_examples = RepositoryExample.objects.filter(deleted_in__isnull=True)
+        valid_examples = RepositoryExample.objects.all()
         valid_updates = RepositoryVersionLanguage.objects.filter(
             added__in=valid_examples
         )
@@ -402,8 +402,6 @@ class Repository(models.Model):
             )
         if language:
             query = query.filter(repository_version_language__language=language)
-        if exclude_deleted:
-            return query.exclude(deleted_in__isnull=False)
         return query
 
     def evaluations(
@@ -420,8 +418,6 @@ class Repository(models.Model):
             )
         if language:
             query = query.filter(repository_version_language__language=language)
-        if exclude_deleted:
-            return query.exclude(deleted_in__isnull=False)
         return query  # pragma: no cover
 
     def evaluations_results(self, queryset=None, version_default=True):
@@ -477,10 +473,6 @@ class Repository(models.Model):
         language = language or self.language
 
         repository_version, created = self.versions.get_or_create(is_default=is_default)
-
-        if repository_version.created_by is None:
-            repository_version.created_by = repository_version.repository.owner
-            repository_version.save(update_fields=["created_by"])
 
         repository_version_language, created = RepositoryVersionLanguage.objects.get_or_create(
             repository_version=repository_version, language=language
@@ -566,12 +558,10 @@ class RepositoryVersionLanguage(models.Model):
         choices=Repository.ALGORITHM_CHOICES,
         default=Repository.ALGORITHM_STATISTICAL_MODEL,
     )
-    repository_version = models.ForeignKey(
-        RepositoryVersion, models.CASCADE
-    )  # updates related_name
+    repository_version = models.ForeignKey(RepositoryVersion, models.CASCADE)
     training_log = models.TextField(_("training log"), blank=True, editable=False)
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
-    last_update = models.DateTimeField(_("last update"), auto_now_add=True)
+    last_update = models.DateTimeField(_("last update"), null=True)
     total_training_end = models.IntegerField(
         _("total training end"), default=0, blank=False, null=False
     )
@@ -585,15 +575,7 @@ class RepositoryVersionLanguage(models.Model):
             | models.Q(translations__language=self.language)
         )
         if self.training_end_at and (self.training_end_at >= self.last_update):
-            t_started_at = self.training_started_at
-            examples = examples.exclude(
-                models.Q(last_update__lte=self.training_end_at)
-                | models.Q(deleted_in=self)
-                | models.Q(deleted_in__training_started_at__lt=t_started_at)
-            )
-
-        else:
-            examples = examples.exclude(deleted_in__isnull=False)
+            examples = examples.exclude(models.Q(last_update__lte=self.training_end_at))
         return examples.distinct()
 
     @property
@@ -695,11 +677,7 @@ class RepositoryVersionLanguage(models.Model):
             if previous_update.failed_at:
                 return True
 
-        if (
-            not self.added.exists()
-            and not self.translated_added.exists()
-            and not self.deleted.exists()
-        ):
+        if not self.added.exists() and not self.translated_added.exists():
             return False
 
         if self.examples.count() == 0:
@@ -731,10 +709,6 @@ class RepositoryVersionLanguage(models.Model):
         return "Repository Version Language #{}".format(self.id)  # pragma: no cover
 
     def validate_init_train(self, by=None):
-        # if self.trained_at:
-        #     raise RepositoryUpdateAlreadyTrained()
-        # if self.training_started_at:
-        #     raise RepositoryUpdateAlreadyStartedTraining()
         if by:
             authorization = self.repository_version.repository.get_user_authorization(
                 by
@@ -764,13 +738,20 @@ class RepositoryVersionLanguage(models.Model):
         self.repository_version.save(update_fields=["created_by"])
 
     def save_training(self, bot_data):
-        # if self.trained_at:
-        #     raise RepositoryUpdateAlreadyTrained()
+        last_time = timezone.now()
 
-        self.training_end_at = timezone.now()
+        self.training_end_at = last_time
+        self.last_update = last_time
         self.bot_data = bot_data
         self.total_training_end += 1
-        self.save(update_fields=["total_training_end", "training_end_at", "bot_data"])
+        self.save(
+            update_fields=[
+                "total_training_end",
+                "training_end_at",
+                "bot_data",
+                "last_update",
+            ]
+        )
 
     def get_bot_data(self):
         return self.bot_data
@@ -788,13 +769,6 @@ class RepositoryExample(models.Model):
 
     repository_version_language = models.ForeignKey(
         RepositoryVersionLanguage, models.CASCADE, related_name="added", editable=False
-    )
-    deleted_in = models.ForeignKey(
-        RepositoryVersionLanguage,
-        models.CASCADE,
-        related_name="deleted",
-        blank=True,
-        null=True,
     )
     text = models.TextField(_("text"), help_text=_("Example text"))
     intent = models.CharField(
@@ -838,11 +812,10 @@ class RepositoryExample(models.Model):
             return self.entities.all()
         return self.get_translation(language).entities.all()
 
-    def delete(self):
-        self.deleted_in = self.repository_version_language.repository_version.repository.current_version(
-            self.repository_version_language.language
-        )
-        self.save(update_fields=["deleted_in"])
+    def delete(self, using=None, keep_parents=False):
+        self.repository_version_language.last_update = timezone.now()
+        self.repository_version_language.save(update_fields=["last_update"])
+        return super().delete(using, keep_parents)
 
 
 class RepositoryTranslatedExampleManager(models.Manager):

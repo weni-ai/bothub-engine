@@ -8,8 +8,6 @@ from bothub.common.models import Repository
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RequestRepositoryAuthorization
 
-# from bothub.common.models import RepositoryUpdate
-
 
 class RepositoriesFilter(filters.FilterSet):
     class Meta:

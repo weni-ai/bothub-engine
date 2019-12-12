@@ -18,6 +18,7 @@ from bothub.api.v2.repository.views import RepositoryViewSet
 from bothub.api.v2.repository.views import RepositoryVotesViewSet
 from bothub.api.v2.repository.views import SearchRepositoriesViewSet
 from bothub.api.v2.tests.utils import create_user_and_token
+from bothub.api.v2.versionning.views import RepositoryVersionViewSet
 from bothub.common import languages
 from bothub.common.models import Repository
 from bothub.common.models import RepositoryAuthorization
@@ -1276,7 +1277,7 @@ class RepositoryExampleDestroyTestCase(TestCase):
         self.example.delete()
 
         response = self.request(self.example, self.owner_token)
-        self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 
 class RepositoryExampleUpdateTestCase(TestCase):
@@ -1781,3 +1782,56 @@ class AnalyzeRepositoryTestCase(TestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("text", content_data.keys())
+
+
+class VersionsTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.owner, self.owner_token = create_user_and_token("owner")
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name="Testing",
+            slug="test",
+            language=languages.LANGUAGE_EN,
+        )
+        current_version = self.repository.current_version()
+        RepositoryExample.objects.create(
+            repository_version_language=current_version,
+            text="my name is Douglas",
+            intent="greet",
+        )
+        RepositoryExample.objects.create(
+            repository_version_language=current_version,
+            text="my name is John",
+            intent="greet",
+        )
+        current_version.start_training(self.owner)
+
+    def request(self, data, token=None):
+        authorization_header = (
+            {"HTTP_AUTHORIZATION": "Token {}".format(token.key)} if token else {}
+        )
+        request = self.factory.get(
+            "/v2/repository/version/", data, **authorization_header
+        )
+        response = RepositoryVersionViewSet.as_view({"get": "list"})(request)
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data)
+
+    def test_okay(self):
+        response, content_data = self.request(
+            {"repository": str(self.repository.uuid)}, self.owner_token
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(content_data.get("count"), 1)
+
+    def test_not_authenticated(self):
+        response, content_data = self.request({"repository": str(self.repository.uuid)})
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_without_repository(self):
+        response, content_data = self.request({}, self.owner_token)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

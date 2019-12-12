@@ -84,23 +84,13 @@ class RepositoryVersionSeralizer(serializers.ModelSerializer):
             )
 
             for example in examples:
-                if example.deleted_in:
-                    example_id = RepositoryExample.objects.create(
-                        repository_version_language=version_language,
-                        deleted_in=instance,
-                        text=example.text,
-                        intent=example.intent,
-                        created_at=example.created_at,
-                        last_update=example.last_update,
-                    )
-                else:
-                    example_id = RepositoryExample.objects.create(
-                        repository_version_language=version_language,
-                        text=example.text,
-                        intent=example.intent,
-                        created_at=example.created_at,
-                        last_update=example.last_update,
-                    )
+                example_id = RepositoryExample.objects.create(
+                    repository_version_language=version_language,
+                    text=example.text,
+                    intent=example.intent,
+                    created_at=example.created_at,
+                    last_update=example.last_update,
+                )
 
                 example_entites = RepositoryExampleEntity.objects.filter(
                     repository_example=example

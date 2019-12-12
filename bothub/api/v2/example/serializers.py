@@ -64,7 +64,6 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "repository_version",
-            "deleted_in",
             "text",
             "intent",
             "language",
@@ -72,7 +71,7 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
             "entities",
             "translations",
         ]
-        read_only_fields = ["deleted_in", "translations"]
+        read_only_fields = ["translations"]
         ref_name = None
 
     entities = RepositoryExampleEntitySerializer(many=True, read_only=True)
