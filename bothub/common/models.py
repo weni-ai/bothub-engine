@@ -558,15 +558,10 @@ class RepositoryVersionLanguage(models.Model):
         choices=Repository.ALGORITHM_CHOICES,
         default=Repository.ALGORITHM_STATISTICAL_MODEL,
     )
-    repository_version = models.ForeignKey(
-        RepositoryVersion, models.CASCADE
-    )
+    repository_version = models.ForeignKey(RepositoryVersion, models.CASCADE)
     training_log = models.TextField(_("training log"), blank=True, editable=False)
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
-    last_update = models.DateTimeField(
-        _("last update"),
-        null=True
-    )
+    last_update = models.DateTimeField(_("last update"), null=True)
     total_training_end = models.IntegerField(
         _("total training end"), default=0, blank=False, null=False
     )
@@ -580,10 +575,7 @@ class RepositoryVersionLanguage(models.Model):
             | models.Q(translations__language=self.language)
         )
         if self.training_end_at and (self.training_end_at >= self.last_update):
-            t_started_at = self.training_started_at
-            examples = examples.exclude(
-                models.Q(last_update__lte=self.training_end_at)
-            )
+            examples = examples.exclude(models.Q(last_update__lte=self.training_end_at))
         return examples.distinct()
 
     @property
@@ -685,10 +677,7 @@ class RepositoryVersionLanguage(models.Model):
             if previous_update.failed_at:
                 return True
 
-        if (
-            not self.added.exists()
-            and not self.translated_added.exists()
-        ):
+        if not self.added.exists() and not self.translated_added.exists():
             return False
 
         if self.examples.count() == 0:
@@ -755,7 +744,14 @@ class RepositoryVersionLanguage(models.Model):
         self.last_update = last_time
         self.bot_data = bot_data
         self.total_training_end += 1
-        self.save(update_fields=["total_training_end", "training_end_at", "bot_data", "last_update"])
+        self.save(
+            update_fields=[
+                "total_training_end",
+                "training_end_at",
+                "bot_data",
+                "last_update",
+            ]
+        )
 
     def get_bot_data(self):
         return self.bot_data
@@ -818,7 +814,7 @@ class RepositoryExample(models.Model):
 
     def delete(self, using=None, keep_parents=False):
         self.repository_version_language.last_update = timezone.now()
-        self.repository_version_language.save(update_fields=['last_update'])
+        self.repository_version_language.save(update_fields=["last_update"])
         return super().delete(using, keep_parents)
 
 

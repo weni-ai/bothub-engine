@@ -12,8 +12,6 @@ def delete_examples_already_deleted(apps, schema_editor):  # pragma: no cover
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('common', '0040_initial'),
-    ]
+    dependencies = [("common", "0040_initial")]
 
     operations = [migrations.RunPython(delete_examples_already_deleted, noop)]

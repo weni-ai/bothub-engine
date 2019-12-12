@@ -1829,9 +1829,7 @@ class VersionsTestCase(TestCase):
         self.assertEqual(content_data.get("count"), 1)
 
     def test_not_authenticated(self):
-        response, content_data = self.request(
-            {"repository": str(self.repository.uuid)}
-        )
+        response, content_data = self.request({"repository": str(self.repository.uuid)})
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_without_repository(self):

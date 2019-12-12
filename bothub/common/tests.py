@@ -493,7 +493,9 @@ class RepositoryVersionExamplesTestCase(TestCase):
 
         new_update_2 = self.repository.current_version()
         RepositoryExample.objects.create(
-            repository_version_language=new_update_2, text="good morning", intent="greet"
+            repository_version_language=new_update_2,
+            text="good morning",
+            intent="greet",
         )
         self.assertEqual(self.update.examples.count(), 2)
         self.assertEqual(new_update_1.examples.count(), 3)
