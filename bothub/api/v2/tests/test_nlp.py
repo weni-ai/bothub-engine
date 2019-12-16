@@ -53,7 +53,7 @@ class TrainStartTrainingTestCase(TestCase):
             "/v2/repository/nlp/authorization/train/start_training/",
             json.dumps(
                 {
-                    "update_id": self.repository_version_language.pk,
+                    "repository_version": self.repository_version_language.pk,
                     "by_user": self.user.pk,
                 }
             ),
@@ -108,7 +108,7 @@ class TrainFailTestCase(TestCase):
         authorization_header = {"HTTP_AUTHORIZATION": "Bearer {}".format(token)}
         request = self.factory.post(
             "/v2/repository/nlp/authorization/train/train_fail/",
-            json.dumps({"update_id": self.repository_version_language.pk}),
+            json.dumps({"repository_version": self.repository_version_language.pk}),
             content_type="application/json",
             **authorization_header
         )
