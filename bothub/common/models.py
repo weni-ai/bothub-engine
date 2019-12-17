@@ -218,7 +218,6 @@ class Repository(models.Model):
 
     def request_nlp_train(self, user_authorization, data):
         try:  # pragma: no cover
-            print(data.get("repository_version"))
             if data.get("repository_version"):
                 r = requests.post(  # pragma: no cover
                     "{}train/".format(
@@ -777,7 +776,11 @@ class RepositoryExample(models.Model):
         ordering = ["-created_at"]
 
     repository_version_language = models.ForeignKey(
-        RepositoryVersionLanguage, models.CASCADE, related_name="added", editable=False
+        RepositoryVersionLanguage,
+        models.CASCADE,
+        related_name="added",
+        editable=False,
+        null=True,
     )
     text = models.TextField(_("text"), help_text=_("Example text"))
     intent = models.CharField(
@@ -864,6 +867,7 @@ class RepositoryTranslatedExample(models.Model):
         models.CASCADE,
         related_name="translated_added",
         editable=False,
+        null=True,
     )
     original_example = models.ForeignKey(
         RepositoryExample,
@@ -1321,6 +1325,7 @@ class RepositoryEvaluate(models.Model):
         models.CASCADE,
         related_name="added_evaluate",
         editable=False,
+        null=True,
     )
     deleted_in = models.ForeignKey(
         RepositoryVersionLanguage,
@@ -1409,6 +1414,7 @@ class RepositoryEvaluateResult(models.Model):
         models.CASCADE,
         editable=False,
         related_name="results",
+        null=True,
     )
 
     intent_results = models.ForeignKey(

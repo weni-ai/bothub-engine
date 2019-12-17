@@ -304,13 +304,22 @@ class RepositoryAuthorizationEvaluateViewSet(mixins.RetrieveModelMixin, GenericV
         check_auth(request)
         repository_authorization = self.get_object()
         repository = repository_authorization.repository
-        update = repository.last_trained_update(
-            str(request.query_params.get("language"))
-        )
+
+        repository_version = request.query_params.get("repository_version")
+
+        if repository_version:
+            update = repository.get_specific_version_id(
+                repository_version, str(request.query_params.get("language"))
+            )
+        else:
+            update = repository.last_trained_update(
+                str(request.query_params.get("language"))
+            )
+
         return Response(
             {
                 "update": False if update is None else True,
-                "update_id": update.id,
+                "repository_version": update.id,
                 "language": update.language,
                 "user_id": repository_authorization.user.id,
             }

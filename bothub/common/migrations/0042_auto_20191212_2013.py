@@ -142,42 +142,19 @@ class Migration(migrations.Migration):
                 "ordering": ["-created_at"],
             },
         ),
-        migrations.RemoveField(model_name="repositoryupdate", name="by"),
-        migrations.RemoveField(model_name="repositoryupdate", name="repository"),
-        migrations.RemoveField(model_name="repository", name="total_updates"),
-        migrations.RemoveField(
-            model_name="repositoryevaluate", name="repository_update"
-        ),
-        migrations.RemoveField(
-            model_name="repositoryevaluateresult", name="repository_update"
-        ),
-        migrations.RemoveField(model_name="repositoryexample", name="deleted_in"),
-        migrations.RemoveField(
-            model_name="repositoryexample", name="repository_update"
-        ),
-        migrations.RemoveField(
-            model_name="repositorytranslatedexample", name="repository_update"
-        ),
         migrations.AddField(
             model_name="repositoryexample",
-            name="last_update",
-            field=models.DateTimeField(
-                default=django.utils.timezone.now, verbose_name="last update"
+            name="repository_version_language",
+            field=models.ForeignKey(
+                default=None,
+                editable=False,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="added",
+                to="common.RepositoryVersionLanguage",
+                null=True,
             ),
             preserve_default=False,
         ),
-        migrations.AlterField(
-            model_name="repositoryevaluate",
-            name="deleted_in",
-            field=models.ForeignKey(
-                blank=True,
-                null=True,
-                on_delete=django.db.models.deletion.CASCADE,
-                related_name="deleted_evaluate",
-                to="common.RepositoryVersionLanguage",
-            ),
-        ),
-        migrations.DeleteModel(name="RepositoryUpdate"),
         migrations.AddField(
             model_name="repositoryversion",
             name="repository",
@@ -188,6 +165,14 @@ class Migration(migrations.Migration):
             ),
         ),
         migrations.AddField(
+            model_name="repositoryexample",
+            name="last_update",
+            field=models.DateTimeField(
+                default=django.utils.timezone.now, verbose_name="last update"
+            ),
+            preserve_default=False,
+        ),
+        migrations.AddField(
             model_name="repositoryevaluate",
             name="repository_version_language",
             field=models.ForeignKey(
@@ -196,6 +181,7 @@ class Migration(migrations.Migration):
                 on_delete=django.db.models.deletion.CASCADE,
                 related_name="added_evaluate",
                 to="common.RepositoryVersionLanguage",
+                null=True,
             ),
             preserve_default=False,
         ),
@@ -208,18 +194,7 @@ class Migration(migrations.Migration):
                 on_delete=django.db.models.deletion.CASCADE,
                 related_name="results",
                 to="common.RepositoryVersionLanguage",
-            ),
-            preserve_default=False,
-        ),
-        migrations.AddField(
-            model_name="repositoryexample",
-            name="repository_version_language",
-            field=models.ForeignKey(
-                default=None,
-                editable=False,
-                on_delete=django.db.models.deletion.CASCADE,
-                related_name="added",
-                to="common.RepositoryVersionLanguage",
+                null=True,
             ),
             preserve_default=False,
         ),
@@ -232,6 +207,7 @@ class Migration(migrations.Migration):
                 on_delete=django.db.models.deletion.CASCADE,
                 related_name="translated_added",
                 to="common.RepositoryVersionLanguage",
+                null=True,
             ),
             preserve_default=False,
         ),
