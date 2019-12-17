@@ -231,6 +231,21 @@ class RepositoryTestCase(TestCase):
         self.assertIn(languages.LANGUAGE_ES, available_languages)
         self.assertEqual(len(available_languages), 3)
 
+    def test_specific_verson_id(self):
+        version = self.repository.current_version(language=languages.LANGUAGE_PT)
+        specific_version = self.repository.get_specific_version_id(
+            repository_version=version.repository_version.pk,
+            language=languages.LANGUAGE_PT,
+        )
+        self.assertEqual(version.language, specific_version.language)
+        self.assertEqual(
+            version.repository_version, specific_version.repository_version
+        )
+        self.assertEqual(
+            version.repository_version.repository,
+            specific_version.repository_version.repository,
+        )
+
     def test_intents(self):
         self.assertIn("greet", self.repository.intents)
 
