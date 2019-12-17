@@ -4,7 +4,10 @@ from decimal import Decimal, ROUND_DOWN
 from django.utils.translation import gettext as _
 from rest_framework import serializers
 
-from bothub.common.models import Repository
+from bothub.api.v2.repository.validators import (
+    CanContributeInRepositoryVersionValidator,
+)
+from bothub.common.models import Repository, RepositoryVersion
 from bothub.common.models import RepositoryEvaluate
 from bothub.common.models import RepositoryEvaluateEntity
 from bothub.common.models import RepositoryEvaluateResult
@@ -14,7 +17,7 @@ from bothub.common.models import RepositoryEvaluateResultEntity
 
 from bothub.common.languages import LANGUAGE_CHOICES
 
-from ..fields import EntityValueField
+from ..fields import EntityValueField, RepositoryVersionRelatedField
 from .validators import ThereIsEntityValidator
 from .validators import ThereIsIntentValidator
 
@@ -34,13 +37,14 @@ class RepositoryEvaluateSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "repository",
+            "repository_version",
             "text",
             "language",
             "intent",
             "entities",
             "created_at",
         ]
-        read_only_fields = ["deleted_in", "created_at"]
+        read_only_fields = ["created_at"]
         ref_name = None
 
     entities = RepositoryEvaluateEntitySerializer(many=True, required=False)
@@ -51,6 +55,14 @@ class RepositoryEvaluateSerializer(serializers.ModelSerializer):
 
     language = serializers.ChoiceField(LANGUAGE_CHOICES, label=_("Language"))
 
+    repository_version = RepositoryVersionRelatedField(
+        source="repository_version_language",
+        queryset=RepositoryVersion.objects,
+        style={"show": False},
+        required=False,
+        validators=[CanContributeInRepositoryVersionValidator()],
+    )
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.validators.append(ThereIsEntityValidator())
@@ -60,9 +72,19 @@ class RepositoryEvaluateSerializer(serializers.ModelSerializer):
         entities = validated_data.pop("entities")
         repository = validated_data.pop("repository")
         language = validated_data.pop("language")
+        version_id = validated_data.get("repository_version_language")
 
-        repository_update = repository.current_update(language)
-        validated_data.update({"repository_update": repository_update})
+        if version_id:
+            repository_version_language = repository.get_specific_version_language(
+                language or None
+            )
+            validated_data.pop("repository_version_language")
+        else:
+            repository_version_language = repository.current_version(language)
+
+        validated_data.update(
+            {"repository_version_language": repository_version_language}
+        )
         evaluate = RepositoryEvaluate.objects.create(**validated_data)
 
         for entity in entities:
@@ -78,7 +100,7 @@ class RepositoryEvaluateSerializer(serializers.ModelSerializer):
 
         instance.text = validated_data.get("text", instance.text)
         instance.intent = validated_data.get("intent", instance.intent)
-        instance.repository_update = repository.current_update(language)
+        instance.repository_update = repository.current_version(language)
         instance.save()
         instance.delete_entities()
 
@@ -99,7 +121,7 @@ class RepositoryEvaluateResultVersionsSerializer(serializers.ModelSerializer):
     language = serializers.SerializerMethodField()
 
     def get_language(self, obj):
-        return obj.repository_update.language
+        return obj.repository_version_language.language
 
 
 class RepositoryEvaluateResultScore(serializers.ModelSerializer):

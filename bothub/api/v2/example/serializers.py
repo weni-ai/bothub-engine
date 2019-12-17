@@ -2,10 +2,13 @@ from django.utils.translation import gettext as _
 from rest_framework import serializers
 from rest_framework.fields import empty
 
-from bothub.api.v2.fields import EntityValueField
+from bothub.api.v2.fields import EntityValueField, RepositoryVersionRelatedField
 from bothub.api.v2.fields import LabelValueField
-from bothub.api.v2.repository.validators import EntityNotEqualLabelValidator
-from bothub.common.models import RepositoryExample
+from bothub.api.v2.repository.validators import (
+    EntityNotEqualLabelValidator,
+    CanContributeInRepositoryVersionValidator,
+)
+from bothub.common.models import RepositoryExample, RepositoryVersion
 from bothub.common.models import RepositoryExampleEntity
 
 
@@ -60,8 +63,7 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
         model = RepositoryExample
         fields = [
             "id",
-            "repository_update",
-            "deleted_in",
+            "repository_version",
             "text",
             "intent",
             "language",
@@ -69,10 +71,17 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
             "entities",
             "translations",
         ]
-        read_only_fields = ["repository_update", "deleted_in", "translations"]
+        read_only_fields = ["translations"]
         ref_name = None
 
     entities = RepositoryExampleEntitySerializer(many=True, read_only=True)
+    repository_version = RepositoryVersionRelatedField(
+        source="repository_version_language",
+        queryset=RepositoryVersion.objects,
+        style={"show": False},
+        required=False,
+        validators=[CanContributeInRepositoryVersionValidator()],
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

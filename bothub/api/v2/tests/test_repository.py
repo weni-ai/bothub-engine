@@ -2,35 +2,32 @@ import json
 import uuid
 
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import TestCase
 from django.test import RequestFactory
+from django.test import TestCase
 from django.test.client import MULTIPART_CONTENT
 from rest_framework import status
 
-from bothub.common.models import RepositoryCategory
-from bothub.common.models import RepositoryVote
-from bothub.common.models import RepositoryAuthorization
-from bothub.common.models import Repository
-from bothub.common.models import RequestRepositoryAuthorization
-from bothub.common.models import RepositoryExample
-from bothub.common.models import RepositoryTranslatedExample
-from bothub.common.models import RepositoryExampleEntity
-from bothub.common.models import RepositoryUpdate
-from bothub.common import languages
-
-from bothub.api.v2.tests.utils import create_user_and_token
-
-from bothub.api.v2.repository.views import RepositoryViewSet
+from bothub.api.v2.repository.serializers import RepositorySerializer
 from bothub.api.v2.repository.views import RepositoriesContributionsViewSet
 from bothub.api.v2.repository.views import RepositoriesViewSet
-from bothub.api.v2.repository.views import RepositoryVotesViewSet
-from bothub.api.v2.repository.views import RepositoryCategoriesView
-from bothub.api.v2.repository.views import SearchRepositoriesViewSet
-from bothub.api.v2.repository.views import RepositoryAuthorizationViewSet
 from bothub.api.v2.repository.views import RepositoryAuthorizationRequestsViewSet
+from bothub.api.v2.repository.views import RepositoryAuthorizationViewSet
+from bothub.api.v2.repository.views import RepositoryCategoriesView
 from bothub.api.v2.repository.views import RepositoryExampleViewSet
-from bothub.api.v2.repository.views import RepositoryUpdatesViewSet
-from bothub.api.v2.repository.serializers import RepositorySerializer
+from bothub.api.v2.repository.views import RepositoryViewSet
+from bothub.api.v2.repository.views import RepositoryVotesViewSet
+from bothub.api.v2.repository.views import SearchRepositoriesViewSet
+from bothub.api.v2.tests.utils import create_user_and_token
+from bothub.api.v2.versionning.views import RepositoryVersionViewSet
+from bothub.common import languages
+from bothub.common.models import Repository
+from bothub.common.models import RepositoryAuthorization
+from bothub.common.models import RepositoryCategory
+from bothub.common.models import RepositoryExample
+from bothub.common.models import RepositoryExampleEntity
+from bothub.common.models import RepositoryTranslatedExample
+from bothub.common.models import RepositoryVote
+from bothub.common.models import RequestRepositoryAuthorization
 
 
 def get_valid_mockups(categories):
@@ -355,7 +352,7 @@ class IntentsInRepositorySerializerTestCase(TestCase):
             language=languages.LANGUAGE_EN,
         )
         RepositoryExample.objects.create(
-            repository_update=self.repository.current_update(),
+            repository_version_language=self.repository.current_version(),
             text="hi",
             intent="greet",
         )
@@ -367,7 +364,7 @@ class IntentsInRepositorySerializerTestCase(TestCase):
 
     def test_example_deleted(self):
         example = RepositoryExample.objects.create(
-            repository_update=self.repository.current_update(),
+            repository_version_language=self.repository.current_version(),
             text="hi",
             intent="greet",
         )
@@ -469,7 +466,7 @@ class RepositoriesLanguageFilterTestCase(TestCase):
     def test_example_language(self):
         language = languages.LANGUAGE_ES
         example = RepositoryExample.objects.create(
-            repository_update=self.repository_en_1.current_update(language),
+            repository_version_language=self.repository_en_1.current_version(language),
             text="hi",
             intent="greet",
         )
@@ -484,7 +481,7 @@ class RepositoriesLanguageFilterTestCase(TestCase):
     def test_translated_example(self):
         language = languages.LANGUAGE_ES
         example = RepositoryExample.objects.create(
-            repository_update=self.repository_en_1.current_update(),
+            repository_version_language=self.repository_en_1.current_version(),
             text="hi",
             intent="greet",
         )
@@ -1085,7 +1082,8 @@ class RepositoryExampleRetrieveTestCase(TestCase):
             language=languages.LANGUAGE_EN,
         )
         self.example = RepositoryExample.objects.create(
-            repository_update=self.repository.current_update(), text="my name is user"
+            repository_version_language=self.repository.current_version(),
+            text="my name is user",
         )
         self.example_entity = RepositoryExampleEntity.objects.create(
             repository_example=self.example, start=11, end=18, entity="name"
@@ -1099,7 +1097,8 @@ class RepositoryExampleRetrieveTestCase(TestCase):
             is_private=True,
         )
         self.private_example = RepositoryExample.objects.create(
-            repository_update=self.private_repository.current_update(), text="hi"
+            repository_version_language=self.private_repository.current_version(),
+            text="hi",
         )
 
     def request(self, example, token):
@@ -1233,7 +1232,7 @@ class RepositoryExampleDestroyTestCase(TestCase):
             language=languages.LANGUAGE_EN,
         )
         self.example = RepositoryExample.objects.create(
-            repository_update=self.repository.current_update(), text="hi"
+            repository_version_language=self.repository.current_version(), text="hi"
         )
 
         self.private_repository = Repository.objects.create(
@@ -1244,7 +1243,8 @@ class RepositoryExampleDestroyTestCase(TestCase):
             is_private=True,
         )
         self.private_example = RepositoryExample.objects.create(
-            repository_update=self.private_repository.current_update(), text="hi"
+            repository_version_language=self.private_repository.current_version(),
+            text="hi",
         )
 
     def request(self, example, token):
@@ -1277,7 +1277,7 @@ class RepositoryExampleDestroyTestCase(TestCase):
         self.example.delete()
 
         response = self.request(self.example, self.owner_token)
-        self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 
 class RepositoryExampleUpdateTestCase(TestCase):
@@ -1294,7 +1294,7 @@ class RepositoryExampleUpdateTestCase(TestCase):
             language=languages.LANGUAGE_EN,
         )
         self.example = RepositoryExample.objects.create(
-            repository_update=self.repository.current_update(), text="hi"
+            repository_version_language=self.repository.current_version(), text="hi"
         )
 
         self.private_repository = Repository.objects.create(
@@ -1305,7 +1305,8 @@ class RepositoryExampleUpdateTestCase(TestCase):
             is_private=True,
         )
         self.private_example = RepositoryExample.objects.create(
-            repository_update=self.private_repository.current_update(), text="hi"
+            repository_version_language=self.private_repository.current_version(),
+            text="hi",
         )
 
     def request(self, example, token, data):
@@ -1381,6 +1382,7 @@ class NewRepositoryExampleTestCase(TestCase):
             self.owner_token,
             {
                 "repository": str(self.repository.uuid),
+                "language": languages.LANGUAGE_EN,
                 "text": text,
                 "intent": intent,
                 "entities": [],
@@ -1407,9 +1409,7 @@ class NewRepositoryExampleTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(content_data.get("text"), text)
         self.assertEqual(content_data.get("intent"), intent)
-        repository_update_pk = content_data.get("repository_update")
-        repository_update = RepositoryUpdate.objects.get(pk=repository_update_pk)
-        self.assertEqual(repository_update.language, language)
+        self.assertEqual(content_data.get("language"), language)
 
     def test_forbidden(self):
         response, content_data = self.request(
@@ -1454,6 +1454,7 @@ class NewRepositoryExampleTestCase(TestCase):
             self.owner_token,
             {
                 "repository": str(self.repository.uuid),
+                "language": languages.LANGUAGE_EN,
                 "text": "my name is user",
                 "intent": "greet",
                 "entities": [{"start": 11, "end": 18, "entity": "name"}],
@@ -1471,6 +1472,7 @@ class NewRepositoryExampleTestCase(TestCase):
                 "repository": str(self.repository.uuid),
                 "text": text,
                 "intent": intent,
+                "language": languages.LANGUAGE_EN,
                 "entities": [],
             },
         )
@@ -1481,6 +1483,7 @@ class NewRepositoryExampleTestCase(TestCase):
             self.owner_token,
             {
                 "repository": str(self.repository.uuid),
+                "language": languages.LANGUAGE_EN,
                 "text": text,
                 "intent": intent,
                 "entities": [],
@@ -1488,8 +1491,7 @@ class NewRepositoryExampleTestCase(TestCase):
         )
 
         self.assertEqual(
-            content_data.get("non_field_errors")[0],
-            "Intention and Sentence already exists",
+            content_data.get("detail"), "Intention and Sentence already exists"
         )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -1499,6 +1501,7 @@ class NewRepositoryExampleTestCase(TestCase):
             self.owner_token,
             {
                 "repository": str(self.repository.uuid),
+                "language": languages.LANGUAGE_EN,
                 "text": "my name is user",
                 "intent": "greet",
                 "entities": [
@@ -1705,19 +1708,22 @@ class TrainRepositoryTestCase(TestCase):
             language=languages.LANGUAGE_EN,
         )
 
-    def request(self, repository, token):
+    def request(self, repository, token, data):
         authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
-        request = self.factory.get(
+        request = self.factory.post(
             "/v2/repository/repository-info/{}/train/".format(str(repository.uuid)),
+            data,
             **authorization_header,
         )
-        response = RepositoryViewSet.as_view({"get": "train"})(request)
+        response = RepositoryViewSet.as_view({"post": "train"})(
+            request, uuid=repository.uuid
+        )
         response.render()
         content_data = json.loads(response.content)
         return (response, content_data)
 
     def test_permission_denied(self):
-        response, content_data = self.request(self.repository, self.user_token)
+        response, content_data = self.request(self.repository, self.user_token, {})
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
@@ -1781,7 +1787,7 @@ class AnalyzeRepositoryTestCase(TestCase):
         self.assertIn("text", content_data.keys())
 
 
-class UpdatesTestCase(TestCase):
+class VersionsTestCase(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
 
@@ -1793,38 +1799,40 @@ class UpdatesTestCase(TestCase):
             slug="test",
             language=languages.LANGUAGE_EN,
         )
-        current_update = self.repository.current_update()
+        current_version = self.repository.current_version()
         RepositoryExample.objects.create(
-            repository_update=current_update, text="my name is Douglas", intent="greet"
+            repository_version_language=current_version,
+            text="my name is Douglas",
+            intent="greet",
         )
         RepositoryExample.objects.create(
-            repository_update=current_update, text="my name is John", intent="greet"
+            repository_version_language=current_version,
+            text="my name is John",
+            intent="greet",
         )
-        current_update.start_training(self.owner)
+        current_version.start_training(self.owner)
 
     def request(self, data, token=None):
         authorization_header = (
             {"HTTP_AUTHORIZATION": "Token {}".format(token.key)} if token else {}
         )
         request = self.factory.get(
-            "/v2/repository/updates/", data, **authorization_header
+            "/v2/repository/version/", data, **authorization_header
         )
-        response = RepositoryUpdatesViewSet.as_view({"get": "list"})(request)
+        response = RepositoryVersionViewSet.as_view({"get": "list"})(request)
         response.render()
         content_data = json.loads(response.content)
         return (response, content_data)
 
     def test_okay(self):
         response, content_data = self.request(
-            {"repository_uuid": str(self.repository.uuid)}, self.owner_token
+            {"repository": str(self.repository.uuid)}, self.owner_token
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(content_data.get("count"), 1)
 
     def test_not_authenticated(self):
-        response, content_data = self.request(
-            {"repository_uuid": str(self.repository.uuid)}
-        )
+        response, content_data = self.request({"repository": str(self.repository.uuid)})
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_without_repository(self):

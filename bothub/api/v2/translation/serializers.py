@@ -89,7 +89,7 @@ class RepositoryTranslatedExampleSerializer(serializers.ModelSerializer):
     )
 
     def get_from_language(self, obj):
-        return obj.original_example.repository_update.language
+        return obj.original_example.repository_version_language.language
 
     def get_has_valid_entities(self, obj):
         return obj.has_valid_entities

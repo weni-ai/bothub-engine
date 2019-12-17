@@ -7,11 +7,14 @@ from rest_framework import status
 from bothub.api.v2.nlp.views import RepositoryAuthorizationTrainViewSet
 from bothub.api.v2.nlp.views import RepositoryAuthorizationInfoViewSet
 from bothub.common import languages
-from bothub.common.models import RepositoryAuthorization
+from bothub.common.models import (
+    RepositoryAuthorization,
+    RepositoryVersion,
+    RepositoryVersionLanguage,
+)
 from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryExampleEntity
 from bothub.common.models import Repository
-from bothub.common.models import RepositoryUpdate
 
 from .utils import create_user_and_token
 
@@ -34,8 +37,12 @@ class TrainStartTrainingTestCase(TestCase):
             user=self.user, repository=self.repository, role=3
         )
 
-        self.repository_update = RepositoryUpdate.objects.create(
-            repository=self.repository,
+        self.repository_version = RepositoryVersion.objects.create(
+            repository=self.repository, name="test"
+        )
+
+        self.repository_version_language = RepositoryVersionLanguage.objects.create(
+            repository_version=self.repository_version,
             language=languages.LANGUAGE_EN,
             algorithm="statistical_model",
         )
@@ -45,7 +52,10 @@ class TrainStartTrainingTestCase(TestCase):
         request = self.factory.post(
             "/v2/repository/nlp/authorization/train/start_training/",
             json.dumps(
-                {"update_id": self.repository_update.pk, "by_user": self.user.pk}
+                {
+                    "repository_version": self.repository_version_language.pk,
+                    "by_user": self.user.pk,
+                }
             ),
             content_type="application/json",
             **authorization_header
@@ -84,8 +94,12 @@ class TrainFailTestCase(TestCase):
             user=self.user, repository=self.repository, role=3
         )
 
-        self.repository_update = RepositoryUpdate.objects.create(
-            repository=self.repository,
+        self.repository_version = RepositoryVersion.objects.create(
+            repository=self.repository, name="test"
+        )
+
+        self.repository_version_language = RepositoryVersionLanguage.objects.create(
+            repository_version=self.repository_version,
             language=languages.LANGUAGE_EN,
             algorithm="statistical_model",
         )
@@ -94,7 +108,7 @@ class TrainFailTestCase(TestCase):
         authorization_header = {"HTTP_AUTHORIZATION": "Bearer {}".format(token)}
         request = self.factory.post(
             "/v2/repository/nlp/authorization/train/train_fail/",
-            json.dumps({"update_id": self.repository_update.pk}),
+            json.dumps({"repository_version": self.repository_version_language.pk}),
             content_type="application/json",
             **authorization_header
         )
@@ -108,7 +122,9 @@ class TrainFailTestCase(TestCase):
     def test_ok(self):
         response, content_data = self.request(str(self.repository_authorization.uuid))
         self.assertIsNotNone(
-            RepositoryUpdate.objects.get(pk=self.repository_update.pk).failed_at
+            RepositoryVersionLanguage.objects.get(
+                pk=self.repository_version_language.pk
+            ).failed_at
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -135,14 +151,20 @@ class AuthorizationInfoTestCase(TestCase):
             user=self.user, repository=self.repository, role=3
         )
 
-        self.repository_update = RepositoryUpdate.objects.create(
-            repository=self.repository,
+        self.repository_version = RepositoryVersion.objects.create(
+            repository=self.repository, name="test"
+        )
+
+        self.repository_version_language = RepositoryVersionLanguage.objects.create(
+            repository_version=self.repository_version,
             language=languages.LANGUAGE_EN,
             algorithm="statistical_model",
         )
 
         self.repository_examples = RepositoryExample.objects.create(
-            repository_update=self.repository_update, text="hello", intent="greet"
+            repository_version_language=self.repository_version_language,
+            text="hello",
+            intent="greet",
         )
 
         self.repository_entity = RepositoryExampleEntity.objects.create(

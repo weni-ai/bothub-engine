@@ -1,31 +1,29 @@
-from django.utils.translation import gettext as _
 from django.conf import settings
+from django.utils.translation import gettext as _
 from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied
 
 from bothub.api.v2.example.serializers import RepositoryExampleEntitySerializer
-from bothub.api.v2.fields import TextField
+from bothub.api.v2.fields import EntityText, RepositoryVersionRelatedField
 from bothub.api.v2.fields import ModelMultipleChoiceField
-from bothub.api.v2.fields import EntityText
-from bothub.api.v2.repository.validators import (
-    CanContributeInRepositoryExampleValidator,
-)
-from bothub.api.v2.repository.validators import IntentAndSentenceNotExistsValidator
-from bothub.api.v2.repository.validators import ExampleWithIntentOrEntityValidator
-from bothub.api.v2.repository.validators import CanContributeInRepositoryValidator
+from bothub.api.v2.fields import TextField
 from bothub.common import languages
-from bothub.common.models import Repository
-from bothub.common.models import RepositoryVote
+from bothub.common.languages import LANGUAGE_CHOICES
+from bothub.common.models import Repository, RepositoryVersion
+from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryCategory
 from bothub.common.models import RepositoryEntityLabel
-from bothub.common.models import RepositoryAuthorization
-from bothub.common.models import RequestRepositoryAuthorization
-from bothub.common.models import RepositoryTranslatedExample
 from bothub.common.models import RepositoryExample
+from bothub.common.models import RepositoryTranslatedExample
 from bothub.common.models import RepositoryTranslatedExampleEntity
-from bothub.common.models import RepositoryUpdate
-from bothub.common.languages import LANGUAGE_CHOICES
+from bothub.common.models import RepositoryVote
+from bothub.common.models import RequestRepositoryAuthorization
+from .validators import APIExceptionCustom
+from .validators import CanContributeInRepositoryExampleValidator
 from .validators import CanContributeInRepositoryTranslatedExampleValidator
+from .validators import CanContributeInRepositoryValidator
+from .validators import CanContributeInRepositoryVersionValidator
+from .validators import ExampleWithIntentOrEntityValidator
 
 
 class RequestRepositoryAuthorizationSerializer(serializers.ModelSerializer):
@@ -472,7 +470,7 @@ class RepositoryTranslatedExampleSerializer(serializers.ModelSerializer):
     entities = RepositoryTranslatedExampleEntitySeralizer(many=True, read_only=True)
 
     def get_from_language(self, obj):
-        return obj.original_example.repository_update.language
+        return obj.original_example.repository_version_language.language
 
     def get_has_valid_entities(self, obj):
         return obj.has_valid_entities
@@ -484,16 +482,15 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "repository",
-            "repository_update",
-            "deleted_in",
             "text",
             "intent",
             "language",
             "created_at",
             "entities",
             "translations",
+            "repository_version",
         ]
-        read_only_fields = ["deleted_in"]
+        read_only_fields = []
         ref_name = None
 
     id = serializers.PrimaryKeyRelatedField(read_only=True, style={"show": False})
@@ -504,9 +501,6 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
         write_only=True,
         style={"show": False},
     )
-    repository_update = serializers.PrimaryKeyRelatedField(
-        read_only=True, style={"show": False}, required=False
-    )
     language = serializers.ChoiceField(
         languages.LANGUAGE_CHOICES, allow_blank=True, required=False
     )
@@ -515,6 +509,13 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
         many=True, style={"text_field": "text"}, required=False
     )
     translations = RepositoryTranslatedExampleSerializer(many=True, read_only=True)
+    repository_version = RepositoryVersionRelatedField(
+        source="repository_version_language",
+        queryset=RepositoryVersion.objects,
+        style={"show": False},
+        required=False,
+        validators=[CanContributeInRepositoryVersionValidator()],
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -523,18 +524,49 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
                 many=True, style={"text_field": "text"}, data="GET"
             )
         self.validators.append(ExampleWithIntentOrEntityValidator())
-        self.validators.append(IntentAndSentenceNotExistsValidator())
 
     def create(self, validated_data):
         entities_data = validated_data.pop("entities")
         repository = validated_data.pop("repository")
+        version_id = validated_data.get("repository_version_language")
 
         try:
             language = validated_data.pop("language")
         except KeyError:
             language = None
-        repository_update = repository.current_update(language or None)
-        validated_data.update({"repository_update": repository_update})
+
+        if version_id:
+            repository_version_language = repository.get_specific_version_language(
+                language or None
+            )
+            validated_data.pop("repository_version_language")
+
+            if RepositoryExample.objects.filter(
+                text=validated_data.get("text"),
+                intent=validated_data.get("intent"),
+                repository_version_language__repository_version__repository=repository,
+                repository_version_language__language=language,
+            ):
+                raise APIExceptionCustom(
+                    detail=_("Intention and Sentence already exists")
+                )
+        else:
+            repository_version_language = repository.current_version(language or None)
+
+            if RepositoryExample.objects.filter(
+                text=validated_data.get("text"),
+                intent=validated_data.get("intent"),
+                repository_version_language=repository_version_language,
+                repository_version_language__repository_version__is_default=True,
+                repository_version_language__language=language,
+            ):
+                raise APIExceptionCustom(
+                    detail=_("Intention and Sentence already exists")
+                )
+
+        validated_data.update(
+            {"repository_version_language": repository_version_language}
+        )
         example = self.Meta.model.objects.create(**validated_data)
         for entity_data in entities_data:
             entity_data.update({"repository_example": example.pk})
@@ -547,29 +579,31 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
 class AnalyzeTextSerializer(serializers.Serializer):
     language = serializers.ChoiceField(LANGUAGE_CHOICES, required=True)
     text = serializers.CharField(allow_blank=False)
+    repository_version = serializers.IntegerField(required=False)
+
+
+class TrainSerializer(serializers.Serializer):
+    repository_version = serializers.IntegerField(required=False)
 
 
 class EvaluateSerializer(serializers.Serializer):
     language = serializers.ChoiceField(LANGUAGE_CHOICES, required=True)
+    repository_version = serializers.IntegerField(required=False)
 
 
 class RepositoryUpdateSerializer(serializers.ModelSerializer):
     class Meta:
-        model = RepositoryUpdate
+        model = RepositoryVersion
         fields = [
             "id",
             "repository",
-            "language",
             "created_at",
-            "by",
-            "by__nickname",
-            "training_started_at",
-            "trained_at",
-            "failed_at",
+            "created_by",
+            "created_by__nickname",
         ]
         ref_name = None
 
-    by__nickname = serializers.SlugRelatedField(
+    created_by__nickname = serializers.SlugRelatedField(
         source="by", slug_field="nickname", read_only=True
     )
 

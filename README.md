@@ -32,11 +32,6 @@ Use ```make``` commands to ```check_environment```, ```install_requirements```, 
 Run ```pipenv run python ./manage.py fill_db_using_fake_data``` to fill database using fake data. This can help you to test [Bothub Webapp](https://github.com/Ilhasoft/bothub-webapp).
 
 
-### Update Repositories Tests
-
-Run ```pipenv run python ./manage.py update_repository_tests``` update repositories to sort by total tests.
-
-
 ### Migrate all training for aws
 
 Run ```pipenv run python ./manage.py transfer_train_aws``` Migrate all trainings to an aws bucket defined in project settings.
