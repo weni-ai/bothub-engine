@@ -58,6 +58,8 @@ class Command(BaseCommand):
         repository_1.categories.add(categories[1])
         repository_1.categories.add(categories[3])
 
+        repository_1.current_version()
+
         repository_2 = Repository.objects.create(
             owner=user,
             name="Repository 2",
@@ -67,6 +69,8 @@ class Command(BaseCommand):
         repository_2.categories.add(categories[0])
         repository_2.categories.add(categories[2])
 
+        repository_2.current_version()
+
         for x in range(3, 46):
             new_repository = Repository.objects.create(
                 owner=user,
@@ -75,6 +79,7 @@ class Command(BaseCommand):
                 language=languages.LANGUAGE_EN,
             )
             new_repository.categories.add(random.choice(categories))
+            new_repository.current_version()
 
         # Examples
 

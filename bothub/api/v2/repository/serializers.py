@@ -579,10 +579,16 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
 class AnalyzeTextSerializer(serializers.Serializer):
     language = serializers.ChoiceField(LANGUAGE_CHOICES, required=True)
     text = serializers.CharField(allow_blank=False)
+    repository_version = serializers.IntegerField(required=False)
+
+
+class TrainSerializer(serializers.Serializer):
+    repository_version = serializers.IntegerField(required=False)
 
 
 class EvaluateSerializer(serializers.Serializer):
     language = serializers.ChoiceField(LANGUAGE_CHOICES, required=True)
+    repository_version = serializers.IntegerField(required=False)
 
 
 class RepositoryUpdateSerializer(serializers.ModelSerializer):

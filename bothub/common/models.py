@@ -56,10 +56,8 @@ class RepositoryQuerySet(models.QuerySet):
         return self.filter(is_private=False)
 
     def order_by_relevance(self):
-        return self.annotate(examples_sum=models.Sum("versions")).order_by(
-            "-versions__repositoryversionlanguage__total_training_end",
-            "-examples_sum",
-            "-created_at",
+        return self.order_by(
+            "-versions__repositoryversionlanguage__total_training_end", "-created_at"
         )
 
     def supported_language(self, language):
@@ -218,15 +216,32 @@ class Repository(models.Model):
         self.__use_name_entities = self.use_name_entities
         self.__use_analyze_char = self.use_analyze_char
 
-    def request_nlp_train(self, user_authorization):
+    def request_nlp_train(self, user_authorization, data):
         try:  # pragma: no cover
-            r = requests.post(  # pragma: no cover
-                "{}train/".format(
-                    self.nlp_server if self.nlp_server else settings.BOTHUB_NLP_BASE_URL
-                ),
-                data={},
-                headers={"Authorization": "Bearer {}".format(user_authorization.uuid)},
-            )
+            if data.get("repository_version"):
+                r = requests.post(  # pragma: no cover
+                    "{}train/".format(
+                        self.nlp_server
+                        if self.nlp_server
+                        else settings.BOTHUB_NLP_BASE_URL
+                    ),
+                    data={"repository_version": data.get("repository_version")},
+                    headers={
+                        "Authorization": "Bearer {}".format(user_authorization.uuid)
+                    },
+                )
+            else:
+                r = requests.post(  # pragma: no cover
+                    "{}train/".format(
+                        self.nlp_server
+                        if self.nlp_server
+                        else settings.BOTHUB_NLP_BASE_URL
+                    ),
+                    data={},
+                    headers={
+                        "Authorization": "Bearer {}".format(user_authorization.uuid)
+                    },
+                )
             return r  # pragma: no cover
         except requests.exceptions.ConnectionError:  # pragma: no cover
             raise APIException(  # pragma: no cover
@@ -236,13 +251,34 @@ class Repository(models.Model):
 
     def request_nlp_analyze(self, user_authorization, data):
         try:  # pragma: no cover
-            r = requests.post(  # pragma: no cover
-                "{}parse/".format(
-                    self.nlp_server if self.nlp_server else settings.BOTHUB_NLP_BASE_URL
-                ),
-                data={"text": data.get("text"), "language": data.get("language")},
-                headers={"Authorization": "Bearer {}".format(user_authorization.uuid)},
-            )
+            if data.get("repository_version"):
+                r = requests.post(  # pragma: no cover
+                    "{}parse/".format(
+                        self.nlp_server
+                        if self.nlp_server
+                        else settings.BOTHUB_NLP_BASE_URL
+                    ),
+                    data={
+                        "text": data.get("text"),
+                        "language": data.get("language"),
+                        "repository_version": data.get("repository_version"),
+                    },
+                    headers={
+                        "Authorization": "Bearer {}".format(user_authorization.uuid)
+                    },
+                )
+            else:
+                r = requests.post(  # pragma: no cover
+                    "{}parse/".format(
+                        self.nlp_server
+                        if self.nlp_server
+                        else settings.BOTHUB_NLP_BASE_URL
+                    ),
+                    data={"text": data.get("text"), "language": data.get("language")},
+                    headers={
+                        "Authorization": "Bearer {}".format(user_authorization.uuid)
+                    },
+                )
             return r  # pragma: no cover
         except requests.exceptions.ConnectionError:  # pragma: no cover
             raise APIException(  # pragma: no cover
@@ -499,6 +535,15 @@ class Repository(models.Model):
             query = query.filter(language=language)
         return query.first()
 
+    def get_specific_version_id(self, repository_version, language=None):
+        query = RepositoryVersionLanguage.objects.filter(
+            repository_version__repository=self,
+            repository_version__pk=repository_version,
+        )
+        if language:
+            query = query.filter(language=language)
+        return query.first()
+
     def get_user_authorization(self, user):
         if user.is_anonymous:
             return RepositoryAuthorization(repository=self)
@@ -632,50 +677,13 @@ class RepositoryVersionLanguage(models.Model):
 
     @property
     def ready_for_train(self):
-        previous_update = None
         if len(self.requirements_to_train) > 0:
             return False
 
-        if self.training_end_at:
-            previous = self.repository_version.repository.versions.filter(
-                repositoryversionlanguage__language=self.language,
-                last_update__gte=self.training_end_at,
-                created_by__isnull=False,
-            ).first()
-        else:
-            previous = self.repository_version.repository.versions.filter(
-                repositoryversionlanguage__language=self.language,
-                created_by__isnull=False,
-            ).first()
-
-        if previous:
-            previous_update = previous.version_languages.filter(
-                language=self.language
-            ).first()
-
-        if previous_update:
-            if (
-                previous_update.algorithm
-                != self.repository_version.repository.algorithm
-            ):
-                return True
-            if (
-                previous_update.use_competing_intents
-                is not self.repository_version.repository.use_competing_intents
-            ):
-                return True
-            if (
-                previous_update.use_name_entities
-                is not self.repository_version.repository.use_name_entities
-            ):
-                return True
-            if (
-                previous_update.use_analyze_char
-                is not self.repository_version.repository.use_analyze_char
-            ):
-                return True
-            if previous_update.failed_at:
-                return True
+        if (
+            self.training_end_at is not None
+        ) and self.training_end_at > self.last_update:
+            return True
 
         if not self.added.exists() and not self.translated_added.exists():
             return False
@@ -768,7 +776,11 @@ class RepositoryExample(models.Model):
         ordering = ["-created_at"]
 
     repository_version_language = models.ForeignKey(
-        RepositoryVersionLanguage, models.CASCADE, related_name="added", editable=False
+        RepositoryVersionLanguage,
+        models.CASCADE,
+        related_name="added",
+        editable=False,
+        null=True,
     )
     text = models.TextField(_("text"), help_text=_("Example text"))
     intent = models.CharField(
@@ -855,6 +867,7 @@ class RepositoryTranslatedExample(models.Model):
         models.CASCADE,
         related_name="translated_added",
         editable=False,
+        null=True,
     )
     original_example = models.ForeignKey(
         RepositoryExample,
@@ -1312,6 +1325,7 @@ class RepositoryEvaluate(models.Model):
         models.CASCADE,
         related_name="added_evaluate",
         editable=False,
+        null=True,
     )
     deleted_in = models.ForeignKey(
         RepositoryVersionLanguage,
@@ -1400,6 +1414,7 @@ class RepositoryEvaluateResult(models.Model):
         models.CASCADE,
         editable=False,
         related_name="results",
+        null=True,
     )
 
     intent_results = models.ForeignKey(

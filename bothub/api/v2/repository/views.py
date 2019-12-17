@@ -36,7 +36,7 @@ from .filters import RepositoryAuthorizationRequestsFilter
 from .permissions import RepositoryAdminManagerAuthorization
 from .permissions import RepositoryExamplePermission
 from .permissions import RepositoryPermission
-from .serializers import AnalyzeTextSerializer
+from .serializers import AnalyzeTextSerializer, TrainSerializer
 from .serializers import EvaluateSerializer
 from .serializers import RepositoryAuthorizationRoleSerializer
 from .serializers import RepositoryAuthorizationSerializer
@@ -87,7 +87,7 @@ class RepositoryViewSet(
 
     @action(
         detail=True,
-        methods=["GET"],
+        methods=["POST"],
         url_name="repository-train",
         lookup_fields=["uuid"],
     )
@@ -95,13 +95,15 @@ class RepositoryViewSet(
         """
         Train current update using Bothub NLP service
         """
-        if self.lookup_field not in kwargs:
-            return Response({}, status=403)
         repository = self.get_object()
         user_authorization = repository.get_user_authorization(request.user)
+        serializer = TrainSerializer(data=request.data)  # pragma: no cover
+        serializer.is_valid(raise_exception=True)  # pragma: no cover
         if not user_authorization.can_write:
             raise PermissionDenied()
-        request = repository.request_nlp_train(user_authorization)  # pragma: no cover
+        request = repository.request_nlp_train(
+            user_authorization, serializer.data
+        )  # pragma: no cover
         if request.status_code != status.HTTP_200_OK:  # pragma: no cover
             raise APIException(  # pragma: no cover
                 {"status_code": request.status_code}, code=request.status_code

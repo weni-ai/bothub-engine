@@ -1708,19 +1708,22 @@ class TrainRepositoryTestCase(TestCase):
             language=languages.LANGUAGE_EN,
         )
 
-    def request(self, repository, token):
+    def request(self, repository, token, data):
         authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
-        request = self.factory.get(
+        request = self.factory.post(
             "/v2/repository/repository-info/{}/train/".format(str(repository.uuid)),
+            data,
             **authorization_header,
         )
-        response = RepositoryViewSet.as_view({"get": "train"})(request)
+        response = RepositoryViewSet.as_view({"post": "train"})(
+            request, uuid=repository.uuid
+        )
         response.render()
         content_data = json.loads(response.content)
         return (response, content_data)
 
     def test_permission_denied(self):
-        response, content_data = self.request(self.repository, self.user_token)
+        response, content_data = self.request(self.repository, self.user_token, {})
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
