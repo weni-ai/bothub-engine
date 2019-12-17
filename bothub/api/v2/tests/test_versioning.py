@@ -13,6 +13,7 @@ from bothub.common.models import (
     RepositoryExampleEntity,
     RepositoryVersionLanguage,
     RepositoryVersion,
+    RepositoryTranslatedExample,
 )
 
 
@@ -35,6 +36,11 @@ class CloneRepositoryVersionAPITestCase(TestCase):
             text="hi",
             intent="greet",
         )
+
+        self.example_translated = RepositoryTranslatedExample.objects.create(
+            original_example=self.example_1, language=languages.LANGUAGE_PT, text="oi"
+        )
+
         self.entity_1 = RepositoryExampleEntity.objects.create(
             repository_example=self.example_1, start=0, end=0, entity="hi"
         )
@@ -87,6 +93,12 @@ class CloneRepositoryVersionAPITestCase(TestCase):
 
         self.assertEqual(example.text, self.example_1.text)
         self.assertEqual(example.intent, self.example_1.intent)
+
+        example_translated = RepositoryTranslatedExample.objects.filter(
+            repository_version_language=version_language.first()
+        ).first()
+
+        self.assertEqual(example_translated.text, self.example_translated.text)
 
 
 class ListRepositoryVersionAPITestCase(TestCase):
