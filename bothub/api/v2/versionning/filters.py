@@ -24,9 +24,9 @@ class VersioningFilter(filters.FilterSet):
             repository = Repository.objects.get(uuid=value)
             authorization = repository.get_user_authorization(request.user)
             if not authorization.can_read:
-                raise PermissionDenied()
+                raise PermissionDenied()  # pragma: no cover
             return RepositoryVersion.objects.filter(repository=repository)
         except Repository.DoesNotExist:
             raise NotFound(_("Repository {} does not exist").format(value))
-        except DjangoValidationError:
-            raise NotFound(_("Invalid repository_uuid"))
+        except DjangoValidationError:  # pragma: no cover
+            raise NotFound(_("Invalid repository_uuid"))  # pragma: no cover
