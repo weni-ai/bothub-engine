@@ -680,10 +680,9 @@ class RepositoryVersionLanguage(models.Model):
         if len(self.requirements_to_train) > 0:
             return False
 
-        if (
-            self.training_end_at is not None
-        ) and self.training_end_at > self.last_update:
-            return True
+        if self.training_end_at is not None and self.last_update is not None:
+            if self.last_update <= self.training_end_at:
+                return False
 
         if not self.added.exists() and not self.translated_added.exists():
             return False
