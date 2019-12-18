@@ -536,8 +536,8 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
             language = None
 
         if version_id:
-            repository_version_language = repository.get_specific_version_language(
-                language or None
+            repository_version_language = repository.get_specific_version_id(
+                repository_version=version_id.pk, language=language or None
             )
             validated_data.pop("repository_version_language")
 
@@ -545,6 +545,7 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
                 text=validated_data.get("text"),
                 intent=validated_data.get("intent"),
                 repository_version_language__repository_version__repository=repository,
+                repository_version_language__repository_version=version_id,
                 repository_version_language__language=language,
             ):
                 raise APIExceptionCustom(
