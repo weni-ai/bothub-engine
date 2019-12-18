@@ -58,7 +58,7 @@ class RepositoryQuerySet(models.QuerySet):
     def order_by_relevance(self):
         return self.order_by(
             "-versions__repositoryversionlanguage__total_training_end", "-created_at"
-        )
+        ).distinct()
 
     def supported_language(self, language):
         valid_examples = RepositoryExample.objects.all()
