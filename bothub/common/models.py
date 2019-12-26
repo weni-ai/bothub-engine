@@ -790,11 +790,6 @@ class RepositoryNLPLog(models.Model):
             repository_nlp_log=repository_nlp_log
         ).order_by("-is_default")
 
-    def entities(self, repository_nlp_log):
-        return RepositoryNLPLogEntity.objects.filter(
-            repository_nlp_log=repository_nlp_log
-        )
-
 
 class RepositoryNLPLogIntent(models.Model):
     class Meta:
@@ -803,18 +798,6 @@ class RepositoryNLPLogIntent(models.Model):
     intent = models.TextField(help_text=_("Intent"))
     confidence = models.FloatField(help_text=_("Confidence"))
     is_default = models.BooleanField(help_text=_("is default, intent selected"))
-    repository_nlp_log = models.ForeignKey(
-        RepositoryNLPLog, models.CASCADE, editable=False, null=True
-    )
-
-
-class RepositoryNLPLogEntity(models.Model):
-    class Meta:
-        verbose_name = _("repository nlp logs entity")
-
-    entity = models.TextField(help_text=_("Entity"))
-    value = models.TextField(help_text=_("Value"))
-    confidence = models.FloatField(help_text=_("Confidence"))
     repository_nlp_log = models.ForeignKey(
         RepositoryNLPLog, models.CASCADE, editable=False, null=True
     )

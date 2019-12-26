@@ -1,3 +1,5 @@
+import json
+
 from django.conf import settings
 from django.utils.translation import gettext as _
 from rest_framework import serializers
@@ -616,19 +618,11 @@ class RepositoryUpload(serializers.Serializer):
 class RepositoryNLPLogSerializer(serializers.ModelSerializer):
     class Meta:
         model = RepositoryNLPLog
-        fields = [
-            "id",
-            "text",
-            "user_agent",
-            "nlp_log",
-            "user",
-            "log_intent",
-            "log_entity",
-        ]
+        fields = ["id", "text", "user_agent", "nlp_log", "user", "log_intent"]
         ref_name = None
 
     log_intent = serializers.SerializerMethodField()
-    log_entity = serializers.SerializerMethodField()
+    nlp_log = serializers.SerializerMethodField()
 
     def get_log_intent(self, obj):
         intents = {}
@@ -641,13 +635,5 @@ class RepositoryNLPLogSerializer(serializers.ModelSerializer):
 
         return intents
 
-    def get_log_entity(self, obj):
-        entities = {}
-        for entity in obj.entities(obj):
-            entities[entity.pk] = {
-                "entity": entity.entity,
-                "value": entity.value,
-                "confidence": entity.confidence,
-            }
-
-        return entities
+    def get_nlp_log(self, obj):
+        return json.loads(obj.nlp_log)
