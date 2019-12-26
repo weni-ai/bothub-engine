@@ -768,6 +768,58 @@ class RepositoryVersionLanguage(models.Model):
         self.save(update_fields=["failed_at"])
 
 
+class RepositoryNLPLog(models.Model):
+    class Meta:
+        verbose_name = _("repository nlp logs")
+
+    text = models.TextField(help_text=_("Text"))
+    user_agent = models.TextField(help_text=_("User Agent"))
+    repository_version_language = models.ForeignKey(
+        RepositoryVersionLanguage,
+        models.CASCADE,
+        related_name="nlp_logs",
+        editable=False,
+        null=True,
+    )
+    nlp_log = models.TextField(help_text=_("NLP Log"), blank=True)
+    user = models.ForeignKey(User, models.CASCADE)
+    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
+
+    def intents(self, repository_nlp_log):
+        return RepositoryNLPLogIntent.objects.filter(
+            repository_nlp_log=repository_nlp_log
+        ).order_by("-is_default")
+
+    def entities(self, repository_nlp_log):
+        return RepositoryNLPLogEntity.objects.filter(
+            repository_nlp_log=repository_nlp_log
+        )
+
+
+class RepositoryNLPLogIntent(models.Model):
+    class Meta:
+        verbose_name = _("repository nlp logs intent")
+
+    intent = models.TextField(help_text=_("Intent"))
+    confidence = models.FloatField(help_text=_("Confidence"))
+    is_default = models.BooleanField(help_text=_("is default, intent selected"))
+    repository_nlp_log = models.ForeignKey(
+        RepositoryNLPLog, models.CASCADE, editable=False, null=True
+    )
+
+
+class RepositoryNLPLogEntity(models.Model):
+    class Meta:
+        verbose_name = _("repository nlp logs entity")
+
+    entity = models.TextField(help_text=_("Entity"))
+    value = models.TextField(help_text=_("Value"))
+    confidence = models.FloatField(help_text=_("Confidence"))
+    repository_nlp_log = models.ForeignKey(
+        RepositoryNLPLog, models.CASCADE, editable=False, null=True
+    )
+
+
 class RepositoryExample(models.Model):
     class Meta:
         verbose_name = _("repository example")

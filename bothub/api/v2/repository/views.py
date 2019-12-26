@@ -5,6 +5,7 @@ from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django.utils.translation import gettext as _
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import OrderingFilter
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import mixins
@@ -24,19 +25,23 @@ from rest_framework.viewsets import GenericViewSet
 
 from bothub.api.v2.mixins import MultipleFieldLookupMixin
 from bothub.authentication.models import User
-from bothub.common.models import Repository
+from bothub.common.models import Repository, RepositoryNLPLog
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryCategory
 from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryVote
 from bothub.common.models import RequestRepositoryAuthorization
-from .filters import RepositoriesFilter
+from .filters import RepositoriesFilter, RepositoryNLPLogFilter
 from .filters import RepositoryAuthorizationFilter
 from .filters import RepositoryAuthorizationRequestsFilter
 from .permissions import RepositoryAdminManagerAuthorization
 from .permissions import RepositoryExamplePermission
 from .permissions import RepositoryPermission
-from .serializers import AnalyzeTextSerializer, TrainSerializer
+from .serializers import (
+    AnalyzeTextSerializer,
+    TrainSerializer,
+    RepositoryNLPLogSerializer,
+)
 from .serializers import EvaluateSerializer
 from .serializers import RepositoryAuthorizationRoleSerializer
 from .serializers import RepositoryAuthorizationSerializer
@@ -494,3 +499,14 @@ class RepositoryExampleViewSet(
                 not_added.append(data)
 
         return Response({"added": count_added, "not_added": not_added})
+
+
+class RepositoryNLPLogViewSet(
+    mixins.ListModelMixin, mixins.RetrieveModelMixin, GenericViewSet
+):
+    queryset = RepositoryNLPLog.objects
+    serializer_class = RepositoryNLPLogSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    filter_class = RepositoryNLPLogFilter
+    filter_backends = [OrderingFilter, DjangoFilterBackend]
+    ordering_fields = ["-created_at"]

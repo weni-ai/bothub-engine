@@ -39,12 +39,12 @@ def migrate_data(apps, schema_editor):  # pragma: no cover
         for lang in languages.VERBOSE_LANGUAGES.keys():
             update = RepositoryUpdate.objects.filter(
                 repository=repo, trained_at__isnull=False, language=lang
-            ).last()
+            ).first()
 
             if update is None:
                 update = RepositoryUpdate.objects.filter(
                     repository=repo, language=lang
-                ).last()
+                ).first()
                 if update is None:
                     continue
 

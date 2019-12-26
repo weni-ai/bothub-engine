@@ -9,7 +9,7 @@ from bothub.api.v2.fields import ModelMultipleChoiceField
 from bothub.api.v2.fields import TextField
 from bothub.common import languages
 from bothub.common.languages import LANGUAGE_CHOICES
-from bothub.common.models import Repository, RepositoryVersion
+from bothub.common.models import Repository, RepositoryVersion, RepositoryNLPLog
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryCategory
 from bothub.common.models import RepositoryEntityLabel
@@ -611,3 +611,43 @@ class RepositoryUpdateSerializer(serializers.ModelSerializer):
 
 class RepositoryUpload(serializers.Serializer):
     pass
+
+
+class RepositoryNLPLogSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RepositoryNLPLog
+        fields = [
+            "id",
+            "text",
+            "user_agent",
+            "nlp_log",
+            "user",
+            "log_intent",
+            "log_entity",
+        ]
+        ref_name = None
+
+    log_intent = serializers.SerializerMethodField()
+    log_entity = serializers.SerializerMethodField()
+
+    def get_log_intent(self, obj):
+        intents = {}
+        for intent in obj.intents(obj):
+            intents[intent.pk] = {
+                "intent": intent.intent,
+                "confidence": intent.confidence,
+                "is_default": intent.is_default,
+            }
+
+        return intents
+
+    def get_log_entity(self, obj):
+        entities = {}
+        for entity in obj.entities(obj):
+            entities[entity.pk] = {
+                "entity": entity.entity,
+                "value": entity.value,
+                "confidence": entity.confidence,
+            }
+
+        return entities

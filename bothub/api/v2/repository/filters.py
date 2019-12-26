@@ -4,7 +4,7 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.exceptions import NotFound
 from django.core.exceptions import ValidationError as DjangoValidationError
 
-from bothub.common.models import Repository
+from bothub.common.models import Repository, RepositoryNLPLog
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RequestRepositoryAuthorization
 
@@ -71,3 +71,27 @@ class RepositoryAuthorizationRequestsFilter(filters.FilterSet):
             raise NotFound(_("Repository {} does not exist").format(value))
         except DjangoValidationError:
             raise NotFound(_("Invalid repository UUID"))
+
+
+class RepositoryNLPLogFilter(filters.FilterSet):
+    class Meta:
+        model = RepositoryNLPLog
+        fields = []
+
+    repository_uuid = filters.CharFilter(
+        field_name="repository_uuid",
+        method="filter_repository_uuid",
+        required=True,
+        help_text=_("Repository's UUID"),
+    )
+
+    def filter_repository_uuid(self, queryset, name, value):
+        try:
+            repository = Repository.objects.get(uuid=value)
+            return queryset.filter(
+                repository_version_language__repository_version__repository=repository
+            )
+        except Repository.DoesNotExist:
+            raise NotFound(_("Repository {} does not exist").format(value))
+        except DjangoValidationError:
+            raise NotFound(_("Invalid repository_uuid"))
