@@ -10,13 +10,21 @@ def noop(apps, schema_editor):  # pragma: no cover
 
 
 def current_version(
-    repository, repositoryversionlanguage, language=None, is_default=True
+    repository,
+    repositoryversionlanguage,
+    language=None,
+    is_default=True,
+    created_by=None,
 ):
     language = language or repository.language
 
     repository_version, created = repository.versions.get_or_create(
         is_default=is_default
     )
+
+    if repository_version.created_by is None:
+        repository_version.created_by = created_by
+        repository_version.save(update_fields=["created_by"])
 
     repository_version_language, created = repositoryversionlanguage.objects.get_or_create(
         repository_version=repository_version, language=language
@@ -39,12 +47,12 @@ def migrate_data(apps, schema_editor):  # pragma: no cover
         for lang in languages.VERBOSE_LANGUAGES.keys():
             update = RepositoryUpdate.objects.filter(
                 repository=repo, trained_at__isnull=False, language=lang
-            ).last()
+            ).first()
 
             if update is None:
                 update = RepositoryUpdate.objects.filter(
                     repository=repo, language=lang
-                ).last()
+                ).first()
                 if update is None:
                     continue
 
@@ -52,6 +60,7 @@ def migrate_data(apps, schema_editor):  # pragma: no cover
                 repository=Repository.objects.get(pk=update.repository.pk),
                 repositoryversionlanguage=RepositoryVersionLanguage,
                 language=update.language,
+                created_by=update.by,
             )
 
             version_language.bot_data = update.bot_data

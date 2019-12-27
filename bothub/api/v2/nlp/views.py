@@ -13,11 +13,14 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.permissions import AllowAny
-
 from bothub.api.v2.repository.serializers import RepositorySerializer
-from bothub.api.v2.nlp.serializers import NLPSerializer
+from bothub.api.v2.nlp.serializers import NLPSerializer, RepositoryNLPLogSerializer
 from bothub.authentication.models import User
-from bothub.common.models import RepositoryAuthorization, RepositoryVersionLanguage
+from bothub.common.models import (
+    RepositoryAuthorization,
+    RepositoryVersionLanguage,
+    RepositoryNLPLog,
+)
 from bothub.common.models import RepositoryEntity
 from bothub.common.models import RepositoryEvaluateResult
 from bothub.common.models import RepositoryEvaluateResultScore
@@ -521,3 +524,9 @@ class RepositoryUpdateInterpretersViewSet(
         else:
             repository.save_training(request.data.get("bot_data"))
         return Response({})
+
+
+class RepositoryNLPLogsViewSet(mixins.CreateModelMixin, GenericViewSet):
+    queryset = RepositoryNLPLog.objects
+    serializer_class = RepositoryNLPLogSerializer
+    permission_classes = [AllowAny]
