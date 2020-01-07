@@ -286,6 +286,43 @@ class Repository(models.Model):
                 code=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
 
+    def request_nlp_debug_parse(self, user_authorization, data):
+        try:  # pragma: no cover
+            if data.get("repository_version"):
+                r = requests.post(  # pragma: no cover
+                    "{}debug_parse/".format(
+                        self.nlp_server
+                        if self.nlp_server
+                        else settings.BOTHUB_NLP_BASE_URL
+                    ),
+                    data={
+                        "text": data.get("text"),
+                        "language": data.get("language"),
+                        "repository_version": data.get("repository_version"),
+                    },
+                    headers={
+                        "Authorization": "Bearer {}".format(user_authorization.uuid)
+                    },
+                )
+            else:
+                r = requests.post(  # pragma: no cover
+                    "{}debug_parse/".format(
+                        self.nlp_server
+                        if self.nlp_server
+                        else settings.BOTHUB_NLP_BASE_URL
+                    ),
+                    data={"text": data.get("text"), "language": data.get("language")},
+                    headers={
+                        "Authorization": "Bearer {}".format(user_authorization.uuid)
+                    },
+                )
+            return r  # pragma: no cover
+        except requests.exceptions.ConnectionError:  # pragma: no cover
+            raise APIException(  # pragma: no cover
+                {"status_code": status.HTTP_503_SERVICE_UNAVAILABLE},
+                code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
     def request_nlp_evaluate(self, user_authorization, data):
         try:  # pragma: no cover
             r = requests.post(  # pragma: no cover

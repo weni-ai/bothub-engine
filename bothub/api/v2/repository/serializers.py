@@ -585,6 +585,12 @@ class AnalyzeTextSerializer(serializers.Serializer):
     repository_version = serializers.IntegerField(required=False)
 
 
+class DebugParseSerializer(serializers.Serializer):
+    language = serializers.ChoiceField(LANGUAGE_CHOICES, required=True)
+    text = serializers.CharField(allow_blank=False)
+    repository_version = serializers.IntegerField(required=False)
+
+
 class TrainSerializer(serializers.Serializer):
     repository_version = serializers.IntegerField(required=False)
 
