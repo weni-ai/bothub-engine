@@ -96,6 +96,7 @@ class RepositoryViewSet(
         methods=["POST"],
         url_name="repository-train",
         lookup_fields=["uuid"],
+        serializer_class=TrainSerializer,
     )
     def train(self, request, **kwargs):
         """
@@ -122,6 +123,7 @@ class RepositoryViewSet(
         url_name="repository-analyze",
         permission_classes=[],
         lookup_fields=["uuid"],
+        serializer_class=AnalyzeTextSerializer,
     )
     def analyze(self, request, **kwargs):
         repository = self.get_object()
@@ -157,6 +159,7 @@ class RepositoryViewSet(
         url_name="repository-debug-parse",
         permission_classes=[],
         lookup_fields=["uuid"],
+        serializer_class=DebugParseSerializer,
     )
     def debug_parse(self, request, **kwargs):
         repository = self.get_object()
@@ -191,6 +194,7 @@ class RepositoryViewSet(
         methods=["POST"],
         url_name="repository-evaluate",
         lookup_fields=["uuid"],
+        serializer_class=EvaluateSerializer,
     )
     def evaluate(self, request, **kwargs):
         """
