@@ -41,6 +41,7 @@ from .serializers import (
     AnalyzeTextSerializer,
     TrainSerializer,
     RepositoryNLPLogSerializer,
+    DebugParseSerializer,
 )
 from .serializers import EvaluateSerializer
 from .serializers import RepositoryAuthorizationRoleSerializer
@@ -95,6 +96,7 @@ class RepositoryViewSet(
         methods=["POST"],
         url_name="repository-train",
         lookup_fields=["uuid"],
+        serializer_class=TrainSerializer,
     )
     def train(self, request, **kwargs):
         """
@@ -121,6 +123,7 @@ class RepositoryViewSet(
         url_name="repository-analyze",
         permission_classes=[],
         lookup_fields=["uuid"],
+        serializer_class=AnalyzeTextSerializer,
     )
     def analyze(self, request, **kwargs):
         repository = self.get_object()
@@ -153,8 +156,45 @@ class RepositoryViewSet(
     @action(
         detail=True,
         methods=["POST"],
+        url_name="repository-debug-parse",
+        permission_classes=[],
+        lookup_fields=["uuid"],
+        serializer_class=DebugParseSerializer,
+    )
+    def debug_parse(self, request, **kwargs):
+        repository = self.get_object()
+        user_authorization = repository.get_user_authorization(request.user)
+        serializer = DebugParseSerializer(data=request.data)  # pragma: no cover
+        serializer.is_valid(raise_exception=True)  # pragma: no cover
+        request = repository.request_nlp_debug_parse(
+            user_authorization, serializer.data
+        )  # pragma: no cover
+
+        if request.status_code == status.HTTP_200_OK:  # pragma: no cover
+            return Response(request.json())  # pragma: no cover
+
+        response = None  # pragma: no cover
+        try:  # pragma: no cover
+            response = request.json()  # pragma: no cover
+        except Exception:
+            pass
+
+        if not response:  # pragma: no cover
+            raise APIException(  # pragma: no cover
+                detail=_(
+                    "Something unexpected happened! " + "We couldn't debug your text."
+                )
+            )
+        error = response.get("error")  # pragma: no cover
+        message = error.get("message")  # pragma: no cover
+        raise APIException(detail=message)  # pragma: no cover
+
+    @action(
+        detail=True,
+        methods=["POST"],
         url_name="repository-evaluate",
         lookup_fields=["uuid"],
+        serializer_class=EvaluateSerializer,
     )
     def evaluate(self, request, **kwargs):
         """
