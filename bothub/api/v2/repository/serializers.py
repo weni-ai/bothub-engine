@@ -166,6 +166,7 @@ class RepositorySerializer(serializers.ModelSerializer):
             "description",
             "is_private",
             "available_languages",
+            "available_languages_count",
             "entities",
             "entities_list",
             "labels_list",
@@ -190,6 +191,7 @@ class RepositorySerializer(serializers.ModelSerializer):
             "request_authorization",
             "available_request_authorization",
             "languages_warnings",
+            "languages_warnings_count",
             "algorithm",
             "use_language_model_featurizer",
             "use_competing_intents",
@@ -200,6 +202,8 @@ class RepositorySerializer(serializers.ModelSerializer):
         read_only = [
             "uuid",
             "available_languages",
+            "available_languages_count",
+            "languages_warnings_count",
             "entities",
             "entities_list",
             "evaluate_languages_count",
@@ -213,6 +217,7 @@ class RepositorySerializer(serializers.ModelSerializer):
 
     uuid = serializers.UUIDField(style={"show": False}, read_only=True)
     available_languages = serializers.ReadOnlyField(style={"show": False})
+    available_languages_count = serializers.SerializerMethodField(style={"show": False})
     entities_list = serializers.ReadOnlyField(style={"show": False})
     labels_list = serializers.ReadOnlyField(style={"show": False})
     ready_for_train = serializers.ReadOnlyField(style={"show": False})
@@ -220,6 +225,7 @@ class RepositorySerializer(serializers.ModelSerializer):
     requirements_to_train = serializers.ReadOnlyField(style={"show": False})
     languages_ready_for_train = serializers.ReadOnlyField(style={"show": False})
     languages_warnings = serializers.ReadOnlyField(style={"show": False})
+    languages_warnings_count = serializers.SerializerMethodField(style={"show": False})
     use_language_model_featurizer = serializers.ReadOnlyField(style={"show": False})
 
     language = serializers.ChoiceField(LANGUAGE_CHOICES, label=_("Language"))
@@ -291,6 +297,12 @@ class RepositorySerializer(serializers.ModelSerializer):
 
     def get_examples__count(self, obj):
         return obj.examples().count()
+
+    def get_available_languages_count(self, obj):
+        return len(obj.available_languages)
+
+    def get_languages_warnings_count(self, obj):
+        return len(obj.languages_warnings)
 
     def get_evaluate_languages_count(self, obj):
         return dict(
