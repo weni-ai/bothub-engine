@@ -1,4 +1,4 @@
-from django.utils.translation import gettext as _
+from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.hashers import make_password
 from rest_framework.authtoken.serializers import AuthTokenSerializer

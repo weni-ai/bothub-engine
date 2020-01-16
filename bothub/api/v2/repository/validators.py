@@ -1,6 +1,6 @@
 import re
 
-from django.utils.translation import gettext as _
+from django.utils.translation import ugettext_lazy as _
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied, APIException
 from rest_framework.exceptions import ValidationError

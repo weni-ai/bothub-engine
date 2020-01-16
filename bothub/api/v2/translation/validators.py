@@ -1,4 +1,4 @@
-from django.utils.translation import gettext as _
+from django.utils.translation import ugettext_lazy as _
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.exceptions import ValidationError
 

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from django.utils.translation import gettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from bothub.api.v2.fields import EntityValueField
 from bothub.common.languages import LANGUAGE_CHOICES

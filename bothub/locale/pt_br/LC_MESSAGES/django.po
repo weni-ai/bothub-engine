@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-01-16 14:59+0000\n"
+"POT-Creation-Date: 2020-01-16 15:02+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -295,7 +295,7 @@ msgstr ""
 msgid "We are happy to have you with us and hope you enjoy Bothub."
 msgstr ""
 
-#: bothub/common/languages.py:46 bothub/settings.py:161
+#: bothub/common/languages.py:46 bothub/settings.py:160
 msgid "English"
 msgstr ""
 
@@ -323,7 +323,7 @@ msgstr ""
 msgid "Dutch"
 msgstr ""
 
-#: bothub/common/languages.py:53 bothub/settings.py:162
+#: bothub/common/languages.py:53 bothub/settings.py:161
 msgid "Brazilian Portuguese"
 msgstr ""
 
@@ -948,6 +948,6 @@ msgstr ""
 msgid "Keep up contributing and creating bots with Bothub."
 msgstr ""
 
-#: bothub/settings.py:155
+#: bothub/settings.py:154
 msgid "An error has occurred"
 msgstr ""

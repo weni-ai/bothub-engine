@@ -3,7 +3,7 @@ import requests
 
 from functools import reduce
 from django.db import models
-from django.utils.translation import gettext as _
+from django.utils.translation import ugettext_lazy as _
 from django.utils import timezone
 from django.conf import settings
 from django.core.validators import RegexValidator, _lazy_re_compile
