@@ -1,6 +1,7 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins
 from rest_framework.filters import SearchFilter
+from rest_framework.filters import OrderingFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
 
@@ -15,12 +16,13 @@ class RepositoryVersionViewSet(
     mixins.ListModelMixin,
     mixins.CreateModelMixin,
     mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
     GenericViewSet,
 ):
     queryset = RepositoryVersion.objects.order_by("-is_default")
     serializer_class = RepositoryVersionSeralizer
     permission_classes = [IsAuthenticated, RepositoryVersionHasPermission]
-    filter_backends = [DjangoFilterBackend, SearchFilter]
+    filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
     search_fields = ["$name", "^name", "=name"]
     metadata_class = Metadata
 
