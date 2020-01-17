@@ -4,6 +4,7 @@ import environ
 import sentry_sdk
 
 from django.utils.log import DEFAULT_LOGGING
+from django.utils.translation import ugettext_lazy as _
 from sentry_sdk.integrations.django import DjangoIntegration
 
 from .utils import cast_supported_languages
@@ -93,6 +94,7 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    'django.middleware.locale.LocaleMiddleware',
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -114,6 +116,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                'django.template.context_processors.i18n',
             ]
         },
     }
@@ -148,7 +151,21 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Internationalization
 
+DEFAULT_ERROR_MESSAGE = _("An error has occurred")
+
 LANGUAGE_CODE = env.str("LANGUAGE_CODE")
+
+
+LANGUAGES = (
+    ('en', _('English')),
+    ('pt-br', _('Brazilian Portuguese')),
+)
+
+MODELTRANSLATION_DEFAULT_LANGUAGE = 'en-us'
+
+LOCALE_PATHS = (
+    os.path.join(os.path.dirname(__file__), "locale"),
+)
 
 TIME_ZONE = env.str("TIME_ZONE")
 

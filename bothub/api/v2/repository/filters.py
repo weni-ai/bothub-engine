@@ -1,5 +1,5 @@
 from django_filters import rest_framework as filters
-from django.utils.translation import gettext as _
+from django.utils.translation import ugettext_lazy as _
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.exceptions import NotFound
 from django.core.exceptions import ValidationError as DjangoValidationError

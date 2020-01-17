@@ -1,7 +1,7 @@
 import json
 from decimal import Decimal, ROUND_DOWN
 
-from django.utils.translation import gettext as _
+from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 
 from bothub.api.v2.repository.validators import (
