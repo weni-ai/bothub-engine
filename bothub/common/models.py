@@ -547,6 +547,10 @@ class Repository(models.Model):
 
         repository_version, created = self.versions.get_or_create(is_default=is_default)
 
+        if created:
+            repository_version.created_by = self.owner
+            repository_version.save()
+
         repository_version_language, created = RepositoryVersionLanguage.objects.get_or_create(
             repository_version=repository_version, language=language
         )
@@ -762,7 +766,6 @@ class RepositoryVersionLanguage(models.Model):
 
     def start_training(self, created_by):
         self.validate_init_train(created_by)
-        self.repository_version.created_by = created_by
         self.training_started_at = timezone.now()
         self.algorithm = self.repository_version.repository.algorithm
         self.use_competing_intents = (
