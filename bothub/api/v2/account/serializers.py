@@ -33,8 +33,8 @@ class RegisterUserSerializer(serializers.ModelSerializer):
 
 
 class ChangePasswordSerializer(serializers.ModelSerializer):
-    current_password = PasswordField(required=True)
-    password = PasswordField(required=True, validators=[validate_password])
+    current_password = PasswordField(required=True, label=_("Current Password"))
+    password = PasswordField(required=True, validators=[validate_password], label=_("Password"))
 
     class Meta:
         model = User

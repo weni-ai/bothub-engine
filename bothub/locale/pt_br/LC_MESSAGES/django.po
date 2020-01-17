@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-01-16 15:02+0000\n"
+"POT-Creation-Date: 2020-01-17 20:42+0000\n"
 "PO-Revision-Date: 2020-01-16 15:11+0000\n"
 "Last-Translator: Ilhasoft <contato@ilhasoft.com.br>, 2020\n"
 "Language-Team: Portuguese (Brazil) (https://www.transifex.com/bothub/teams/106489/pt_BR/)\n"
@@ -27,8 +27,13 @@ msgid "Email"
 msgstr "Email"
 
 #: bothub/api/v2/account/serializers.py:14
+#: bothub/api/v2/account/serializers.py:37
 msgid "Password"
 msgstr "Senha"
+
+#: bothub/api/v2/account/serializers.py:36
+msgid "Current Password"
+msgstr "Senha Padrão"
 
 #: bothub/api/v2/account/serializers.py:47
 msgid "Wrong password"
@@ -112,7 +117,7 @@ msgid "Entities MUST match existing entities for training."
 msgstr "As entidades DEVEM corresponder às já existentes no treinamento."
 
 #: bothub/api/v2/example/serializers.py:31
-#: bothub/api/v2/repository/serializers.py:480
+#: bothub/api/v2/repository/serializers.py:481
 #: bothub/api/v2/translation/serializers.py:82
 msgid "Example's ID"
 msgstr "ID de frases"
@@ -146,16 +151,20 @@ msgstr "UUID de inteligência inválido"
 msgid "Leave a message for repository administrators"
 msgstr "Deixe uma mensagem para administradores da inteligência"
 
-#: bothub/api/v2/repository/serializers.py:427
+#: bothub/api/v2/repository/serializers.py:244
+msgid "Categories"
+msgstr "Categorias"
+
+#: bothub/api/v2/repository/serializers.py:428
 msgid "The owner role can't be changed."
 msgstr "O papel de dono não pode ser modificado."
 
-#: bothub/api/v2/repository/serializers.py:429
+#: bothub/api/v2/repository/serializers.py:430
 msgid "You cannot set user role 0"
 msgstr "Você não pode configurar o papel 0"
 
-#: bothub/api/v2/repository/serializers.py:566
-#: bothub/api/v2/repository/serializers.py:579
+#: bothub/api/v2/repository/serializers.py:567
+#: bothub/api/v2/repository/serializers.py:580
 msgid "Intention and Sentence already exists"
 msgstr "Intenção e frase já existem"
 
@@ -220,7 +229,7 @@ msgstr ""
 msgid "The user nickname can't be '{}'"
 msgstr "O apelido do usuário não pode ser '{}'"
 
-#: bothub/authentication/models.py:61 bothub/common/models.py:1206
+#: bothub/authentication/models.py:61 bothub/common/models.py:1209
 msgid "user"
 msgstr "usuário"
 
@@ -510,7 +519,7 @@ msgstr "Rede Neural com vocabulário interno"
 msgid "Neural Network with external vocabulary (BETA)"
 msgstr "Rede Neural com vocabulário externo (BETA)"
 
-#: bothub/common/models.py:113 bothub/common/models.py:1212
+#: bothub/common/models.py:113 bothub/common/models.py:1215
 msgid "UUID"
 msgstr "UUID"
 
@@ -526,8 +535,8 @@ msgstr "sigla"
 msgid "Easy way to found and share repositories"
 msgstr "Forma fácil de encontrar e compartilhar inteligências"
 
-#: bothub/common/models.py:125 bothub/common/models.py:626
-#: bothub/common/models.py:951
+#: bothub/common/models.py:125 bothub/common/models.py:630
+#: bothub/common/models.py:954
 msgid "language"
 msgstr "idioma"
 
@@ -539,7 +548,7 @@ msgstr ""
 "Idioma de frases da inteligência. As frases podem ser traduzidas para outros"
 " idiomas."
 
-#: bothub/common/models.py:134 bothub/common/models.py:638
+#: bothub/common/models.py:134 bothub/common/models.py:642
 msgid "algorithm"
 msgstr "algoritmo"
 
@@ -598,13 +607,13 @@ msgstr ""
 "Sua inteligência pode ser privada, apenas você pode ver e usar, ou pode ser "
 "pública e toda a comunidade pode ver e usá-la."
 
-#: bothub/common/models.py:180 bothub/common/models.py:608
-#: bothub/common/models.py:645 bothub/common/models.py:823
-#: bothub/common/models.py:864 bothub/common/models.py:957
-#: bothub/common/models.py:1025 bothub/common/models.py:1071
-#: bothub/common/models.py:1126 bothub/common/models.py:1221
-#: bothub/common/models.py:1327 bothub/common/models.py:1416
-#: bothub/common/models.py:1473 bothub/common/models.py:1519
+#: bothub/common/models.py:180 bothub/common/models.py:612
+#: bothub/common/models.py:649 bothub/common/models.py:826
+#: bothub/common/models.py:867 bothub/common/models.py:960
+#: bothub/common/models.py:1028 bothub/common/models.py:1074
+#: bothub/common/models.py:1129 bothub/common/models.py:1224
+#: bothub/common/models.py:1330 bothub/common/models.py:1419
+#: bothub/common/models.py:1476 bothub/common/models.py:1522
 msgid "created at"
 msgstr "criado em"
 
@@ -612,281 +621,281 @@ msgstr "criado em"
 msgid "Base URL NLP"
 msgstr "URL Base do NLP"
 
-#: bothub/common/models.py:600
+#: bothub/common/models.py:604
 msgid "repository version"
 msgstr "versão da inteligência"
 
-#: bothub/common/models.py:604 bothub/common/models.py:646
-#: bothub/common/models.py:865
+#: bothub/common/models.py:608 bothub/common/models.py:650
+#: bothub/common/models.py:868
 msgid "last update"
 msgstr "última atualização"
 
-#: bothub/common/models.py:617
+#: bothub/common/models.py:621
 msgid "repository version language"
 msgstr "idioma da versão da inteligência"
 
-#: bothub/common/models.py:618
+#: bothub/common/models.py:622
 msgid "repository version languages"
 msgstr "idiomas das versões de inteligência"
 
-#: bothub/common/models.py:628
+#: bothub/common/models.py:632
 msgid "bot data"
 msgstr "dados da inteligência"
 
-#: bothub/common/models.py:630
+#: bothub/common/models.py:634
 msgid "training started at"
 msgstr "treinamento iniciado em"
 
-#: bothub/common/models.py:632
+#: bothub/common/models.py:636
 msgid "trained at"
 msgstr "treinado em"
 
-#: bothub/common/models.py:633
+#: bothub/common/models.py:637
 msgid "failed at"
 msgstr "falhou em"
 
-#: bothub/common/models.py:644
+#: bothub/common/models.py:648
 msgid "training log"
 msgstr "log de treinamento"
 
-#: bothub/common/models.py:648
+#: bothub/common/models.py:652
 msgid "total training end"
 msgstr "treinamento final total"
 
-#: bothub/common/models.py:668
+#: bothub/common/models.py:672
 msgid "This bot version has already been trained."
 msgstr "Essa versão da inteligência já foi treinada."
 
-#: bothub/common/models.py:670
+#: bothub/common/models.py:674
 msgid "This bot version is being trained."
 msgstr "Essa versão da inteligência está sendo treinada."
 
-#: bothub/common/models.py:677
+#: bothub/common/models.py:681
 msgid "All examples need have a intent."
 msgstr "Todas as frases precisam ter uma intenção."
 
-#: bothub/common/models.py:688
+#: bothub/common/models.py:692
 msgid "Intent \"{}\" has only {} examples. Minimum is {}."
 msgstr "Intenção \"{}\" tem apenas {} frases. Mínimo é {}."
 
-#: bothub/common/models.py:706
+#: bothub/common/models.py:710
 msgid "Entity \"{}\" has only {} examples. Minimum is {}."
 msgstr "Entidade \"{}\" tem apenas {} frases. Mínimo é {}."
 
-#: bothub/common/models.py:742
+#: bothub/common/models.py:746
 msgid ""
 "You need to have at least {} intents for the algorithm to identify intents."
 msgstr ""
 "Você precisa ter ao menos {} intenções para que o algoritmo passe a "
 "identificar intenções."
 
-#: bothub/common/models.py:810
+#: bothub/common/models.py:813
 msgid "repository nlp logs"
 msgstr "logs de nlp"
 
-#: bothub/common/models.py:812
+#: bothub/common/models.py:815
 msgid "Text"
 msgstr "Texto"
 
-#: bothub/common/models.py:813
+#: bothub/common/models.py:816
 msgid "User Agent"
 msgstr "User Agent"
 
-#: bothub/common/models.py:821
+#: bothub/common/models.py:824
 msgid "NLP Log"
 msgstr "Log NLP"
 
-#: bothub/common/models.py:833
+#: bothub/common/models.py:836
 msgid "repository nlp logs intent"
 msgstr "log de intenções da inteligência"
 
-#: bothub/common/models.py:835
+#: bothub/common/models.py:838
 msgid "Intent"
 msgstr "Intenção"
 
-#: bothub/common/models.py:836
+#: bothub/common/models.py:839
 msgid "Confidence"
 msgstr "Confidência"
 
-#: bothub/common/models.py:837
+#: bothub/common/models.py:840
 msgid "is default, intent selected"
 msgstr "por padrão, intenção selecionada"
 
-#: bothub/common/models.py:845
+#: bothub/common/models.py:848
 msgid "repository example"
 msgstr "frase de inteligência"
 
-#: bothub/common/models.py:846
+#: bothub/common/models.py:849
 msgid "repository examples"
 msgstr "frases da inteligência"
 
-#: bothub/common/models.py:856 bothub/common/models.py:956
-#: bothub/common/models.py:1324 bothub/common/models.py:1408
+#: bothub/common/models.py:859 bothub/common/models.py:959
+#: bothub/common/models.py:1327 bothub/common/models.py:1411
 msgid "text"
 msgstr "texto"
 
-#: bothub/common/models.py:856
+#: bothub/common/models.py:859
 msgid "Example text"
 msgstr "Texto da frase"
 
-#: bothub/common/models.py:858 bothub/common/models.py:1410
-#: bothub/common/models.py:1536
+#: bothub/common/models.py:861 bothub/common/models.py:1413
+#: bothub/common/models.py:1539
 msgid "intent"
 msgstr "intenção"
 
-#: bothub/common/models.py:861
+#: bothub/common/models.py:864
 msgid "Example intent reference"
 msgstr "Intenção referência da frase"
 
-#: bothub/common/models.py:931
+#: bothub/common/models.py:934
 msgid "repository translated example"
 msgstr "frase traduzida da inteligência"
 
-#: bothub/common/models.py:932
+#: bothub/common/models.py:935
 msgid "repository translated examples"
 msgstr "frases traduzidas da inteligência"
 
-#: bothub/common/models.py:948 bothub/common/models.py:1168
+#: bothub/common/models.py:951 bothub/common/models.py:1171
 msgid "Example object"
 msgstr "Objeto frase"
 
-#: bothub/common/models.py:953
+#: bothub/common/models.py:956
 msgid "Translation language"
 msgstr "Idioma de tradução"
 
-#: bothub/common/models.py:956
+#: bothub/common/models.py:959
 msgid "Translation text"
 msgstr "Texto de tradução"
 
-#: bothub/common/models.py:1020
+#: bothub/common/models.py:1023
 msgid "label"
 msgstr "categoria"
 
-#: bothub/common/models.py:1059
+#: bothub/common/models.py:1062
 msgid "entity"
 msgstr "entidade"
 
-#: bothub/common/models.py:1061
+#: bothub/common/models.py:1064
 msgid "Entity name"
 msgstr "Nome de entidade"
 
-#: bothub/common/models.py:1115
+#: bothub/common/models.py:1118
 msgid "repository example entity"
 msgstr "entidade de frase da inteligência"
 
-#: bothub/common/models.py:1116
+#: bothub/common/models.py:1119
 msgid "repository example entities"
 msgstr "entidades de frase da inteligência"
 
-#: bothub/common/models.py:1120
+#: bothub/common/models.py:1123
 msgid "start"
 msgstr "começar"
 
-#: bothub/common/models.py:1120
+#: bothub/common/models.py:1123
 msgid "Start index of entity value in example text"
 msgstr "Índice inicial do valor da entidade na frase"
 
-#: bothub/common/models.py:1123
+#: bothub/common/models.py:1126
 msgid "end"
 msgstr "fim"
 
-#: bothub/common/models.py:1123
+#: bothub/common/models.py:1126
 msgid "End index of entity value in example text"
 msgstr "Índice final do valor da entidade na frase"
 
-#: bothub/common/models.py:1181
+#: bothub/common/models.py:1184
 msgid "Translated example object"
 msgstr "Objeto frase traduzido"
 
-#: bothub/common/models.py:1190
+#: bothub/common/models.py:1193
 msgid "repository authorization"
 msgstr "autorização da inteligência"
 
-#: bothub/common/models.py:1191
+#: bothub/common/models.py:1194
 msgid "repository authorizations"
 msgstr "autorizações da inteligência"
 
-#: bothub/common/models.py:1205
+#: bothub/common/models.py:1208
 msgid "not set"
 msgstr "não configurado"
 
-#: bothub/common/models.py:1207
+#: bothub/common/models.py:1210
 msgid "contributor"
 msgstr "contribuidor"
 
-#: bothub/common/models.py:1208
+#: bothub/common/models.py:1211
 msgid "admin"
 msgstr "admin"
 
-#: bothub/common/models.py:1219
+#: bothub/common/models.py:1222
 msgid "role"
 msgstr "papel"
 
-#: bothub/common/models.py:1299
+#: bothub/common/models.py:1302
 msgid "New role in {}"
 msgstr "Novo papel em {}"
 
-#: bothub/common/models.py:1309
+#: bothub/common/models.py:1312
 msgid "repository vote"
 msgstr "voto da inteligência"
 
-#: bothub/common/models.py:1310
+#: bothub/common/models.py:1313
 msgid "repository votes"
 msgstr "votos da inteligência"
 
-#: bothub/common/models.py:1342
+#: bothub/common/models.py:1345
 msgid "New authorization request in {}"
 msgstr "Nova solicitação de autorização em {}"
 
-#: bothub/common/models.py:1359
+#: bothub/common/models.py:1362
 msgid "Access denied to {}"
 msgstr "Acesso negado para {}"
 
-#: bothub/common/models.py:1377
+#: bothub/common/models.py:1380
 msgid "Authorization Request Approved to {}"
 msgstr "Solicitação de autorização aprovada para {}"
 
-#: bothub/common/models.py:1389
+#: bothub/common/models.py:1392
 msgid "repository evaluate test"
 msgstr "teste de availiação da inteligência"
 
-#: bothub/common/models.py:1390
+#: bothub/common/models.py:1393
 msgid "repository evaluate tests"
 msgstr "testes de availiação da inteligência"
 
-#: bothub/common/models.py:1408
+#: bothub/common/models.py:1411
 msgid "Evaluate test text"
 msgstr "Frase de avaliação"
 
-#: bothub/common/models.py:1413 bothub/common/models.py:1538
+#: bothub/common/models.py:1416 bothub/common/models.py:1541
 msgid "Evaluate intent reference"
 msgstr "Referência de intenção de avaliação"
 
-#: bothub/common/models.py:1451
+#: bothub/common/models.py:1454
 msgid "evaluate object"
 msgstr "avaliar objeto"
 
-#: bothub/common/models.py:1479 bothub/common/models.py:1480
+#: bothub/common/models.py:1482 bothub/common/models.py:1483
 msgid "evaluate results"
 msgstr "resultados de avaliação"
 
-#: bothub/common/models.py:1506
+#: bothub/common/models.py:1509
 msgid "Intent Confusion Matrix Chart"
 msgstr "Gráfico de Matriz de Confusão por Intenção"
 
-#: bothub/common/models.py:1510
+#: bothub/common/models.py:1513
 msgid "Intent Prediction Confidence Distribution"
 msgstr "Distribuição de confidências de predição por Intenção"
 
-#: bothub/common/models.py:1513
+#: bothub/common/models.py:1516
 msgid "Evaluate Log"
 msgstr "Log de Avaliação"
 
-#: bothub/common/models.py:1516
+#: bothub/common/models.py:1519
 msgid "Version"
 msgstr "Versão"
 
-#: bothub/common/models.py:1589
+#: bothub/common/models.py:1592
 msgid "You can change approved_by just one time."
 msgstr "Você pode mudar o \"aprovado por\" apenas uma vez."
 

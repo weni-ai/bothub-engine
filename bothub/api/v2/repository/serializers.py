@@ -241,6 +241,7 @@ class RepositorySerializer(serializers.ModelSerializer):
         ),
         allow_empty=False,
         help_text=Repository.CATEGORIES_HELP_TEXT,
+        label=_("Categories"),
     )
     categories_list = serializers.SerializerMethodField(style={"show": False})
     labels = RepositoryEntityLabelSerializer(
