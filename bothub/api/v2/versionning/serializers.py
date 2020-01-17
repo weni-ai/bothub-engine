@@ -21,10 +21,18 @@ from bothub.common.models import (
 class RepositoryVersionSeralizer(serializers.ModelSerializer):
     class Meta:
         model = RepositoryVersion
-        fields = ["id", "repository", "name", "is_default", "created_at"]
+        fields = [
+            "id",
+            "repository",
+            "name",
+            "is_default",
+            "created_at",
+            "created_by",
+            "last_update",
+        ]
         ref_name = None
 
-        read_only = ["is_default"]
+        read_only = ["is_default", "created_by", "last_update"]
 
     is_default = serializers.BooleanField(default=True, read_only=True, required=False)
     id = serializers.IntegerField()
@@ -37,6 +45,8 @@ class RepositoryVersionSeralizer(serializers.ModelSerializer):
         write_only=True,
         style={"show": False},
     )
+    created_by = serializers.CharField(source="created_by.name", read_only=True)
+    last_update = serializers.DateTimeField(read_only=True)
 
     def update(self, instance, validated_data):
         validated_data.pop("repository")
@@ -57,7 +67,7 @@ class RepositoryVersionSeralizer(serializers.ModelSerializer):
             last_update=clone.last_update,
             is_default=False,
             repository=clone.repository,
-            created_by=clone.created_by,
+            created_by=self.context["request"].user,
         )
         instance.save()
 
