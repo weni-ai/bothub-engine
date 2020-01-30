@@ -339,9 +339,8 @@ class Repository(models.Model):
                 code=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
 
-    @property
-    def available_languages(self):
-        examples = self.examples()
+    def available_languages(self, language=None, queryset=None, version_default=True):
+        examples = self.examples(language=language, queryset=queryset, version_default=version_default)
         examples_languages = examples.values_list(
             "repository_version_language__language", flat=True
         )
@@ -369,7 +368,7 @@ class Repository(models.Model):
 
     @property
     def current_versions(self):
-        return map(lambda lang: self.current_version(lang), self.available_languages)
+        return map(lambda lang: self.current_version(lang), self.available_languages())
 
     @property
     def requirements_to_train(self):
@@ -406,13 +405,13 @@ class Repository(models.Model):
             )
         )
 
-    @property
-    def intents(self):
+    # @property
+    def intents(self, queryset=None, version_default=True):
+        intents = self.examples(exclude_deleted=True, queryset=queryset, version_default=version_default) \
+            if queryset else self.examples(exclude_deleted=True, version_default=version_default)
         return list(
             set(
-                self.examples(exclude_deleted=True)
-                .exclude(intent="")
-                .values_list("intent", flat=True)
+                intents.exclude(intent="").values_list("intent", flat=True)
             )
         )
 

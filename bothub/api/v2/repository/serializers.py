@@ -275,21 +275,51 @@ class RepositorySerializer(serializers.ModelSerializer):
         return obj.current_entities.values("value", "id").distinct()
 
     def get_intents(self, obj):
+        context = self.context.get('request')
+        if context:
+            repository_version = context.query_params.get('repository_version')
+            queryset = RepositoryExample.objects.filter(
+                repository_version_language__repository_version__pk=repository_version
+            )
+            if repository_version:
+                if queryset.filter(repository_version_language__repository_version__repository=obj):
+                    return IntentSerializer(
+                        map(
+                            lambda intent: {
+                                "value": intent,
+                                "examples__count": obj.examples(exclude_deleted=True, queryset=queryset, version_default=False)
+                                .filter(intent=intent)
+                                .count(),
+                            },
+                            obj.intents(queryset=queryset, version_default=False),
+                        ),
+                        many=True,
+                    ).data
+                return []
+
         return IntentSerializer(
             map(
                 lambda intent: {
                     "value": intent,
-                    "examples__count": obj.examples(exclude_deleted=True)
-                    .filter(intent=intent)
-                    .count(),
+                    "examples__count": obj.examples(exclude_deleted=True).filter(intent=intent).count(),
                 },
-                obj.intents,
+                obj.intents(),
             ),
             many=True,
         ).data
 
     def get_intents_list(self, obj):
-        return obj.intents
+        context = self.context.get('request')
+        if context:
+            repository_version = context.query_params.get('repository_version')
+            queryset = RepositoryExample.objects.filter(
+                repository_version_language__repository_version__pk=repository_version
+            )
+            if repository_version:
+                if queryset.filter(repository_version_language__repository_version__repository=obj):
+                    return obj.intents(queryset=queryset, version_default=False)
+                return []
+        return obj.intents()
 
     def get_other_label(self, obj):
         return RepositoryEntityLabelSerializer(
@@ -297,10 +327,30 @@ class RepositorySerializer(serializers.ModelSerializer):
         ).data
 
     def get_examples__count(self, obj):
+        context = self.context.get('request')
+        if context:
+            repository_version = context.query_params.get('repository_version')
+            queryset = RepositoryExample.objects.filter(
+                repository_version_language__repository_version__pk=repository_version
+            )
+            if repository_version:
+                if queryset.filter(repository_version_language__repository_version__repository=obj):
+                    return obj.examples(exclude_deleted=True, queryset=queryset, version_default=False).count()
+                return 0
         return obj.examples().count()
 
     def get_available_languages_count(self, obj):
-        return len(obj.available_languages)
+        context = self.context.get('request')
+        if context:
+            repository_version = context.query_params.get('repository_version')
+            queryset = RepositoryExample.objects.filter(
+                repository_version_language__repository_version__pk=repository_version
+            )
+            if repository_version:
+                if queryset.filter(repository_version_language__repository_version__repository=obj):
+                    return len(obj.available_languages(queryset=queryset, version_default=False))
+                return 0
+        return len(obj.available_languages())
 
     def get_languages_warnings_count(self, obj):
         return len(obj.languages_warnings)
@@ -309,7 +359,7 @@ class RepositorySerializer(serializers.ModelSerializer):
         return dict(
             map(
                 lambda x: (x, obj.evaluations(language=x).count()),
-                obj.available_languages,
+                obj.available_languages(),
             )
         )
 

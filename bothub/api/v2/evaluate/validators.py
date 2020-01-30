@@ -4,7 +4,7 @@ from rest_framework.exceptions import ValidationError
 
 class ThereIsIntentValidator(object):
     def __call__(self, attrs):
-        if attrs.get("intent") not in attrs.get("repository").intents:
+        if attrs.get("intent") not in attrs.get("repository").intents():
             raise ValidationError(_("Intent MUST match existing intents for training."))
 
 
