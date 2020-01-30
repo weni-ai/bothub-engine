@@ -340,7 +340,9 @@ class Repository(models.Model):
             )
 
     def available_languages(self, language=None, queryset=None, version_default=True):
-        examples = self.examples(language=language, queryset=queryset, version_default=version_default)
+        examples = self.examples(
+            language=language, queryset=queryset, version_default=version_default
+        )
         examples_languages = examples.values_list(
             "repository_version_language__language", flat=True
         )
@@ -366,9 +368,13 @@ class Repository(models.Model):
             )
         )
 
-    @property
-    def current_versions(self):
-        return map(lambda lang: self.current_version(lang), self.available_languages())
+    def current_versions(self, language=None, queryset=None, version_default=True):
+        return map(
+            lambda lang: self.current_version(lang),
+            self.available_languages(
+                language=language, queryset=queryset, version_default=version_default
+            ),
+        )
 
     @property
     def requirements_to_train(self):
@@ -377,7 +383,7 @@ class Repository(models.Model):
                 lambda l: l[1],
                 map(
                     lambda u: (u.language, u.requirements_to_train),
-                    self.current_versions,
+                    self.current_versions(),
                 ),
             )
         )
@@ -385,35 +391,41 @@ class Repository(models.Model):
     @property
     def languages_ready_for_train(self):
         return dict(
-            map(lambda u: (u.language, u.ready_for_train), self.current_versions)
+            map(lambda u: (u.language, u.ready_for_train), self.current_versions())
         )
 
     @property
     def ready_for_train(self):
         return reduce(
             lambda current, u: u.ready_for_train or current,
-            self.current_versions,
+            self.current_versions(),
             False,
         )
 
-    @property
-    def languages_warnings(self):
+    def languages_warnings(self, language=None, queryset=None, version_default=True):
         return dict(
             filter(
                 lambda w: len(w[1]) > 0,
-                map(lambda u: (u.language, u.warnings), self.current_versions),
+                map(
+                    lambda u: (u.language, u.warnings),
+                    self.current_versions(
+                        language=language,
+                        queryset=queryset,
+                        version_default=version_default,
+                    ),
+                ),
             )
         )
 
-    # @property
     def intents(self, queryset=None, version_default=True):
-        intents = self.examples(exclude_deleted=True, queryset=queryset, version_default=version_default) \
-            if queryset else self.examples(exclude_deleted=True, version_default=version_default)
-        return list(
-            set(
-                intents.exclude(intent="").values_list("intent", flat=True)
+        intents = (
+            self.examples(
+                exclude_deleted=True, queryset=queryset, version_default=version_default
             )
+            if queryset
+            else self.examples(exclude_deleted=True, version_default=version_default)
         )
+        return list(set(intents.exclude(intent="").values_list("intent", flat=True)))
 
     @property
     def current_entities(self):
