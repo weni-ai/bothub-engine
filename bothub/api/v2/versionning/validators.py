@@ -8,7 +8,6 @@ from bothub.common.models import RepositoryVersion
 
 class VersionNameNotExistValidator(object):
     def __call__(self, attrs):
-        print(attrs)
         repository = attrs.get("repository")
         name = attrs.get("name")
 
@@ -24,6 +23,5 @@ class VersionNameNotExistValidator(object):
 
 class CanUseNameVersionValidator(object):
     def __call__(self, value):
-        print(value)
         if re.search("[^A-Za-z0-9]+", value):
             raise ValidationError(_("Only letters and numbers allowed"))
