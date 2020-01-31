@@ -218,6 +218,7 @@ class DefaultRepositoryVersionAPITestCase(TestCase):
                 "repository": str(self.repository.uuid),
                 "id": self.version.pk,
                 "name": "test",
+                "is_default": True
             },
         )
 
