@@ -28,12 +28,6 @@ class CanContributeInRepositoryTranslatedExampleValidator(object):
         self.request = serializer.context.get("request")
 
 
-class CanUseNameVersionValidator(object):
-    def __call__(self, value):
-        if re.search("[^A-Za-z0-9]+", value):
-            raise ValidationError(_("Only letters and numbers allowed"))
-
-
 class CanContributeInRepositoryValidator(object):
     def __call__(self, value):
         user_authorization = value.get_user_authorization(self.request.user)
