@@ -548,5 +548,6 @@ class RepositoryNLPLogViewSet(
     serializer_class = RepositoryNLPLogSerializer
     permission_classes = [permissions.IsAuthenticated]
     filter_class = RepositoryNLPLogFilter
-    filter_backends = [OrderingFilter, DjangoFilterBackend]
+    filter_backends = [OrderingFilter, SearchFilter, DjangoFilterBackend]
+    search_fields = ["$text", "^text", "=text"]
     ordering_fields = ["-created_at"]
