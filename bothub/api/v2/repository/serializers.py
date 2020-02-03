@@ -267,7 +267,10 @@ class RepositorySerializer(serializers.ModelSerializer):
     version_default = serializers.SerializerMethodField(style={"show": False})
 
     def get_version_default(self, obj):
-        return obj.current_version().repository_version.pk
+        return {
+            "id": obj.current_version().repository_version.pk,
+            "name": obj.current_version().repository_version.name,
+        }
 
     def get_categories_list(self, obj):
         return RepositoryCategorySerializer(obj.categories, many=True).data
