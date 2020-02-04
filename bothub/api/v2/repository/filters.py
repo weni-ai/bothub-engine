@@ -85,6 +85,18 @@ class RepositoryNLPLogFilter(filters.FilterSet):
         help_text=_("Repository's UUID"),
     )
 
+    language = filters.CharFilter(
+        field_name="language",
+        method="filter_language",
+        help_text="Filter by language, default is repository base language",
+    )
+
+    repository_version = filters.CharFilter(
+        field_name="repository_version_language",
+        method="filter_repository_version",
+        help_text=_("Filter for examples with version id."),
+    )
+
     def filter_repository_uuid(self, queryset, name, value):
         try:
             repository = Repository.objects.get(uuid=value)
@@ -95,3 +107,11 @@ class RepositoryNLPLogFilter(filters.FilterSet):
             raise NotFound(_("Repository {} does not exist").format(value))
         except DjangoValidationError:
             raise NotFound(_("Invalid repository_uuid"))
+
+    def filter_language(self, queryset, name, value):
+        return queryset.filter(repository_version_language__language=value)
+
+    def filter_repository_version(self, queryset, name, value):
+        return queryset.filter(
+            repository_version_language__repository_version__pk=value
+        )

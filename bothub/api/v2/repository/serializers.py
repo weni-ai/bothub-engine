@@ -11,7 +11,12 @@ from bothub.api.v2.fields import ModelMultipleChoiceField
 from bothub.api.v2.fields import TextField
 from bothub.common import languages
 from bothub.common.languages import LANGUAGE_CHOICES
-from bothub.common.models import Repository, RepositoryVersion, RepositoryNLPLog
+from bothub.common.models import (
+    Repository,
+    RepositoryVersion,
+    RepositoryNLPLog,
+    RepositoryEvaluate,
+)
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryCategory
 from bothub.common.models import RepositoryEntityLabel
@@ -198,6 +203,7 @@ class RepositorySerializer(serializers.ModelSerializer):
             "use_name_entities",
             "use_analyze_char",
             "nlp_server",
+            "version_default",
         ]
         read_only = [
             "uuid",
@@ -258,6 +264,13 @@ class RepositorySerializer(serializers.ModelSerializer):
     )
     entities = serializers.SerializerMethodField(style={"show": False})
     nlp_server = serializers.SerializerMethodField(style={"show": False})
+    version_default = serializers.SerializerMethodField(style={"show": False})
+
+    def get_version_default(self, obj):
+        return {
+            "id": obj.current_version().repository_version.pk,
+            "name": obj.current_version().repository_version.name,
+        }
 
     def get_categories_list(self, obj):
         return RepositoryCategorySerializer(obj.categories, many=True).data
@@ -275,6 +288,34 @@ class RepositorySerializer(serializers.ModelSerializer):
         return obj.current_entities.values("value", "id").distinct()
 
     def get_intents(self, obj):
+        context = self.context.get("request")
+        if context:
+            repository_version = context.query_params.get("repository_version")
+            queryset = RepositoryExample.objects.filter(
+                repository_version_language__repository_version__pk=repository_version
+            )
+            if repository_version:
+                if queryset.filter(
+                    repository_version_language__repository_version__repository=obj
+                ):
+                    return IntentSerializer(
+                        map(
+                            lambda intent: {
+                                "value": intent,
+                                "examples__count": obj.examples(
+                                    exclude_deleted=True,
+                                    queryset=queryset,
+                                    version_default=False,
+                                )
+                                .filter(intent=intent)
+                                .count(),
+                            },
+                            obj.intents(queryset=queryset, version_default=False),
+                        ),
+                        many=True,
+                    ).data
+                return []
+
         return IntentSerializer(
             map(
                 lambda intent: {
@@ -283,13 +324,25 @@ class RepositorySerializer(serializers.ModelSerializer):
                     .filter(intent=intent)
                     .count(),
                 },
-                obj.intents,
+                obj.intents(),
             ),
             many=True,
         ).data
 
     def get_intents_list(self, obj):
-        return obj.intents
+        context = self.context.get("request")
+        if context:
+            repository_version = context.query_params.get("repository_version")
+            queryset = RepositoryExample.objects.filter(
+                repository_version_language__repository_version__pk=repository_version
+            )
+            if repository_version:
+                if queryset.filter(
+                    repository_version_language__repository_version__repository=obj
+                ):
+                    return obj.intents(queryset=queryset, version_default=False)
+                return []
+        return obj.intents()
 
     def get_other_label(self, obj):
         return RepositoryEntityLabelSerializer(
@@ -297,19 +350,87 @@ class RepositorySerializer(serializers.ModelSerializer):
         ).data
 
     def get_examples__count(self, obj):
+        context = self.context.get("request")
+        if context:
+            repository_version = context.query_params.get("repository_version")
+            queryset = RepositoryExample.objects.filter(
+                repository_version_language__repository_version__pk=repository_version
+            )
+            if repository_version:
+                if queryset.filter(
+                    repository_version_language__repository_version__repository=obj
+                ):
+                    return obj.examples(
+                        exclude_deleted=True, queryset=queryset, version_default=False
+                    ).count()
+                return 0
         return obj.examples().count()
 
     def get_available_languages_count(self, obj):
-        return len(obj.available_languages)
+        context = self.context.get("request")
+        if context:
+            repository_version = context.query_params.get("repository_version")
+            queryset = RepositoryExample.objects.filter(
+                repository_version_language__repository_version__pk=repository_version
+            )
+            if repository_version:
+                if queryset.filter(
+                    repository_version_language__repository_version__repository=obj
+                ):
+                    return len(
+                        obj.available_languages(
+                            queryset=queryset, version_default=False
+                        )
+                    )
+                return 0
+        return len(obj.available_languages())
 
     def get_languages_warnings_count(self, obj):
-        return len(obj.languages_warnings)
+        context = self.context.get("request")
+        if context:
+            repository_version = context.query_params.get("repository_version")
+            queryset = RepositoryExample.objects.filter(
+                repository_version_language__repository_version__pk=repository_version
+            )
+            if repository_version:
+                if queryset.filter(
+                    repository_version_language__repository_version__repository=obj
+                ):
+                    return len(
+                        obj.languages_warnings(queryset=queryset, version_default=False)
+                    )
+                return 0
+        return len(obj.languages_warnings())
 
     def get_evaluate_languages_count(self, obj):
+        context = self.context.get("request")
+        if context:
+            repository_version = context.query_params.get("repository_version")
+            queryset = RepositoryEvaluate.objects.filter(
+                repository_version_language__repository_version__pk=repository_version
+            )
+            if repository_version:
+                if queryset.filter(
+                    repository_version_language__repository_version__repository=obj
+                ):
+                    return dict(
+                        map(
+                            lambda x: (
+                                x,
+                                obj.evaluations(
+                                    language=x, queryset=queryset, version_default=False
+                                ).count(),
+                            ),
+                            obj.available_languages(
+                                queryset=queryset, version_default=False
+                            ),
+                        )
+                    )
+                return {}
         return dict(
             map(
                 lambda x: (x, obj.evaluations(language=x).count()),
-                obj.available_languages,
+                obj.available_languages(),
             )
         )
 
