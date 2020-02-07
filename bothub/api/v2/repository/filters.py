@@ -1,10 +1,11 @@
 from django_filters import rest_framework as filters
 from django.utils.translation import ugettext_lazy as _
+from django.db.models import Q
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.exceptions import NotFound
 from django.core.exceptions import ValidationError as DjangoValidationError
 
-from bothub.common.models import Repository, RepositoryNLPLog
+from bothub.common.models import Repository, RepositoryNLPLog, RepositoryNLPLogIntent
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RequestRepositoryAuthorization
 
@@ -91,10 +92,16 @@ class RepositoryNLPLogFilter(filters.FilterSet):
         help_text="Filter by language, default is repository base language",
     )
 
-    repository_version = filters.CharFilter(
+    repository_version_name = filters.CharFilter(
         field_name="repository_version_language",
-        method="filter_repository_version",
-        help_text=_("Filter for examples with version id."),
+        method="filter_repository_version_by_name",
+        help_text=_("Filter for examples with version name."),
+    )
+
+    intent = filters.CharFilter(
+        field_name="repository_version_language",
+        method="filter_intent",
+        help_text=_("Filter for examples with version name."),
     )
 
     def filter_repository_uuid(self, queryset, name, value):
@@ -111,7 +118,16 @@ class RepositoryNLPLogFilter(filters.FilterSet):
     def filter_language(self, queryset, name, value):
         return queryset.filter(repository_version_language__language=value)
 
-    def filter_repository_version(self, queryset, name, value):
+    def filter_repository_version_by_name(self, queryset, name, value):
         return queryset.filter(
-            repository_version_language__repository_version__pk=value
+            repository_version_language__repository_version__name=value
+        )
+
+    def filter_intent(self, queryset, name, value):
+        return queryset.filter(
+            Q(
+                pk__in=RepositoryNLPLogIntent.objects.filter(intent=value).values(
+                    "repository_nlp_log"
+                )
+            )
         )
