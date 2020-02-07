@@ -758,11 +758,20 @@ class RepositoryUpload(serializers.Serializer):
 class RepositoryNLPLogSerializer(serializers.ModelSerializer):
     class Meta:
         model = RepositoryNLPLog
-        fields = ["id", "text", "user_agent", "nlp_log", "user", "log_intent"]
+        fields = [
+            "id",
+            "version_name",
+            "text",
+            "user_agent",
+            "nlp_log",
+            "user",
+            "log_intent",
+        ]
         ref_name = None
 
     log_intent = serializers.SerializerMethodField()
     nlp_log = serializers.SerializerMethodField()
+    version_name = serializers.SerializerMethodField()
 
     def get_log_intent(self, obj):
         intents = {}
@@ -777,3 +786,6 @@ class RepositoryNLPLogSerializer(serializers.ModelSerializer):
 
     def get_nlp_log(self, obj):
         return json.loads(obj.nlp_log)
+
+    def get_version_name(self, obj):
+        return obj.repository_version_language.repository_version.name
