@@ -594,7 +594,15 @@ class Repository(models.Model):
         )
         if language:
             query = query.filter(language=language)
-        return query.first()
+
+        query = query.first()
+
+        if not query:
+            query, created = RepositoryVersionLanguage.objects.get_or_create(
+                repository_version=RepositoryVersion.objects.get(pk=repository_version),
+                language=language,
+            )
+        return query
 
     def get_user_authorization(self, user):
         if user.is_anonymous:
