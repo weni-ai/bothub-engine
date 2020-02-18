@@ -19,6 +19,12 @@ packaging = "*"
 django-environ = "*"
 boto3 = "*"
 sentry-sdk = "==0.13.2"
+celery = "==4.4.0"
+django-celery-results = "==1.1.2"
+redis = "*"
+django-celery-beat = "*"
+nltk = "*"
+multi-rake = "*"
 
 [dev-packages]
 "flake8" = "*"
