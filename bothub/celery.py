@@ -14,7 +14,7 @@ app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
 app.conf.beat_schedule = {
     'add-every-30-seconds': {
         'task': 'bothub.common.tasks.test_task',
-        'schedule': 60.0,
+        'schedule': 5.0,
         # 'args': (16, 16)
     },
 }
