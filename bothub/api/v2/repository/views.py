@@ -42,6 +42,7 @@ from .serializers import (
     TrainSerializer,
     RepositoryNLPLogSerializer,
     DebugParseSerializer,
+    WordDistributionSerializer,
 )
 from .serializers import EvaluateSerializer
 from .serializers import RepositoryAuthorizationRoleSerializer
@@ -167,6 +168,42 @@ class RepositoryViewSet(
         serializer = DebugParseSerializer(data=request.data)  # pragma: no cover
         serializer.is_valid(raise_exception=True)  # pragma: no cover
         request = repository.request_nlp_debug_parse(
+            user_authorization, serializer.data
+        )  # pragma: no cover
+
+        if request.status_code == status.HTTP_200_OK:  # pragma: no cover
+            return Response(request.json())  # pragma: no cover
+
+        response = None  # pragma: no cover
+        try:  # pragma: no cover
+            response = request.json()  # pragma: no cover
+        except Exception:
+            pass
+
+        if not response:  # pragma: no cover
+            raise APIException(  # pragma: no cover
+                detail=_(
+                    "Something unexpected happened! " + "We couldn't debug your text."
+                )
+            )
+        error = response.get("error")  # pragma: no cover
+        message = error.get("message")  # pragma: no cover
+        raise APIException(detail=message)  # pragma: no cover
+
+    @action(
+        detail=True,
+        methods=["POST"],
+        url_name="repository-words-distribution",
+        permission_classes=[],
+        lookup_fields=["uuid"],
+        serializer_class=WordDistributionSerializer,
+    )
+    def words_distribution(self, request, **kwargs):
+        repository = self.get_object()
+        user_authorization = repository.get_user_authorization(request.user)
+        serializer = WordDistributionSerializer(data=request.data)  # pragma: no cover
+        serializer.is_valid(raise_exception=True)  # pragma: no cover
+        request = repository.request_nlp_words_distribution(
             user_authorization, serializer.data
         )  # pragma: no cover
 
