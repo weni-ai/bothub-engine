@@ -725,6 +725,11 @@ class DebugParseSerializer(serializers.Serializer):
     repository_version = serializers.IntegerField(required=False)
 
 
+class WordDistributionSerializer(serializers.Serializer):
+    language = serializers.ChoiceField(LANGUAGE_CHOICES, required=True)
+    repository_version = serializers.IntegerField(required=False)
+
+
 class TrainSerializer(serializers.Serializer):
     repository_version = serializers.IntegerField(required=False)
 
