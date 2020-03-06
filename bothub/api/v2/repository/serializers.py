@@ -5,6 +5,7 @@ from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied
 
+from bothub import utils
 from bothub.api.v2.example.serializers import RepositoryExampleEntitySerializer
 from bothub.api.v2.fields import EntityText, RepositoryVersionRelatedField
 from bothub.api.v2.fields import ModelMultipleChoiceField
@@ -222,6 +223,16 @@ class RepositorySerializer(serializers.ModelSerializer):
         ref_name = None
 
     uuid = serializers.UUIDField(style={"show": False}, read_only=True)
+    slug = serializers.SlugField(style={"show": False}, read_only=True)
+    is_private = serializers.BooleanField(
+        style={"show": False}, read_only=True, default=False
+    )
+    algorithm = serializers.CharField(read_only=True, style={"show": False})
+    use_competing_intents = serializers.BooleanField(
+        read_only=True, style={"show": False}
+    )
+    use_name_entities = serializers.BooleanField(read_only=True, style={"show": False})
+    use_analyze_char = serializers.BooleanField(read_only=True, style={"show": False})
     available_languages = serializers.ReadOnlyField(style={"show": False})
     available_languages_count = serializers.SerializerMethodField(style={"show": False})
     entities_list = serializers.ReadOnlyField(style={"show": False})
@@ -282,6 +293,10 @@ class RepositorySerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data.update({"owner": self.context["request"].user})
+        validated_data.update(
+            {"slug": utils.unique_slug_generator(validated_data, Repository)}
+        )
+
         return super().create(validated_data)
 
     def get_entities(self, obj):

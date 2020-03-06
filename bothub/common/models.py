@@ -134,7 +134,7 @@ class Repository(models.Model):
         _("algorithm"),
         max_length=24,
         choices=ALGORITHM_CHOICES,
-        default=ALGORITHM_STATISTICAL_MODEL,
+        default=ALGORITHM_NEURAL_NETWORK_INTERNAL,
     )
     use_competing_intents = models.BooleanField(
         _("Use competing intents"),
