@@ -227,16 +227,16 @@ class RepositorySerializer(serializers.ModelSerializer):
     is_private = serializers.BooleanField(
         style={"show": False}, read_only=True, default=False
     )
-    algorithm = serializers.CharField(style={"only_settings": True})
+    algorithm = serializers.CharField(style={"show": False, "only_settings": True})
     use_competing_intents = serializers.BooleanField(
-        style={"only_settings": True},
+        style={"show": False, "only_settings": True},
         help_text=_(
             "When using competing intents the confidence of the "
             + "prediction is distributed in all the intents."
         ),
     )
     use_name_entities = serializers.BooleanField(
-        {"only_settings": True},
+        {"show": False, "only_settings": True},
         help_text=_(
             "When enabling name entities you will receive name of "
             + "people, companies and places as results of your "
@@ -244,7 +244,7 @@ class RepositorySerializer(serializers.ModelSerializer):
         ),
     )
     use_analyze_char = serializers.BooleanField(
-        {"only_settings": True},
+        {"show": False, "only_settings": True},
         help_text=_(
             "When selected, the algorithm will learn the patterns of "
             + "individual characters instead of whole words. "
