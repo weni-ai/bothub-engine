@@ -1,11 +1,11 @@
 import json
-from slugify import slugify
 
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied
 
+from bothub import utils
 from bothub.api.v2.example.serializers import RepositoryExampleEntitySerializer
 from bothub.api.v2.fields import EntityText, RepositoryVersionRelatedField
 from bothub.api.v2.fields import ModelMultipleChoiceField
@@ -293,7 +293,10 @@ class RepositorySerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data.update({"owner": self.context["request"].user})
-        validated_data.update({"slug": slugify(validated_data.get("name"))})
+        validated_data.update(
+            {"slug": utils.unique_slug_generator(validated_data, Repository)}
+        )
+
         return super().create(validated_data)
 
     def get_entities(self, obj):

@@ -38,15 +38,12 @@ def get_valid_mockups(categories):
             "description": "",
             "language": languages.LANGUAGE_EN,
             "categories": [category.pk for category in categories],
-            "is_private": True,
         },
         {
             "name": "Repository 2",
-            "slug": "repo2",
             "description": "",
             "language": languages.LANGUAGE_PT,
             "categories": [category.pk for category in categories],
-            "is_private": False,
         },
     ]
 
@@ -58,28 +55,12 @@ def get_invalid_mockups(categories):
             "slug": "repository-1",
             "language": languages.LANGUAGE_EN,
             "categories": [category.pk for category in categories],
-            "is_private": True,
-        },
-        {
-            "name": "Repository 2",
-            "slug": "",
-            "language": languages.LANGUAGE_PT,
-            "categories": [category.pk for category in categories],
-            "is_private": False,
         },
         {
             "name": "Repository 3",
-            "slug": "repo3",
             "language": "out",
             "categories": [category.pk for category in categories],
             "is_private": False,
-        },
-        {
-            "name": "Repository 4",
-            "slug": "repository 4",
-            "language": languages.LANGUAGE_EN,
-            "categories": [category.pk for category in categories],
-            "is_private": True,
         },
     ]
 
@@ -122,9 +103,8 @@ class CreateRepositoryAPITestCase(TestCase):
             repository = self.owner.repositories.get(uuid=content_data.get("uuid"))
 
             self.assertEqual(repository.name, mockup.get("name"))
-            self.assertEqual(repository.slug, mockup.get("slug"))
             self.assertEqual(repository.language, mockup.get("language"))
-            self.assertEqual(repository.is_private, mockup.get("is_private"))
+            self.assertEqual(repository.is_private, False)
 
     def test_invalid_data(self):
         for mockup in get_invalid_mockups([self.category]):
@@ -416,7 +396,7 @@ class RepositoriesViewSetTestCase(TestCase):
 
     def test_category_filter(self):
         response, content_data = self.request({"categories": [self.category_1.id]})
-        self.assertEqual(content_data.get("count"), 1)
+        self.assertEqual(content_data.get("count"), 2)
         response, content_data = self.request({"categories": [self.category_2.id]})
         self.assertEqual(content_data.get("count"), 0)
 
