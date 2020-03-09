@@ -257,6 +257,7 @@ class RepositoryAuthorizationParseViewSet(mixins.RetrieveModelMixin, GenericView
                 {
                     "version": False if update is None else True,
                     "repository_version": update.id,
+                    "total_training_end": update.total_training_end,
                     "language": update.language,
                 }
             )
