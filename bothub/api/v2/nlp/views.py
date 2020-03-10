@@ -133,8 +133,8 @@ class RepositoryAuthorizationTrainViewSet(
                 "use_name_entities": repository.use_name_entities,
                 "use_competing_intents": repository.use_competing_intents,
                 "use_analyze_char": repository.use_analyze_char,
-                "ALGORITHM_STATISTICAL_MODEL": Repository.ALGORITHM_STATISTICAL_MODEL,
                 "ALGORITHM_NEURAL_NETWORK_EXTERNAL": Repository.ALGORITHM_NEURAL_NETWORK_EXTERNAL,
+                "total_training_end": repository.total_training_end,
             }
         )
 
@@ -257,6 +257,7 @@ class RepositoryAuthorizationParseViewSet(mixins.RetrieveModelMixin, GenericView
                 {
                     "version": False if update is None else True,
                     "repository_version": update.id,
+                    "total_training_end": update.total_training_end,
                     "language": update.language,
                 }
             )
@@ -509,6 +510,8 @@ class RepositoryUpdateInterpretersViewSet(
             {
                 "version_id": update.id,
                 "repository_uuid": update.repository_version.repository.uuid,
+                "total_training_end": update.total_training_end,
+                "language": update.language,
                 "bot_data": str(bot_data),
                 "from_aws": aws,
             }
