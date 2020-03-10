@@ -94,11 +94,9 @@ class Repository(models.Model):
     )
     DESCRIPTION_HELP_TEXT = _("Tell what your bot do!")
 
-    ALGORITHM_STATISTICAL_MODEL = "statistical_model"
     ALGORITHM_NEURAL_NETWORK_INTERNAL = "neural_network_internal"
     ALGORITHM_NEURAL_NETWORK_EXTERNAL = "neural_network_external"
     ALGORITHM_CHOICES = [
-        (ALGORITHM_STATISTICAL_MODEL, _("Statistical Model")),
         (
             ALGORITHM_NEURAL_NETWORK_INTERNAL,
             _("Neural Network with internal vocabulary"),
@@ -697,7 +695,7 @@ class RepositoryVersionLanguage(models.Model):
         _("algorithm"),
         max_length=24,
         choices=Repository.ALGORITHM_CHOICES,
-        default=Repository.ALGORITHM_STATISTICAL_MODEL,
+        default=Repository.ALGORITHM_NEURAL_NETWORK_INTERNAL,
     )
     repository_version = models.ForeignKey(RepositoryVersion, models.CASCADE)
     training_log = models.TextField(_("training log"), blank=True, editable=False)
@@ -869,6 +867,7 @@ class RepositoryNLPLog(models.Model):
 
     text = models.TextField(help_text=_("Text"))
     user_agent = models.TextField(help_text=_("User Agent"))
+    from_backend = models.BooleanField()
     repository_version_language = models.ForeignKey(
         RepositoryVersionLanguage,
         models.CASCADE,

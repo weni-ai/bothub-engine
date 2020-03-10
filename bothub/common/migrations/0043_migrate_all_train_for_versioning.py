@@ -109,6 +109,8 @@ def migrate_data(apps, schema_editor):  # pragma: no cover
                 repository_update=update, repository_version_language=version_language
             )
 
+    Repository.objects.filter(algorithm="statistical_model").update(algorithm="neural_network_internal")
+
 
 class Migration(migrations.Migration):
     dependencies = [("common", "0042_auto_20191212_2013")]

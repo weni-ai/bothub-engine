@@ -44,7 +44,7 @@ class TrainStartTrainingTestCase(TestCase):
         self.repository_version_language = RepositoryVersionLanguage.objects.create(
             repository_version=self.repository_version,
             language=languages.LANGUAGE_EN,
-            algorithm="statistical_model",
+            algorithm="neural_network_internal",
         )
 
     def request(self, token):
@@ -101,7 +101,7 @@ class TrainFailTestCase(TestCase):
         self.repository_version_language = RepositoryVersionLanguage.objects.create(
             repository_version=self.repository_version,
             language=languages.LANGUAGE_EN,
-            algorithm="statistical_model",
+            algorithm="neural_network_internal",
         )
 
     def request(self, token):
@@ -158,7 +158,7 @@ class AuthorizationInfoTestCase(TestCase):
         self.repository_version_language = RepositoryVersionLanguage.objects.create(
             repository_version=self.repository_version,
             language=languages.LANGUAGE_EN,
-            algorithm="statistical_model",
+            algorithm="neural_network_internal",
         )
 
         self.repository_examples = RepositoryExample.objects.create(

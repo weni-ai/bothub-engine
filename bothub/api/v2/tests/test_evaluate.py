@@ -42,7 +42,7 @@ class ListEvaluateTestCase(TestCase):
         self.repository_version_language = RepositoryVersionLanguage.objects.create(
             repository_version=self.repository_version,
             language=languages.LANGUAGE_EN,
-            algorithm="statistical_model",
+            algorithm="neural_network_internal",
         )
 
         self.example_1 = RepositoryExample.objects.create(
@@ -83,7 +83,7 @@ class ListEvaluateTestCase(TestCase):
         repository_version_language = RepositoryVersionLanguage.objects.create(
             repository_version=self.repository_version,
             language=languages.LANGUAGE_PT,
-            algorithm="statistical_model",
+            algorithm="neural_network_internal",
         )
 
         RepositoryExample.objects.create(
@@ -122,7 +122,7 @@ class ListEvaluateTestCase(TestCase):
         repository_version_language = RepositoryVersionLanguage.objects.create(
             repository_version=repository_version,
             language=languages.LANGUAGE_EN,
-            algorithm="statistical_model",
+            algorithm="neural_network_internal",
         )
 
         RepositoryExample.objects.create(
@@ -168,7 +168,7 @@ class NewEvaluateTestCase(TestCase):
         self.repository_version_language = RepositoryVersionLanguage.objects.create(
             repository_version=self.repository_version,
             language=languages.LANGUAGE_EN,
-            algorithm="statistical_model",
+            algorithm="neural_network_internal",
         )
 
         self.example_1 = RepositoryExample.objects.create(
@@ -255,7 +255,7 @@ class NewEvaluateTestCase(TestCase):
         repository_version_language = RepositoryVersionLanguage.objects.create(
             repository_version=repository_version,
             language=languages.LANGUAGE_EN,
-            algorithm="statistical_model",
+            algorithm="neural_network_internal",
         )
 
         RepositoryExample.objects.create(
@@ -306,7 +306,7 @@ class EvaluateDestroyTestCase(TestCase):
         self.repository_version_language = RepositoryVersionLanguage.objects.create(
             repository_version=self.repository_version,
             language="en",
-            algorithm="statistical_model",
+            algorithm="neural_network_internal",
         )
 
         self.example_1 = RepositoryExample.objects.create(
@@ -374,7 +374,7 @@ class EvaluateUpdateTestCase(TestCase):
         self.repository_version_language = RepositoryVersionLanguage.objects.create(
             repository_version=self.repository_version,
             language="en",
-            algorithm="statistical_model",
+            algorithm="neural_network_internal",
         )
 
         self.example_1 = RepositoryExample.objects.create(
