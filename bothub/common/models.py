@@ -260,6 +260,7 @@ class Repository(models.Model):
                         "text": data.get("text"),
                         "language": data.get("language"),
                         "repository_version": data.get("repository_version"),
+                        "from_backend": True,
                     },
                     headers={
                         "Authorization": "Bearer {}".format(user_authorization.uuid)
