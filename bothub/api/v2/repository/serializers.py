@@ -227,7 +227,10 @@ class RepositorySerializer(serializers.ModelSerializer):
     is_private = serializers.BooleanField(
         style={"show": False}, read_only=True, default=False
     )
-    algorithm = serializers.CharField(style={"show": False, "only_settings": True})
+    algorithm = serializers.CharField(
+        style={"show": False, "only_settings": True},
+        default=Repository.ALGORITHM_NEURAL_NETWORK_INTERNAL,
+    )
     use_competing_intents = serializers.BooleanField(
         style={"show": False, "only_settings": True},
         help_text=_(

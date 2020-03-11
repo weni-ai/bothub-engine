@@ -5,15 +5,13 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('common', '0047_auto_20200310_1648'),
-    ]
+    dependencies = [("common", "0047_auto_20200310_1648")]
 
     operations = [
         migrations.AddField(
-            model_name='repositorynlplog',
-            name='from_backend',
+            model_name="repositorynlplog",
+            name="from_backend",
             field=models.BooleanField(default=True),
             preserve_default=False,
-        ),
+        )
     ]
