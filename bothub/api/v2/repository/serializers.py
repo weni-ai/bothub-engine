@@ -800,6 +800,7 @@ class RepositoryNLPLogSerializer(serializers.ModelSerializer):
             "id",
             "version_name",
             "text",
+            "from_backend",
             "user_agent",
             "nlp_log",
             "user",
