@@ -241,7 +241,7 @@ class RepositorySerializer(serializers.ModelSerializer):
         default=False,
     )
     use_name_entities = serializers.BooleanField(
-        {"show": False, "only_settings": True},
+        style={"show": False, "only_settings": True},
         help_text=_(
             "When enabling name entities you will receive name of "
             + "people, companies and places as results of your "
@@ -250,7 +250,7 @@ class RepositorySerializer(serializers.ModelSerializer):
         default=False,
     )
     use_analyze_char = serializers.BooleanField(
-        {"show": False, "only_settings": True},
+        style={"show": False, "only_settings": True},
         help_text=_(
             "When selected, the algorithm will learn the patterns of "
             + "individual characters instead of whole words. "
