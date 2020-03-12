@@ -660,6 +660,7 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
             "repository",
             "text",
             "intent",
+            "is_corrected",
             "language",
             "created_at",
             "entities",

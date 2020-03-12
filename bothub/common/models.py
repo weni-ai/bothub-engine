@@ -921,6 +921,7 @@ class RepositoryExample(models.Model):
     )
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
     last_update = models.DateTimeField(_("last update"))
+    is_corrected = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
         self.last_update = timezone.now()
