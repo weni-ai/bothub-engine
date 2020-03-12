@@ -227,8 +227,9 @@ class RepositorySerializer(serializers.ModelSerializer):
     is_private = serializers.BooleanField(
         style={"show": False}, read_only=True, default=False
     )
-    algorithm = serializers.CharField(
+    algorithm = serializers.ChoiceField(
         style={"show": False, "only_settings": True},
+        choices=Repository.ALGORITHM_CHOICES,
         default=Repository.ALGORITHM_NEURAL_NETWORK_INTERNAL,
     )
     use_competing_intents = serializers.BooleanField(
@@ -237,6 +238,7 @@ class RepositorySerializer(serializers.ModelSerializer):
             "When using competing intents the confidence of the "
             + "prediction is distributed in all the intents."
         ),
+        default=False,
     )
     use_name_entities = serializers.BooleanField(
         {"show": False, "only_settings": True},
@@ -245,6 +247,7 @@ class RepositorySerializer(serializers.ModelSerializer):
             + "people, companies and places as results of your "
             + "predictions."
         ),
+        default=False,
     )
     use_analyze_char = serializers.BooleanField(
         {"show": False, "only_settings": True},
@@ -253,6 +256,7 @@ class RepositorySerializer(serializers.ModelSerializer):
             + "individual characters instead of whole words. "
             + "This approach works better for some languages."
         ),
+        default=False,
     )
     available_languages = serializers.ReadOnlyField(style={"show": False})
     available_languages_count = serializers.SerializerMethodField(style={"show": False})
