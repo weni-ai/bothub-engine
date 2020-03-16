@@ -20,7 +20,9 @@ class LoginSerializer(AuthTokenSerializer, serializers.ModelSerializer):
 
 
 class RegisterUserSerializer(serializers.ModelSerializer):
-    password = PasswordField(write_only=True, validators=[validate_password])
+    password = PasswordField(
+        write_only=True, validators=[validate_password], label=_("Password")
+    )
 
     class Meta:
         model = User
