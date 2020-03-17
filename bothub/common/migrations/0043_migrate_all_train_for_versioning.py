@@ -109,6 +109,14 @@ def migrate_data(apps, schema_editor):  # pragma: no cover
                 repository_update=update, repository_version_language=version_language
             )
 
+    repositories_for_update = []
+    for repo in Repository.objects.filter(algorithm="statistical_model"):
+        repositories_for_update.append(str(repo.uuid))
+
+    print(
+        f"Repositories for Update Statistical Mode to Neural Network Internal: \n{repositories_for_update}"
+    )
+
     Repository.objects.filter(algorithm="statistical_model").update(
         algorithm="neural_network_internal"
     )
