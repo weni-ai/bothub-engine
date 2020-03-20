@@ -249,7 +249,7 @@ class RepositoryViewSet(
                 detail=_("You need to have at least " + "one registered test phrase")
             )  # pragma: no cover
 
-        if len(repository.intents) <= 1:
+        if len(repository.intents()) <= 1:
             raise APIException(
                 detail=_("You need to have at least " + "two registered intents")
             )  # pragma: no cover
