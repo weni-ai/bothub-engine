@@ -1,8 +1,8 @@
+from django.core.exceptions import ValidationError as DjangoValidationError
+from django.utils.translation import ugettext_lazy as _
+from django_filters import rest_framework as filters
 from rest_framework.exceptions import NotFound
 from rest_framework.exceptions import PermissionDenied
-from django.utils.translation import gettext as _
-from django.core.exceptions import ValidationError as DjangoValidationError
-from django_filters import rest_framework as filters
 
 from bothub.common.models import Repository
 from bothub.common.models import RepositoryTranslatedExample
@@ -29,6 +29,11 @@ class TranslationsFilter(filters.FilterSet):
         method="filter_to_language",
         help_text="Filter by translated language",
     )
+    repository_version = filters.CharFilter(
+        field_name="repository_version_language",
+        method="filter_repository_version",
+        help_text=_("Filter for examples with version id."),
+    )
 
     def filter_repository_uuid(self, queryset, name, value):
         request = self.request
@@ -37,8 +42,13 @@ class TranslationsFilter(filters.FilterSet):
             authorization = repository.get_user_authorization(request.user)
             if not authorization.can_read:
                 raise PermissionDenied()
+            if request.query_params.get("repository_version"):
+                return RepositoryTranslatedExample.objects.filter(
+                    original_example__repository_version_language__repository_version__repository=repository
+                )
             return RepositoryTranslatedExample.objects.filter(
-                original_example__repository_update__repository=repository
+                original_example__repository_version_language__repository_version__repository=repository,
+                repository_version_language__repository_version__is_default=True,
             )
         except Repository.DoesNotExist:
             raise NotFound(_("Repository {} does not exist").format(value))
@@ -46,7 +56,14 @@ class TranslationsFilter(filters.FilterSet):
             raise NotFound(_("Invalid repository_uuid"))
 
     def filter_from_language(self, queryset, name, value):
-        return queryset.filter(original_example__repository_update__language=value)
+        return queryset.filter(
+            original_example__repository_version_language__language=value
+        )
 
     def filter_to_language(self, queryset, name, value):
         return queryset.filter(language=value)
+
+    def filter_repository_version(self, queryset, name, value):
+        return queryset.filter(
+            repository_version_language__repository_version__pk=value
+        )

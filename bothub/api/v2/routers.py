@@ -1,6 +1,7 @@
 from rest_framework import routers
 
-from .repository.views import RepositoryViewSet
+from bothub.api.v2.versionning.views import RepositoryVersionViewSet
+from .repository.views import RepositoryViewSet, RepositoryNLPLogViewSet
 from .repository.views import RepositoryVotesViewSet
 from .repository.views import RepositoriesViewSet
 from .repository.views import RepositoriesContributionsViewSet
@@ -9,8 +10,7 @@ from .repository.views import SearchRepositoriesViewSet
 from .repository.views import RepositoryAuthorizationViewSet
 from .repository.views import RepositoryAuthorizationRequestsViewSet
 from .repository.views import RepositoryExampleViewSet
-from .repository.views import RepositoryUpdatesViewSet
-from .nlp.views import RepositoryAuthorizationTrainViewSet
+from .nlp.views import RepositoryAuthorizationTrainViewSet, RepositoryNLPLogsViewSet
 from .nlp.views import RepositoryAuthorizationParseViewSet
 from .nlp.views import RepositoryAuthorizationInfoViewSet
 from .nlp.views import RepositoryAuthorizationEvaluateViewSet
@@ -121,7 +121,8 @@ router.register("repository/example", RepositoryExampleViewSet)
 router.register("repository/evaluate/results", ResultsListViewSet)
 router.register("repository/evaluate", EvaluateViewSet)
 router.register("repository/translation", RepositoryTranslatedExampleViewSet)
-router.register("repository/updates", RepositoryUpdatesViewSet)
+router.register("repository/version", RepositoryVersionViewSet)
+router.register("repository/log", RepositoryNLPLogViewSet)
 router.register(
     "repository/nlp/authorization/train", RepositoryAuthorizationTrainViewSet
 )
@@ -136,6 +137,7 @@ router.register("repository/nlp/authorization/langs", NLPLangsViewSet)
 router.register(
     "repository/nlp/update_interpreters", RepositoryUpdateInterpretersViewSet
 )
+router.register("repository/nlp/log", RepositoryNLPLogsViewSet)
 router.register("account/login", LoginViewSet)
 router.register("account/register", RegisterUserViewSet)
 router.register("account/change-password", ChangePasswordViewSet)

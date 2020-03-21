@@ -1,7 +1,10 @@
 import io
 import uuid
 import boto3
+import random
+import string
 from django.conf import settings
+from django.utils.text import slugify
 from botocore.exceptions import ClientError
 from collections import OrderedDict
 
@@ -48,3 +51,25 @@ def send_bot_data_file_aws(id, bot_data):
             print(e)
 
     return confmat_url
+
+
+def unique_slug_generator(validated_data, Repository, new_slug=None):
+    """
+    This is for a Django project and it assumes your instance
+    has a model with a slug field and a title character (char) field.
+    """
+    if new_slug is not None:
+        slug = new_slug
+    else:
+        slug = slugify(validated_data.get("name"))
+
+    qs_exists = Repository.objects.filter(slug=slug).exists()
+    if qs_exists:
+        new_slug = "{slug}-{randstr}".format(
+            slug=slug,
+            randstr="".join(
+                random.choice(string.ascii_letters + string.digits) for _ in range(6)
+            ).lower(),
+        )
+        return unique_slug_generator(validated_data, Repository, new_slug=new_slug)
+    return slug

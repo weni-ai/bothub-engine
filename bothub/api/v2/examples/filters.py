@@ -1,4 +1,4 @@
-from django.utils.translation import gettext as _
+from django.utils.translation import ugettext_lazy as _
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db.models import Q
 from django.db.models import Count
@@ -49,6 +49,11 @@ class ExamplesFilter(filters.FilterSet):
         method="filter_entity",
         help_text=_("Filter for examples with entity."),
     )
+    repository_version = filters.CharFilter(
+        field_name="repository_version_language",
+        method="filter_repository_version",
+        help_text=_("Filter for examples with version id."),
+    )
 
     def filter_repository_uuid(self, queryset, name, value):
         request = self.request
@@ -57,6 +62,8 @@ class ExamplesFilter(filters.FilterSet):
             authorization = repository.get_user_authorization(request.user)
             if not authorization.can_read:
                 raise PermissionDenied()
+            if request.query_params.get("repository_version"):
+                return repository.examples(queryset=queryset, version_default=False)
             return repository.examples(queryset=queryset)
         except Repository.DoesNotExist:
             raise NotFound(_("Repository {} does not exist").format(value))
@@ -64,7 +71,12 @@ class ExamplesFilter(filters.FilterSet):
             raise NotFound(_("Invalid repository_uuid"))
 
     def filter_language(self, queryset, name, value):
-        return queryset.filter(repository_update__language=value)
+        return queryset.filter(repository_version_language__language=value)
+
+    def filter_repository_version(self, queryset, name, value):
+        return queryset.filter(
+            repository_version_language__repository_version__pk=value
+        )
 
     def filter_has_translation(self, queryset, name, value):
         annotated_queryset = queryset.annotate(translation_count=Count("translations"))
