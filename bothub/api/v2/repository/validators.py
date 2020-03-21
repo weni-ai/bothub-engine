@@ -1,8 +1,7 @@
-from rest_framework.exceptions import PermissionDenied
-from django.utils.translation import gettext as _
+from django.utils.translation import ugettext_lazy as _
+from rest_framework import status
+from rest_framework.exceptions import PermissionDenied, APIException
 from rest_framework.exceptions import ValidationError
-
-from bothub.common.models import RepositoryExample
 
 
 class CanContributeInRepositoryExampleValidator(object):
@@ -37,6 +36,16 @@ class CanContributeInRepositoryValidator(object):
         self.request = serializer.context.get("request")
 
 
+class CanContributeInRepositoryVersionValidator(object):
+    def __call__(self, value):
+        user_authorization = value.repository.get_user_authorization(self.request.user)
+        if not user_authorization.can_contribute:
+            raise PermissionDenied(_("You can't contribute in this repository"))
+
+    def set_context(self, serializer):
+        self.request = serializer.context.get("request")
+
+
 class ExampleWithIntentOrEntityValidator(object):
     def __call__(self, attrs):
         intent = attrs.get("intent")
@@ -44,21 +53,6 @@ class ExampleWithIntentOrEntityValidator(object):
 
         if not intent and not entities:
             raise ValidationError(_("Define a intent or one entity"))
-
-
-class IntentAndSentenceNotExistsValidator(object):
-    def __call__(self, attrs):
-        repository = attrs.get("repository")
-        intent = attrs.get("intent")
-        sentence = attrs.get("text")
-
-        if RepositoryExample.objects.filter(
-            text=sentence,
-            intent=intent,
-            repository_update__repository=repository,
-            deleted_in__isnull=True,
-        ).count():
-            raise ValidationError(_("Intention and Sentence already exists"))
 
 
 class EntityNotEqualLabelValidator(object):
@@ -70,3 +64,12 @@ class EntityNotEqualLabelValidator(object):
             raise ValidationError(
                 {"label": _("Label name can't be equal to entity name")}
             )
+
+
+class APIExceptionCustom(APIException):
+    """Readers error class"""
+
+    def __init__(self, detail):
+        APIException.__init__(self, detail)
+        self.status_code = status.HTTP_400_BAD_REQUEST
+        self.message = detail

@@ -3,28 +3,29 @@ from django.utils.html import format_html
 from django.shortcuts import reverse
 
 from bothub.common.models import Repository
-from bothub.common.models import RepositoryUpdate
+from bothub.common.models import RepositoryVersion
 from bothub.common.models import RepositoryCategory
 
 
 class RepositoryUpdateInline(admin.TabularInline):
-    model = RepositoryUpdate
+    model = RepositoryVersion
     extra = 0
     can_delete = False
 
     fields = [
-        "language",
-        "algorithm",
-        "use_competing_intents",
-        "use_name_entities",
-        "use_analyze_char",
-        "created_at",
-        "by",
-        "training_started_at",
-        "trained_at",
-        "failed_at",
-        "training_log",
-        "download_bot_data",
+        "name",
+        # "language",
+        # "algorithm",
+        # "use_competing_intents",
+        # "use_name_entities",
+        # "use_analyze_char",
+        # "created_at",
+        # "by",
+        # "training_started_at",
+        # "trained_at",
+        # "failed_at",
+        # "training_log",
+        # "download_bot_data",
     ]
     readonly_fields = fields
 

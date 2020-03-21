@@ -1,4 +1,4 @@
-from django.utils.translation import gettext as _
+from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.hashers import make_password
 from rest_framework.authtoken.serializers import AuthTokenSerializer
@@ -20,7 +20,9 @@ class LoginSerializer(AuthTokenSerializer, serializers.ModelSerializer):
 
 
 class RegisterUserSerializer(serializers.ModelSerializer):
-    password = PasswordField(write_only=True, validators=[validate_password])
+    password = PasswordField(
+        write_only=True, validators=[validate_password], label=_("Password")
+    )
 
     class Meta:
         model = User
@@ -33,8 +35,10 @@ class RegisterUserSerializer(serializers.ModelSerializer):
 
 
 class ChangePasswordSerializer(serializers.ModelSerializer):
-    current_password = PasswordField(required=True)
-    password = PasswordField(required=True, validators=[validate_password])
+    current_password = PasswordField(required=True, label=_("Current Password"))
+    password = PasswordField(
+        required=True, validators=[validate_password], label=_("Password")
+    )
 
     class Meta:
         model = User

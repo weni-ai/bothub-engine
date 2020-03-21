@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from django.utils.translation import gettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from bothub.api.v2.fields import EntityValueField
 from bothub.common.languages import LANGUAGE_CHOICES
@@ -89,7 +89,7 @@ class RepositoryTranslatedExampleSerializer(serializers.ModelSerializer):
     )
 
     def get_from_language(self, obj):
-        return obj.original_example.repository_update.language
+        return obj.original_example.repository_version_language.language
 
     def get_has_valid_entities(self, obj):
         return obj.has_valid_entities

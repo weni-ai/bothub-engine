@@ -1,4 +1,4 @@
-from django.utils.translation import gettext as _
+from django.utils.translation import ugettext_lazy as _
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.exceptions import ValidationError
 
@@ -7,7 +7,7 @@ from bothub.common.models import RepositoryTranslatedExample
 
 class CanContributeInRepositoryExampleValidator(object):
     def __call__(self, value):
-        repository = value.repository_update.repository
+        repository = value.repository_version_language.repository_version.repository
         user_authorization = repository.get_user_authorization(self.request.user)
         if not user_authorization.can_contribute:
             raise PermissionDenied(_("You can't contribute in this repository"))
@@ -59,7 +59,7 @@ class TranslatedExampleLanguageValidator(object):
     def __call__(self, attrs):
         original_example = attrs.get("original_example")
         language = attrs.get("language")
-        if original_example.repository_update.language == language:
+        if original_example.repository_version_language.language == language:
             raise ValidationError(
                 {"language": _("Can't translate to the same language")}
             )
