@@ -447,30 +447,6 @@ class RepositorySerializer(serializers.ModelSerializer):
         return len(obj.languages_warnings())
 
     def get_evaluate_languages_count(self, obj):
-        context = self.context.get("request")
-        if context:
-            repository_version = context.query_params.get("repository_version")
-            queryset = RepositoryEvaluate.objects.filter(
-                repository_version_language__repository_version__pk=repository_version
-            )
-            if repository_version:
-                if queryset.filter(
-                    repository_version_language__repository_version__repository=obj
-                ):
-                    return dict(
-                        map(
-                            lambda x: (
-                                x,
-                                obj.evaluations(
-                                    language=x, queryset=queryset, version_default=False
-                                ).count(),
-                            ),
-                            obj.available_languages(
-                                queryset=queryset, version_default=False
-                            ),
-                        )
-                    )
-                return {}
         return dict(
             map(
                 lambda x: (x, obj.evaluations(language=x).count()),
