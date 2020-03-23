@@ -405,7 +405,7 @@ class Repository(models.Model):
 
     def current_versions(self, language=None, queryset=None, version_default=True):
         return map(
-            lambda lang: self.current_version(lang),
+            lambda lang: self.current_version(lang, is_default=version_default),
             self.available_languages(
                 language=language, queryset=queryset, version_default=version_default
             ),
@@ -429,11 +429,10 @@ class Repository(models.Model):
             map(lambda u: (u.language, u.ready_for_train), self.current_versions())
         )
 
-    @property
-    def ready_for_train(self):
+    def ready_for_train(self, queryset=None, version_default=True):
         return reduce(
             lambda current, u: u.ready_for_train or current,
-            self.current_versions(),
+            self.current_versions(queryset=queryset, version_default=version_default),
             False,
         )
 
