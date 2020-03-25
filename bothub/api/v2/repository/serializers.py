@@ -12,12 +12,7 @@ from bothub.api.v2.fields import ModelMultipleChoiceField
 from bothub.api.v2.fields import TextField
 from bothub.common import languages
 from bothub.common.languages import LANGUAGE_CHOICES
-from bothub.common.models import (
-    Repository,
-    RepositoryVersion,
-    RepositoryNLPLog,
-    RepositoryEvaluate,
-)
+from bothub.common.models import Repository, RepositoryVersion, RepositoryNLPLog
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryCategory
 from bothub.common.models import RepositoryEntityLabel

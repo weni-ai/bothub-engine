@@ -8,5 +8,7 @@ def repository_shortcut(self, **kwargs):  # pragma: no cover
     repository = get_object_or_404(Repository, **kwargs)
     response = redirect("repository-detail", uuid=repository.uuid)
     if "repository_version" in self.GET:
-        response['Location'] += f'?repository_version={self.GET.get("repository_version")}'
+        response[
+            "Location"
+        ] += f'?repository_version={self.GET.get("repository_version")}'
     return response
