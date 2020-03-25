@@ -578,7 +578,7 @@ class RepositoryReadyForTrain(TestCase):
         current_version = self.repository.current_version()
         current_version.start_training(self.owner)
         current_version.train_fail()
-        self.assertTrue(self.repository.current_version().ready_for_train())
+        self.assertTrue(self.repository.current_version().ready_for_train)
 
     def test_change_algorithm(self):
         self.assertTrue(self.repository.ready_for_train())
@@ -620,10 +620,10 @@ class RepositoryUpdateReadyForTrain(TestCase):
             text="hi",
             intent="greet",
         )
-        self.assertTrue(self.repository.current_version().ready_for_train())
+        self.assertTrue(self.repository.current_version().ready_for_train)
 
     def test_be_false(self):
-        self.assertFalse(self.repository.current_version().ready_for_train())
+        self.assertFalse(self.repository.current_version().ready_for_train)
 
     def test_new_translate(self):
         example_1 = RepositoryExample.objects.create(
@@ -644,7 +644,7 @@ class RepositoryUpdateReadyForTrain(TestCase):
             original_example=example_2, language=languages.LANGUAGE_PT, text="olá"
         )
         self.assertTrue(
-            self.repository.current_version(languages.LANGUAGE_PT).ready_for_train()
+            self.repository.current_version(languages.LANGUAGE_PT).ready_for_train
         )
 
     def test_when_deleted(self):
@@ -665,7 +665,7 @@ class RepositoryUpdateReadyForTrain(TestCase):
         )
         self.repository.current_version().start_training(self.owner)
         example.delete()
-        self.assertTrue(self.repository.current_version().ready_for_train())
+        self.assertTrue(self.repository.current_version().ready_for_train)
 
     def test_empty_intent(self):
         example = RepositoryExample.objects.create(
@@ -684,7 +684,7 @@ class RepositoryUpdateReadyForTrain(TestCase):
         RepositoryExampleEntity.objects.create(
             repository_example=example, start=0, end=7, entity="name"
         )
-        self.assertFalse(self.repository.current_version().ready_for_train())
+        self.assertFalse(self.repository.current_version().ready_for_train)
 
     def test_intent_dont_have_min_examples(self):
         RepositoryExample.objects.create(
@@ -692,7 +692,7 @@ class RepositoryUpdateReadyForTrain(TestCase):
             text="hi",
             intent="greet",
         )
-        self.assertFalse(self.repository.current_version().ready_for_train())
+        self.assertFalse(self.repository.current_version().ready_for_train)
 
     def test_entity_dont_have_min_examples(self):
         example = RepositoryExample.objects.create(
@@ -708,11 +708,11 @@ class RepositoryUpdateReadyForTrain(TestCase):
         RepositoryExampleEntity.objects.create(
             repository_example=example, start=0, end=2, entity="hi"
         )
-        self.assertFalse(self.repository.current_version().ready_for_train())
+        self.assertFalse(self.repository.current_version().ready_for_train)
         RepositoryExampleEntity.objects.create(
             repository_example=example, start=1, end=2, entity="hi"
         )
-        self.assertTrue(self.repository.current_version().ready_for_train())
+        self.assertTrue(self.repository.current_version().ready_for_train)
 
     def test_settings_change_exists_requirements(self):
         self.repository.current_version().start_training(self.owner)
@@ -726,7 +726,7 @@ class RepositoryUpdateReadyForTrain(TestCase):
         self.assertEqual(
             len(self.repository.current_version().requirements_to_train), 1
         )
-        self.assertFalse(self.repository.current_version().ready_for_train())
+        self.assertFalse(self.repository.current_version().ready_for_train)
 
     def test_no_examples(self):
         example = RepositoryExample.objects.create(
@@ -736,7 +736,7 @@ class RepositoryUpdateReadyForTrain(TestCase):
         )
         self.repository.current_version().start_training(self.owner)
         example.delete()
-        self.assertFalse(self.repository.current_version().ready_for_train())
+        self.assertFalse(self.repository.current_version().ready_for_train)
 
 
 class RequestRepositoryAuthorizationTestCase(TestCase):
