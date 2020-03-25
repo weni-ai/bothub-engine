@@ -648,7 +648,7 @@ class Repository(models.Model):
         return get
 
     def get_absolute_url(self):
-        return "{}{}/{}/".format(
+        return "{}dashboard/{}/{}/".format(
             settings.BOTHUB_WEBAPP_BASE_URL, self.owner.nickname, self.slug
         )
 
