@@ -551,11 +551,11 @@ class RepositoryReadyForTrain(TestCase):
         )
 
     def test_be_true(self):
-        self.assertTrue(self.repository.ready_for_train)
+        self.assertTrue(self.repository.ready_for_train())
 
     # def test_be_false(self):
     #     self.repository.current_version().start_training(self.owner)
-    #     self.assertFalse(self.repository.ready_for_train)
+    #     self.assertFalse(self.repository.ready_for_train())
 
     def test_be_true_when_new_translate(self):
         self.repository.current_version().start_training(self.owner)
@@ -566,13 +566,13 @@ class RepositoryReadyForTrain(TestCase):
             original_example=self.example_2, language=languages.LANGUAGE_PT, text="olá"
         )
         self.repository.current_version()
-        self.assertTrue(self.repository.ready_for_train)
+        self.assertTrue(self.repository.ready_for_train())
 
     def test_be_true_when_deleted_example(self):
         self.repository.current_version()
         self.repository.current_version().start_training(self.owner)
         self.example_1.delete()
-        self.assertTrue(self.repository.ready_for_train)
+        self.assertTrue(self.repository.ready_for_train())
 
     def test_last_train_failed(self):
         current_version = self.repository.current_version()
@@ -581,7 +581,7 @@ class RepositoryReadyForTrain(TestCase):
         self.assertTrue(self.repository.current_version().ready_for_train)
 
     def test_change_algorithm(self):
-        self.assertTrue(self.repository.ready_for_train)
+        self.assertTrue(self.repository.ready_for_train())
         for (val_current, verb_current) in Repository.ALGORITHM_CHOICES:
             for (val_next, verb_next) in Repository.ALGORITHM_CHOICES:
                 if val_current == val_next:
@@ -591,10 +591,10 @@ class RepositoryReadyForTrain(TestCase):
                 current_version = self.repository.current_version()
                 current_version.start_training(self.owner)
                 current_version.save_training(b"")
-                # self.assertFalse(self.repository.ready_for_train)
+                # self.assertFalse(self.repository.ready_for_train())
                 self.repository.algorithm = val_next
                 self.repository.save()
-                self.assertTrue(self.repository.ready_for_train)
+                self.assertTrue(self.repository.ready_for_train())
 
 
 class RepositoryUpdateReadyForTrain(TestCase):
@@ -980,17 +980,17 @@ class UseCompetingIntentsTestCase(TestCase):
         )
 
     def test_change_ready_for_train(self):
-        self.assertTrue(self.repository.ready_for_train)
+        self.assertTrue(self.repository.ready_for_train())
         current_version = self.repository.current_version()
         current_version.start_training(self.owner)
         current_version.save_training(b"")
-        # self.assertFalse(self.repository.ready_for_train)
+        # self.assertFalse(self.repository.ready_for_train())
         self.repository.use_competing_intents = False
         self.repository.save()
-        self.assertTrue(self.repository.ready_for_train)
+        self.assertTrue(self.repository.ready_for_train())
         self.repository.use_competing_intents = True
         self.repository.save()
-        # self.assertFalse(self.repository.ready_for_train)
+        # self.assertFalse(self.repository.ready_for_train())
 
     def test_equal_repository_value_after_train(self):
         current_version = self.repository.current_version()
@@ -1027,17 +1027,17 @@ class UseNameEntitiesTestCase(TestCase):
         )
 
     def test_change_ready_for_train(self):
-        self.assertTrue(self.repository.ready_for_train)
+        self.assertTrue(self.repository.ready_for_train())
         current_version = self.repository.current_version()
         current_version.start_training(self.owner)
         current_version.save_training(b"")
-        # self.assertFalse(self.repository.ready_for_train)
+        # self.assertFalse(self.repository.ready_for_train())
         self.repository.use_name_entities = False
         self.repository.save()
-        self.assertTrue(self.repository.ready_for_train)
+        self.assertTrue(self.repository.ready_for_train())
         self.repository.use_name_entities = True
         self.repository.save()
-        # self.assertFalse(self.repository.ready_for_train)
+        # self.assertFalse(self.repository.ready_for_train())
 
     def test_equal_repository_value_after_train(self):
         current_version = self.repository.current_version()

@@ -12,12 +12,7 @@ from bothub.api.v2.fields import ModelMultipleChoiceField
 from bothub.api.v2.fields import TextField
 from bothub.common import languages
 from bothub.common.languages import LANGUAGE_CHOICES
-from bothub.common.models import (
-    Repository,
-    RepositoryVersion,
-    RepositoryNLPLog,
-    RepositoryEvaluate,
-)
+from bothub.common.models import Repository, RepositoryVersion, RepositoryNLPLog
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryCategory
 from bothub.common.models import RepositoryEntityLabel
@@ -193,7 +188,6 @@ class RepositorySerializer(serializers.ModelSerializer):
             "authorization",
             "ready_for_train",
             "requirements_to_train",
-            "languages_ready_for_train",
             "request_authorization",
             "available_request_authorization",
             "languages_warnings",
@@ -266,10 +260,9 @@ class RepositorySerializer(serializers.ModelSerializer):
     available_languages_count = serializers.SerializerMethodField(style={"show": False})
     entities_list = serializers.ReadOnlyField(style={"show": False})
     labels_list = serializers.ReadOnlyField(style={"show": False})
-    ready_for_train = serializers.ReadOnlyField(style={"show": False})
+    ready_for_train = serializers.SerializerMethodField(style={"show": False})
     created_at = serializers.DateTimeField(style={"show": False}, read_only=True)
     requirements_to_train = serializers.ReadOnlyField(style={"show": False})
-    languages_ready_for_train = serializers.ReadOnlyField(style={"show": False})
     languages_warnings = serializers.ReadOnlyField(style={"show": False})
     languages_warnings_count = serializers.SerializerMethodField(style={"show": False})
     use_language_model_featurizer = serializers.ReadOnlyField(style={"show": False})
@@ -305,6 +298,20 @@ class RepositorySerializer(serializers.ModelSerializer):
     entities = serializers.SerializerMethodField(style={"show": False})
     nlp_server = serializers.SerializerMethodField(style={"show": False})
     version_default = serializers.SerializerMethodField(style={"show": False})
+
+    def get_ready_for_train(self, obj):
+        context = self.context.get("request")
+        if context:
+            repository_version = context.query_params.get("repository_version")
+            queryset = RepositoryExample.objects.filter(
+                repository_version_language__repository_version__pk=repository_version
+            )
+            if repository_version:
+                if queryset.filter(
+                    repository_version_language__repository_version__repository=obj
+                ):
+                    return obj.ready_for_train(queryset=queryset, version_default=False)
+        return obj.ready_for_train()
 
     def get_version_default(self, obj):
         return {
@@ -447,30 +454,6 @@ class RepositorySerializer(serializers.ModelSerializer):
         return len(obj.languages_warnings())
 
     def get_evaluate_languages_count(self, obj):
-        context = self.context.get("request")
-        if context:
-            repository_version = context.query_params.get("repository_version")
-            queryset = RepositoryEvaluate.objects.filter(
-                repository_version_language__repository_version__pk=repository_version
-            )
-            if repository_version:
-                if queryset.filter(
-                    repository_version_language__repository_version__repository=obj
-                ):
-                    return dict(
-                        map(
-                            lambda x: (
-                                x,
-                                obj.evaluations(
-                                    language=x, queryset=queryset, version_default=False
-                                ).count(),
-                            ),
-                            obj.available_languages(
-                                queryset=queryset, version_default=False
-                            ),
-                        )
-                    )
-                return {}
         return dict(
             map(
                 lambda x: (x, obj.evaluations(language=x).count()),
