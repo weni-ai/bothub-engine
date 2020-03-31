@@ -15,6 +15,7 @@ from rest_framework import status
 from rest_framework.exceptions import APIException
 
 from bothub.authentication.models import User
+from django.db.models import Sum
 
 from . import languages
 from .exceptions import RepositoryUpdateAlreadyStartedTraining
@@ -56,9 +57,11 @@ class RepositoryQuerySet(models.QuerySet):
         return self.filter(is_private=False)
 
     def order_by_relevance(self):
-        return self.order_by(
-            "-versions__repositoryversionlanguage__total_training_end", "-created_at"
-        ).distinct()
+        return self.annotate(
+            trainings_count=Sum(
+                "versions__repositoryversionlanguage__total_training_end"
+            )
+        ).order_by("-trainings_count", "-created_at")
 
     def supported_language(self, language):
         valid_examples = RepositoryExample.objects.all()
