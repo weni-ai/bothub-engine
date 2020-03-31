@@ -583,7 +583,7 @@ class RepositoryNLPLogViewSet(
 ):
     queryset = RepositoryNLPLog.objects
     serializer_class = RepositoryNLPLogSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, RepositoryPermission]
     filter_class = RepositoryNLPLogFilter
     filter_backends = [OrderingFilter, SearchFilter, DjangoFilterBackend]
     search_fields = ["$text", "^text", "=text"]
