@@ -110,8 +110,12 @@ class RepositoryNLPLogFilter(filters.FilterSet):
     )
 
     def filter_repository_uuid(self, queryset, name, value):
+        request = self.request
         try:
             repository = Repository.objects.get(uuid=value)
+            authorization = repository.get_user_authorization(request.user)
+            if not authorization.can_contribute:
+                raise PermissionDenied()
             return queryset.filter(
                 repository_version_language__repository_version__repository=repository
             )
