@@ -140,6 +140,7 @@ class RepositoryAuthorizationSerializer(serializers.ModelSerializer):
             "can_read",
             "can_contribute",
             "can_write",
+            "can_translate",
             "is_admin",
             "created_at",
             "id_request_authorizations",

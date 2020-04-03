@@ -1256,17 +1256,20 @@ class RepositoryAuthorization(models.Model):
     LEVEL_READER = 1
     LEVEL_CONTRIBUTOR = 2
     LEVEL_ADMIN = 3
+    LEVEL_TRANSLATE = 4
 
     ROLE_NOT_SETTED = 0
     ROLE_USER = 1
     ROLE_CONTRIBUTOR = 2
     ROLE_ADMIN = 3
+    ROLE_TRANSLATE = 4
 
     ROLE_CHOICES = [
         (ROLE_NOT_SETTED, _("not set")),
         (ROLE_USER, _("user")),
         (ROLE_CONTRIBUTOR, _("contributor")),
         (ROLE_ADMIN, _("admin")),
+        (ROLE_TRANSLATE, _("translate")),
     ]
 
     uuid = models.UUIDField(
@@ -1305,6 +1308,9 @@ class RepositoryAuthorization(models.Model):
         if self.role == RepositoryAuthorization.ROLE_ADMIN:
             return RepositoryAuthorization.LEVEL_ADMIN
 
+        if self.role == RepositoryAuthorization.ROLE_TRANSLATE:
+            return RepositoryAuthorization.LEVEL_TRANSLATE
+
         return RepositoryAuthorization.LEVEL_NOTHING  # pragma: no cover
 
     @property
@@ -1313,6 +1319,7 @@ class RepositoryAuthorization(models.Model):
             RepositoryAuthorization.LEVEL_READER,
             RepositoryAuthorization.LEVEL_CONTRIBUTOR,
             RepositoryAuthorization.LEVEL_ADMIN,
+            RepositoryAuthorization.LEVEL_TRANSLATE,
         ]
 
     @property
@@ -1325,6 +1332,14 @@ class RepositoryAuthorization(models.Model):
     @property
     def can_write(self):
         return self.level in [RepositoryAuthorization.LEVEL_ADMIN]
+
+    @property
+    def can_translate(self):
+        return self.level in [
+            RepositoryAuthorization.LEVEL_CONTRIBUTOR,
+            RepositoryAuthorization.LEVEL_ADMIN,
+            RepositoryAuthorization.LEVEL_TRANSLATE,
+        ]
 
     @property
     def is_admin(self):
