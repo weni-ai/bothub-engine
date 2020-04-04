@@ -25,16 +25,23 @@ from rest_framework.viewsets import GenericViewSet
 
 from bothub.api.v2.mixins import MultipleFieldLookupMixin
 from bothub.authentication.models import User
-from bothub.common.models import Repository, RepositoryNLPLog
+from bothub.common.models import Repository, RepositoryNLPLog, RepositoryEntity
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryCategory
 from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryVote
 from bothub.common.models import RequestRepositoryAuthorization
-from .filters import RepositoriesFilter, RepositoryNLPLogFilter
+from .filters import (
+    RepositoriesFilter,
+    RepositoryNLPLogFilter,
+    RepositoryEntitiesFilter,
+)
 from .filters import RepositoryAuthorizationFilter
 from .filters import RepositoryAuthorizationRequestsFilter
-from .permissions import RepositoryAdminManagerAuthorization
+from .permissions import (
+    RepositoryAdminManagerAuthorization,
+    RepositoryEntityHasPermission,
+)
 from .permissions import RepositoryExamplePermission
 from .permissions import RepositoryPermission
 from .serializers import (
@@ -43,6 +50,7 @@ from .serializers import (
     RepositoryNLPLogSerializer,
     DebugParseSerializer,
     WordDistributionSerializer,
+    RepositoryEntitySerializer,
 )
 from .serializers import EvaluateSerializer
 from .serializers import RepositoryAuthorizationRoleSerializer
@@ -583,8 +591,15 @@ class RepositoryNLPLogViewSet(
 ):
     queryset = RepositoryNLPLog.objects
     serializer_class = RepositoryNLPLogSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, RepositoryPermission]
     filter_class = RepositoryNLPLogFilter
     filter_backends = [OrderingFilter, SearchFilter, DjangoFilterBackend]
     search_fields = ["$text", "^text", "=text"]
     ordering_fields = ["-created_at"]
+
+
+class RepositoryEntitiesViewSet(mixins.ListModelMixin, GenericViewSet):
+    queryset = RepositoryEntity.objects.all()
+    serializer_class = RepositoryEntitySerializer
+    filter_class = RepositoryEntitiesFilter
+    permission_classes = [IsAuthenticated, RepositoryEntityHasPermission]

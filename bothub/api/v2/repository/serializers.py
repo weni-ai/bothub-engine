@@ -12,7 +12,12 @@ from bothub.api.v2.fields import ModelMultipleChoiceField
 from bothub.api.v2.fields import TextField
 from bothub.common import languages
 from bothub.common.languages import LANGUAGE_CHOICES
-from bothub.common.models import Repository, RepositoryVersion, RepositoryNLPLog
+from bothub.common.models import (
+    Repository,
+    RepositoryVersion,
+    RepositoryNLPLog,
+    RepositoryEntity,
+)
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryCategory
 from bothub.common.models import RepositoryEntityLabel
@@ -135,6 +140,7 @@ class RepositoryAuthorizationSerializer(serializers.ModelSerializer):
             "can_read",
             "can_contribute",
             "can_write",
+            "can_translate",
             "is_admin",
             "created_at",
             "id_request_authorizations",
@@ -823,3 +829,17 @@ class RepositoryNLPLogSerializer(serializers.ModelSerializer):
 
     def get_version_name(self, obj):
         return obj.repository_version_language.repository_version.name
+
+
+class RepositoryEntitySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RepositoryEntity
+        fields = ["repository", "value", "label"]
+        ref_name = None
+
+    label = serializers.SerializerMethodField()
+
+    def get_label(self, obj):
+        if not obj.label:
+            return None
+        return obj.label.value
