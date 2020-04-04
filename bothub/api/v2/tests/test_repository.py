@@ -8,7 +8,10 @@ from django.test.client import MULTIPART_CONTENT
 from rest_framework import status
 
 from bothub.api.v2.repository.serializers import RepositorySerializer
-from bothub.api.v2.repository.views import RepositoriesContributionsViewSet
+from bothub.api.v2.repository.views import (
+    RepositoriesContributionsViewSet,
+    RepositoryEntitiesViewSet,
+)
 from bothub.api.v2.repository.views import RepositoriesViewSet
 from bothub.api.v2.repository.views import RepositoryAuthorizationRequestsViewSet
 from bothub.api.v2.repository.views import RepositoryAuthorizationViewSet
@@ -1818,3 +1821,60 @@ class VersionsTestCase(TestCase):
     def test_without_repository(self):
         response, content_data = self.request({}, self.owner_token)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+
+class RepositoryEntitiesTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.owner, self.owner_token = create_user_and_token("owner")
+        self.user, self.user_token = create_user_and_token()
+
+        self.entity_value = "user"
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name="Testing",
+            slug="test",
+            language=languages.LANGUAGE_EN,
+        )
+        self.example = RepositoryExample.objects.create(
+            repository_version_language=self.repository.current_version(),
+            text="my name is user",
+        )
+        self.example_entity = RepositoryExampleEntity.objects.create(
+            repository_example=self.example, start=11, end=18, entity=self.entity_value
+        )
+        self.example_entity.entity.set_label("name")
+        self.example_entity.entity.save()
+
+    def request(self, data, token):
+        authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
+        request = self.factory.get(
+            "/v2/repository/entities/", data=data, **authorization_header
+        )
+        response = RepositoryEntitiesViewSet.as_view({"get": "list"})(request)
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data)
+
+    def test_okay(self):
+        response, content_data = self.request(
+            {"repository_uuid": self.repository.uuid}, self.owner_token
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(content_data.get("count"), 1)
+
+        response, content_data = self.request(
+            {"repository_uuid": self.repository.uuid, "value": self.entity_value},
+            self.owner_token,
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(content_data.get("count"), 1)
+
+        response, content_data = self.request(
+            {"repository_uuid": self.repository.uuid, "value": "other"},
+            self.owner_token,
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(content_data.get("count"), 0)

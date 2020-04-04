@@ -15,6 +15,7 @@ from rest_framework import status
 from rest_framework.exceptions import APIException
 
 from bothub.authentication.models import User
+from django.db.models import Sum
 
 from . import languages
 from .exceptions import RepositoryUpdateAlreadyStartedTraining
@@ -56,9 +57,11 @@ class RepositoryQuerySet(models.QuerySet):
         return self.filter(is_private=False)
 
     def order_by_relevance(self):
-        return self.order_by(
-            "-versions__repositoryversionlanguage__total_training_end", "-created_at"
-        ).distinct()
+        return self.annotate(
+            trainings_count=Sum(
+                "versions__repositoryversionlanguage__total_training_end"
+            )
+        ).order_by("-trainings_count", "-created_at")
 
     def supported_language(self, language):
         valid_examples = RepositoryExample.objects.all()
@@ -405,7 +408,7 @@ class Repository(models.Model):
 
     def current_versions(self, language=None, queryset=None, version_default=True):
         return map(
-            lambda lang: self.current_version(lang),
+            lambda lang: self.current_version(lang, is_default=version_default),
             self.available_languages(
                 language=language, queryset=queryset, version_default=version_default
             ),
@@ -429,11 +432,10 @@ class Repository(models.Model):
             map(lambda u: (u.language, u.ready_for_train), self.current_versions())
         )
 
-    @property
-    def ready_for_train(self):
+    def ready_for_train(self, queryset=None, version_default=True):
         return reduce(
             lambda current, u: u.ready_for_train or current,
-            self.current_versions(),
+            self.current_versions(queryset=queryset, version_default=version_default),
             False,
         )
 
@@ -1254,17 +1256,20 @@ class RepositoryAuthorization(models.Model):
     LEVEL_READER = 1
     LEVEL_CONTRIBUTOR = 2
     LEVEL_ADMIN = 3
+    LEVEL_TRANSLATE = 4
 
     ROLE_NOT_SETTED = 0
     ROLE_USER = 1
     ROLE_CONTRIBUTOR = 2
     ROLE_ADMIN = 3
+    ROLE_TRANSLATE = 4
 
     ROLE_CHOICES = [
         (ROLE_NOT_SETTED, _("not set")),
         (ROLE_USER, _("user")),
         (ROLE_CONTRIBUTOR, _("contributor")),
         (ROLE_ADMIN, _("admin")),
+        (ROLE_TRANSLATE, _("translate")),
     ]
 
     uuid = models.UUIDField(
@@ -1303,6 +1308,9 @@ class RepositoryAuthorization(models.Model):
         if self.role == RepositoryAuthorization.ROLE_ADMIN:
             return RepositoryAuthorization.LEVEL_ADMIN
 
+        if self.role == RepositoryAuthorization.ROLE_TRANSLATE:
+            return RepositoryAuthorization.LEVEL_TRANSLATE
+
         return RepositoryAuthorization.LEVEL_NOTHING  # pragma: no cover
 
     @property
@@ -1311,6 +1319,7 @@ class RepositoryAuthorization(models.Model):
             RepositoryAuthorization.LEVEL_READER,
             RepositoryAuthorization.LEVEL_CONTRIBUTOR,
             RepositoryAuthorization.LEVEL_ADMIN,
+            RepositoryAuthorization.LEVEL_TRANSLATE,
         ]
 
     @property
@@ -1323,6 +1332,14 @@ class RepositoryAuthorization(models.Model):
     @property
     def can_write(self):
         return self.level in [RepositoryAuthorization.LEVEL_ADMIN]
+
+    @property
+    def can_translate(self):
+        return self.level in [
+            RepositoryAuthorization.LEVEL_CONTRIBUTOR,
+            RepositoryAuthorization.LEVEL_ADMIN,
+            RepositoryAuthorization.LEVEL_TRANSLATE,
+        ]
 
     @property
     def is_admin(self):
