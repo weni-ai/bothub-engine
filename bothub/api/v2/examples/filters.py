@@ -60,7 +60,7 @@ class ExamplesFilter(filters.FilterSet):
         try:
             repository = Repository.objects.get(uuid=value)
             authorization = repository.get_user_authorization(request.user)
-            if not authorization.can_contribute:
+            if not authorization.can_translate:
                 raise PermissionDenied()
             if request.query_params.get("repository_version"):
                 return repository.examples(queryset=queryset, version_default=False)
