@@ -61,7 +61,7 @@ def unique_slug_generator(validated_data, Repository, new_slug=None):
     if new_slug is not None:
         slug = new_slug
     else:
-        slug = slugify(validated_data.get("name"))
+        slug = slugify(validated_data.get("name"))[:25:]
 
     qs_exists = Repository.objects.filter(slug=slug).exists()
     if qs_exists:
