@@ -159,7 +159,7 @@ class RepositoryEntitiesFilter(filters.FilterSet):
         try:
             repository = Repository.objects.get(uuid=value)
             authorization = repository.get_user_authorization(request.user)
-            if not authorization.is_admin:
+            if not authorization.can_translate:
                 raise PermissionDenied()
             return queryset.filter(repository=repository)
         except Repository.DoesNotExist:

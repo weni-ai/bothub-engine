@@ -63,6 +63,8 @@ class RepositoryVersionSeralizer(serializers.ModelSerializer):
         return super().update(instance, validated_data)
 
     def create(self, validated_data):  # pragma: no cover
+        if True:
+            return {}
         id_clone = validated_data.pop("id")
         repository = validated_data.get("repository")
         name = validated_data.get("name")
