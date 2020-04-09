@@ -1474,13 +1474,6 @@ class RepositoryEvaluate(models.Model):
         editable=False,
         null=True,
     )
-    deleted_in = models.ForeignKey(
-        RepositoryVersionLanguage,
-        models.CASCADE,
-        related_name="deleted_evaluate",
-        blank=True,
-        null=True,
-    )
     text = models.TextField(_("text"), help_text=_("Evaluate test text"))
     intent = models.CharField(
         _("intent"),
@@ -1504,12 +1497,6 @@ class RepositoryEvaluate(models.Model):
         if not language or language == self.repository_version_language.language:
             return self.entities.all()
         return None
-
-    def delete(self):
-        self.deleted_in = self.repository_version_language.repository_version.repository.current_version(
-            self.repository_version_language.language
-        )
-        self.save(update_fields=["deleted_in"])
 
     def delete_entities(self):
         self.entities.all().delete()
