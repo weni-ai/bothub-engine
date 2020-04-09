@@ -155,21 +155,12 @@ class RepositoryVersionSeralizer(serializers.ModelSerializer):
             )
 
             for evaluate in evaluates:
-                if evaluate.deleted_in:
-                    evaluate_id = RepositoryEvaluate.objects.create(
-                        repository_version_language=version_language,
-                        deleted_in=instance,
-                        text=evaluate.text,
-                        intent=evaluate.intent,
-                        created_at=evaluate.created_at,
-                    )
-                else:
-                    evaluate_id = RepositoryEvaluate.objects.create(
-                        repository_version_language=version_language,
-                        text=evaluate.text,
-                        intent=evaluate.intent,
-                        created_at=evaluate.created_at,
-                    )
+                evaluate_id = RepositoryEvaluate.objects.create(
+                    repository_version_language=version_language,
+                    text=evaluate.text,
+                    intent=evaluate.intent,
+                    created_at=evaluate.created_at,
+                )
 
                 evaluate_entities = RepositoryEvaluateEntity.objects.filter(
                     repository_evaluate=evaluate_id
