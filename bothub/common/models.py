@@ -711,7 +711,7 @@ class RepositoryVersionLanguage(models.Model):
     @property
     def examples(self):
         examples = self.repository_version.repository.examples(
-            exclude_deleted=False
+            version_default=self.repository_version.is_default
         ).filter(
             models.Q(repository_version_language__language=self.language)
             | models.Q(translations__language=self.language)
