@@ -177,7 +177,7 @@ class NewRepositorySerializer(serializers.ModelSerializer):
             "repository__available_languages",
             # "repository__available_languages_count", #desativado, substituir pelo repository__available_languages
             "repository__entities",
-            # "labels_list",
+            "repository__labels_list",
             "repository__ready_for_train",
             "repository__requirements_to_train",
             "repository__created_at",
@@ -229,6 +229,7 @@ class NewRepositorySerializer(serializers.ModelSerializer):
     )
     # repository__available_languages_count = serializers.SerializerMethodField(style={"show": False})
     repository__entities = serializers.SerializerMethodField(style={"show": False})
+    repository__labels_list = serializers.SerializerMethodField(style={"show": False})
     repository__ready_for_train = serializers.SerializerMethodField(
         style={"show": False}
     )
@@ -337,6 +338,21 @@ class NewRepositorySerializer(serializers.ModelSerializer):
                 queryset=queryset, version_default=obj.is_default
             )
             .values("value", "id")
+            .distinct()
+        )
+
+    def get_repository__labels_list(self, obj):
+        queryset = RepositoryExample.objects.filter(
+            repository_version_language__repository_version=obj
+        )
+        return (
+            obj.repository.labels.filter(
+                entities__value__in=obj.repository.entities_list(
+                    queryset=queryset, version_default=obj.is_default
+                )
+            )
+            .distinct()
+            .values_list("value", flat=True)
             .distinct()
         )
 
