@@ -175,7 +175,7 @@ class NewRepositorySerializer(serializers.ModelSerializer):
             "repository__description",
             "repository__is_private",
             "repository__available_languages",
-            # "repository__available_languages_count", #desativado
+            # "repository__available_languages_count", #desativado, substituir pelo repository__available_languages
             "repository__entities",
             # "labels_list",
             "repository__ready_for_train",
@@ -197,14 +197,14 @@ class NewRepositorySerializer(serializers.ModelSerializer):
             # "request_authorization",
             # "available_request_authorization",
             "repository__languages_warnings",
-            # "languages_warnings_count",
-            # "algorithm",
-            # "use_language_model_featurizer",
-            # "use_competing_intents",
-            # "use_name_entities",
-            # "use_analyze_char",
-            # "nlp_server",
-            # "version_default",
+            # "languages_warnings_count", #desativado, substituir pelo repository__languages_warnings
+            "repository__algorithm",
+            "repository__use_language_model_featurizer",
+            "repository__use_competing_intents",
+            "repository__use_name_entities",
+            "repository__use_analyze_char",
+            "repository__nlp_server",
+            "repository__version_default",
         ]
         read_only = ["repository__uuid"]
         ref_name = None
@@ -252,6 +252,52 @@ class NewRepositorySerializer(serializers.ModelSerializer):
         style={"show": False}
     )
     repository__languages_warnings = serializers.SerializerMethodField(
+        style={"show": False}
+    )
+    repository__algorithm = serializers.ChoiceField(
+        style={"show": False, "only_settings": True},
+        choices=Repository.ALGORITHM_CHOICES,
+        default=Repository.ALGORITHM_NEURAL_NETWORK_INTERNAL,
+        label=_("Algorithm"),
+        source="repository.algorithm",
+    )
+    repository__use_language_model_featurizer = serializers.ReadOnlyField(
+        style={"show": False}, source="repository.use_language_model_featurizer"
+    )
+    repository__use_competing_intents = serializers.BooleanField(
+        style={"show": False, "only_settings": True},
+        help_text=_(
+            "When using competing intents the confidence of the "
+            + "prediction is distributed in all the intents."
+        ),
+        default=False,
+        label=_("Use competing intents"),
+        source="repository.use_competing_intents",
+    )
+    repository__use_name_entities = serializers.BooleanField(
+        style={"show": False, "only_settings": True},
+        help_text=_(
+            "When enabling name entities you will receive name of "
+            + "people, companies and places as results of your "
+            + "predictions."
+        ),
+        default=False,
+        label=_("Use name entities"),
+        source="repository.use_name_entities",
+    )
+    repository__use_analyze_char = serializers.BooleanField(
+        style={"show": False, "only_settings": True},
+        help_text=_(
+            "When selected, the algorithm will learn the patterns of "
+            + "individual characters instead of whole words. "
+            + "This approach works better for some languages."
+        ),
+        default=False,
+        label=_("Use analyze char"),
+        source="repository.use_analyze_char",
+    )
+    repository__nlp_server = serializers.SerializerMethodField(style={"show": False})
+    repository__version_default = serializers.SerializerMethodField(
         style={"show": False}
     )
 
@@ -452,6 +498,17 @@ class NewRepositorySerializer(serializers.ModelSerializer):
                 ),
             )
         )
+
+    def get_repository__nlp_server(self, obj):
+        if obj.repository.nlp_server:
+            return obj.repository.nlp_server
+        return settings.BOTHUB_NLP_BASE_URL
+
+    def get_repository__version_default(self, obj):
+        return {
+            "id": obj.repository.current_version().repository_version.pk,
+            "name": obj.repository.current_version().repository_version.name,
+        }
 
 
 class RepositorySerializer(serializers.ModelSerializer):
