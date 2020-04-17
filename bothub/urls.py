@@ -16,9 +16,9 @@ from bothub.common.views import download_bot_data
 schema_view = get_schema_view(
     openapi.Info(
         title="API Documentation",
-        default_version="v2.0.4",
+        default_version="v2.0.5",
         description="Documentation",
-        terms_of_service="https://www.google.com/policies/terms/",
+        terms_of_service="https://bothub.it/terms",
         contact=openapi.Contact(email="bothub@ilhasoft.com.br"),
         license=openapi.License(name="GPL-3.0"),
     ),
