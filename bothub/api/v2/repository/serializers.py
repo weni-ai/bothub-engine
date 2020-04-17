@@ -192,10 +192,10 @@ class NewRepositorySerializer(serializers.ModelSerializer):
             "repository__other_label",
             "repository__examples__count",
             "repository__evaluate_languages_count",
-            # "absolute_url",
-            # "authorization",
-            # "request_authorization",
-            # "available_request_authorization",
+            "repository__absolute_url",
+            "repository__authorization",
+            "repository__request_authorization",
+            "repository__available_request_authorization",
             "repository__languages_warnings",
             # "languages_warnings_count", #desativado, substituir pelo repository__languages_warnings
             "repository__algorithm",
@@ -249,6 +249,14 @@ class NewRepositorySerializer(serializers.ModelSerializer):
         style={"show": False}
     )
     repository__evaluate_languages_count = serializers.SerializerMethodField(
+        style={"show": False}
+    )
+    repository__absolute_url = serializers.SerializerMethodField(style={"show": False})
+    repository__authorization = serializers.SerializerMethodField(style={"show": False})
+    repository__request_authorization = serializers.SerializerMethodField(
+        style={"show": False}
+    )
+    repository__available_request_authorization = serializers.SerializerMethodField(
         style={"show": False}
     )
     repository__languages_warnings = serializers.SerializerMethodField(
@@ -480,6 +488,46 @@ class NewRepositorySerializer(serializers.ModelSerializer):
                 ),
             )
         )
+
+    def get_repository__absolute_url(self, obj):
+        return obj.repository.get_absolute_url()
+
+    def get_repository__authorization(self, obj):
+        request = self.context.get("request")
+        if not request or not request.user.is_authenticated:
+            return None
+        return RepositoryAuthorizationSerializer(
+            obj.repository.get_user_authorization(request.user)
+        ).data
+
+    def get_repository__request_authorization(self, obj):
+        request = self.context.get("request")
+        if not request or not request.user.is_authenticated:
+            return None
+        try:
+            request_authorization = RequestRepositoryAuthorization.objects.get(
+                user=request.user, repository=obj.repository
+            )
+            return RequestRepositoryAuthorizationSerializer(request_authorization).data
+        except RequestRepositoryAuthorization.DoesNotExist:
+            return None
+
+    def get_repository__available_request_authorization(self, obj):
+        request = self.context.get("request")
+        if not request or not request.user.is_authenticated:
+            return False
+        authorization = obj.get_user_authorization(request.user)
+        if authorization.role is not RepositoryAuthorization.ROLE_NOT_SETTED:
+            return False
+        if authorization.is_owner:
+            return False
+        try:
+            RequestRepositoryAuthorization.objects.get(
+                user=request.user, repository=obj.repository
+            )
+            return False
+        except RequestRepositoryAuthorization.DoesNotExist:
+            return True
 
     def get_repository__languages_warnings(self, obj):
         # TODO: deletar languages_warnings em model
