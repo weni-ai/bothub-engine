@@ -194,11 +194,9 @@ class NewRepositorySerializer(serializers.ModelSerializer):
             "repository__evaluate_languages_count",
             # "absolute_url",
             # "authorization",
-            # "ready_for_train",
-            # "requirements_to_train",
             # "request_authorization",
             # "available_request_authorization",
-            # "languages_warnings",
+            "repository__languages_warnings",
             # "languages_warnings_count",
             # "algorithm",
             # "use_language_model_featurizer",
@@ -251,6 +249,9 @@ class NewRepositorySerializer(serializers.ModelSerializer):
         style={"show": False}
     )
     repository__evaluate_languages_count = serializers.SerializerMethodField(
+        style={"show": False}
+    )
+    repository__languages_warnings = serializers.SerializerMethodField(
         style={"show": False}
     )
 
@@ -430,6 +431,24 @@ class NewRepositorySerializer(serializers.ModelSerializer):
                         repository_version_language__repository_version=obj
                     ),
                     version_default=obj.is_default,
+                ),
+            )
+        )
+
+    def get_repository__languages_warnings(self, obj):
+        # TODO: deletar languages_warnings em model
+        queryset = RepositoryExample.objects.filter(
+            repository_version_language__repository_version=obj
+        )
+
+        return dict(
+            filter(
+                lambda w: len(w[1]) > 0,
+                map(
+                    lambda u: (u.language, u.warnings),
+                    obj.repository.current_versions(
+                        queryset=queryset, version_default=obj.is_default
+                    ),
                 ),
             )
         )
