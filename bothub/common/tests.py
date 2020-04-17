@@ -917,7 +917,7 @@ class RepositoryOtherEntitiesTest(TestCase):
     def test_ok(self):
         other_entities = self.repository.other_entities()
         self.assertEqual(other_entities.count(), 1)
-        self.assertIn(self.example_entity_2.entity, other_entities())
+        self.assertIn(self.example_entity_2.entity, other_entities)
 
 
 class UseLanguageModelFeaturizerTestCase(TestCase):
