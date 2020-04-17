@@ -464,30 +464,33 @@ class Repository(models.Model):
         )
         return list(set(intents.exclude(intent="").values_list("intent", flat=True)))
 
-    @property
-    def current_entities(self):
+    def current_entities(self, queryset=None, version_default=True):
         return self.entities.filter(
-            value__in=self.examples(exclude_deleted=True)
+            value__in=self.examples(queryset=queryset, version_default=version_default)
             .exclude(entities__entity__value__isnull=True)
             .values_list("entities__entity__value", flat=True)
             .distinct()
         )
 
-    @property
-    def entities_list(self):
-        return self.current_entities.values_list("value", flat=True).distinct()
+    def entities_list(self, queryset=None, version_default=None):
+        return (
+            self.current_entities(queryset=queryset, version_default=version_default)
+            .values_list("value", flat=True)
+            .distinct()
+        )
 
     @property
     def current_labels(self):
-        return self.labels.filter(entities__value__in=self.entities_list).distinct()
+        return self.labels.filter(entities__value__in=self.entities_list()).distinct()
 
     @property
     def labels_list(self):
         return self.current_labels.values_list("value", flat=True).distinct()
 
-    @property
-    def other_entities(self):
-        return self.current_entities.filter(label__isnull=True)
+    def other_entities(self, queryset=None, version_default=None):
+        return self.current_entities(
+            queryset=queryset, version_default=version_default
+        ).filter(label__isnull=True)
 
     @property
     def admins(self):
@@ -711,7 +714,7 @@ class RepositoryVersionLanguage(models.Model):
     @property
     def examples(self):
         examples = self.repository_version.repository.examples(
-            exclude_deleted=False
+            version_default=self.repository_version.is_default
         ).filter(
             models.Q(repository_version_language__language=self.language)
             | models.Q(translations__language=self.language)
@@ -1087,10 +1090,14 @@ class RepositoryEntityLabel(models.Model):
 
     objects = RepositoryEntityLabelManager()
 
-    def examples(self, exclude_deleted=True):  # pragma: no cover
-        return self.repository.examples(exclude_deleted=exclude_deleted).filter(
-            entities__entity__label=self
-        )
+    def examples(
+        self, exclude_deleted=True, queryset=None, version_default=None
+    ):  # pragma: no cover
+        return self.repository.examples(
+            exclude_deleted=exclude_deleted,
+            queryset=queryset,
+            version_default=version_default,
+        ).filter(entities__entity__label=self)
 
 
 class RepositoryEntityQueryset(models.QuerySet):
