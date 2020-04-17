@@ -17,6 +17,7 @@ from bothub.common.models import (
     RepositoryVersion,
     RepositoryNLPLog,
     RepositoryEntity,
+    RepositoryEvaluate,
 )
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryCategory
@@ -190,7 +191,7 @@ class NewRepositorySerializer(serializers.ModelSerializer):
             "repository__labels",
             "repository__other_label",
             "repository__examples__count",
-            # "evaluate_languages_count",
+            "repository__evaluate_languages_count",
             # "absolute_url",
             # "authorization",
             # "ready_for_train",
@@ -247,6 +248,9 @@ class NewRepositorySerializer(serializers.ModelSerializer):
     repository__labels = serializers.SerializerMethodField(style={"show": False})
     repository__other_label = serializers.SerializerMethodField(style={"show": False})
     repository__examples__count = serializers.SerializerMethodField(
+        style={"show": False}
+    )
+    repository__evaluate_languages_count = serializers.SerializerMethodField(
         style={"show": False}
     )
 
@@ -408,6 +412,27 @@ class NewRepositorySerializer(serializers.ModelSerializer):
         return obj.repository.examples(
             queryset=queryset, version_default=obj.is_default
         ).count()
+
+    def get_repository__evaluate_languages_count(self, obj):
+        queryset = RepositoryEvaluate.objects.filter(
+            repository_version_language__repository_version=obj
+        )
+        return dict(
+            map(
+                lambda x: (
+                    x,
+                    obj.repository.evaluations(
+                        language=x, queryset=queryset, version_default=obj.is_default
+                    ).count(),
+                ),
+                obj.repository.available_languages(
+                    queryset=RepositoryExample.objects.filter(
+                        repository_version_language__repository_version=obj
+                    ),
+                    version_default=obj.is_default,
+                ),
+            )
+        )
 
 
 class RepositorySerializer(serializers.ModelSerializer):
