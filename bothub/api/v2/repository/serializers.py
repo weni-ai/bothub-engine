@@ -189,7 +189,7 @@ class NewRepositorySerializer(serializers.ModelSerializer):
             "repository__intents_list",
             "repository__labels",
             "repository__other_label",
-            # "examples__count",
+            "repository__examples__count",
             # "evaluate_languages_count",
             # "absolute_url",
             # "authorization",
@@ -246,6 +246,9 @@ class NewRepositorySerializer(serializers.ModelSerializer):
     repository__intents_list = serializers.SerializerMethodField(style={"show": False})
     repository__labels = serializers.SerializerMethodField(style={"show": False})
     repository__other_label = serializers.SerializerMethodField(style={"show": False})
+    repository__examples__count = serializers.SerializerMethodField(
+        style={"show": False}
+    )
 
     def get_repository__available_languages(self, obj):
         queryset = RepositoryExample.objects.filter(
@@ -397,6 +400,14 @@ class NewRepositorySerializer(serializers.ModelSerializer):
                 .count()
             ),
         }
+
+    def get_repository__examples__count(self, obj):
+        queryset = RepositoryExample.objects.filter(
+            repository_version_language__repository_version=obj
+        )
+        return obj.repository.examples(
+            queryset=queryset, version_default=obj.is_default
+        ).count()
 
 
 class RepositorySerializer(serializers.ModelSerializer):
