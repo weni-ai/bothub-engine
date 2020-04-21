@@ -42,6 +42,7 @@ from .filters import RepositoryAuthorizationRequestsFilter
 from .permissions import (
     RepositoryAdminManagerAuthorization,
     RepositoryEntityHasPermission,
+    RepositoryInfoPermission,
 )
 from .permissions import RepositoryExamplePermission
 from .permissions import RepositoryPermission
@@ -79,13 +80,12 @@ class NewRepositoryViewSet(
     lookup_field = "repository__uuid"
     lookup_fields = ["repository__uuid", "pk"]
     serializer_class = NewRepositorySerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticatedOrReadOnly, RepositoryInfoPermission]
     metadata_class = Metadata
 
 
 class RepositoryViewSet(
     mixins.CreateModelMixin,
-    mixins.RetrieveModelMixin,
     mixins.UpdateModelMixin,
     mixins.DestroyModelMixin,
     GenericViewSet,
