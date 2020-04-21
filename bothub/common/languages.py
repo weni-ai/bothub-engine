@@ -41,6 +41,9 @@ LANGUAGE_TR = "tr"
 LANGUAGE_TT = "tt"
 LANGUAGE_UR = "ur"
 LANGUAGE_ZH = "zh"
+LANGUAGE_HA = "ha"
+LANGUAGE_KA = "ka"
+LANGUAGE_KK = "kk"
 
 VERBOSE_LANGUAGES = {
     LANGUAGE_EN: _("English"),
@@ -81,6 +84,9 @@ VERBOSE_LANGUAGES = {
     LANGUAGE_TT: _("Tatar"),
     LANGUAGE_UR: _("Urdu"),
     LANGUAGE_ZH: _("Chinese"),
+    LANGUAGE_HA: _("Hausa"),
+    LANGUAGE_KA: _("Georgian"),
+    LANGUAGE_KK: _("Kazakh"),
 }
 
 LANGUAGE_CHOICES = [
