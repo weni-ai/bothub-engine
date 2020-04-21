@@ -10,7 +10,5 @@ def repository_shortcut(self, **kwargs):  # pragma: no cover
         version = self.GET.get("repository_version")
     else:
         version = repository.current_version().repository_version.pk
-    response = redirect(
-        f"/v2/repository/info/{repository.uuid}/{version}/"
-    )
+    response = redirect(f"/v2/repository/info/{repository.uuid}/{version}/")
     return response
