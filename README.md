@@ -4,11 +4,11 @@
 
 # Bothub
 
-[![Build Status](https://travis-ci.org/Ilhasoft/bothub-engine.svg?branch=master)](https://travis-ci.org/Ilhasoft/bothub-engine)
-[![Coverage Status](https://coveralls.io/repos/github/Ilhasoft/bothub-engine/badge.svg?branch=master)](https://coveralls.io/github/Ilhasoft/bothub-engine?branch=master)
-[![Code Climate](https://codeclimate.com/github/Ilhasoft/bothub-engine/badges/gpa.svg)](https://codeclimate.com/github/Ilhasoft/bothub-engine)
+[![Build Status](https://travis-ci.com/bothub-it/bothub-engine.svg?branch=master)](https://travis-ci.com/bothub-it/bothub-engine)
+[![Coverage Status](https://coveralls.io/repos/github/bothub-it/bothub-engine/badge.svg?branch=master)](https://coveralls.io/github/bothub-it/bothub-engine?branch=master)
+[![Code Climate](https://codeclimate.com/github/bothub-it/bothub-engine/badges/gpa.svg)](https://codeclimate.com/github/bothub-it/bothub-engine)
 [![Python Version](https://img.shields.io/badge/python-3.6-blue.svg)](https://www.python.org/)
-[![License GPL-3.0](https://img.shields.io/badge/license-%20GPL--3.0-yellow.svg)](https://github.com/Ilhasoft/bothub-engine/blob/master/LICENSE)
+[![License GPL-3.0](https://img.shields.io/badge/license-%20GPL--3.0-yellow.svg)](https://github.com/bothub-it/bothub-engine/blob/master/LICENSE)
 
 ## Development
 
@@ -29,7 +29,7 @@ Use ```make``` commands to ```check_environment```, ```install_requirements```, 
 
 ### Fill database using fake data
 
-Run ```pipenv run python ./manage.py fill_db_using_fake_data``` to fill database using fake data. This can help you to test [Bothub Webapp](https://github.com/Ilhasoft/bothub-webapp).
+Run ```pipenv run python ./manage.py fill_db_using_fake_data``` to fill database using fake data. This can help you to test [Bothub Webapp](https://github.com/bothub-it/bothub-webapp).
 
 
 ### Migrate all training for aws

@@ -669,6 +669,7 @@ class RepositoryVersion(models.Model):
     repository = models.ForeignKey(Repository, models.CASCADE, related_name="versions")
     created_by = models.ForeignKey(User, models.CASCADE, blank=True, null=True)
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
+    is_deleted = models.BooleanField(_("is deleted"), default=False)
 
     @property
     def version_languages(self):
