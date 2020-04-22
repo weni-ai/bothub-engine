@@ -5,4 +5,3 @@ exclude =
   ./env
   migrations
   ./manage.py
-  ./bothub/api/v2/tests
