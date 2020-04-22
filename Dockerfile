@@ -5,9 +5,10 @@ WORKDIR $WORKDIR
 
 RUN apk update && apk add alpine-sdk postgresql-dev
 
+RUN pip install --upgrade pip
 RUN pip install pipenv
 RUN pip install gunicorn
-RUN pip install gevent
+RUN pip install gevent==1.4.0
 RUN pip install psycopg2-binary
 
 COPY Pipfile Pipfile
