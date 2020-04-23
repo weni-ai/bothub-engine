@@ -25,7 +25,9 @@ class VersioningFilter(filters.FilterSet):
             authorization = repository.get_user_authorization(request.user)
             if not authorization.can_read:
                 raise PermissionDenied()  # pragma: no cover
-            return RepositoryVersion.objects.filter(repository=repository)
+            return RepositoryVersion.objects.filter(repository=repository).filter(
+                is_deleted=False
+            )
         except Repository.DoesNotExist:
             raise NotFound(_("Repository {} does not exist").format(value))
         except DjangoValidationError:  # pragma: no cover

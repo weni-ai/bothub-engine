@@ -1,7 +1,12 @@
 from rest_framework import routers
 
 from bothub.api.v2.versionning.views import RepositoryVersionViewSet
-from .repository.views import RepositoryViewSet, RepositoryNLPLogViewSet
+from .repository.views import (
+    RepositoryViewSet,
+    RepositoryNLPLogViewSet,
+    RepositoryEntitiesViewSet,
+    NewRepositoryViewSet,
+)
 from .repository.views import RepositoryVotesViewSet
 from .repository.views import RepositoriesViewSet
 from .repository.views import RepositoriesContributionsViewSet
@@ -104,7 +109,8 @@ class Router(routers.SimpleRouter):
 
 
 router = Router()
-router.register("repository/repository-info", RepositoryViewSet)
+router.register("repository/repository-details", RepositoryViewSet)
+router.register("repository/info", NewRepositoryViewSet)
 router.register("repository/repository-votes", RepositoryVotesViewSet)
 router.register("repository/repositories", RepositoriesViewSet)
 router.register(
@@ -123,6 +129,7 @@ router.register("repository/evaluate", EvaluateViewSet)
 router.register("repository/translation", RepositoryTranslatedExampleViewSet)
 router.register("repository/version", RepositoryVersionViewSet)
 router.register("repository/log", RepositoryNLPLogViewSet)
+router.register("repository/entities", RepositoryEntitiesViewSet)
 router.register(
     "repository/nlp/authorization/train", RepositoryAuthorizationTrainViewSet
 )
