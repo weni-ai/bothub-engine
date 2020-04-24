@@ -406,7 +406,20 @@ class Repository(models.Model):
             )
         )
 
-    def current_versions(self, language=None, queryset=None, version_default=True):
+    def current_versions(
+        self,
+        language=None,
+        queryset=None,
+        version_default=True,
+        repository_version=None,
+    ):
+        if repository_version:
+            return map(
+                lambda lang: self.get_specific_version_id(
+                    repository_version=repository_version, language=lang
+                ),
+                self.available_languages(language=language, queryset=queryset),
+            )
         return map(
             lambda lang: self.current_version(lang, is_default=version_default),
             self.available_languages(
@@ -432,10 +445,16 @@ class Repository(models.Model):
             map(lambda u: (u.language, u.ready_for_train), self.current_versions())
         )
 
-    def ready_for_train(self, queryset=None, version_default=True):
+    def ready_for_train(
+        self, queryset=None, version_default=True, repository_version=None
+    ):
         return reduce(
             lambda current, u: u.ready_for_train or current,
-            self.current_versions(queryset=queryset, version_default=version_default),
+            self.current_versions(
+                queryset=queryset,
+                version_default=version_default,
+                repository_version=repository_version,
+            ),
             False,
         )
 
