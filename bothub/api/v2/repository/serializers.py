@@ -359,7 +359,7 @@ class NewRepositorySerializer(serializers.ModelSerializer):
             repository_version_language__repository_version=obj
         )
         return obj.repository.ready_for_train(
-            queryset=queryset, version_default=obj.is_default
+            queryset=queryset, repository_version=obj.pk
         )
 
     def get_requirements_to_train(self, obj):
@@ -373,7 +373,7 @@ class NewRepositorySerializer(serializers.ModelSerializer):
                 map(
                     lambda u: (u.language, u.requirements_to_train),
                     obj.repository.current_versions(
-                        queryset=queryset, version_default=obj.is_default
+                        queryset=queryset, repository_version=obj.pk
                     ),
                 ),
             )
@@ -563,7 +563,9 @@ class NewRepositorySerializer(serializers.ModelSerializer):
                 map(
                     lambda u: (u.language, u.warnings),
                     obj.repository.current_versions(
-                        queryset=queryset, version_default=obj.is_default
+                        queryset=queryset,
+                        version_default=obj.is_default,
+                        repository_version=obj.pk,
                     ),
                 ),
             )
@@ -757,7 +759,13 @@ class RepositorySerializer(serializers.ModelSerializer):
             {"slug": utils.unique_slug_generator(validated_data, Repository)}
         )
 
-        return super().create(validated_data)
+        repository = super().create(validated_data)
+
+        repository.versions.create(
+            is_default=True, created_by=self.context["request"].user
+        )
+
+        return repository
 
     def get_entities(self, obj):
         return obj.current_entities().values("value", "id").distinct()
