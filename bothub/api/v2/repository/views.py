@@ -30,6 +30,7 @@ from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryCategory
 from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryVote
+from bothub.common.models import RepositoryVersion
 from bothub.common.models import RequestRepositoryAuthorization
 from .filters import (
     RepositoriesFilter,
@@ -41,6 +42,7 @@ from .filters import RepositoryAuthorizationRequestsFilter
 from .permissions import (
     RepositoryAdminManagerAuthorization,
     RepositoryEntityHasPermission,
+    RepositoryInfoPermission,
 )
 from .permissions import RepositoryExamplePermission
 from .permissions import RepositoryPermission
@@ -51,6 +53,7 @@ from .serializers import (
     DebugParseSerializer,
     WordDistributionSerializer,
     RepositoryEntitySerializer,
+    NewRepositorySerializer,
 )
 from .serializers import EvaluateSerializer
 from .serializers import RepositoryAuthorizationRoleSerializer
@@ -66,9 +69,23 @@ from .serializers import ShortRepositorySerializer
 from ..metadata import Metadata
 
 
+class NewRepositoryViewSet(
+    MultipleFieldLookupMixin, mixins.RetrieveModelMixin, GenericViewSet
+):
+    """
+    Manager repository (bot).
+    """
+
+    queryset = RepositoryVersion.objects
+    lookup_field = "repository__uuid"
+    lookup_fields = ["repository__uuid", "pk"]
+    serializer_class = NewRepositorySerializer
+    permission_classes = [IsAuthenticatedOrReadOnly, RepositoryInfoPermission]
+    metadata_class = Metadata
+
+
 class RepositoryViewSet(
     mixins.CreateModelMixin,
-    mixins.RetrieveModelMixin,
     mixins.UpdateModelMixin,
     mixins.DestroyModelMixin,
     GenericViewSet,

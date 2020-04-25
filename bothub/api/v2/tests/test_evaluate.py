@@ -349,8 +349,7 @@ class EvaluateDestroyTestCase(TestCase):
         self.repository_evaluate.delete()
         response = self.request(self.owner_token)
 
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertIsNotNone(self.repository_evaluate.deleted_in)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 
 class EvaluateUpdateTestCase(TestCase):

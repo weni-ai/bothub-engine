@@ -406,7 +406,20 @@ class Repository(models.Model):
             )
         )
 
-    def current_versions(self, language=None, queryset=None, version_default=True):
+    def current_versions(
+        self,
+        language=None,
+        queryset=None,
+        version_default=True,
+        repository_version=None,
+    ):
+        if repository_version:
+            return map(
+                lambda lang: self.get_specific_version_id(
+                    repository_version=repository_version, language=lang
+                ),
+                self.available_languages(language=language, queryset=queryset),
+            )
         return map(
             lambda lang: self.current_version(lang, is_default=version_default),
             self.available_languages(
@@ -432,10 +445,16 @@ class Repository(models.Model):
             map(lambda u: (u.language, u.ready_for_train), self.current_versions())
         )
 
-    def ready_for_train(self, queryset=None, version_default=True):
+    def ready_for_train(
+        self, queryset=None, version_default=True, repository_version=None
+    ):
         return reduce(
             lambda current, u: u.ready_for_train or current,
-            self.current_versions(queryset=queryset, version_default=version_default),
+            self.current_versions(
+                queryset=queryset,
+                version_default=version_default,
+                repository_version=repository_version,
+            ),
             False,
         )
 
@@ -464,30 +483,33 @@ class Repository(models.Model):
         )
         return list(set(intents.exclude(intent="").values_list("intent", flat=True)))
 
-    @property
-    def current_entities(self):
+    def current_entities(self, queryset=None, version_default=True):
         return self.entities.filter(
-            value__in=self.examples(exclude_deleted=True)
+            value__in=self.examples(queryset=queryset, version_default=version_default)
             .exclude(entities__entity__value__isnull=True)
             .values_list("entities__entity__value", flat=True)
             .distinct()
         )
 
-    @property
-    def entities_list(self):
-        return self.current_entities.values_list("value", flat=True).distinct()
+    def entities_list(self, queryset=None, version_default=None):
+        return (
+            self.current_entities(queryset=queryset, version_default=version_default)
+            .values_list("value", flat=True)
+            .distinct()
+        )
 
     @property
     def current_labels(self):
-        return self.labels.filter(entities__value__in=self.entities_list).distinct()
+        return self.labels.filter(entities__value__in=self.entities_list()).distinct()
 
     @property
     def labels_list(self):
         return self.current_labels.values_list("value", flat=True).distinct()
 
-    @property
-    def other_entities(self):
-        return self.current_entities.filter(label__isnull=True)
+    def other_entities(self, queryset=None, version_default=None):
+        return self.current_entities(
+            queryset=queryset, version_default=version_default
+        ).filter(label__isnull=True)
 
     @property
     def admins(self):
@@ -666,6 +688,7 @@ class RepositoryVersion(models.Model):
     repository = models.ForeignKey(Repository, models.CASCADE, related_name="versions")
     created_by = models.ForeignKey(User, models.CASCADE, blank=True, null=True)
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
+    is_deleted = models.BooleanField(_("is deleted"), default=False)
 
     @property
     def version_languages(self):
@@ -711,7 +734,7 @@ class RepositoryVersionLanguage(models.Model):
     @property
     def examples(self):
         examples = self.repository_version.repository.examples(
-            exclude_deleted=False
+            version_default=self.repository_version.is_default
         ).filter(
             models.Q(repository_version_language__language=self.language)
             | models.Q(translations__language=self.language)
@@ -1087,10 +1110,14 @@ class RepositoryEntityLabel(models.Model):
 
     objects = RepositoryEntityLabelManager()
 
-    def examples(self, exclude_deleted=True):  # pragma: no cover
-        return self.repository.examples(exclude_deleted=exclude_deleted).filter(
-            entities__entity__label=self
-        )
+    def examples(
+        self, exclude_deleted=True, queryset=None, version_default=None
+    ):  # pragma: no cover
+        return self.repository.examples(
+            exclude_deleted=exclude_deleted,
+            queryset=queryset,
+            version_default=version_default,
+        ).filter(entities__entity__label=self)
 
 
 class RepositoryEntityQueryset(models.QuerySet):
@@ -1474,13 +1501,6 @@ class RepositoryEvaluate(models.Model):
         editable=False,
         null=True,
     )
-    deleted_in = models.ForeignKey(
-        RepositoryVersionLanguage,
-        models.CASCADE,
-        related_name="deleted_evaluate",
-        blank=True,
-        null=True,
-    )
     text = models.TextField(_("text"), help_text=_("Evaluate test text"))
     intent = models.CharField(
         _("intent"),
@@ -1504,12 +1524,6 @@ class RepositoryEvaluate(models.Model):
         if not language or language == self.repository_version_language.language:
             return self.entities.all()
         return None
-
-    def delete(self):
-        self.deleted_in = self.repository_version_language.repository_version.repository.current_version(
-            self.repository_version_language.language
-        )
-        self.save(update_fields=["deleted_in"])
 
     def delete_entities(self):
         self.entities.all().delete()

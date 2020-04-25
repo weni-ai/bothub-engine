@@ -2,4 +2,4 @@
 cd $WORKDIR
 python manage.py collectstatic --noinput
 
-gunicorn bothub.wsgi --timeout 360 -c gunicorn.conf.py
+gunicorn bothub.wsgi --timeout 999999 -c gunicorn.conf.py

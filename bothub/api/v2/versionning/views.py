@@ -30,3 +30,7 @@ class RepositoryVersionViewSet(
         self.filter_class = VersioningFilter
 
         return super().list(request, *args, **kwargs)
+
+    def perform_destroy(self, instance):
+        instance.is_deleted = True
+        instance.save(update_fields=["is_deleted"])
