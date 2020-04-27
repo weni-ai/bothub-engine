@@ -628,9 +628,7 @@ class Repository(models.Model):
 
     def last_trained_update(self, language=None):
         language = language or self.language
-        version = self.versions.filter(
-            created_by__isnull=False, is_default=True
-        ).first()
+        version = self.versions.filter(is_default=True).first()
 
         if version:
             return version.version_languages.filter(
