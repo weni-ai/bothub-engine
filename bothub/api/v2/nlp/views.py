@@ -323,9 +323,9 @@ class RepositoryAuthorizationEvaluateViewSet(mixins.RetrieveModelMixin, GenericV
         return Response(
             {
                 "update": False if update is None else True,
-                "repository_version": update.id,
+                "repository_version": update.pk,
                 "language": update.language,
-                "user_id": repository_authorization.user.id,
+                "user_id": repository_authorization.user.pk,
             }
         )
 
