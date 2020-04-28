@@ -59,7 +59,7 @@ class RepositoryEvaluateSerializer(serializers.ModelSerializer):
         source="repository_version_language",
         queryset=RepositoryVersion.objects,
         style={"show": False},
-        required=False,
+        required=True,
         validators=[CanContributeInRepositoryVersionValidator()],
     )
 

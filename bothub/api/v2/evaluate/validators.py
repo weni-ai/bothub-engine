@@ -1,10 +1,18 @@
 from django.utils.translation import ugettext_lazy as _
 from rest_framework.exceptions import ValidationError
 
+from bothub.common.models import RepositoryExample
+
 
 class ThereIsIntentValidator(object):
     def __call__(self, attrs):
-        if attrs.get("intent") not in attrs.get("repository").intents():
+        repository_version = attrs.get("repository_version_language")
+        queryset = RepositoryExample.objects.filter(
+            repository_version_language__repository_version=repository_version
+        )
+        if attrs.get("intent") not in attrs.get("repository").intents(
+            queryset=queryset, version_default=repository_version.is_default
+        ):
             raise ValidationError(_("Intent MUST match existing intents for training."))
 
 
