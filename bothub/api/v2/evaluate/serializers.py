@@ -179,6 +179,7 @@ class RepositoryEvaluateResultSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "version",
+            "repository_version",
             "created_at",
             "matrix_chart",
             "confidence_chart",
@@ -193,6 +194,7 @@ class RepositoryEvaluateResultSerializer(serializers.ModelSerializer):
     log = serializers.SerializerMethodField()
     intents_list = serializers.SerializerMethodField()
     entities_list = serializers.SerializerMethodField()
+    repository_version = serializers.SerializerMethodField()
     intent_results = RepositoryEvaluateResultScore(read_only=True)
     entity_results = RepositoryEvaluateResultScore(read_only=True)
 
@@ -205,6 +207,12 @@ class RepositoryEvaluateResultSerializer(serializers.ModelSerializer):
         return RepositoryEvaluateResultEntitySerializer(
             obj.evaluate_result_entity.all(), many=True
         ).data
+
+    def get_repository_version(self, obj):
+        return {
+            "id": obj.repository_version_language.repository_version.pk,
+            "name": obj.repository_version_language.repository_version.name,
+        }
 
     def get_log(self, obj):
         intent = self.context.get("request").query_params.get("intent")
