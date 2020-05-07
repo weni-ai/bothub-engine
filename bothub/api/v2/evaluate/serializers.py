@@ -184,6 +184,7 @@ class RepositoryEvaluateResultSerializer(serializers.ModelSerializer):
             "matrix_chart",
             "confidence_chart",
             "log",
+            "log_entities",
             "intents_list",
             "entities_list",
             "intent_results",
@@ -192,6 +193,7 @@ class RepositoryEvaluateResultSerializer(serializers.ModelSerializer):
         ref_name = None
 
     log = serializers.SerializerMethodField()
+    log_entities = serializers.SerializerMethodField()
     intents_list = serializers.SerializerMethodField()
     entities_list = serializers.SerializerMethodField()
     repository_version = serializers.SerializerMethodField()
@@ -245,16 +247,67 @@ class RepositoryEvaluateResultSerializer(serializers.ModelSerializer):
             if has_intent:
                 return log
 
-        results = filter(
-            None,
-            list(
-                map(
-                    lambda log: filter_intent(
-                        log, intent, min_confidence, max_confidence
-                    ),
-                    json.loads(obj.log),
-                )
-            ),
-        )
+        if len(obj.log) > 0:
+            results = filter(
+                None,
+                list(
+                    map(
+                        lambda log: filter_intent(
+                            log, intent, min_confidence, max_confidence
+                        ),
+                        json.loads(obj.log),
+                    )
+                ),
+            )
 
-        return results
+            return results
+
+        return []
+
+    def get_log_entities(self, obj):
+        intent = self.context.get("request").query_params.get("intent")
+        min_confidence = self.context.get("request").query_params.get("min")
+        max_confidence = self.context.get("request").query_params.get("max")
+
+        def filter_entities(log, intent, min_confidence, max_confidence):
+            if not intent and not min_confidence and not max_confidence:
+                return log
+
+            confidence = float(
+                Decimal(log.get("intent_prediction").get("confidence")).quantize(
+                    Decimal("0.00"), rounding=ROUND_DOWN
+                )
+            )
+
+            has_intent = False
+
+            if min_confidence and max_confidence:
+                min_confidence = float(min_confidence) / 100
+                max_confidence = float(max_confidence) / 100
+
+                has_intent = (
+                    True if min_confidence <= confidence <= max_confidence else False
+                )
+
+            if intent and log.get("intent") != intent:
+                has_intent = False
+
+            if has_intent:
+                return log
+
+        if len(obj.log_entities) > 0:
+            results = filter(
+                None,
+                list(
+                    map(
+                        lambda log: filter_entities(
+                            log, intent, min_confidence, max_confidence
+                        ),
+                        json.loads(obj.log_entities),
+                    )
+                ),
+            )
+
+            return results
+
+        return []
