@@ -6,6 +6,7 @@ from .repository.views import (
     RepositoryNLPLogViewSet,
     RepositoryEntitiesViewSet,
     NewRepositoryViewSet,
+    RasaUploadViewSet,
 )
 from .repository.views import RepositoryVotesViewSet
 from .repository.views import RepositoriesViewSet
@@ -130,6 +131,7 @@ router.register("repository/translation", RepositoryTranslatedExampleViewSet)
 router.register("repository/version", RepositoryVersionViewSet)
 router.register("repository/log", RepositoryNLPLogViewSet)
 router.register("repository/entities", RepositoryEntitiesViewSet)
+router.register("repository/upload-rasa-file", RasaUploadViewSet)
 router.register(
     "repository/nlp/authorization/train", RepositoryAuthorizationTrainViewSet
 )
