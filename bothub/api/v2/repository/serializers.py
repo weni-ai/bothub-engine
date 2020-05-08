@@ -1178,34 +1178,20 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
 class RepositoryMigrateSerializer(serializers.ModelSerializer):
     class Meta:
         model = RepositoryMigrate
-        fields = [
-            'user',
-            'repository',
-            'auth_token',
-            'language',
-            'created',
-        ]
+        fields = ["user", "repository", "auth_token", "language", "created"]
 
-        read_only_fields = [
-            'user',
-            'created_at',
-        ]
+        read_only_fields = ["user", "created_at"]
 
     def create(self, validated_data):
-        user = self.context.get('request').user
-        repository = validated_data.pop('repository')
-        auth_token = validated_data.pop('auth_token')
-        language = validated_data.pop('language')
+        user = self.context.get("request").user
+        repository = validated_data.pop("repository")
+        auth_token = validated_data.pop("auth_token")
+        language = validated_data.pop("language")
         migrate = RepositoryMigrate.objects.create(
-            repository=repository,
-            user=user,
-            auth_token=auth_token,
-            language=language
+            repository=repository, user=user, auth_token=auth_token, language=language
         )
         migrate_repository_wit.delay(
-            repository=repository.uuid,
-            auth_token=auth_token,
-            language=language
+            repository=repository.uuid, auth_token=auth_token, language=language
         )
 
         return migrate

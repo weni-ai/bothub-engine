@@ -7,10 +7,9 @@ from django.utils.translation import ugettext_lazy as _
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import mixins
+from rest_framework import mixins, status
 from rest_framework import parsers
 from rest_framework import permissions
-from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.exceptions import APIException
 from rest_framework.exceptions import PermissionDenied
@@ -23,19 +22,14 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
-from rest_framework import mixins, status
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
-from rest_framework.permissions import IsAuthenticated
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.filters import SearchFilter
 
-from bothub.common.models import RepositoryMigrate
 from bothub.api.v2.mixins import MultipleFieldLookupMixin
 from bothub.authentication.models import User
 from bothub.common.models import Repository, RepositoryNLPLog, RepositoryEntity
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryCategory
 from bothub.common.models import RepositoryExample
+from bothub.common.models import RepositoryMigrate
 from bothub.common.models import RepositoryVersion
 from bothub.common.models import RepositoryVote
 from bothub.common.models import RequestRepositoryAuthorization
@@ -70,10 +64,10 @@ from .serializers import RepositoryAuthorizationSerializer
 from .serializers import RepositoryCategorySerializer
 from .serializers import RepositoryContributionsSerializer
 from .serializers import RepositoryExampleSerializer
+from .serializers import RepositoryMigrateSerializer
 from .serializers import RepositorySerializer
 from .serializers import RepositoryUpload
 from .serializers import RepositoryVotesSerializer
-from .serializers import RepositoryMigrateSerializer
 from .serializers import RequestRepositoryAuthorizationSerializer
 from .serializers import ShortRepositorySerializer
 from ..metadata import Metadata
@@ -357,19 +351,16 @@ class RepositoryVotesViewSet(
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class RepositoryMigrateViewSet(
-        mixins.CreateModelMixin,
-        GenericViewSet):
+class RepositoryMigrateViewSet(mixins.CreateModelMixin, GenericViewSet):
     """
     Repository migrate all senteces wit.
     """
+
     queryset = RepositoryMigrate.objects.all()
-    lookup_field = 'repository'
-    lookup_fields = ['user', 'repository']
+    lookup_field = "repository"
+    lookup_fields = ["user", "repository"]
     serializer_class = RepositoryMigrateSerializer
-    permission_classes = [
-        IsAuthenticated
-    ]
+    permission_classes = [IsAuthenticated]
     metadata_class = Metadata
 
 

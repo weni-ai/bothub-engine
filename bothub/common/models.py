@@ -1438,28 +1438,18 @@ class RepositoryVote(models.Model):
 
 class RepositoryMigrate(models.Model):
     class Meta:
-        verbose_name = _('repository migrate')
-        verbose_name_plural = _('repository migrates')
+        verbose_name = _("repository migrate")
+        verbose_name_plural = _("repository migrates")
 
-    user = models.ForeignKey(
-        User,
-        models.CASCADE,
-        related_name='repository_migrate')
+    user = models.ForeignKey(User, models.CASCADE, related_name="repository_migrate")
     repository = models.ForeignKey(
-        Repository,
-        models.DO_NOTHING,
-        related_name='migrate')
-    language = models.CharField(
-        _('language'),
-        max_length=5,
-        validators=[
-            languages.validate_language,
-        ])
-    auth_token = models.TextField()
-    created = models.DateTimeField(
-        editable=False,
-        auto_now_add=True
+        Repository, models.DO_NOTHING, related_name="migrate"
     )
+    language = models.CharField(
+        _("language"), max_length=5, validators=[languages.validate_language]
+    )
+    auth_token = models.TextField()
+    created = models.DateTimeField(editable=False, auto_now_add=True)
 
 
 class RequestRepositoryAuthorization(models.Model):
