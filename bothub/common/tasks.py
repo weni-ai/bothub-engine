@@ -4,7 +4,7 @@ import io
 import re
 import zipfile
 from celery import shared_task
-from bothub.api.v1.serializers import NewRepositoryExampleEntitySerializer
+# from bothub.api.v1.serializers import NewRepositoryExampleEntitySerializer
 from bothub.common.models import RepositoryExample
 from bothub.common.models import Repository
 
@@ -61,17 +61,17 @@ def migrate_repository_wit(repository, auth_token, language):
                     start = entities['start']
                     end = entities['end']
 
-                    entity_serializer = NewRepositoryExampleEntitySerializer(
-                        data={
-                            'repository_example': example.pk,
-                            "label": value.replace(' ', '_').lower(),
-                            "entity": entity.replace(' ', '_').lower(),
-                            "start": start,
-                            "end": end,
-                        }
-                    )
-                    entity_serializer.is_valid(raise_exception=True)
-                    entity_serializer.save()
+                    # entity_serializer = NewRepositoryExampleEntitySerializer(
+                    #     data={
+                    #         'repository_example': example.pk,
+                    #         "label": value.replace(' ', '_').lower(),
+                    #         "entity": entity.replace(' ', '_').lower(),
+                    #         "start": start,
+                    #         "end": end,
+                    #     }
+                    # )
+                    # entity_serializer.is_valid(raise_exception=True)
+                    # entity_serializer.save()
 
         return True
     except requests.ConnectionError:

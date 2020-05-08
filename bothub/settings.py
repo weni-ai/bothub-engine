@@ -55,6 +55,8 @@ env = environ.Env(
     BOTHUB_BOT_NICKNAME=(str, "bot_repository"),
     BOTHUB_ENGINE_USE_SENTRY=(bool, False),
     BOTHUB_ENGINE_SENTRY=(str, None),
+    BOTHUB_ENGINE_CELERY_BACKEND_URL=(str, "django-db"),
+    BOTHUB_ENGINE_CELERY_BROKER_URL=(str, 'redis://localhost:6379'),
 )
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -342,14 +344,8 @@ if BOTHUB_ENGINE_USE_SENTRY:
 
 # Celery
 
-CELERY_RESULT_BACKEND = config(
-    'BOTHUB_ENGINE_CELERY_BACKEND_URL',
-    default='django-db'
-)
-CELERY_BROKER_URL = config(
-    'BOTHUB_ENGINE_CELERY_BROKER_URL',
-    default='redis://localhost:6379'
-)
+CELERY_RESULT_BACKEND = env.str('BOTHUB_ENGINE_CELERY_BACKEND_URL')
+CELERY_BROKER_URL = env.str('BOTHUB_ENGINE_CELERY_BROKER_URL')
 CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TASK_SERIALIZER = 'json'
