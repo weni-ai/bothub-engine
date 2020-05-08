@@ -4,6 +4,7 @@ from decimal import Decimal, ROUND_DOWN
 from django.core.paginator import Paginator
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
+from rest_framework.exceptions import APIException
 
 from bothub.api.v2.repository.validators import (
     CanContributeInRepositoryVersionValidator,
@@ -219,10 +220,14 @@ class RepositoryEvaluateResultSerializer(serializers.ModelSerializer):
 
     def get_log(self, obj):
         paginate_by = 20
-        result_log = json.loads(obj.log)
-        pagination = Paginator(tuple(result_log), paginate_by)
 
-        page = self.context.get("request").query_params.get("page_intent", 1)
+        try:
+            page = int(self.context.get("request").query_params.get("page_intent", 1))
+        except ValueError:
+            raise APIException(
+                {"non_field_errors": ["page_intent requires the value to be integer"]},
+                code=400,
+            )
         intent = self.context.get("request").query_params.get("intent")
         min_confidence = self.context.get("request").query_params.get("min")
         max_confidence = self.context.get("request").query_params.get("max")
@@ -254,6 +259,9 @@ class RepositoryEvaluateResultSerializer(serializers.ModelSerializer):
                 return log
 
         if len(obj.log) > 0:
+            result_log = json.loads(obj.log)
+            pagination = Paginator(tuple(result_log), paginate_by)
+
             results = filter(
                 None,
                 list(
@@ -261,16 +269,33 @@ class RepositoryEvaluateResultSerializer(serializers.ModelSerializer):
                         lambda log: filter_intent(
                             log, intent, min_confidence, max_confidence
                         ),
-                        json.loads(obj.log),
+                        pagination.page(page).object_list,
                     )
                 ),
             )
 
-            return results
+            return {
+                "total_pages": pagination.num_pages,
+                "current_page": page,
+                "results": results,
+            }
 
-        return []
+        return {"total_pages": 0, "current_page": 1, "results": []}
 
     def get_log_entities(self, obj):
+        paginate_by = 20
+
+        try:
+            page = int(self.context.get("request").query_params.get("page_entities", 1))
+        except ValueError:
+            raise APIException(
+                {
+                    "non_field_errors": [
+                        "page_entities requires the value to be integer"
+                    ]
+                },
+                code=400,
+            )
         intent = self.context.get("request").query_params.get("intent")
         min_confidence = self.context.get("request").query_params.get("min")
         max_confidence = self.context.get("request").query_params.get("max")
@@ -302,6 +327,9 @@ class RepositoryEvaluateResultSerializer(serializers.ModelSerializer):
                 return log
 
         if len(obj.log_entities) > 0:
+            result_log = json.loads(obj.log_entities)
+            pagination = Paginator(tuple(result_log), paginate_by)
+
             results = filter(
                 None,
                 list(
@@ -309,11 +337,15 @@ class RepositoryEvaluateResultSerializer(serializers.ModelSerializer):
                         lambda log: filter_entities(
                             log, intent, min_confidence, max_confidence
                         ),
-                        json.loads(obj.log_entities),
+                        pagination.page(page).object_list,
                     )
                 ),
             )
 
-            return results
+            return {
+                "total_pages": pagination.num_pages,
+                "current_page": page,
+                "results": results,
+            }
 
-        return []
+        return {"total_pages": 0, "current_page": 1, "results": []}
