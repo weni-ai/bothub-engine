@@ -1,6 +1,7 @@
 import json
 from decimal import Decimal, ROUND_DOWN
 
+from django.core.paginator import Paginator
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 
@@ -217,6 +218,11 @@ class RepositoryEvaluateResultSerializer(serializers.ModelSerializer):
         }
 
     def get_log(self, obj):
+        paginate_by = 20
+        result_log = json.loads(obj.log)
+        pagination = Paginator(tuple(result_log), paginate_by)
+
+        page = self.context.get("request").query_params.get("page_intent", 1)
         intent = self.context.get("request").query_params.get("intent")
         min_confidence = self.context.get("request").query_params.get("min")
         max_confidence = self.context.get("request").query_params.get("max")
