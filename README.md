@@ -1,6 +1,14 @@
+<p align="center">
+    <img src="https://user-images.githubusercontent.com/5360835/65427083-1af35900-de01-11e9-86ef-59f1eee79a68.png" width="230" height="70" alt="Bothub" />
+</p>
+
 # Bothub
 
-[![Build Status](https://travis-ci.org/Ilhasoft/bothub-engine.svg?branch=master)](https://travis-ci.org/Ilhasoft/bothub-engine) [![Coverage Status](https://coveralls.io/repos/github/Ilhasoft/bothub-engine/badge.svg?branch=master)](https://coveralls.io/github/Ilhasoft/bothub-engine?branch=master) [![Python Version](https://img.shields.io/badge/python-3.6-blue.svg)](https://www.python.org/) [![License GPL-3.0](https://img.shields.io/badge/license-%20GPL--3.0-yellow.svg)](https://github.com/Ilhasoft/bothub-engine/blob/master/LICENSE)
+[![Build Status](https://travis-ci.com/bothub-it/bothub-engine.svg?branch=master)](https://travis-ci.com/bothub-it/bothub-engine)
+[![Coverage Status](https://coveralls.io/repos/github/bothub-it/bothub-engine/badge.svg?branch=master)](https://coveralls.io/github/bothub-it/bothub-engine?branch=master)
+[![Code Climate](https://codeclimate.com/github/bothub-it/bothub-engine/badges/gpa.svg)](https://codeclimate.com/github/bothub-it/bothub-engine)
+[![Python Version](https://img.shields.io/badge/python-3.6-blue.svg)](https://www.python.org/)
+[![License GPL-3.0](https://img.shields.io/badge/license-%20GPL--3.0-yellow.svg)](https://github.com/bothub-it/bothub-engine/blob/master/LICENSE)
 
 ## Development
 
@@ -21,7 +29,12 @@ Use ```make``` commands to ```check_environment```, ```install_requirements```, 
 
 ### Fill database using fake data
 
-Run ```pipenv run python ./manage.py fill_db_using_fake_data``` to fill database using fake data. This can help you to test [Bothub Webapp](https://github.com/Ilhasoft/bothub-webapp).
+Run ```pipenv run python ./manage.py fill_db_using_fake_data``` to fill database using fake data. This can help you to test [Bothub Webapp](https://github.com/bothub-it/bothub-webapp).
+
+
+### Migrate all training for aws
+
+Run ```pipenv run python ./manage.py transfer_train_aws``` Migrate all trainings to an aws bucket defined in project settings.
 
 
 #### Fake users infos:
@@ -29,13 +42,23 @@ Run ```pipenv run python ./manage.py fill_db_using_fake_data``` to fill database
 | nickname | email | password | is superuser |
 |---|---|---|---|
 | admin | admin@bothub.it | admin | yes |
-| douglas | douglas@bothub.it | douglas | no |
 | user | user@bothub.it | user | no |
 
 
 ## Production
 
 Docker images available in [Bothub's Docker Hub repository](https://hub.docker.com/r/ilha/bothub/).
+
+
+# Deployment
+
+
+## Heroku
+Host your own Bothub Engine with [One-Click Deploy] (https://heroku.com/deploy).
+
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
+
+
 
 ## Environment Variables
 
@@ -45,6 +68,7 @@ You can set environment variables in your OS, write on ```.env``` file or pass v
 |--|--|--|--|
 | SECRET_KEY | ```string```|  ```None``` | A secret key for a particular Django installation. This is used to provide cryptographic signing, and should be set to a unique, unpredictable value.
 | DEBUG | ```boolean``` | ```False``` | A boolean that turns on/off debug mode.
+| BASE_URL | ```string``` | ```http://api.bothub.it``` | URL Base Bothub Engine Backend.
 | ALLOWED_HOSTS | ```string``` | ```*``` | A list of strings representing the host/domain names that this Django site can serve.
 | DEFAULT_DATABASE | ```string``` | ```sqlite:///db.sqlite3``` | Read [dj-database-url](https://github.com/kennethreitz/dj-database-url) to configure the database connection.
 | LANGUAGE_CODE | ```string``` | ```en-us``` | A string representing the language code for this installation.This should be in standard [language ID format](https://docs.djangoproject.com/en/2.0/topics/i18n/#term-language-code).
@@ -66,3 +90,14 @@ You can set environment variables in your OS, write on ```.env``` file or pass v
 | BOTHUB_NLP_BASE_URL | ```string``` | ```http://localhost:2657/``` | The bothub-blp production application URL. Used to proxy requests.
 | CHECK_ACCESSIBLE_API_URL | ```string``` | ```http://localhost/api/repositories/``` | URL used by ```bothub.health.check.check_accessible_api``` to make a HTTP request. The response status code must be 200.
 | SEND_EMAILS | ```boolean``` | ```True``` | Send emails flag.
+| BOTHUB_ENGINE_AWS_S3_BUCKET_NAME | ```string``` | ```None``` | 
+| BOTHUB_ENGINE_AWS_ACCESS_KEY_ID | ```string``` | ```None``` | 
+| BOTHUB_ENGINE_AWS_SECRET_ACCESS_KEY | ```string``` | ```None``` | 
+| BOTHUB_ENGINE_AWS_REGION_NAME | ```string``` | ```None``` | 
+| BOTHUB_ENGINE_AWS_SEND |  ```bool``` | ```False``` | 
+| BOTHUB_BOT_EMAIL |  ```string``` | ```bot_repository@bothub.it``` | Email that the system will automatically create for existing repositories that the owner deleted the account
+| BOTHUB_BOT_NAME |  ```string``` | ```Bot Repository``` | Name that the system will use to create the account
+| BOTHUB_BOT_NICKNAME |  ```string``` | ```bot_repository``` | Nickname that the system will use to create the account
+| BOTHUB_ENGINE_USE_SENTRY |  ```bool``` | ```False``` | Enable Support Sentry
+| BOTHUB_ENGINE_SENTRY |  ```string``` | ```None``` | URL Sentry
+| ENVIRONMENT |  ```string``` | ```production``` | 

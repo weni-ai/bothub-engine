@@ -6,16 +6,17 @@ from .. import WRITE_METHODS
 
 
 class RepositoryEvaluatePermission(permissions.BasePermission):
-
     def has_permission(self, request, view):
         try:
-            repository = Repository.objects.get(
-                uuid=request.GET.get('repository_uuid')
+            repository_uuid = (
+                request.data.get("repository")
+                if request.method in WRITE_METHODS
+                else request.GET.get("repository_uuid")
             )
+            repository = Repository.objects.get(uuid=repository_uuid)
             authorization = repository.get_user_authorization(request.user)
 
-            if request.method in READ_METHODS and \
-                    not request.user.is_authenticated:
+            if request.method in READ_METHODS and not request.user.is_authenticated:
                 return authorization.can_read
 
             if request.user.is_authenticated:
@@ -30,12 +31,9 @@ class RepositoryEvaluatePermission(permissions.BasePermission):
 
 
 class RepositoryEvaluateResultPermission(permissions.BasePermission):
-
     def has_permission(self, request, view):
         try:
-            repository = Repository.objects.get(
-                uuid=request.GET.get('repository_uuid')
-            )
+            repository = Repository.objects.get(uuid=request.GET.get("repository_uuid"))
             authorization = repository.get_user_authorization(request.user)
 
             if request.method in READ_METHODS:

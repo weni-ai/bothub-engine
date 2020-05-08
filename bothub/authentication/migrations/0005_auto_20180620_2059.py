@@ -8,14 +8,25 @@ import re
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('authentication', '0004_auto_20180605_1357'),
-    ]
+    dependencies = [("authentication", "0004_auto_20180605_1357")]
 
     operations = [
         migrations.AlterField(
-            model_name='user',
-            name='nickname',
-            field=models.CharField(help_text="User's nickname, using letters, numbers, underscores and hyphens without spaces.", max_length=16, unique=True, validators=[django.core.validators.RegexValidator(re.compile('^[-a-zA-Z0-9_]+\\Z'), "Enter a valid 'nickname' consisting of letters, numbers, underscores or hyphens.", 'invalid'), bothub.authentication.models.validate_user_nickname_value], verbose_name='nickname'),
-        ),
+            model_name="user",
+            name="nickname",
+            field=models.CharField(
+                help_text="User's nickname, using letters, numbers, underscores and hyphens without spaces.",
+                max_length=16,
+                unique=True,
+                validators=[
+                    django.core.validators.RegexValidator(
+                        re.compile("^[-a-zA-Z0-9_]+\\Z"),
+                        "Enter a valid 'nickname' consisting of letters, numbers, underscores or hyphens.",
+                        "invalid",
+                    ),
+                    bothub.authentication.models.validate_user_nickname_value,
+                ],
+                verbose_name="nickname",
+            ),
+        )
     ]
