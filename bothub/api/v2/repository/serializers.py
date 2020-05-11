@@ -116,7 +116,7 @@ class RepositoryEntityLabelSerializer(serializers.ModelSerializer):
     def get_examples__count(self, obj):
         if obj.value == "other":
             return (
-                obj.repository.examples(exclude_deleted=True)
+                obj.repository.examples()
                 .filter(entities__entity__in=obj.repository.other_entities())
                 .count()
             )
@@ -786,7 +786,6 @@ class RepositorySerializer(serializers.ModelSerializer):
                             lambda intent: {
                                 "value": intent,
                                 "examples__count": obj.examples(
-                                    exclude_deleted=True,
                                     queryset=queryset,
                                     version_default=False,
                                 )
@@ -803,7 +802,7 @@ class RepositorySerializer(serializers.ModelSerializer):
             map(
                 lambda intent: {
                     "value": intent,
-                    "examples__count": obj.examples(exclude_deleted=True)
+                    "examples__count": obj.examples()
                     .filter(intent=intent)
                     .count(),
                 },
@@ -844,7 +843,7 @@ class RepositorySerializer(serializers.ModelSerializer):
                     repository_version_language__repository_version__repository=obj
                 ):
                     return obj.examples(
-                        exclude_deleted=True, queryset=queryset, version_default=False
+                        queryset=queryset, version_default=False
                     ).count()
                 return 0
         return obj.examples().count()

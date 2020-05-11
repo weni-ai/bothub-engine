@@ -496,10 +496,10 @@ class Repository(models.Model):
     def intents(self, queryset=None, version_default=True):
         intents = (
             self.examples(
-                exclude_deleted=True, queryset=queryset, version_default=version_default
+                queryset=queryset, version_default=version_default
             )
             if queryset
-            else self.examples(exclude_deleted=True, version_default=version_default)
+            else self.examples(version_default=version_default)
         )
         return list(set(intents.exclude(intent="").values_list("intent", flat=True)))
 
@@ -551,7 +551,7 @@ class Repository(models.Model):
         )  # pragma: no cover
 
     def examples(
-        self, language=None, exclude_deleted=True, queryset=None, version_default=True
+        self, language=None, queryset=None, version_default=True
     ):
         if queryset is None:
             queryset = RepositoryExample.objects
@@ -568,7 +568,7 @@ class Repository(models.Model):
         return query
 
     def evaluations(
-        self, language=None, exclude_deleted=True, queryset=None, version_default=True
+        self, language=None, queryset=None, version_default=True
     ):
         if queryset is None:
             queryset = RepositoryEvaluate.objects
@@ -1129,10 +1129,9 @@ class RepositoryEntityLabel(models.Model):
     objects = RepositoryEntityLabelManager()
 
     def examples(
-        self, exclude_deleted=True, queryset=None, version_default=None
+        self, queryset=None, version_default=None
     ):  # pragma: no cover
         return self.repository.examples(
-            exclude_deleted=exclude_deleted,
             queryset=queryset,
             version_default=version_default,
         ).filter(entities__entity__label=self)
