@@ -1617,13 +1617,7 @@ class RepositoryEvaluateResult(models.Model):
         verbose_name=_("Intent Prediction Confidence Distribution"), editable=False
     )
 
-    log = models.TextField(
-        verbose_name=_("Evaluate Intents Log"), blank=True, editable=False
-    )
-
-    log_entities = models.TextField(
-        verbose_name=_("Evaluate Entities Log"), blank=True, editable=False
-    )
+    log = models.TextField(verbose_name=_("Evaluate Log"), blank=True, editable=False)
 
     version = models.IntegerField(
         verbose_name=_("Version"), blank=False, default=0, editable=False
