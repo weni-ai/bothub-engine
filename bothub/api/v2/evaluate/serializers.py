@@ -186,7 +186,6 @@ class RepositoryEvaluateResultSerializer(serializers.ModelSerializer):
             "matrix_chart",
             "confidence_chart",
             "log",
-            "log_entities",
             "intents_list",
             "entities_list",
             "intent_results",
@@ -195,7 +194,6 @@ class RepositoryEvaluateResultSerializer(serializers.ModelSerializer):
         ref_name = None
 
     log = serializers.SerializerMethodField()
-    log_entities = serializers.SerializerMethodField()
     intents_list = serializers.SerializerMethodField()
     entities_list = serializers.SerializerMethodField()
     repository_version = serializers.SerializerMethodField()
@@ -219,7 +217,7 @@ class RepositoryEvaluateResultSerializer(serializers.ModelSerializer):
         }
 
     def get_log(self, obj):
-        paginate_by = 20
+        paginate_by = 10
 
         try:
             page = int(self.context.get("request").query_params.get("page_intent", 1))
@@ -267,74 +265,6 @@ class RepositoryEvaluateResultSerializer(serializers.ModelSerializer):
                 list(
                     map(
                         lambda log: filter_intent(
-                            log, intent, min_confidence, max_confidence
-                        ),
-                        pagination.page(page).object_list,
-                    )
-                ),
-            )
-
-            return {
-                "total_pages": pagination.num_pages,
-                "current_page": page,
-                "results": results,
-            }
-
-        return {"total_pages": 0, "current_page": 1, "results": []}
-
-    def get_log_entities(self, obj):
-        paginate_by = 20
-
-        try:
-            page = int(self.context.get("request").query_params.get("page_entities", 1))
-        except ValueError:
-            raise APIException(
-                {
-                    "non_field_errors": [
-                        "page_entities requires the value to be integer"
-                    ]
-                },
-                code=400,
-            )
-        intent = self.context.get("request").query_params.get("intent")
-        min_confidence = self.context.get("request").query_params.get("min")
-        max_confidence = self.context.get("request").query_params.get("max")
-
-        def filter_entities(log, intent, min_confidence, max_confidence):
-            if not intent and not min_confidence and not max_confidence:
-                return log
-
-            confidence = float(
-                Decimal(log.get("intent_prediction").get("confidence")).quantize(
-                    Decimal("0.00"), rounding=ROUND_DOWN
-                )
-            )
-
-            has_intent = False
-
-            if min_confidence and max_confidence:
-                min_confidence = float(min_confidence) / 100
-                max_confidence = float(max_confidence) / 100
-
-                has_intent = (
-                    True if min_confidence <= confidence <= max_confidence else False
-                )
-
-            if intent and log.get("intent") != intent:
-                has_intent = False
-
-            if has_intent:
-                return log
-
-        if len(obj.log_entities) > 0:
-            result_log = json.loads(obj.log_entities)
-            pagination = Paginator(tuple(result_log), paginate_by)
-
-            results = filter(
-                None,
-                list(
-                    map(
-                        lambda log: filter_entities(
                             log, intent, min_confidence, max_confidence
                         ),
                         pagination.page(page).object_list,
