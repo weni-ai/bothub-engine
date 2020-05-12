@@ -1137,6 +1137,30 @@ class RepositoryEntityLabel(models.Model):
         ).filter(entities__entity__label=self)
 
 
+class RepositoryEntityGroup(models.Model):
+    class Meta:
+        unique_together = ["repository_version", "value"]
+
+    repository_version = models.ForeignKey(RepositoryVersion, models.CASCADE, related_name="labels")
+    value = models.CharField(
+        _("label"),
+        max_length=64,
+        validators=[validate_item_key, can_t_be_other],
+        blank=True,
+    )
+    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
+
+    objects = RepositoryEntityLabelManager()
+
+    def examples(
+        self, queryset=None, version_default=None
+    ):  # pragma: no cover
+        return self.repository_version.repository.examples(
+            queryset=queryset,
+            version_default=version_default,
+        ).filter(entities__entity__label=self)
+
+
 class RepositoryEntityQueryset(models.QuerySet):
     def get(self, repository, value, create_entity=True):
         try:
@@ -1167,7 +1191,7 @@ class RepositoryEntity(models.Model):
         validators=[validate_item_key],
     )
     label = models.ForeignKey(
-        RepositoryEntityLabel,
+        RepositoryEntityGroup,
         on_delete=models.CASCADE,
         related_name="entities",
         null=True,
@@ -1181,8 +1205,8 @@ class RepositoryEntity(models.Model):
         if not value:
             self.label = None
         else:
-            self.label = RepositoryEntityLabel.objects.get(
-                repository=self.repository, value=value
+            self.label = RepositoryEntityGroup.objects.get(
+                repository_version__repository=self.repository, value=value
             )
 
 
