@@ -10,7 +10,7 @@ from .exceptions import TrainingNotAllowed
 from .models import Repository
 from .models import RepositoryAuthorization
 from .models import RepositoryEntity
-from .models import RepositoryEntityLabel
+from .models import RepositoryEntityGroup
 from .models import RepositoryExample
 from .models import RepositoryExampleEntity
 from .models import RepositoryTranslatedExample
@@ -817,7 +817,7 @@ class RepositoryEntityTestCase(TestCase):
         self.assertEqual(name_entity.pk, new_example_entity.entity.pk)
 
 
-class RepositoryEntityLabelTestCase(TestCase):
+class RepositoryEntityGroupTestCase(TestCase):
     def setUp(self):
         self.language = languages.LANGUAGE_EN
 
@@ -856,8 +856,8 @@ class RepositoryEntityLabelTestCase(TestCase):
 
         name_entity.set_label("subject")
 
-        subject_label = RepositoryEntityLabel.objects.get(
-            repository=self.repository, value="subject"
+        subject_label = RepositoryEntityGroup.objects.get(
+            repository_version__repository=self.repository, value="subject"
         )
 
         self.assertEqual(name_entity.label.pk, subject_label.pk)
@@ -873,8 +873,8 @@ class RepositoryEntityLabelTestCase(TestCase):
         )
         object_entity.set_label("subject")
 
-        subject_label = RepositoryEntityLabel.objects.get(
-            repository=self.repository, value="subject"
+        subject_label = RepositoryEntityGroup.objects.get(
+            repository_version__repository=self.repository, value="subject"
         )
 
         self.assertEqual(name_entity.label.pk, subject_label.pk)

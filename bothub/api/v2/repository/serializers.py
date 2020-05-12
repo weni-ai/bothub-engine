@@ -21,7 +21,7 @@ from bothub.common.models import (
 )
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryCategory
-from bothub.common.models import RepositoryEntityLabel
+from bothub.common.models import RepositoryEntityGroup
 from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryTranslatedExample
 from bothub.common.models import RepositoryTranslatedExampleEntity
@@ -96,10 +96,10 @@ class RepositoryCategorySerializer(serializers.ModelSerializer):
         ref_name = None
 
 
-class RepositoryEntityLabelSerializer(serializers.ModelSerializer):
+class RepositoryEntityGroupSerializer(serializers.ModelSerializer):
     class Meta:
-        model = RepositoryEntityLabel
-        fields = ["repository", "value", "entities", "examples__count"]
+        model = RepositoryEntityGroup
+        fields = ["repository_version__repository", "value", "entities", "examples__count"]
         ref_name = None
 
     entities = serializers.SerializerMethodField()
@@ -709,7 +709,7 @@ class RepositorySerializer(serializers.ModelSerializer):
         label=_("Categories"),
     )
     categories_list = serializers.SerializerMethodField(style={"show": False})
-    labels = RepositoryEntityLabelSerializer(
+    labels = RepositoryEntityGroupSerializer(
         source="current_labels", many=True, read_only=True, style={"show": False}
     )
     other_label = serializers.SerializerMethodField(style={"show": False})
@@ -827,8 +827,8 @@ class RepositorySerializer(serializers.ModelSerializer):
         return obj.intents()
 
     def get_other_label(self, obj):
-        return RepositoryEntityLabelSerializer(
-            RepositoryEntityLabel(repository=obj, value="other")
+        return RepositoryEntityGroupSerializer(
+            RepositoryEntityGroup(repository_version__repository=obj, value="other")
         ).data
 
     def get_examples__count(self, obj):

@@ -1098,43 +1098,17 @@ class RepositoryTranslatedExample(models.Model):
         )
 
 
-class RepositoryEntityLabelQueryset(models.QuerySet):
+class RepositoryEntityGroupQueryset(models.QuerySet):
     def get(self, repository, value):
         try:
-            return super().get(repository=repository, value=value)
+            return super().get(repository_version=repository, value=value)
         except self.model.DoesNotExist:
-            return super().create(repository=repository, value=value)
+            return super().create(repository_version=repository, value=value)
 
 
-class RepositoryEntityLabelManager(models.Manager):
+class RepositoryEntityGroupManager(models.Manager):
     def get_queryset(self):
-        return RepositoryEntityLabelQueryset(self.model, using=self._db)
-
-
-class RepositoryEntityLabel(models.Model):
-    class Meta:
-        unique_together = ["repository", "value"]
-
-    repository = models.ForeignKey(
-        Repository, on_delete=models.CASCADE, related_name="labels"
-    )
-    value = models.CharField(
-        _("label"),
-        max_length=64,
-        validators=[validate_item_key, can_t_be_other],
-        blank=True,
-    )
-    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
-
-    objects = RepositoryEntityLabelManager()
-
-    def examples(
-        self, queryset=None, version_default=None
-    ):  # pragma: no cover
-        return self.repository.examples(
-            queryset=queryset,
-            version_default=version_default,
-        ).filter(entities__entity__label=self)
+        return RepositoryEntityGroupQueryset(self.model, using=self._db)
 
 
 class RepositoryEntityGroup(models.Model):
@@ -1150,7 +1124,7 @@ class RepositoryEntityGroup(models.Model):
     )
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
 
-    objects = RepositoryEntityLabelManager()
+    objects = RepositoryEntityGroupManager()
 
     def examples(
         self, queryset=None, version_default=None
