@@ -1,4 +1,5 @@
 import io
+import re
 import uuid
 import boto3
 import random
@@ -7,6 +8,11 @@ from django.conf import settings
 from django.utils.text import slugify
 from botocore.exceptions import ClientError
 from collections import OrderedDict
+
+
+entity_regex = re.compile(
+    r"\[(?P<entity_text>[^\]]+)" r"\]\((?P<entity>[^:)]*?)" r"(?:\:(?P<value>[^)]+))?\)"
+)
 
 
 def cast_supported_languages(i):
@@ -80,3 +86,37 @@ def format_entity(text, entity, start, end):
         Returns the correct formatted text with the correct entities
     """
     return text[0:start] + "[" + text[start:end] + "](" + entity + ")" + text[end:]
+
+
+def find_entities_in_example(example):
+    """Extracts entities from a markdown intent example."""
+    entities = []
+    offset = 0
+
+    for match in re.finditer(entity_regex, example):
+        entity_text = match.groupdict()["entity_text"]
+        entity_type = match.groupdict()["entity"]
+        if match.groupdict()["value"]:
+            entity_value = match.groupdict()["value"]
+        else:
+            entity_value = entity_text
+
+        start_index = match.start() - offset
+        end_index = start_index + len(entity_text)
+        offset += len(match.group(0)) - len(entity_text)
+
+        entity = {
+            "start": start_index,
+            "end": end_index,
+            "value": entity_value,
+            "entity": entity_type,
+        }
+        entities.append(entity)
+
+    return entities
+
+
+def get_without_entity(example):
+    """Extract entities and synonyms, and convert to plain text."""
+    plain_text = re.sub(entity_regex, lambda m: m.groupdict()["entity_text"], example)
+    return plain_text

@@ -202,13 +202,15 @@ class RepositoryTranslatedExporterViewSet(
                 entities_translate = RepositoryTranslatedExampleEntity.objects.filter(
                     repository_translated_example=translated
                 )
+                count_entity = 0
                 for entity in entities_translate:
                     text = utils.format_entity(
                         text=text_translated,
                         entity=entity.entity.value,
-                        start=entity.start,
-                        end=entity.end,
+                        start=entity.start + count_entity,
+                        end=entity.end + count_entity,
                     )
+                    count_entity += len(entity.entity.value) + 4
                 worksheet.cell(row=count, column=6, value=str(text))
 
         for count, entity in enumerate(entities_list, start=4):
