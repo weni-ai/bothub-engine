@@ -1153,11 +1153,9 @@ class RepositoryEntityManager(models.Manager):
 
 class RepositoryEntity(models.Model):
     class Meta:
-        unique_together = ["repository", "value"]
+        unique_together = ["repository_version", "value"]
 
-    repository = models.ForeignKey(
-        Repository, on_delete=models.CASCADE, related_name="entities"
-    )
+    repository_version = models.ForeignKey(RepositoryVersion, models.CASCADE, related_name="entities")
     value = models.CharField(
         _("entity"),
         max_length=64,
@@ -1180,7 +1178,7 @@ class RepositoryEntity(models.Model):
             self.label = None
         else:
             self.label = RepositoryEntityGroup.objects.get(
-                repository_version__repository=self.repository, value=value
+                repository_version=self.repository_version, value=value
             )
 
 
@@ -1190,20 +1188,20 @@ class EntityBaseQueryset(models.QuerySet):  # pragma: no cover
             instance = self.model(**kwargs)
             if "repository_evaluate_id" in instance.__dict__:
                 evaluate = instance.repository_evaluate
-                repository = (
-                    evaluate.repository_version_language.repository_version.repository
+                repository_version = (
+                    evaluate.repository_version_language.repository_version
                 )
             elif "evaluate_result_id" in instance.__dict__:
                 result = instance.evaluate_result
-                repository = (
-                    result.repository_version_language.repository_version.repository
+                repository_version = (
+                    result.repository_version_language.repository_version
                 )
             else:
-                repository = (
-                    instance.example.repository_version_language.repository_version.repository
+                repository_version = (
+                    instance.example.repository_version_language.repository_version
                 )
 
-            entity = RepositoryEntity.objects.get(repository=repository, value=entity)
+            entity = RepositoryEntity.objects.get(repository_version=repository_version, value=entity)
 
         return super().create(entity=entity, **kwargs)
 
