@@ -73,3 +73,10 @@ def unique_slug_generator(validated_data, Repository, new_slug=None):
         )
         return unique_slug_generator(validated_data, Repository, new_slug=new_slug)
     return slug
+
+
+def format_entity(text, entity, start, end):
+    """
+        Returns the correct formatted text with the correct entities
+    """
+    return text[0:start] + "[" + text[start:end] + "](" + entity + ")" + text[end:]

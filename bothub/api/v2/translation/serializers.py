@@ -4,7 +4,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from bothub.api.v2.fields import EntityValueField
 from bothub.common.languages import LANGUAGE_CHOICES
-from bothub.common.models import RepositoryTranslatedExample
+from bothub.common.models import RepositoryTranslatedExample, RepositoryVersion
 from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryTranslatedExampleEntity
 from bothub.api.v2.translation.validators import (
@@ -103,3 +103,7 @@ class RepositoryTranslatedExampleSerializer(serializers.ModelSerializer):
                 repository_translated_example=translated, **entity_data
             )
         return translated
+
+
+class RepositoryTranslatedExporterSerializer(serializers.Serializer):
+    file = serializers.FileField(required=True)

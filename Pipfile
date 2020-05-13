@@ -20,7 +20,8 @@ django-environ = "*"
 boto3 = "*"
 sentry-sdk = "==0.13.2"
 python-slugify = "==4.0.0"
-xlsxwriter = "*"
+openpyxl = "*"
+pillow = "*"
 
 [dev-packages]
 "flake8" = "*"
