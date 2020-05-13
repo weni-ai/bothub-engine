@@ -5,7 +5,6 @@ from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django.utils.translation import ugettext_lazy as _
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.filters import OrderingFilter
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import mixins
@@ -17,7 +16,9 @@ from rest_framework.exceptions import APIException
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.exceptions import UnsupportedMediaType
 from rest_framework.exceptions import ValidationError
+from rest_framework.filters import OrderingFilter
 from rest_framework.filters import SearchFilter
+from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
@@ -29,8 +30,8 @@ from bothub.common.models import Repository, RepositoryNLPLog, RepositoryEntity
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryCategory
 from bothub.common.models import RepositoryExample
-from bothub.common.models import RepositoryVote
 from bothub.common.models import RepositoryVersion
+from bothub.common.models import RepositoryVote
 from bothub.common.models import RequestRepositoryAuthorization
 from .filters import (
     RepositoriesFilter,
@@ -54,6 +55,8 @@ from .serializers import (
     WordDistributionSerializer,
     RepositoryEntitySerializer,
     NewRepositorySerializer,
+    RasaUploadSerializer,
+    RasaSerializer,
 )
 from .serializers import EvaluateSerializer
 from .serializers import RepositoryAuthorizationRoleSerializer
@@ -623,3 +626,45 @@ class RepositoryEntitiesViewSet(mixins.ListModelMixin, GenericViewSet):
     serializer_class = RepositoryEntitySerializer
     filter_class = RepositoryEntitiesFilter
     permission_classes = [IsAuthenticated, RepositoryEntityHasPermission]
+
+
+class RasaUploadViewSet(
+    MultipleFieldLookupMixin, mixins.UpdateModelMixin, GenericViewSet
+):
+    queryset = RepositoryVersion.objects
+    lookup_field = "repository__uuid"
+    lookup_fields = ["repository__uuid", "pk"]
+    permission_classes = [IsAuthenticated, RepositoryInfoPermission]
+    serializer_class = RasaUploadSerializer
+    parser_classes = (MultiPartParser,)
+    metadata_class = Metadata
+
+    def update(self, request, *args, **kwargs):  # pragma: no cover
+        serializer = RasaUploadSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        serializer_rasa = RasaSerializer(data=json.load(request.data.get("file")))
+        serializer_rasa.is_valid(raise_exception=True)
+
+        for example in serializer_rasa.data.get("rasa_nlu_data", {}).get(
+            "common_examples", []
+        ):
+            if RepositoryExample.objects.filter(
+                repository_version_language__repository_version=kwargs.get("pk"),
+                text=example["text"],
+                intent=example["intent"],
+                repository_version_language__language=serializer.data.get("language"),
+            ).count():
+                continue
+
+            example["repository"] = kwargs.get("repository__uuid")
+            example["repository_version"] = kwargs.get("pk")
+            example["language"] = serializer.data.get("language")
+
+            serializer_example = RepositoryExampleSerializer(
+                data=example, context={"request": request}
+            )
+            if serializer_example.is_valid():
+                serializer_example.save()
+
+        return Response(202)
