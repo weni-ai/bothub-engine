@@ -180,15 +180,17 @@ class RepositoryTranslatedExporterViewSet(
             entities = RepositoryExampleEntity.objects.filter(
                 repository_example=example
             )
+            count_entity = 0
             for entity in entities:
                 if entity.entity.value not in entities_list:
                     entities_list.append(entity.entity.value)
                     text = utils.format_entity(
                         text=text,
                         entity=entity.entity.value,
-                        start=entity.start,
-                        end=entity.end,
+                        start=entity.start + count_entity,
+                        end=entity.end + count_entity,
                     )
+                    count_entity += len(entity.entity.value) + 4
             worksheet.cell(row=count, column=5, value=str(text))
 
             translated = RepositoryTranslatedExample.objects.filter(
