@@ -1098,26 +1098,24 @@ class RepositoryTranslatedExample(models.Model):
         )
 
 
-class RepositoryEntityLabelQueryset(models.QuerySet):
+class RepositoryEntityGroupQueryset(models.QuerySet):
     def get(self, repository, value):
         try:
-            return super().get(repository=repository, value=value)
+            return super().get(repository_version=repository, value=value)
         except self.model.DoesNotExist:
-            return super().create(repository=repository, value=value)
+            return super().create(repository_version=repository, value=value)
 
 
-class RepositoryEntityLabelManager(models.Manager):
+class RepositoryEntityGroupManager(models.Manager):
     def get_queryset(self):
-        return RepositoryEntityLabelQueryset(self.model, using=self._db)
+        return RepositoryEntityGroupQueryset(self.model, using=self._db)
 
 
-class RepositoryEntityLabel(models.Model):
+class RepositoryEntityGroup(models.Model):
     class Meta:
-        unique_together = ["repository", "value"]
+        unique_together = ["repository_version", "value"]
 
-    repository = models.ForeignKey(
-        Repository, on_delete=models.CASCADE, related_name="labels"
-    )
+    repository_version = models.ForeignKey(RepositoryVersion, models.CASCADE, related_name="labels")
     value = models.CharField(
         _("label"),
         max_length=64,
@@ -1126,12 +1124,12 @@ class RepositoryEntityLabel(models.Model):
     )
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
 
-    objects = RepositoryEntityLabelManager()
+    objects = RepositoryEntityGroupManager()
 
     def examples(
         self, queryset=None, version_default=None
     ):  # pragma: no cover
-        return self.repository.examples(
+        return self.repository_version.repository.examples(
             queryset=queryset,
             version_default=version_default,
         ).filter(entities__entity__label=self)
@@ -1167,7 +1165,7 @@ class RepositoryEntity(models.Model):
         validators=[validate_item_key],
     )
     label = models.ForeignKey(
-        RepositoryEntityLabel,
+        RepositoryEntityGroup,
         on_delete=models.CASCADE,
         related_name="entities",
         null=True,
@@ -1181,8 +1179,8 @@ class RepositoryEntity(models.Model):
         if not value:
             self.label = None
         else:
-            self.label = RepositoryEntityLabel.objects.get(
-                repository=self.repository, value=value
+            self.label = RepositoryEntityGroup.objects.get(
+                repository_version__repository=self.repository, value=value
             )
 
 

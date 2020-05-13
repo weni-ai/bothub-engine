@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from bothub.common.models import RepositoryEntity, RepositoryVersionLanguage
-from bothub.common.models import RepositoryEntityLabel
+from bothub.common.models import RepositoryEntityGroup
 
 
 class ModelMultipleChoiceField(serializers.ManyRelatedField):
@@ -45,7 +45,7 @@ class LabelValueField(serializers.CharField):  # pragma: no cover
         kwargs.pop("max_length", 0)
         kwargs.pop("help_text", "")
 
-        value_field = RepositoryEntityLabel._meta.get_field("value")
+        value_field = RepositoryEntityGroup._meta.get_field("value")
 
         super().__init__(
             *args,
