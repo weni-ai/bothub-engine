@@ -183,7 +183,7 @@ class RepositoryTranslatedExporterViewSet(
             text = example.text
             entities = RepositoryExampleEntity.objects.filter(
                 repository_example=example
-            )
+            ).order_by("start")
             count_entity = 0
             for entity in entities:
                 if entity.entity.value not in entities_list:
@@ -205,17 +205,17 @@ class RepositoryTranslatedExporterViewSet(
                 text_translated = translated.text
                 entities_translate = RepositoryTranslatedExampleEntity.objects.filter(
                     repository_translated_example=translated
-                )
+                ).order_by("start")
                 count_entity = 0
                 for entity in entities_translate:
-                    text = utils.format_entity(
+                    text_translated = utils.format_entity(
                         text=text_translated,
                         entity=entity.entity.value,
                         start=entity.start + count_entity,
                         end=entity.end + count_entity,
                     )
                     count_entity += len(entity.entity.value) + 4
-                worksheet.cell(row=count, column=6, value=str(text))
+                worksheet.cell(row=count, column=6, value=str(text_translated))
 
         for count, entity in enumerate(entities_list, start=4):
             worksheet.insert_rows(count)
@@ -238,8 +238,10 @@ class RepositoryTranslatedExporterViewSet(
         worksheet = workbook.get_sheet_by_name("Translate")
         columns = ["ID", "Repository Version", "Language"]
 
+        examples_success = []
+
         find = False
-        for row in worksheet.iter_rows():
+        for count, row in enumerate(worksheet.iter_rows(), start=1):
             if (
                 row[1].value in columns
                 and row[2].value in columns
@@ -275,6 +277,19 @@ class RepositoryTranslatedExporterViewSet(
 
                     example = example.first()
 
+                    original_text_count_entity = RepositoryExampleEntity.objects.filter(
+                        repository_example=example
+                    ).count()
+
+                    translated_text_count_entity = len(
+                        utils.find_entities_in_example(text_translated)
+                    )
+
+                    if original_text_count_entity != translated_text_count_entity:
+                        # TODO: Validation
+                        worksheet.cell(row=count, column=7, value="Entities must match")
+                        continue
+
                     translated_examples = RepositoryTranslatedExample.objects.filter(
                         original_example=example
                     )
@@ -300,4 +315,14 @@ class RepositoryTranslatedExporterViewSet(
                             entity=translated_entity["entity"],
                         )
 
-        return Response(status=204)
+                examples_success.append(count)
+
+        for r in reversed(examples_success):
+            worksheet.delete_rows(r)
+
+        response = HttpResponse(
+            content=save_virtual_workbook(workbook),
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+        response["Content-Disposition"] = "attachment; filename=bothub.xlsx"
+        return response
