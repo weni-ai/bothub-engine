@@ -10,7 +10,6 @@ from rest_framework import mixins
 from rest_framework import permissions
 from rest_framework.exceptions import APIException
 from rest_framework.parsers import MultiPartParser
-from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from bothub import utils, settings
