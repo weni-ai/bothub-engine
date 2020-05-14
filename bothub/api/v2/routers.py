@@ -6,6 +6,7 @@ from .repository.views import (
     RepositoryNLPLogViewSet,
     RepositoryEntitiesViewSet,
     NewRepositoryViewSet,
+    RasaUploadViewSet,
 )
 from .repository.views import RepositoryVotesViewSet
 from .repository.views import RepositoriesViewSet
@@ -33,6 +34,7 @@ from .account.views import MyUserProfileViewSet
 from .account.views import SearchUserViewSet
 from .account.views import ResetPasswordViewSet
 from .translation.views import RepositoryTranslatedExampleViewSet
+from .translation.views import RepositoryTranslatedExporterViewSet
 
 
 class Router(routers.SimpleRouter):
@@ -127,9 +129,11 @@ router.register("repository/example", RepositoryExampleViewSet)
 router.register("repository/evaluate/results", ResultsListViewSet)
 router.register("repository/evaluate", EvaluateViewSet)
 router.register("repository/translation", RepositoryTranslatedExampleViewSet)
+router.register("repository/translation-export", RepositoryTranslatedExporterViewSet)
 router.register("repository/version", RepositoryVersionViewSet)
 router.register("repository/log", RepositoryNLPLogViewSet)
 router.register("repository/entities", RepositoryEntitiesViewSet)
+router.register("repository/upload-rasa-file", RasaUploadViewSet)
 router.register(
     "repository/nlp/authorization/train", RepositoryAuthorizationTrainViewSet
 )

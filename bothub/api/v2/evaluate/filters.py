@@ -4,8 +4,10 @@ from django_filters import rest_framework as filters
 
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.exceptions import NotFound
+from rest_framework.generics import get_object_or_404
 
 from bothub.common.models import Repository
+from bothub.common.models import RepositoryVersion
 from bothub.common.models import RepositoryEvaluate
 from bothub.common.models import RepositoryEvaluateResult
 
@@ -54,7 +56,15 @@ class EvaluatesFilter(filters.FilterSet):
             if not authorization.can_read:
                 raise PermissionDenied()
             if request.query_params.get("repository_version"):
-                return repository.evaluations(queryset=queryset, version_default=False)
+                version = get_object_or_404(
+                    RepositoryVersion, pk=request.query_params.get("repository_version")
+                )
+                queryset = RepositoryEvaluate.objects.filter(
+                    repository_version_language__repository_version=version
+                )
+                return repository.evaluations(
+                    queryset=queryset, version_default=version.is_default
+                )
             return repository.evaluations(queryset=queryset)
         except Repository.DoesNotExist:
             raise NotFound(_("Repository {} does not exist").format(value))
@@ -65,9 +75,7 @@ class EvaluatesFilter(filters.FilterSet):
         return queryset.filter(repository_version_language__language=value)
 
     def filter_repository_version(self, queryset, name, value):
-        return queryset.filter(
-            repository_version_language__repository_version__pk=value
-        )
+        return queryset
 
     def filter_label(self, queryset, name, value):
         if value == "other":
@@ -105,8 +113,14 @@ class EvaluateResultsFilter(filters.FilterSet):
             if not authorization.can_read:
                 raise PermissionDenied()
             if request.query_params.get("repository_version"):
+                version = get_object_or_404(
+                    RepositoryVersion, pk=request.query_params.get("repository_version")
+                )
+                queryset = RepositoryEvaluateResult.objects.filter(
+                    repository_version_language__repository_version=version
+                )
                 return repository.evaluations_results(
-                    queryset=queryset, version_default=False
+                    queryset=queryset, version_default=version.is_default
                 )
             return repository.evaluations_results(queryset=queryset)
         except Repository.DoesNotExist:
@@ -115,9 +129,7 @@ class EvaluateResultsFilter(filters.FilterSet):
             raise NotFound(_("Invalid repository_uuid"))
 
     def filter_repository_version(self, queryset, name, value):
-        return queryset.filter(
-            repository_version_language__repository_version__pk=value
-        )
+        return queryset
 
 
 class EvaluateResultFilter(filters.FilterSet):
@@ -139,6 +151,12 @@ class EvaluateResultFilter(filters.FilterSet):
         help_text=_("Repository's UUID"),
     )
 
+    repository_version = filters.CharFilter(
+        field_name="repository_version_language",
+        method="filter_repository_version",
+        help_text=_("Filter for examples with version id."),
+    )
+
     def filter_evaluate_text(self, queryset, name, value):
         return queryset.filter(log__icontains=value)
 
@@ -150,8 +168,13 @@ class EvaluateResultFilter(filters.FilterSet):
 
             if not authorization.can_read:
                 raise PermissionDenied()
-            return repository.evaluations_results(queryset=queryset)
+            return repository.evaluations_results(
+                queryset=queryset, version_default=False
+            )
         except Repository.DoesNotExist:
             raise NotFound(_("Repository {} does not exist").format(value))
         except DjangoValidationError:
             raise NotFound(_("Invalid repository_uuid"))
+
+    def filter_repository_version(self, queryset, name, value):
+        return queryset

@@ -1,12 +1,7 @@
+from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 
-from django.utils.translation import ugettext_lazy as _
-
 from bothub.api.v2.fields import EntityValueField
-from bothub.common.languages import LANGUAGE_CHOICES
-from bothub.common.models import RepositoryTranslatedExample
-from bothub.common.models import RepositoryExample
-from bothub.common.models import RepositoryTranslatedExampleEntity
 from bothub.api.v2.translation.validators import (
     CanContributeInRepositoryExampleValidator,
 )
@@ -15,6 +10,10 @@ from bothub.api.v2.translation.validators import (
 )
 from bothub.api.v2.translation.validators import TranslatedExampleEntitiesValidator
 from bothub.api.v2.translation.validators import TranslatedExampleLanguageValidator
+from bothub.common.languages import LANGUAGE_CHOICES
+from bothub.common.models import RepositoryExample
+from bothub.common.models import RepositoryTranslatedExample
+from bothub.common.models import RepositoryTranslatedExampleEntity
 
 
 class RepositoryTranslatedExampleEntitySeralizer(serializers.ModelSerializer):
@@ -103,3 +102,8 @@ class RepositoryTranslatedExampleSerializer(serializers.ModelSerializer):
                 repository_translated_example=translated, **entity_data
             )
         return translated
+
+
+class RepositoryTranslatedExporterSerializer(serializers.Serializer):
+    file = serializers.FileField(required=True)
+    language = serializers.ChoiceField(LANGUAGE_CHOICES, label=_("Language"))

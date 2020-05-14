@@ -1269,3 +1269,18 @@ class RepositoryEntitySerializer(serializers.ModelSerializer):
         if not obj.label:
             return None
         return obj.label.value
+
+
+class RasaUploadSerializer(serializers.Serializer):
+    file = serializers.FileField(required=True)
+    language = serializers.ChoiceField(LANGUAGE_CHOICES, label=_("Language"))
+
+
+class ObjectRasaSerializer(serializers.Serializer):
+    regex_features = serializers.ListField(required=True)
+    entity_synonyms = serializers.ListField(required=True)
+    common_examples = serializers.ListField(required=True)
+
+
+class RasaSerializer(serializers.Serializer):
+    rasa_nlu_data = ObjectRasaSerializer()
