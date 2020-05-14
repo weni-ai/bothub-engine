@@ -106,4 +106,16 @@ class RepositoryTranslatedExampleSerializer(serializers.ModelSerializer):
 
 class RepositoryTranslatedExporterSerializer(serializers.Serializer):
     file = serializers.FileField(required=True)
-    language = serializers.ChoiceField(LANGUAGE_CHOICES, label=_("Language"))
+    language = serializers.ChoiceField(
+        LANGUAGE_CHOICES, label=_("Language"), required=True
+    )
+
+
+class RepositoryTranslatedImportSerializer(serializers.Serializer):
+    of_the_language = serializers.ChoiceField(
+        LANGUAGE_CHOICES, label=_("Language"), required=True
+    )
+    for_the_language = serializers.ChoiceField(
+        LANGUAGE_CHOICES, label=_("Language"), required=True
+    )
+    with_translation = serializers.BooleanField(default=True)

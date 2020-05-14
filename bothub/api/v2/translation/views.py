@@ -23,6 +23,7 @@ from bothub.api.v2.translation.permissions import (
 from bothub.api.v2.translation.serializers import (
     RepositoryTranslatedExampleSerializer,
     RepositoryTranslatedExporterSerializer,
+    RepositoryTranslatedImportSerializer,
 )
 from bothub.common.models import RepositoryExample, RepositoryExampleEntity
 from bothub.common.models import (
@@ -124,33 +125,37 @@ class RepositoryTranslatedExporterViewSet(
 
     def retrieve(self, request, *args, **kwargs):  # pragma: no cover
         repository_version = self.get_object()
-        with_translation = request.query_params.get("with_translation", True)
-        of_the_language = request.query_params.get("of_the_language", None)
-        for_the_language = request.query_params.get("for_the_language", True)
-        if not of_the_language or not for_the_language:
-            raise APIException(  # pragma: no cover
-                {
-                    "detail": "Requires the parameter of_the_language and for_the_language"
-                },
-                code=400,
-            )
+
+        serializer = RepositoryTranslatedImportSerializer(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
+
+        with_translation = serializer.data.get("with_translation")
+        of_the_language = serializer.data.get("of_the_language")
+        for_the_language = serializer.data.get("for_the_language")
+
         queryset = RepositoryExample.objects.filter(
             repository_version_language__repository_version=repository_version
         )
 
-        examples = (
-            repository_version.repository.examples(
-                queryset=queryset, version_default=repository_version.is_default
-            )
-            .filter(repository_version_language__language=of_the_language)
-            .annotate(
-                translation_count=Count(
-                    "translations", filter=Q(translations__language=for_the_language)
-                )
+        examples = repository_version.repository.examples(
+            queryset=queryset, version_default=repository_version.is_default
+        ).annotate(
+            translation_count=Count(
+                "translations", filter=Q(translations__language=for_the_language)
             )
         )
-        if not with_translation:
-            examples.filter(translation_count=0)
+
+        if with_translation:
+            examples = examples.filter(
+                repository_version_language__language=of_the_language
+            )
+        else:
+            examples = examples.filter(
+                repository_version_language__language=of_the_language,
+                translation_count=0,
+            )
+
+        examples = examples.order_by("created_at")
 
         workbook = openpyxl.load_workbook(
             f"{settings.STATIC_ROOT}/bothub/exporter/example.xlsx"
@@ -187,17 +192,17 @@ class RepositoryTranslatedExporterViewSet(
             for entity in entities:
                 if entity.entity.value not in entities_list:
                     entities_list.append(entity.entity.value)
-                    text = utils.format_entity(
-                        text=text,
-                        entity=entity.entity.value,
-                        start=entity.start + count_entity,
-                        end=entity.end + count_entity,
-                    )
-                    count_entity += len(entity.entity.value) + 4
+                text = utils.format_entity(
+                    text=text,
+                    entity=entity.entity.value,
+                    start=entity.start + count_entity,
+                    end=entity.end + count_entity,
+                )
+                count_entity += len(entity.entity.value) + 4
             worksheet.cell(row=count, column=5, value=str(text))
 
             translated = RepositoryTranslatedExample.objects.filter(
-                original_example=example.pk
+                original_example=example.pk, language=for_the_language
             )
             if translated:
                 translated = translated.first()
