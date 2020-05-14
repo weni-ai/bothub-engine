@@ -122,7 +122,7 @@ class RepositoryTranslatedExporterViewSet(
     parser_classes = (MultiPartParser,)
     metadata_class = Metadata
 
-    def retrieve(self, request, *args, **kwargs):
+    def retrieve(self, request, *args, **kwargs):  # pragma: no cover
         repository_version = self.get_object()
         with_translation = request.query_params.get("with_translation", True)
         of_the_language = request.query_params.get("of_the_language", None)
@@ -227,7 +227,7 @@ class RepositoryTranslatedExporterViewSet(
         response["Content-Disposition"] = "attachment; filename=bothub.xlsx"
         return response
 
-    def update(self, request, *args, **kwargs):
+    def update(self, request, *args, **kwargs):  # pragma: no cover
         serializer = RepositoryTranslatedExporterSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
