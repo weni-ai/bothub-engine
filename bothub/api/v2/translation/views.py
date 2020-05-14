@@ -1,26 +1,22 @@
 import openpyxl
+from django.db.models import Count, Q
+from django.http import HttpResponse
 from django.utils.decorators import method_decorator
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from openpyxl.drawing.image import Image
-from django.db.models import Count, Q
-from django.http import HttpResponse
 from openpyxl.writer.excel import save_virtual_workbook
-from rest_framework.exceptions import APIException
-from rest_framework.viewsets import GenericViewSet
 from rest_framework import mixins
 from rest_framework import permissions
+from rest_framework.exceptions import APIException
+from rest_framework.parsers import MultiPartParser
+from rest_framework.response import Response
+from rest_framework.viewsets import GenericViewSet
 
 from bothub import utils, settings
 from bothub.api.v2.metadata import Metadata
 from bothub.api.v2.mixins import MultipleFieldLookupMixin
-from bothub.api.v2.repository.permissions import RepositoryInfoPermission
-from bothub.common.models import (
-    RepositoryTranslatedExample,
-    RepositoryVersion,
-    RepositoryTranslatedExampleEntity,
-)
-
+from bothub.api.v2.translation.filters import TranslationsFilter
 from bothub.api.v2.translation.permissions import (
     RepositoryTranslatedExamplePermission,
     RepositoryTranslatedExampleExporterPermission,
@@ -29,8 +25,12 @@ from bothub.api.v2.translation.serializers import (
     RepositoryTranslatedExampleSerializer,
     RepositoryTranslatedExporterSerializer,
 )
-from bothub.api.v2.translation.filters import TranslationsFilter
 from bothub.common.models import RepositoryExample, RepositoryExampleEntity
+from bothub.common.models import (
+    RepositoryTranslatedExample,
+    RepositoryVersion,
+    RepositoryTranslatedExampleEntity,
+)
 
 
 class RepositoryTranslatedExampleViewSet(
@@ -106,7 +106,10 @@ class RepositoryTranslatedExampleViewSet(
     ),
 )
 class RepositoryTranslatedExporterViewSet(
-    MultipleFieldLookupMixin, mixins.RetrieveModelMixin, GenericViewSet
+    MultipleFieldLookupMixin,
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    GenericViewSet,
 ):
 
     queryset = RepositoryVersion.objects
@@ -117,6 +120,7 @@ class RepositoryTranslatedExporterViewSet(
         permissions.IsAuthenticated,
         RepositoryTranslatedExampleExporterPermission,
     ]
+    parser_classes = (MultiPartParser,)
     metadata_class = Metadata
 
     def retrieve(self, request, *args, **kwargs):
@@ -223,3 +227,77 @@ class RepositoryTranslatedExporterViewSet(
         )
         response["Content-Disposition"] = "attachment; filename=bothub.xlsx"
         return response
+
+    def update(self, request, *args, **kwargs):
+        serializer = RepositoryTranslatedExporterSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        for_language = serializer.data.get("language", None)
+
+        workbook = openpyxl.load_workbook(filename=request.data.get("file"))
+        worksheet = workbook.get_sheet_by_name("Translate")
+        columns = ["ID", "Repository Version", "Language"]
+
+        find = False
+        for row in worksheet.iter_rows():
+            if (
+                row[1].value in columns
+                and row[2].value in columns
+                and row[3].value in columns
+            ):
+                find = True
+                continue
+            if find:
+                example_id = int(row[1].value)
+                repository_version = int(row[2].value)
+                text_translated = row[5].value
+
+                if not int(kwargs.get("pk")) == repository_version:
+                    raise APIException(  # pragma: no cover
+                        {
+                            "detail": "Import version is different from the selected version"
+                        },
+                        code=400,
+                    )
+
+                if text_translated:
+                    example = RepositoryExample.objects.filter(
+                        pk=example_id,
+                        repository_version_language__repository_version=repository_version,
+                        repository_version_language__repository_version__repository=kwargs.get(
+                            "repository__uuid"
+                        ),
+                    )
+                    if example.count() == 0:
+                        raise APIException(  # pragma: no cover
+                            {"detail": "Example ID not exist"}, code=400
+                        )
+
+                    example = example.first()
+
+                    translated_examples = RepositoryTranslatedExample.objects.filter(
+                        original_example=example
+                    )
+
+                    if translated_examples.count() > 0:
+                        translated_examples.delete()
+
+                    translated = RepositoryTranslatedExample.objects.create(
+                        repository_version_language=example.repository_version_language,
+                        original_example=example,
+                        language=for_language,
+                        text=utils.get_without_entity(text_translated),
+                        clone_repository=True,
+                    )
+
+                    for translated_entity in utils.find_entities_in_example(
+                        text_translated
+                    ):
+                        RepositoryTranslatedExampleEntity.objects.create(
+                            repository_translated_example=translated,
+                            start=translated_entity["start"],
+                            end=translated_entity["end"],
+                            entity=translated_entity["entity"],
+                        )
+
+        return Response(status=204)
