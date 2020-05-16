@@ -275,9 +275,9 @@ class RepositoryTranslatedExporterViewSet(
                         ),
                     )
                     if example.count() == 0:
-                        raise APIException(  # pragma: no cover
-                            {"detail": "Example ID not exist"}, code=400
-                        )
+                        # TODO: Validation
+                        worksheet.cell(row=count, column=7, value="Sentence does not exist")
+                        continue
 
                     example = example.first()
 
