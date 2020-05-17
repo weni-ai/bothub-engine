@@ -25,7 +25,8 @@ from bothub.api.v2.translation.serializers import (
     RepositoryTranslatedExporterSerializer,
     RepositoryTranslatedImportSerializer,
 )
-from bothub.common.models import RepositoryExample, RepositoryExampleEntity
+from bothub.common.models import RepositoryExample
+from bothub.common.models import RepositoryExampleEntity
 from bothub.common.models import (
     RepositoryTranslatedExample,
     RepositoryVersion,
@@ -276,27 +277,36 @@ class RepositoryTranslatedExporterViewSet(
                     )
                     if example.count() == 0:
                         # TODO: Validation
-                        worksheet.cell(row=count, column=7, value="Sentence does not exist")
+                        worksheet.cell(
+                            row=count, column=7, value="Sentence does not exist"
+                        )
                         continue
 
                     example = example.first()
 
-                    original_text_count_entity = RepositoryExampleEntity.objects.filter(
-                        repository_example=example
-                    ).count()
+                    entity_validation = False
 
-                    translated_text_count_entity = len(
-                        utils.find_entities_in_example(text_translated)
-                    )
-
-                    if original_text_count_entity != translated_text_count_entity:
+                    for entity in utils.find_entities_in_example(text_translated):
                         # TODO: Validation
-                        worksheet.cell(row=count, column=7, value="Entities must match")
+                        original_text_count_entity = RepositoryExampleEntity.objects.filter(
+                            repository_example=example,
+                            entity__repository=kwargs.get("repository__uuid"),
+                            entity__value=entity.get("entity"),
+                        ).count()
+
+                        if original_text_count_entity == 0:
+                            entity_validation = True
+                            worksheet.cell(
+                                row=count, column=7, value="Entities must match"
+                            )
+                            break
+
+                    if entity_validation:
+                        # TODO: Validation
                         continue
 
                     translated_examples = RepositoryTranslatedExample.objects.filter(
-                        original_example=example,
-                        language=for_language
+                        original_example=example, language=for_language
                     )
 
                     if translated_examples.count() > 0:
