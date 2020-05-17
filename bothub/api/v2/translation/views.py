@@ -295,7 +295,8 @@ class RepositoryTranslatedExporterViewSet(
                         continue
 
                     translated_examples = RepositoryTranslatedExample.objects.filter(
-                        original_example=example
+                        original_example=example,
+                        language=for_language
                     )
 
                     if translated_examples.count() > 0:
