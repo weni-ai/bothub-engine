@@ -5,3 +5,4 @@ exclude =
   ./env
   migrations
   ./manage.py
+  ./bothub/common/languages.py

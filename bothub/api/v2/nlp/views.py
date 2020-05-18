@@ -1,21 +1,22 @@
 import base64
 
 from django.conf import settings
-from django.db import models
-from django.utils.translation import gettext_lazy as _
-from django.shortcuts import get_object_or_404
-from django.core.validators import URLValidator
 from django.core.exceptions import ValidationError
-
-from rest_framework import mixins, pagination
+from django.core.validators import URLValidator
+from django.db import models
+from django.shortcuts import get_object_or_404
+from django.utils.translation import gettext_lazy as _
 from rest_framework import exceptions
+from rest_framework import mixins, pagination
 from rest_framework.decorators import action
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
-from rest_framework.permissions import AllowAny
-from bothub.api.v2.repository.serializers import RepositorySerializer
+
 from bothub.api.v2.nlp.serializers import NLPSerializer, RepositoryNLPLogSerializer
+from bothub.api.v2.repository.serializers import RepositorySerializer
 from bothub.authentication.models import User
+from bothub.common import languages
 from bothub.common.models import (
     RepositoryAuthorization,
     RepositoryVersionLanguage,
@@ -23,11 +24,9 @@ from bothub.common.models import (
 )
 from bothub.common.models import RepositoryEntity
 from bothub.common.models import RepositoryEvaluateResult
-from bothub.common.models import RepositoryEvaluateResultScore
-from bothub.common.models import RepositoryEvaluateResultIntent
 from bothub.common.models import RepositoryEvaluateResultEntity
-from bothub.common.models import Repository
-from bothub.common import languages
+from bothub.common.models import RepositoryEvaluateResultIntent
+from bothub.common.models import RepositoryEvaluateResultScore
 from bothub.utils import send_bot_data_file_aws
 
 
@@ -84,11 +83,22 @@ class RepositoryAuthorizationTrainViewSet(
 
         page = self.paginate_queryset(queryset.examples)
 
-        examples = [
-            {"example_id": example.id, "example_intent": example.intent}
-            for example in page
-        ]
-        return self.get_paginated_response(examples)
+        examples_return = []
+
+        for example in page:
+            get_entities = example.get_entities(request.query_params.get("language"))
+
+            get_text = example.get_text(request.query_params.get("language"))
+
+            examples_return.append(
+                {
+                    "text": get_text,
+                    "intent": example.intent,
+                    "entities": [entit.rasa_nlu_data for entit in get_entities],
+                }
+            )
+
+        return self.get_paginated_response(examples_return)
 
     @action(
         detail=True, methods=["GET"], url_name="get_examples_labels", lookup_field=[]
@@ -108,7 +118,23 @@ class RepositoryAuthorizationTrainViewSet(
         label_examples_query = []
 
         for label_examples in page:
-            label_examples_query.append({"example_id": label_examples.id})
+
+            entities = [
+                example_entity.get_rasa_nlu_data(label_as_entity=True)
+                for example_entity in filter(
+                    lambda ee: ee.entity.label,
+                    label_examples.get_entities(request.query_params.get("language")),
+                )
+            ]
+
+            label_examples_query.append(
+                {
+                    "entities": entities,
+                    "text": label_examples.get_text(
+                        request.query_params.get("language")
+                    ),
+                }
+            )
         return self.get_paginated_response(label_examples_query)
 
     @action(detail=True, methods=["POST"], url_name="start_training", lookup_field=[])
@@ -133,83 +159,9 @@ class RepositoryAuthorizationTrainViewSet(
                 "use_name_entities": repository.use_name_entities,
                 "use_competing_intents": repository.use_competing_intents,
                 "use_analyze_char": repository.use_analyze_char,
-                "ALGORITHM_NEURAL_NETWORK_EXTERNAL": Repository.ALGORITHM_NEURAL_NETWORK_EXTERNAL,
                 "total_training_end": repository.total_training_end,
             }
         )
-
-    @action(
-        detail=True,
-        methods=["GET"],
-        url_name="get_entities_and_labels",
-        lookup_field=[],
-    )
-    def get_entities_and_labels(self, request, **kwargs):
-        check_auth(request)
-
-        try:
-            examples = request.data.get("examples")
-            label_examples_query = request.data.get("label_examples_query")
-            update_id = request.data.get("repository_version")
-        except ValueError:
-            raise exceptions.NotFound()
-
-        repository_update = RepositoryVersionLanguage.objects.get(pk=update_id)
-
-        examples_return = []
-        label_examples = []
-
-        for example in examples:
-            try:
-                repository = repository_update.examples.get(
-                    pk=example.get("example_id")
-                )
-
-                get_entities = repository.get_entities(
-                    request.query_params.get("language")
-                )
-
-                get_text = repository.get_text(request.query_params.get("language"))
-
-                examples_return.append(
-                    {
-                        "text": get_text,
-                        "intent": example.get("example_intent"),
-                        "entities": [entit.rasa_nlu_data for entit in get_entities],
-                    }
-                )
-
-            except Exception:
-                pass
-
-        for example in label_examples_query:
-            try:
-                repository_examples = repository_update.examples.get(
-                    pk=example.get("example_id")
-                )
-
-                entities = [
-                    example_entity.get_rasa_nlu_data(label_as_entity=True)
-                    for example_entity in filter(
-                        lambda ee: ee.entity.label,
-                        repository_examples.get_entities(
-                            request.query_params.get("language")
-                        ),
-                    )
-                ]
-
-                label_examples.append(
-                    {
-                        "entities": entities,
-                        "text": repository_examples.get_text(
-                            request.query_params.get("language")
-                        ),
-                    }
-                )
-            except Exception:
-                pass
-
-        return Response({"examples": examples_return, "label_examples": label_examples})
 
     @action(detail=True, methods=["POST"], url_name="train_fail", lookup_field=[])
     def train_fail(self, request, **kwargs):

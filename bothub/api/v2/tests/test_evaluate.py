@@ -719,7 +719,7 @@ class ListEvaluateResultTestFilterCase(TestCase):
         response, content_data = self.request(
             self.owner_token, "?repository_uuid={}".format(self.repository.uuid)
         )
-        self.assertEqual(len(content_data["log"]), 4)
+        self.assertEqual(len(content_data["log"]["results"]), 4)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_okay_intent_filter(self):
@@ -729,7 +729,7 @@ class ListEvaluateResultTestFilterCase(TestCase):
                 self.repository.uuid
             ),
         )
-        self.assertEqual(len(content_data["log"]), 3)
+        self.assertEqual(len(content_data["log"]["results"]), 3)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_okay_without_intent_filter(self):
@@ -737,7 +737,7 @@ class ListEvaluateResultTestFilterCase(TestCase):
             self.owner_token,
             "?repository_uuid={}&min=0&max=100".format(self.repository.uuid),
         )
-        self.assertEqual(len(content_data["log"]), 4)
+        self.assertEqual(len(content_data["log"]["results"]), 4)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_okay_range_without_intent_filter(self):
@@ -745,7 +745,7 @@ class ListEvaluateResultTestFilterCase(TestCase):
             self.owner_token,
             "?repository_uuid={}&min=50&max=80".format(self.repository.uuid),
         )
-        self.assertEqual(len(content_data["log"]), 1)
+        self.assertEqual(len(content_data["log"]["results"]), 1)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_okay_range_with_intent_filter(self):
@@ -755,5 +755,5 @@ class ListEvaluateResultTestFilterCase(TestCase):
                 self.repository.uuid
             ),
         )
-        self.assertEqual(len(content_data["log"]), 1)
+        self.assertEqual(len(content_data["log"]["results"]), 1)
         self.assertEqual(response.status_code, status.HTTP_200_OK)

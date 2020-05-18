@@ -99,6 +99,10 @@ class Repository(models.Model):
 
     ALGORITHM_NEURAL_NETWORK_INTERNAL = "neural_network_internal"
     ALGORITHM_NEURAL_NETWORK_EXTERNAL = "neural_network_external"
+    ALGORITHM_TRANSFORMER_NETWORK_DIET = "transformer_network_diet"
+    ALGORITHM_TRANSFORMER_NETWORK_DIET_WORD_EMBEDDING = (
+        "transformer_network_diet_word_embedding"
+    )
     ALGORITHM_CHOICES = [
         (
             ALGORITHM_NEURAL_NETWORK_INTERNAL,
@@ -107,6 +111,14 @@ class Repository(models.Model):
         (
             ALGORITHM_NEURAL_NETWORK_EXTERNAL,
             _("Neural Network with external vocabulary (BETA)"),
+        ),
+        (
+            ALGORITHM_TRANSFORMER_NETWORK_DIET,
+            _("Transformer Neural Network with internal vocabulary"),
+        ),
+        (
+            ALGORITHM_TRANSFORMER_NETWORK_DIET_WORD_EMBEDDING,
+            _("Transformer Neural Network with word embedding external vocabulary"),
         ),
     ]
 
@@ -363,13 +375,33 @@ class Repository(models.Model):
 
     def request_nlp_evaluate(self, user_authorization, data):
         try:  # pragma: no cover
-            r = requests.post(  # pragma: no cover
-                "{}evaluate/".format(
-                    self.nlp_server if self.nlp_server else settings.BOTHUB_NLP_BASE_URL
-                ),
-                data={"language": data.get("language")},
-                headers={"Authorization": "Bearer {}".format(user_authorization.uuid)},
-            )
+            if data.get("repository_version"):
+                r = requests.post(  # pragma: no cover
+                    "{}evaluate/".format(
+                        self.nlp_server
+                        if self.nlp_server
+                        else settings.BOTHUB_NLP_BASE_URL
+                    ),
+                    data={
+                        "language": data.get("language"),
+                        "repository_version": data.get("repository_version"),
+                    },
+                    headers={
+                        "Authorization": "Bearer {}".format(user_authorization.uuid)
+                    },
+                )
+            else:
+                r = requests.post(  # pragma: no cover
+                    "{}evaluate/".format(
+                        self.nlp_server
+                        if self.nlp_server
+                        else settings.BOTHUB_NLP_BASE_URL
+                    ),
+                    data={"language": data.get("language")},
+                    headers={
+                        "Authorization": "Bearer {}".format(user_authorization.uuid)
+                    },
+                )
             return r  # pragma: no cover
         except requests.exceptions.ConnectionError:  # pragma: no cover
             raise APIException(  # pragma: no cover
