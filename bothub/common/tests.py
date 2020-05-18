@@ -178,9 +178,14 @@ class RepositoryTestCase(TestCase):
         self.repository = Repository.objects.create(
             owner=self.owner, name="Test", slug="test", language=languages.LANGUAGE_EN
         )
+
+        self.repository_version = self.repository.current_version().repository_version
+
         self.private_repository = Repository.objects.create(
             owner=self.owner, name="Test", slug="private", is_private=True
         )
+
+        self.repository_version_private = self.private_repository.current_version().repository_version
 
         example_1 = RepositoryExample.objects.create(
             repository_version_language=self.repository.current_version(
@@ -275,7 +280,7 @@ class RepositoryTestCase(TestCase):
             repository_example=example, start=11, end=18, entity="name"
         )
 
-        self.assertIn("name", self.repository.entities.values_list("value", flat=True))
+        self.assertIn("name", self.repository_version.entities.values_list("value", flat=True))
 
     def test_not_blank_value_in_intents(self):
         RepositoryExample.objects.create(
@@ -785,6 +790,8 @@ class RepositoryEntityTestCase(TestCase):
             owner=self.owner, name="Test", slug="test", language=self.language
         )
 
+        self.repository_version = self.repository.current_version().repository_version
+
         self.example = RepositoryExample.objects.create(
             repository_version_language=self.repository.current_version(),
             text="my name is User",
@@ -800,13 +807,13 @@ class RepositoryEntityTestCase(TestCase):
 
     def test_example_entity_create_entity(self):
         name_entity = RepositoryEntity.objects.get(
-            repository=self.repository, value="name"
+            repository_version=self.repository_version, value="name"
         )
         self.assertEqual(name_entity.pk, self.example_entity_1.entity.pk)
 
     def test_dont_duplicate_entity(self):
         name_entity = RepositoryEntity.objects.get(
-            repository=self.repository, value="name"
+            repository_version=self.repository_version, value="name"
         )
 
         new_example_entity = RepositoryExampleEntity.objects.create(
@@ -827,6 +834,8 @@ class RepositoryEntityGroupTestCase(TestCase):
             owner=self.owner, name="Test", slug="test", language=self.language
         )
 
+        self.repository_version = self.repository.current_version().repository_version
+
         self.example = RepositoryExample.objects.create(
             repository_version_language=self.repository.current_version(),
             text="my name is User",
@@ -842,12 +851,12 @@ class RepositoryEntityGroupTestCase(TestCase):
 
     def test_set_label(self):
         name_entity = RepositoryEntity.objects.get(
-            repository=self.repository, value="name"
+            repository_version=self.repository_version, value="name"
         )
 
-        name_entity.set_label("subject")
+        name_entity.set_group("subject")
 
-        self.assertIsNotNone(name_entity.label)
+        self.assertIsNotNone(name_entity.group)
 
     def test_entity_label_created(self):
         name_entity = RepositoryEntity.objects.get(
@@ -898,6 +907,8 @@ class RepositoryOtherEntitiesTest(TestCase):
             owner=self.owner, name="Test", slug="test", language=languages.LANGUAGE_EN
         )
 
+        self.repository_version = self.repository.current_version().repository_version
+
         self.example = RepositoryExample.objects.create(
             repository_version_language=self.repository.current_version(),
             text="my name is User",
@@ -907,7 +918,7 @@ class RepositoryOtherEntitiesTest(TestCase):
             repository_example=self.example, start=11, end=18, entity="user"
         )
         entity = self.example_entity_1.entity
-        entity.set_label("name")
+        entity.set_group("name")
         entity.save()
 
         self.example_entity_2 = RepositoryExampleEntity.objects.create(
@@ -915,7 +926,7 @@ class RepositoryOtherEntitiesTest(TestCase):
         )
 
     def test_ok(self):
-        other_entities = self.repository.other_entities()
+        other_entities = self.repository_version.other_entities()
         self.assertEqual(other_entities.count(), 1)
         self.assertIn(self.example_entity_2.entity, other_entities)
 

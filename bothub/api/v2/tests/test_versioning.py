@@ -44,7 +44,7 @@ class CloneRepositoryVersionAPITestCase(TestCase):
         self.entity_1 = RepositoryExampleEntity.objects.create(
             repository_example=self.example_1, start=0, end=0, entity="hi"
         )
-        self.entity_1.entity.set_label("greet")
+        self.entity_1.entity.set_group("greet")
         self.entity_1.entity.save()
 
     def request(self, data, token=None):

@@ -1133,12 +1133,12 @@ class RepositoryExampleRetrieveTestCase(TestCase):
         response, content_data = self.request(self.example, self.owner_token)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         entity = content_data.get("entities")[0]
-        self.assertIn("label", entity.keys())
+        self.assertIn("group", entity.keys())
 
     def test_entity_has_valid_label(self):
         label = "subject"
-        self.example_entity.entity.set_label("subject")
-        self.example_entity.entity.save(update_fields=["label"])
+        self.example_entity.entity.set_group("subject")
+        self.example_entity.entity.save(update_fields=["group"])
         response, content_data = self.request(self.example, self.owner_token)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         entity = content_data.get("entities")[0]
@@ -1511,7 +1511,7 @@ class NewRepositoryExampleTestCase(TestCase):
         id = content_data.get("id")
         repository_example = RepositoryExample.objects.get(id=id)
         example_entity = repository_example.entities.all()[0]
-        self.assertIsNotNone(example_entity.entity.label)
+        self.assertIsNotNone(example_entity.entity.group)
 
     def test_with_entities_with_invalid_label(self):
         response, content_data = self.request(
@@ -1865,7 +1865,7 @@ class RepositoryEntitiesTestCase(TestCase):
         self.example_entity = RepositoryExampleEntity.objects.create(
             repository_example=self.example, start=11, end=18, entity=self.entity_value
         )
-        self.example_entity.entity.set_label("name")
+        self.example_entity.entity.set_group("name")
         self.example_entity.entity.save()
 
     def request(self, data, token):

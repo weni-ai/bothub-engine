@@ -1107,11 +1107,11 @@ class RepositoryTranslatedExample(models.Model):
 
 
 class RepositoryEntityGroupQueryset(models.QuerySet):
-    def get(self, repository, value):
+    def get(self, repository_version, value):
         try:
-            return super().get(repository_version=repository, value=value)
+            return super().get(repository_version=repository_version, value=value)
         except self.model.DoesNotExist:
-            return super().create(repository_version=repository, value=value)
+            return super().create(repository_version=repository_version, value=value)
 
 
 class RepositoryEntityGroupManager(models.Manager):
