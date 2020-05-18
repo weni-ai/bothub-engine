@@ -8,14 +8,24 @@ import re
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('common', '0063_auto_20200518_1001'),
-    ]
+    dependencies = [("common", "0063_auto_20200518_1001")]
 
     operations = [
         migrations.AlterField(
-            model_name='repositoryentitygroup',
-            name='value',
-            field=models.CharField(blank=True, max_length=64, validators=[django.core.validators.RegexValidator(re.compile('^[-a-z0-9_]+\\Z'), 'Enter a valid value consisting of lowercase letters, numbers, underscores or hyphens.', 'invalid'), bothub.common.models.can_t_be_other], verbose_name='group'),
-        ),
+            model_name="repositoryentitygroup",
+            name="value",
+            field=models.CharField(
+                blank=True,
+                max_length=64,
+                validators=[
+                    django.core.validators.RegexValidator(
+                        re.compile("^[-a-z0-9_]+\\Z"),
+                        "Enter a valid value consisting of lowercase letters, numbers, underscores or hyphens.",
+                        "invalid",
+                    ),
+                    bothub.common.models.can_t_be_other,
+                ],
+                verbose_name="group",
+            ),
+        )
     ]

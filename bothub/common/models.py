@@ -507,9 +507,7 @@ class Repository(models.Model):
 
     def intents(self, queryset=None, version_default=True):
         intents = (
-            self.examples(
-                queryset=queryset, version_default=version_default
-            )
+            self.examples(queryset=queryset, version_default=version_default)
             if queryset
             else self.examples(version_default=version_default)
         )
@@ -534,9 +532,7 @@ class Repository(models.Model):
             self.name, self.owner.nickname, self.slug
         )  # pragma: no cover
 
-    def examples(
-        self, language=None, queryset=None, version_default=True
-    ):
+    def examples(self, language=None, queryset=None, version_default=True):
         if queryset is None:
             queryset = RepositoryExample.objects
         query = queryset.filter(
@@ -551,9 +547,7 @@ class Repository(models.Model):
             query = query.filter(repository_version_language__language=language)
         return query
 
-    def evaluations(
-        self, language=None, queryset=None, version_default=True
-    ):
+    def evaluations(self, language=None, queryset=None, version_default=True):
         if queryset is None:
             queryset = RepositoryEvaluate.objects
         query = queryset.filter(
@@ -698,7 +692,9 @@ class RepositoryVersion(models.Model):
 
     def current_entities(self, queryset=None, version_default=True):
         return self.entities.filter(
-            value__in=self.repository.examples(queryset=queryset, version_default=version_default)
+            value__in=self.repository.examples(
+                queryset=queryset, version_default=version_default
+            )
             .exclude(entities__entity__value__isnull=True)
             .values_list("entities__entity__value", flat=True)
             .distinct()
@@ -1127,7 +1123,9 @@ class RepositoryEntityGroup(models.Model):
     class Meta:
         unique_together = ["repository_version", "value"]
 
-    repository_version = models.ForeignKey(RepositoryVersion, models.CASCADE, related_name="groups")
+    repository_version = models.ForeignKey(
+        RepositoryVersion, models.CASCADE, related_name="groups"
+    )
     value = models.CharField(
         _("group"),
         max_length=64,
@@ -1138,12 +1136,9 @@ class RepositoryEntityGroup(models.Model):
 
     objects = RepositoryEntityGroupManager()
 
-    def examples(
-        self, queryset=None, version_default=None
-    ):  # pragma: no cover
+    def examples(self, queryset=None, version_default=None):  # pragma: no cover
         return self.repository_version.repository.examples(
-            queryset=queryset,
-            version_default=version_default,
+            queryset=queryset, version_default=version_default
         ).filter(entities__entity__group=self)
 
 
@@ -1167,7 +1162,9 @@ class RepositoryEntity(models.Model):
     class Meta:
         unique_together = ["repository_version", "value"]
 
-    repository_version = models.ForeignKey(RepositoryVersion, models.CASCADE, related_name="entities")
+    repository_version = models.ForeignKey(
+        RepositoryVersion, models.CASCADE, related_name="entities"
+    )
     value = models.CharField(
         _("entity"),
         max_length=64,
@@ -1213,7 +1210,9 @@ class EntityBaseQueryset(models.QuerySet):  # pragma: no cover
                     instance.example.repository_version_language.repository_version
                 )
 
-            entity = RepositoryEntity.objects.get(repository_version=repository_version, value=entity)
+            entity = RepositoryEntity.objects.get(
+                repository_version=repository_version, value=entity
+            )
 
         return super().create(entity=entity, **kwargs)
 

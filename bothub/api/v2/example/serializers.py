@@ -1,6 +1,5 @@
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
-from rest_framework.fields import empty
 
 from bothub.api.v2.fields import EntityValueField, RepositoryVersionRelatedField
 from bothub.api.v2.fields import GroupValueField

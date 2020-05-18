@@ -5,13 +5,10 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('common', '0058_auto_20200513_1108'),
-    ]
+    dependencies = [("common", "0058_auto_20200513_1108")]
 
     operations = [
         migrations.AlterUniqueTogether(
-            name='repositoryentity',
-            unique_together={('repository_version', 'value')},
-        ),
+            name="repositoryentity", unique_together={("repository_version", "value")}
+        )
     ]

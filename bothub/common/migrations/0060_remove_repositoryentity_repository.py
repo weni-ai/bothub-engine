@@ -5,13 +5,8 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('common', '0059_auto_20200513_1110'),
-    ]
+    dependencies = [("common", "0059_auto_20200513_1110")]
 
     operations = [
-        migrations.RemoveField(
-            model_name='repositoryentity',
-            name='repository',
-        ),
+        migrations.RemoveField(model_name="repositoryentity", name="repository")
     ]

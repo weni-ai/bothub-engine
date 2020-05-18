@@ -9,22 +9,53 @@ import re
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('common', '0054_repositoryversion_is_deleted'),
-    ]
+    dependencies = [("common", "0054_repositoryversion_is_deleted")]
 
     operations = [
         migrations.CreateModel(
-            name='RepositoryEntityGroup',
+            name="RepositoryEntityGroup",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('value', models.CharField(blank=True, max_length=64, validators=[django.core.validators.RegexValidator(re.compile('^[-a-z0-9_]+\\Z'), 'Enter a valid value consisting of lowercase letters, numbers, underscores or hyphens.', 'invalid'), bothub.common.models.can_t_be_other], verbose_name='label')),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='created at')),
-                ('repository_version', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='labels', to='common.RepositoryVersion')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "value",
+                    models.CharField(
+                        blank=True,
+                        max_length=64,
+                        validators=[
+                            django.core.validators.RegexValidator(
+                                re.compile("^[-a-z0-9_]+\\Z"),
+                                "Enter a valid value consisting of lowercase letters, numbers, underscores or hyphens.",
+                                "invalid",
+                            ),
+                            bothub.common.models.can_t_be_other,
+                        ],
+                        verbose_name="label",
+                    ),
+                ),
+                (
+                    "created_at",
+                    models.DateTimeField(auto_now_add=True, verbose_name="created at"),
+                ),
+                (
+                    "repository_version",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="labels",
+                        to="common.RepositoryVersion",
+                    ),
+                ),
             ],
         ),
         migrations.AlterUniqueTogether(
-            name='repositoryentitygroup',
-            unique_together={('repository_version', 'value')},
+            name="repositoryentitygroup",
+            unique_together={("repository_version", "value")},
         ),
     ]

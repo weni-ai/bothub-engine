@@ -5,20 +5,12 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('common', '0056_auto_20200512_1514'),
-    ]
+    dependencies = [("common", "0056_auto_20200512_1514")]
 
     operations = [
         migrations.AlterUniqueTogether(
-            name='repositoryentitylabel',
-            unique_together=set(),
+            name="repositoryentitylabel", unique_together=set()
         ),
-        migrations.RemoveField(
-            model_name='repositoryentitylabel',
-            name='repository',
-        ),
-        migrations.DeleteModel(
-            name='RepositoryEntityLabel',
-        ),
+        migrations.RemoveField(model_name="repositoryentitylabel", name="repository"),
+        migrations.DeleteModel(name="RepositoryEntityLabel"),
     ]

@@ -6,9 +6,8 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('common', '0060_remove_repositoryentity_repository'),
-        ('common', '0055_auto_20200518_0951'),
+        ("common", "0060_remove_repositoryentity_repository"),
+        ("common", "0055_auto_20200518_0951"),
     ]
 
-    operations = [
-    ]
+    operations = []

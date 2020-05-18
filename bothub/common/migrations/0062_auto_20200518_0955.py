@@ -5,14 +5,10 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('common', '0061_merge_20200518_0953'),
-    ]
+    dependencies = [("common", "0061_merge_20200518_0953")]
 
     operations = [
         migrations.RenameField(
-            model_name='repositoryentity',
-            old_name='label',
-            new_name='group',
-        ),
+            model_name="repositoryentity", old_name="label", new_name="group"
+        )
     ]

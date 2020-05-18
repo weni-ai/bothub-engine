@@ -6,24 +6,29 @@ import django.db.models.deletion
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('common', '0057_auto_20200512_1528'),
-    ]
+    dependencies = [("common", "0057_auto_20200512_1528")]
 
     operations = [
         migrations.AddField(
-            model_name='repositoryentity',
-            name='repository_version',
-            field=models.ForeignKey(default=None, on_delete=django.db.models.deletion.CASCADE, related_name='entities', to='common.RepositoryVersion'),
+            model_name="repositoryentity",
+            name="repository_version",
+            field=models.ForeignKey(
+                default=None,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="entities",
+                to="common.RepositoryVersion",
+            ),
             preserve_default=False,
         ),
         migrations.AlterField(
-            model_name='repositoryentity',
-            name='repository',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='common.Repository'),
+            model_name="repositoryentity",
+            name="repository",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE, to="common.Repository"
+            ),
         ),
         migrations.AlterUniqueTogether(
-            name='repositoryentity',
-            unique_together={('repository', 'repository_version', 'value')},
+            name="repositoryentity",
+            unique_together={("repository", "repository_version", "value")},
         ),
     ]
