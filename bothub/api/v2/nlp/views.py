@@ -1,21 +1,22 @@
 import base64
 
 from django.conf import settings
-from django.db import models
-from django.utils.translation import gettext_lazy as _
-from django.shortcuts import get_object_or_404
-from django.core.validators import URLValidator
 from django.core.exceptions import ValidationError
-
-from rest_framework import mixins, pagination
+from django.core.validators import URLValidator
+from django.db import models
+from django.shortcuts import get_object_or_404
+from django.utils.translation import gettext_lazy as _
 from rest_framework import exceptions
+from rest_framework import mixins, pagination
 from rest_framework.decorators import action
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
-from rest_framework.permissions import AllowAny
-from bothub.api.v2.repository.serializers import RepositorySerializer
+
 from bothub.api.v2.nlp.serializers import NLPSerializer, RepositoryNLPLogSerializer
+from bothub.api.v2.repository.serializers import RepositorySerializer
 from bothub.authentication.models import User
+from bothub.common import languages
 from bothub.common.models import (
     RepositoryAuthorization,
     RepositoryVersionLanguage,
@@ -23,11 +24,9 @@ from bothub.common.models import (
 )
 from bothub.common.models import RepositoryEntity
 from bothub.common.models import RepositoryEvaluateResult
-from bothub.common.models import RepositoryEvaluateResultScore
-from bothub.common.models import RepositoryEvaluateResultIntent
 from bothub.common.models import RepositoryEvaluateResultEntity
-from bothub.common.models import Repository
-from bothub.common import languages
+from bothub.common.models import RepositoryEvaluateResultIntent
+from bothub.common.models import RepositoryEvaluateResultScore
 from bothub.utils import send_bot_data_file_aws
 
 
@@ -160,7 +159,6 @@ class RepositoryAuthorizationTrainViewSet(
                 "use_name_entities": repository.use_name_entities,
                 "use_competing_intents": repository.use_competing_intents,
                 "use_analyze_char": repository.use_analyze_char,
-                "ALGORITHM_NEURAL_NETWORK_EXTERNAL": Repository.ALGORITHM_NEURAL_NETWORK_EXTERNAL,
                 "total_training_end": repository.total_training_end,
             }
         )

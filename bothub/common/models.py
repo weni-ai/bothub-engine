@@ -99,6 +99,10 @@ class Repository(models.Model):
 
     ALGORITHM_NEURAL_NETWORK_INTERNAL = "neural_network_internal"
     ALGORITHM_NEURAL_NETWORK_EXTERNAL = "neural_network_external"
+    ALGORITHM_TRANSFORMER_NETWORK_DIET = "transformer_network_diet"
+    ALGORITHM_TRANSFORMER_NETWORK_DIET_WORD_EMBEDDING = (
+        "transformer_network_diet_word_embedding"
+    )
     ALGORITHM_CHOICES = [
         (
             ALGORITHM_NEURAL_NETWORK_INTERNAL,
@@ -107,6 +111,14 @@ class Repository(models.Model):
         (
             ALGORITHM_NEURAL_NETWORK_EXTERNAL,
             _("Neural Network with external vocabulary (BETA)"),
+        ),
+        (
+            ALGORITHM_TRANSFORMER_NETWORK_DIET,
+            _("Transformer Neural Network with internal vocabulary"),
+        ),
+        (
+            ALGORITHM_TRANSFORMER_NETWORK_DIET_WORD_EMBEDDING,
+            _("Transformer Neural Network with word embedding external vocabulary"),
         ),
     ]
 
