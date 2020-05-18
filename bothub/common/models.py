@@ -145,7 +145,7 @@ class Repository(models.Model):
     )
     algorithm = models.CharField(
         _("algorithm"),
-        max_length=24,
+        max_length=50,
         choices=ALGORITHM_CHOICES,
         default=ALGORITHM_NEURAL_NETWORK_INTERNAL,
     )
@@ -745,7 +745,7 @@ class RepositoryVersionLanguage(models.Model):
     use_competing_intents = models.BooleanField(default=False)
     algorithm = models.CharField(
         _("algorithm"),
-        max_length=24,
+        max_length=50,
         choices=Repository.ALGORITHM_CHOICES,
         default=Repository.ALGORITHM_NEURAL_NETWORK_INTERNAL,
     )
