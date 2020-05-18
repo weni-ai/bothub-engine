@@ -224,6 +224,7 @@ class NewEvaluateTestCase(TestCase):
         response, content_data = self.request(
             {
                 "repository": str(self.repository.uuid),
+                "repository_version": self.repository_version.pk,
                 "text": "haha",
                 "language": languages.LANGUAGE_EN,
                 "intent": "greet",

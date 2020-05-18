@@ -185,7 +185,9 @@ class RepositoryTestCase(TestCase):
             owner=self.owner, name="Test", slug="private", is_private=True
         )
 
-        self.repository_version_private = self.private_repository.current_version().repository_version
+        self.repository_version_private = (
+            self.private_repository.current_version().repository_version
+        )
 
         example_1 = RepositoryExample.objects.create(
             repository_version_language=self.repository.current_version(
@@ -280,7 +282,9 @@ class RepositoryTestCase(TestCase):
             repository_example=example, start=11, end=18, entity="name"
         )
 
-        self.assertIn("name", self.repository_version.entities.values_list("value", flat=True))
+        self.assertIn(
+            "name", self.repository_version.entities.values_list("value", flat=True)
+        )
 
     def test_not_blank_value_in_intents(self):
         RepositoryExample.objects.create(
@@ -860,43 +864,43 @@ class RepositoryEntityGroupTestCase(TestCase):
 
     def test_entity_label_created(self):
         name_entity = RepositoryEntity.objects.get(
-            repository=self.repository, value="name"
+            repository_version=self.repository_version, value="name"
         )
 
-        name_entity.set_label("subject")
+        name_entity.set_group("subject")
 
         subject_label = RepositoryEntityGroup.objects.get(
-            repository_version__repository=self.repository, value="subject"
+            repository_version=self.repository_version, value="subject"
         )
 
-        self.assertEqual(name_entity.label.pk, subject_label.pk)
+        self.assertEqual(name_entity.group.pk, subject_label.pk)
 
     def test_dont_duplicate_label(self):
         name_entity = RepositoryEntity.objects.get(
-            repository=self.repository, value="name"
+            repository_version=self.repository_version, value="name"
         )
-        name_entity.set_label("subject")
+        name_entity.set_group("subject")
 
         object_entity = RepositoryEntity.objects.get(
-            repository=self.repository, value="object"
+            repository_version=self.repository_version, value="object"
         )
-        object_entity.set_label("subject")
+        object_entity.set_group("subject")
 
         subject_label = RepositoryEntityGroup.objects.get(
-            repository_version__repository=self.repository, value="subject"
+            repository_version=self.repository_version, value="subject"
         )
 
-        self.assertEqual(name_entity.label.pk, subject_label.pk)
-        self.assertEqual(object_entity.label.pk, subject_label.pk)
+        self.assertEqual(name_entity.group.pk, subject_label.pk)
+        self.assertEqual(object_entity.group.pk, subject_label.pk)
 
     def test_set_label_to_none(self):
         name_entity = RepositoryEntity.objects.get(
-            repository=self.repository, value="name"
+            repository_version=self.repository_version, value="name"
         )
 
-        name_entity.set_label(None)
+        name_entity.set_group(None)
 
-        self.assertIsNone(name_entity.label)
+        self.assertIsNone(name_entity.group)
 
 
 class RepositoryOtherEntitiesTest(TestCase):
