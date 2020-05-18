@@ -145,7 +145,7 @@ class Repository(models.Model):
     )
     algorithm = models.CharField(
         _("algorithm"),
-        max_length=24,
+        max_length=50,
         choices=ALGORITHM_CHOICES,
         default=ALGORITHM_NEURAL_NETWORK_INTERNAL,
     )
