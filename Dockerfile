@@ -10,6 +10,8 @@ RUN pip install pipenv
 RUN pip install gunicorn
 RUN pip install gevent==1.4.0
 RUN pip install psycopg2-binary
+RUN apk add build-base python-dev py-pip jpeg-dev zlib-dev
+ENV LIBRARY_PATH=/lib:/usr/lib
 
 COPY Pipfile Pipfile
 COPY Pipfile.lock Pipfile.lock
