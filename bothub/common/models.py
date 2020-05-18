@@ -100,9 +100,8 @@ class Repository(models.Model):
     ALGORITHM_NEURAL_NETWORK_INTERNAL = "neural_network_internal"
     ALGORITHM_NEURAL_NETWORK_EXTERNAL = "neural_network_external"
     ALGORITHM_TRANSFORMER_NETWORK_DIET = "transformer_network_diet"
-    ALGORITHM_TRANSFORMER_NETWORK_DIET_WORD_EMBEDDING = (
-        "transformer_network_diet_word_embedding"
-    )
+    ALGORITHM_TRANSFORMER_NETWORK_DIET_WORD_EMBEDDING = "transformer_network_diet_word_embedding"
+
     ALGORITHM_CHOICES = [
         (
             ALGORITHM_NEURAL_NETWORK_INTERNAL,
