@@ -515,34 +515,6 @@ class Repository(models.Model):
         )
         return list(set(intents.exclude(intent="").values_list("intent", flat=True)))
 
-    def current_entities(self, queryset=None, version_default=True):
-        return self.entities.filter(
-            value__in=self.examples(queryset=queryset, version_default=version_default)
-            .exclude(entities__entity__value__isnull=True)
-            .values_list("entities__entity__value", flat=True)
-            .distinct()
-        )
-
-    def entities_list(self, queryset=None, version_default=None):
-        return (
-            self.current_entities(queryset=queryset, version_default=version_default)
-            .values_list("value", flat=True)
-            .distinct()
-        )
-
-    @property
-    def current_labels(self):
-        return self.labels.filter(entities__value__in=self.entities_list()).distinct()
-
-    @property
-    def labels_list(self):
-        return self.current_labels.values_list("value", flat=True).distinct()
-
-    def other_entities(self, queryset=None, version_default=None):
-        return self.current_entities(
-            queryset=queryset, version_default=version_default
-        ).filter(label__isnull=True)
-
     @property
     def admins(self):
         admins = [self.owner] + [
@@ -723,6 +695,34 @@ class RepositoryVersion(models.Model):
     @property
     def version_languages(self):
         return RepositoryVersionLanguage.objects.filter(repository_version=self)
+
+    def current_entities(self, queryset=None, version_default=True):
+        return self.entities.filter(
+            value__in=self.repository.examples(queryset=queryset, version_default=version_default)
+            .exclude(entities__entity__value__isnull=True)
+            .values_list("entities__entity__value", flat=True)
+            .distinct()
+        )
+
+    def entities_list(self, queryset=None, version_default=None):
+        return (
+            self.current_entities(queryset=queryset, version_default=version_default)
+            .values_list("value", flat=True)
+            .distinct()
+        )
+
+    @property
+    def current_groups(self):
+        return self.groups.filter(entities__value__in=self.entities_list()).distinct()
+
+    @property
+    def groups_list(self):
+        return self.current_groups.values_list("value", flat=True).distinct()
+
+    def other_entities(self, queryset=None, version_default=None):
+        return self.current_entities(
+            queryset=queryset, version_default=version_default
+        ).filter(group__isnull=True)
 
 
 class RepositoryVersionLanguage(models.Model):
@@ -1127,9 +1127,9 @@ class RepositoryEntityGroup(models.Model):
     class Meta:
         unique_together = ["repository_version", "value"]
 
-    repository_version = models.ForeignKey(RepositoryVersion, models.CASCADE, related_name="labels")
+    repository_version = models.ForeignKey(RepositoryVersion, models.CASCADE, related_name="groups")
     value = models.CharField(
-        _("label"),
+        _("group"),
         max_length=64,
         validators=[validate_item_key, can_t_be_other],
         blank=True,
@@ -1144,7 +1144,7 @@ class RepositoryEntityGroup(models.Model):
         return self.repository_version.repository.examples(
             queryset=queryset,
             version_default=version_default,
-        ).filter(entities__entity__label=self)
+        ).filter(entities__entity__group=self)
 
 
 class RepositoryEntityQueryset(models.QuerySet):
@@ -1174,7 +1174,7 @@ class RepositoryEntity(models.Model):
         help_text=_("Entity name"),
         validators=[validate_item_key],
     )
-    label = models.ForeignKey(
+    group = models.ForeignKey(
         RepositoryEntityGroup,
         on_delete=models.CASCADE,
         related_name="entities",
@@ -1185,11 +1185,11 @@ class RepositoryEntity(models.Model):
 
     objects = RepositoryEntityManager()
 
-    def set_label(self, value):
+    def set_group(self, value):
         if not value:
-            self.label = None
+            self.group = None
         else:
-            self.label = RepositoryEntityGroup.objects.get(
+            self.group = RepositoryEntityGroup.objects.get(
                 repository_version=self.repository_version, value=value
             )
 
@@ -1264,11 +1264,11 @@ class EntityBase(models.Model):
     def get_example(self):
         pass  # pragma: no cover
 
-    def get_rasa_nlu_data(self, label_as_entity=False):
+    def get_rasa_nlu_data(self, group_as_entity=False):
         return {
             "start": self.start,
             "end": self.end,
-            "entity": self.entity.label.value if label_as_entity else self.entity.value,
+            "entity": self.entity.group.value if group_as_entity else self.entity.value,
         }
 
 

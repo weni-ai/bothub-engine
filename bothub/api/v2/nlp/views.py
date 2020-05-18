@@ -110,7 +110,7 @@ class RepositoryAuthorizationTrainViewSet(
         )
 
         page = self.paginate_queryset(
-            queryset.examples.filter(entities__entity__label__isnull=False)
+            queryset.examples.filter(entities__entity__group__isnull=False)
             .annotate(entities_count=models.Count("entities"))
             .filter(entities_count__gt=0)
         )
@@ -120,9 +120,9 @@ class RepositoryAuthorizationTrainViewSet(
         for label_examples in page:
 
             entities = [
-                example_entity.get_rasa_nlu_data(label_as_entity=True)
+                example_entity.get_rasa_nlu_data(group_as_entity=True)
                 for example_entity in filter(
-                    lambda ee: ee.entity.label,
+                    lambda ee: ee.entity.group,
                     label_examples.get_entities(request.query_params.get("language")),
                 )
             ]
@@ -230,9 +230,9 @@ class RepositoryAuthorizationParseViewSet(mixins.RetrieveModelMixin, GenericView
 
         return Response(
             {
-                "label": True if repository_entity.label else False,
-                "label_value": repository_entity.label.value
-                if repository_entity.label
+                "label": True if repository_entity.group else False,
+                "label_value": repository_entity.group.value
+                if repository_entity.group
                 else None,
             }
         )

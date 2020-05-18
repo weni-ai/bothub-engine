@@ -40,7 +40,7 @@ class EntityValueField(serializers.CharField):
         return obj.value  # pragma: no cover
 
 
-class LabelValueField(serializers.CharField):  # pragma: no cover
+class GroupValueField(serializers.CharField):  # pragma: no cover
     def __init__(self, *args, validators=[], **kwargs):
         kwargs.pop("max_length", 0)
         kwargs.pop("help_text", "")
