@@ -1143,14 +1143,18 @@ class RepositoryEntityGroup(models.Model):
 
 
 class RepositoryEntityQueryset(models.QuerySet):
-    def get(self, repository, value, create_entity=True):
+    """
+    Customized QuerySet created on account of evaluate, when creating a test phrase in evaluate, it sends to the model entity of evaluate the reference of the entities in the examples, it was done just when there is no entity, in evaluate it does not create
+    """
+
+    def get(self, repository_version, value, create_entity=True):
         try:
-            return super().get(repository=repository, value=value)
+            return super().get(repository_version=repository_version, value=value)
         except self.model.DoesNotExist:
             if not create_entity:
                 raise self.model.DoesNotExist  # pragma: no cover
 
-            return super().create(repository=repository, value=value)
+            return super().create(repository_version=repository_version, value=value)
 
 
 class RepositoryEntityManager(models.Manager):
@@ -1210,7 +1214,7 @@ class EntityBaseQueryset(models.QuerySet):  # pragma: no cover
                     instance.example.repository_version_language.repository_version
                 )
 
-            entity = RepositoryEntity.objects.get(
+            entity, created = RepositoryEntity.objects.get_or_create(
                 repository_version=repository_version, value=entity
             )
 

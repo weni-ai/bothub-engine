@@ -1009,6 +1009,7 @@ class RepositoryEntitySerializer(serializers.ModelSerializer):
         fields = ["repository", "value", "group"]
         ref_name = None
 
+    repository = serializers.UUIDField(source="repository_version.repository")
     group = serializers.SerializerMethodField()
 
     def get_group(self, obj):
