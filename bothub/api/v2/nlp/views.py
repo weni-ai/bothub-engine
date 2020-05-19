@@ -14,13 +14,14 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from bothub.api.v2.nlp.serializers import NLPSerializer, RepositoryNLPLogSerializer
-from bothub.api.v2.repository.serializers import RepositorySerializer
+from bothub.api.v2.repository.serializers import RepositorySerializer, IntentSerializer
 from bothub.authentication.models import User
 from bothub.common import languages
 from bothub.common.models import (
     RepositoryAuthorization,
     RepositoryVersionLanguage,
     RepositoryNLPLog,
+    RepositoryExample,
 )
 from bothub.common.models import RepositoryEntity
 from bothub.common.models import RepositoryEvaluateResult
@@ -247,8 +248,27 @@ class RepositoryAuthorizationInfoViewSet(mixins.RetrieveModelMixin, GenericViewS
         check_auth(request)
         repository_authorization = self.get_object()
         repository = repository_authorization.repository
-        serializer = RepositorySerializer(repository)
-        return Response(serializer.data)
+
+        queryset = RepositoryExample.objects.filter(
+            repository_version_language__repository_version__repository=repository,
+            repository_version_language__repository_version__is_default=True,
+        )
+        serializer = IntentSerializer(
+            map(
+                lambda intent: {
+                    "value": intent,
+                    "examples__count": repository.examples(
+                        queryset=queryset, version_default=True
+                    )
+                    .filter(intent=intent)
+                    .count(),
+                },
+                repository.intents(queryset=queryset, version_default=True),
+            ),
+            many=True,
+        ).data
+
+        return Response({"intents": serializer})
 
 
 class RepositoryAuthorizationEvaluateViewSet(mixins.RetrieveModelMixin, GenericViewSet):

@@ -210,7 +210,7 @@ class ListExamplesAPITestCase(TestCase):
 
     def test_filter_label(self):
         response, content_data = self.request(
-            {"repository_uuid": self.repository.uuid, "label": "greet"},
+            {"repository_uuid": self.repository.uuid, "group": "greet"},
             self.owner_token,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)

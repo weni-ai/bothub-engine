@@ -7,7 +7,10 @@ from django.test import TestCase
 from django.test.client import MULTIPART_CONTENT
 from rest_framework import status
 
-from bothub.api.v2.repository.serializers import RepositorySerializer
+from bothub.api.v2.repository.serializers import (
+    RepositorySerializer,
+    NewRepositorySerializer,
+)
 from bothub.api.v2.repository.views import (
     RepositoriesContributionsViewSet,
     RepositoryEntitiesViewSet,
@@ -355,7 +358,9 @@ class IntentsInRepositorySerializerTestCase(TestCase):
         )
 
     def test_count_1(self):
-        repository_data = RepositorySerializer(self.repository).data
+        repository_data = NewRepositorySerializer(
+            self.repository.current_version().repository_version
+        ).data
         intent = repository_data.get("intents")[0]
         self.assertEqual(intent.get("examples__count"), 1)
 
@@ -365,11 +370,15 @@ class IntentsInRepositorySerializerTestCase(TestCase):
             text="hi",
             intent="greet",
         )
-        repository_data = RepositorySerializer(self.repository).data
+        repository_data = NewRepositorySerializer(
+            self.repository.current_version().repository_version
+        ).data
         intent = repository_data.get("intents")[0]
         self.assertEqual(intent.get("examples__count"), 2)
         example.delete()
-        repository_data = RepositorySerializer(self.repository).data
+        repository_data = NewRepositorySerializer(
+            self.repository.current_version().repository_version
+        ).data
         intent = repository_data.get("intents")[0]
         self.assertEqual(intent.get("examples__count"), 1)
 
@@ -1508,40 +1517,6 @@ class NewRepositoryExampleTestCase(TestCase):
         self.assertEqual(len(content_data.get("entities")), 1)
         id = content_data.get("id")
         repository_example = RepositoryExample.objects.get(id=id)
-
-    def test_with_entities_with_invalid_label(self):
-        response, content_data = self.request(
-            self.owner_token,
-            {
-                "repository": str(self.repository.uuid),
-                "text": "my name is user",
-                "intent": "greet",
-                "entities": [
-                    {"start": 11, "end": 18, "entity": "name", "label": "other"}
-                ],
-            },
-        )
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("entities", content_data.keys())
-        entities_errors = content_data.get("entities")
-        self.assertIn("label", entities_errors[0])
-
-    def test_with_entities_with_equal_label(self):
-        response, content_data = self.request(
-            self.owner_token,
-            {
-                "repository": str(self.repository.uuid),
-                "text": "my name is user",
-                "intent": "greet",
-                "entities": [
-                    {"start": 11, "end": 18, "entity": "name", "label": "name"}
-                ],
-            },
-        )
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("entities", content_data.keys())
-        entities_errors = content_data.get("entities")
-        self.assertIn("label", entities_errors[0])
 
     def test_intent_or_entity_required(self):
         response, content_data = self.request(
