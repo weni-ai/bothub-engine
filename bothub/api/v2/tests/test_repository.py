@@ -7,10 +7,7 @@ from django.test import TestCase
 from django.test.client import MULTIPART_CONTENT
 from rest_framework import status
 
-from bothub.api.v2.repository.serializers import (
-    RepositorySerializer,
-    NewRepositorySerializer,
-)
+from bothub.api.v2.repository.serializers import NewRepositorySerializer
 from bothub.api.v2.repository.views import (
     RepositoriesContributionsViewSet,
     RepositoryEntitiesViewSet,
@@ -1516,7 +1513,7 @@ class NewRepositoryExampleTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(len(content_data.get("entities")), 1)
         id = content_data.get("id")
-        repository_example = RepositoryExample.objects.get(id=id)
+        RepositoryExample.objects.get(id=id)
 
     def test_intent_or_entity_required(self):
         response, content_data = self.request(
