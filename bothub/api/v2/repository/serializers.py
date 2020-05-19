@@ -99,7 +99,12 @@ class RepositoryCategorySerializer(serializers.ModelSerializer):
 class RepositoryEntityGroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = RepositoryEntityGroup
-        fields = ["repository_version__repository", "value", "entities", "examples__count"]
+        fields = [
+            "repository_version__repository",
+            "value",
+            "entities",
+            "examples__count",
+        ]
         ref_name = None
 
     entities = serializers.SerializerMethodField()
@@ -107,7 +112,7 @@ class RepositoryEntityGroupSerializer(serializers.ModelSerializer):
 
     def get_entities(self, obj):
         entities = (
-            obj.repository.other_entities()
+            obj.repository_version.other_entities()
             if obj.value == "other"
             else obj.entities.all()
         )
@@ -117,7 +122,7 @@ class RepositoryEntityGroupSerializer(serializers.ModelSerializer):
         if obj.value == "other":
             return (
                 obj.repository.examples()
-                .filter(entities__entity__in=obj.repository.other_entities())
+                .filter(entities__entity__in=obj.repository_version.other_entities())
                 .count()
             )
         return obj.examples().count()
@@ -176,7 +181,7 @@ class NewRepositorySerializer(serializers.ModelSerializer):
             "is_private",
             "available_languages",
             "entities",
-            "labels_list",
+            "groups_list",
             "ready_for_train",
             "requirements_to_train",
             "created_at",
@@ -186,8 +191,8 @@ class NewRepositorySerializer(serializers.ModelSerializer):
             "categories_list",
             "intents",
             "intents_list",
-            "labels",
-            "other_label",
+            "groups",
+            "other_group",
             "examples__count",
             "evaluate_languages_count",
             "absolute_url",
@@ -211,7 +216,7 @@ class NewRepositorySerializer(serializers.ModelSerializer):
             "entities",
             "entities_list",
             "evaluate_languages_count",
-            "labels_list",
+            "groups_list",
             "ready_for_train",
             "created_at",
             "authorization",
@@ -240,7 +245,7 @@ class NewRepositorySerializer(serializers.ModelSerializer):
     )
     available_languages = serializers.SerializerMethodField(style={"show": False})
     entities = serializers.SerializerMethodField(style={"show": False})
-    labels_list = serializers.SerializerMethodField(style={"show": False})
+    groups_list = serializers.SerializerMethodField(style={"show": False})
     ready_for_train = serializers.SerializerMethodField(style={"show": False})
     requirements_to_train = serializers.SerializerMethodField(style={"show": False})
     created_at = serializers.DateTimeField(
@@ -262,8 +267,8 @@ class NewRepositorySerializer(serializers.ModelSerializer):
         source="repository.categories",
     )
     categories_list = serializers.SerializerMethodField(style={"show": False})
-    labels = serializers.SerializerMethodField(style={"show": False})
-    other_label = serializers.SerializerMethodField(style={"show": False})
+    groups = serializers.SerializerMethodField(style={"show": False})
+    other_group = serializers.SerializerMethodField(style={"show": False})
     examples__count = serializers.SerializerMethodField(style={"show": False})
     evaluate_languages_count = serializers.SerializerMethodField(style={"show": False})
     absolute_url = serializers.SerializerMethodField(style={"show": False})
@@ -331,20 +336,18 @@ class NewRepositorySerializer(serializers.ModelSerializer):
             repository_version_language__repository_version=obj
         )
         return (
-            obj.repository.current_entities(
-                queryset=queryset, version_default=obj.is_default
-            )
+            obj.current_entities(queryset=queryset, version_default=obj.is_default)
             .values("value", "id")
             .distinct()
         )
 
-    def get_labels_list(self, obj):
+    def get_groups_list(self, obj):
         queryset = RepositoryExample.objects.filter(
             repository_version_language__repository_version=obj
         )
         return (
-            obj.repository.labels.filter(
-                entities__value__in=obj.repository.entities_list(
+            obj.groups.filter(
+                entities__value__in=obj.entities_list(
                     queryset=queryset, version_default=obj.is_default
                 )
             )
@@ -415,69 +418,68 @@ class NewRepositorySerializer(serializers.ModelSerializer):
     def get_categories_list(self, obj):
         return RepositoryCategorySerializer(obj.repository.categories, many=True).data
 
-    def get_labels(self, obj):
+    def get_groups(self, obj):
+        # TODO: Verificar
         # RepositoryEntityLabelSerializer # TODO: DELETAR SERIALIZER
         queryset = RepositoryExample.objects.filter(
             repository_version_language__repository_version=obj
         )
 
         # TODO: remover antigo repository-info e apagar a @property
-        current_labels = obj.repository.labels.filter(
-            entities__value__in=obj.repository.entities_list(
+        current_groups = obj.groups.filter(
+            entities__value__in=obj.entities_list(
                 queryset=queryset, version_default=obj.is_default
             )
         ).distinct()
 
         return list(
             map(
-                lambda label: {
-                    "repository": label.repository.pk,
-                    "value": label.value,
+                lambda group: {
+                    "repository": group.repository.pk,
+                    "value": group.value,
                     "entities": list(
                         map(
                             lambda e: e.value,
-                            label.repository.other_entities(
+                            group.other_entities(
                                 queryset=queryset, version_default=obj.is_default
                             )
-                            if label.value == "other"
-                            else label.entities.all(),
+                            if group.value == "other"
+                            else group.entities.all(),
                         )
                     ),
                     "examples__count": (
-                        label.repository.examples(
+                        group.repository.examples(
                             queryset=queryset, version_default=obj.is_default
                         )
-                        .filter(entities__entity__in=label.repository.other_entities())
+                        .filter(entities__entity__in=group.other_entities())
                         .count()
                     )
-                    if label.value == "other"
-                    else label.examples(
+                    if group.value == "other"
+                    else group.examples(
                         queryset=queryset, version_default=obj.is_default
                     ).count(),
                 },
-                current_labels,
+                current_groups,
             )
         )
 
-    def get_other_label(self, obj):
+    def get_other_group(self, obj):
         # RepositoryEntityLabelSerializer # TODO: DELETAR SERIALIZER
         queryset = RepositoryExample.objects.filter(
             repository_version_language__repository_version=obj
         )
 
-        label = obj.repository.other_entities(
-            queryset=queryset, version_default=obj.is_default
-        )
+        group = obj.other_entities(queryset=queryset, version_default=obj.is_default)
 
         return {
             "repository": obj.repository.pk,
             "value": "other",
-            "entities": list(map(lambda e: e.value, label)),
+            "entities": list(map(lambda e: e.value, group)),
             "examples__count": (
                 obj.repository.examples(
                     queryset=queryset, version_default=obj.is_default
                 )
-                .filter(entities__entity__in=label)
+                .filter(entities__entity__in=group)
                 .count()
             ),
         }
@@ -592,61 +594,22 @@ class RepositorySerializer(serializers.ModelSerializer):
             "slug",
             "description",
             "is_private",
-            "available_languages",
-            "available_languages_count",
-            "entities",
-            "entities_list",
-            "labels_list",
-            "ready_for_train",
             "created_at",
-            "requirements_to_train",
             "language",
             "owner",
             "owner__nickname",
             "categories",
             "categories_list",
-            "intents",
-            "intents_list",
-            "labels",
-            "other_label",
-            "examples__count",
-            "evaluate_languages_count",
-            "absolute_url",
-            "authorization",
-            "ready_for_train",
-            "request_authorization",
-            "available_request_authorization",
-            "languages_warnings",
-            "languages_warnings_count",
             "algorithm",
-            "use_language_model_featurizer",
             "use_competing_intents",
             "use_name_entities",
             "use_analyze_char",
-            "nlp_server",
-            "version_default",
         ]
-        read_only = [
-            "uuid",
-            "available_languages",
-            "available_languages_count",
-            "languages_warnings_count",
-            "entities",
-            "entities_list",
-            "evaluate_languages_count",
-            "labels_list",
-            "ready_for_train",
-            "created_at",
-            "authorization",
-            "nlp_server",
-        ]
+        read_only = ["uuid", "created_at"]
         ref_name = None
 
     uuid = serializers.UUIDField(style={"show": False}, read_only=True)
     slug = serializers.SlugField(style={"show": False}, read_only=True)
-    is_private = serializers.BooleanField(
-        style={"show": False}, read_only=True, default=False
-    )
     algorithm = serializers.ChoiceField(
         style={"show": False, "only_settings": True},
         choices=Repository.ALGORITHM_CHOICES,
@@ -682,24 +645,13 @@ class RepositorySerializer(serializers.ModelSerializer):
         default=False,
         label=_("Use analyze char"),
     )
-    available_languages = serializers.ReadOnlyField(style={"show": False})
-    available_languages_count = serializers.SerializerMethodField(style={"show": False})
-    entities_list = serializers.ReadOnlyField(style={"show": False})
-    labels_list = serializers.ReadOnlyField(style={"show": False})
-    ready_for_train = serializers.SerializerMethodField(style={"show": False})
     created_at = serializers.DateTimeField(style={"show": False}, read_only=True)
-    requirements_to_train = serializers.ReadOnlyField(style={"show": False})
-    languages_warnings = serializers.ReadOnlyField(style={"show": False})
-    languages_warnings_count = serializers.SerializerMethodField(style={"show": False})
-    use_language_model_featurizer = serializers.ReadOnlyField(style={"show": False})
 
     language = serializers.ChoiceField(LANGUAGE_CHOICES, label=_("Language"))
     owner = serializers.PrimaryKeyRelatedField(read_only=True, style={"show": False})
     owner__nickname = serializers.SlugRelatedField(
         source="owner", slug_field="nickname", read_only=True, style={"show": False}
     )
-    intents = serializers.SerializerMethodField(style={"show": False})
-    intents_list = serializers.SerializerMethodField(style={"show": False})
     categories = ModelMultipleChoiceField(
         child_relation=serializers.PrimaryKeyRelatedField(
             queryset=RepositoryCategory.objects.all()
@@ -709,49 +661,6 @@ class RepositorySerializer(serializers.ModelSerializer):
         label=_("Categories"),
     )
     categories_list = serializers.SerializerMethodField(style={"show": False})
-    labels = RepositoryEntityGroupSerializer(
-        source="current_labels", many=True, read_only=True, style={"show": False}
-    )
-    other_label = serializers.SerializerMethodField(style={"show": False})
-    examples__count = serializers.SerializerMethodField(style={"show": False})
-    evaluate_languages_count = serializers.SerializerMethodField(style={"show": False})
-    absolute_url = serializers.SerializerMethodField(style={"show": False})
-    authorization = serializers.SerializerMethodField(style={"show": False})
-    request_authorization = serializers.SerializerMethodField(style={"show": False})
-    available_request_authorization = serializers.SerializerMethodField(
-        style={"show": False}
-    )
-    entities = serializers.SerializerMethodField(style={"show": False})
-    nlp_server = serializers.SerializerMethodField(style={"show": False})
-    version_default = serializers.SerializerMethodField(style={"show": False})
-
-    def get_ready_for_train(self, obj):
-        context = self.context.get("request")
-        if context:
-            repository_version = context.query_params.get("repository_version")
-            queryset = RepositoryExample.objects.filter(
-                repository_version_language__repository_version__pk=repository_version
-            )
-            if repository_version:
-                if queryset.filter(
-                    repository_version_language__repository_version__repository=obj
-                ):
-                    return obj.ready_for_train(queryset=queryset, version_default=False)
-        return obj.ready_for_train()
-
-    def get_version_default(self, obj):
-        return {
-            "id": obj.current_version().repository_version.pk,
-            "name": obj.current_version().repository_version.name,
-        }
-
-    def get_categories_list(self, obj):
-        return RepositoryCategorySerializer(obj.categories, many=True).data
-
-    def get_nlp_server(self, obj):
-        if obj.nlp_server:
-            return obj.nlp_server
-        return settings.BOTHUB_NLP_BASE_URL
 
     def create(self, validated_data):
         validated_data.update({"owner": self.context["request"].user})
@@ -767,170 +676,8 @@ class RepositorySerializer(serializers.ModelSerializer):
 
         return repository
 
-    def get_entities(self, obj):
-        return obj.current_entities().values("value", "id").distinct()
-
-    def get_intents(self, obj):
-        context = self.context.get("request")
-        if context:
-            repository_version = context.query_params.get("repository_version")
-            queryset = RepositoryExample.objects.filter(
-                repository_version_language__repository_version__pk=repository_version
-            )
-            if repository_version:
-                if queryset.filter(
-                    repository_version_language__repository_version__repository=obj
-                ):
-                    return IntentSerializer(
-                        map(
-                            lambda intent: {
-                                "value": intent,
-                                "examples__count": obj.examples(
-                                    queryset=queryset,
-                                    version_default=False,
-                                )
-                                .filter(intent=intent)
-                                .count(),
-                            },
-                            obj.intents(queryset=queryset, version_default=False),
-                        ),
-                        many=True,
-                    ).data
-                return []
-
-        return IntentSerializer(
-            map(
-                lambda intent: {
-                    "value": intent,
-                    "examples__count": obj.examples()
-                    .filter(intent=intent)
-                    .count(),
-                },
-                obj.intents(),
-            ),
-            many=True,
-        ).data
-
-    def get_intents_list(self, obj):
-        context = self.context.get("request")
-        if context:
-            repository_version = context.query_params.get("repository_version")
-            queryset = RepositoryExample.objects.filter(
-                repository_version_language__repository_version__pk=repository_version
-            )
-            if repository_version:
-                if queryset.filter(
-                    repository_version_language__repository_version__repository=obj
-                ):
-                    return obj.intents(queryset=queryset, version_default=False)
-                return []
-        return obj.intents()
-
-    def get_other_label(self, obj):
-        return RepositoryEntityGroupSerializer(
-            RepositoryEntityGroup(repository_version__repository=obj, value="other")
-        ).data
-
-    def get_examples__count(self, obj):
-        context = self.context.get("request")
-        if context:
-            repository_version = context.query_params.get("repository_version")
-            queryset = RepositoryExample.objects.filter(
-                repository_version_language__repository_version__pk=repository_version
-            )
-            if repository_version:
-                if queryset.filter(
-                    repository_version_language__repository_version__repository=obj
-                ):
-                    return obj.examples(
-                        queryset=queryset, version_default=False
-                    ).count()
-                return 0
-        return obj.examples().count()
-
-    def get_available_languages_count(self, obj):
-        context = self.context.get("request")
-        if context:
-            repository_version = context.query_params.get("repository_version")
-            queryset = RepositoryExample.objects.filter(
-                repository_version_language__repository_version__pk=repository_version
-            )
-            if repository_version:
-                if queryset.filter(
-                    repository_version_language__repository_version__repository=obj
-                ):
-                    return len(
-                        obj.available_languages(
-                            queryset=queryset, version_default=False
-                        )
-                    )
-                return 0
-        return len(obj.available_languages())
-
-    def get_languages_warnings_count(self, obj):
-        context = self.context.get("request")
-        if context:
-            repository_version = context.query_params.get("repository_version")
-            queryset = RepositoryExample.objects.filter(
-                repository_version_language__repository_version__pk=repository_version
-            )
-            if repository_version:
-                if queryset.filter(
-                    repository_version_language__repository_version__repository=obj
-                ):
-                    return len(
-                        obj.languages_warnings(queryset=queryset, version_default=False)
-                    )
-                return 0
-        return len(obj.languages_warnings())
-
-    def get_evaluate_languages_count(self, obj):
-        return dict(
-            map(
-                lambda x: (x, obj.evaluations(language=x).count()),
-                obj.available_languages(),
-            )
-        )
-
-    def get_absolute_url(self, obj):
-        return obj.get_absolute_url()
-
-    def get_authorization(self, obj):
-        request = self.context.get("request")
-        if not request or not request.user.is_authenticated:
-            return None
-        return RepositoryAuthorizationSerializer(
-            obj.get_user_authorization(request.user)
-        ).data
-
-    def get_request_authorization(self, obj):
-        request = self.context.get("request")
-        if not request or not request.user.is_authenticated:
-            return None
-        try:
-            request_authorization = RequestRepositoryAuthorization.objects.get(
-                user=request.user, repository=obj
-            )
-            return RequestRepositoryAuthorizationSerializer(request_authorization).data
-        except RequestRepositoryAuthorization.DoesNotExist:
-            return None
-
-    def get_available_request_authorization(self, obj):
-        request = self.context.get("request")
-        if not request or not request.user.is_authenticated:
-            return False
-        authorization = obj.get_user_authorization(request.user)
-        if authorization.role is not RepositoryAuthorization.ROLE_NOT_SETTED:
-            return False
-        if authorization.is_owner:
-            return False
-        try:
-            RequestRepositoryAuthorization.objects.get(
-                user=request.user, repository=obj
-            )
-            return False
-        except RequestRepositoryAuthorization.DoesNotExist:
-            return True
+    def get_categories_list(self, obj):
+        return RepositoryCategorySerializer(obj.categories, many=True).data
 
 
 class RepositoryVotesSerializer(serializers.ModelSerializer):
@@ -1259,15 +1006,16 @@ class RepositoryNLPLogSerializer(serializers.ModelSerializer):
 class RepositoryEntitySerializer(serializers.ModelSerializer):
     class Meta:
         model = RepositoryEntity
-        fields = ["repository", "value", "label"]
+        fields = ["repository", "value", "group"]
         ref_name = None
 
-    label = serializers.SerializerMethodField()
+    repository = serializers.UUIDField(source="repository_version.repository")
+    group = serializers.SerializerMethodField()
 
-    def get_label(self, obj):
-        if not obj.label:
+    def get_group(self, obj):
+        if not obj.group:
             return None
-        return obj.label.value
+        return obj.group.value
 
 
 class RasaUploadSerializer(serializers.Serializer):

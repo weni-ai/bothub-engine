@@ -7,7 +7,7 @@ from django.test import TestCase
 from django.test.client import MULTIPART_CONTENT
 from rest_framework import status
 
-from bothub.api.v2.repository.serializers import RepositorySerializer
+from bothub.api.v2.repository.serializers import NewRepositorySerializer
 from bothub.api.v2.repository.views import (
     RepositoriesContributionsViewSet,
     RepositoryEntitiesViewSet,
@@ -355,7 +355,9 @@ class IntentsInRepositorySerializerTestCase(TestCase):
         )
 
     def test_count_1(self):
-        repository_data = RepositorySerializer(self.repository).data
+        repository_data = NewRepositorySerializer(
+            self.repository.current_version().repository_version
+        ).data
         intent = repository_data.get("intents")[0]
         self.assertEqual(intent.get("examples__count"), 1)
 
@@ -365,11 +367,15 @@ class IntentsInRepositorySerializerTestCase(TestCase):
             text="hi",
             intent="greet",
         )
-        repository_data = RepositorySerializer(self.repository).data
+        repository_data = NewRepositorySerializer(
+            self.repository.current_version().repository_version
+        ).data
         intent = repository_data.get("intents")[0]
         self.assertEqual(intent.get("examples__count"), 2)
         example.delete()
-        repository_data = RepositorySerializer(self.repository).data
+        repository_data = NewRepositorySerializer(
+            self.repository.current_version().repository_version
+        ).data
         intent = repository_data.get("intents")[0]
         self.assertEqual(intent.get("examples__count"), 1)
 
@@ -1133,17 +1139,17 @@ class RepositoryExampleRetrieveTestCase(TestCase):
         response, content_data = self.request(self.example, self.owner_token)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         entity = content_data.get("entities")[0]
-        self.assertIn("label", entity.keys())
+        self.assertIn("group", entity.keys())
 
     def test_entity_has_valid_label(self):
-        label = "subject"
-        self.example_entity.entity.set_label("subject")
-        self.example_entity.entity.save(update_fields=["label"])
+        group = "subject"
+        self.example_entity.entity.set_group("subject")
+        self.example_entity.entity.save(update_fields=["group"])
         response, content_data = self.request(self.example, self.owner_token)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         entity = content_data.get("entities")[0]
-        self.assertIn("label", entity.keys())
-        self.assertEqual(entity.get("label"), label)
+        self.assertIn("group", entity.keys())
+        self.assertEqual(entity.get("group"), group)
 
 
 class RepositoryExampleUploadTestCase(TestCase):
@@ -1501,51 +1507,13 @@ class NewRepositoryExampleTestCase(TestCase):
                 "language": languages.LANGUAGE_EN,
                 "text": "my name is user",
                 "intent": "greet",
-                "entities": [
-                    {"start": 11, "end": 18, "entity": "name", "label": "subject"}
-                ],
+                "entities": [{"start": 11, "end": 18, "entity": "name"}],
             },
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(len(content_data.get("entities")), 1)
         id = content_data.get("id")
-        repository_example = RepositoryExample.objects.get(id=id)
-        example_entity = repository_example.entities.all()[0]
-        self.assertIsNotNone(example_entity.entity.label)
-
-    def test_with_entities_with_invalid_label(self):
-        response, content_data = self.request(
-            self.owner_token,
-            {
-                "repository": str(self.repository.uuid),
-                "text": "my name is user",
-                "intent": "greet",
-                "entities": [
-                    {"start": 11, "end": 18, "entity": "name", "label": "other"}
-                ],
-            },
-        )
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("entities", content_data.keys())
-        entities_errors = content_data.get("entities")
-        self.assertIn("label", entities_errors[0])
-
-    def test_with_entities_with_equal_label(self):
-        response, content_data = self.request(
-            self.owner_token,
-            {
-                "repository": str(self.repository.uuid),
-                "text": "my name is user",
-                "intent": "greet",
-                "entities": [
-                    {"start": 11, "end": 18, "entity": "name", "label": "name"}
-                ],
-            },
-        )
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("entities", content_data.keys())
-        entities_errors = content_data.get("entities")
-        self.assertIn("label", entities_errors[0])
+        RepositoryExample.objects.get(id=id)
 
     def test_intent_or_entity_required(self):
         response, content_data = self.request(
@@ -1858,6 +1826,7 @@ class RepositoryEntitiesTestCase(TestCase):
             slug="test",
             language=languages.LANGUAGE_EN,
         )
+        self.repository_version = self.repository.current_version().repository_version
         self.example = RepositoryExample.objects.create(
             repository_version_language=self.repository.current_version(),
             text="my name is user",
@@ -1865,7 +1834,7 @@ class RepositoryEntitiesTestCase(TestCase):
         self.example_entity = RepositoryExampleEntity.objects.create(
             repository_example=self.example, start=11, end=18, entity=self.entity_value
         )
-        self.example_entity.entity.set_label("name")
+        self.example_entity.entity.set_group("name")
         self.example_entity.entity.save()
 
     def request(self, data, token):
@@ -1880,20 +1849,32 @@ class RepositoryEntitiesTestCase(TestCase):
 
     def test_okay(self):
         response, content_data = self.request(
-            {"repository_uuid": self.repository.uuid}, self.owner_token
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(content_data.get("count"), 1)
-
-        response, content_data = self.request(
-            {"repository_uuid": self.repository.uuid, "value": self.entity_value},
+            {
+                "repository_uuid": self.repository.uuid,
+                "repository_version": self.repository_version.pk,
+            },
             self.owner_token,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(content_data.get("count"), 1)
 
         response, content_data = self.request(
-            {"repository_uuid": self.repository.uuid, "value": "other"},
+            {
+                "repository_uuid": self.repository.uuid,
+                "repository_version": self.repository_version.pk,
+                "value": self.entity_value,
+            },
+            self.owner_token,
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(content_data.get("count"), 1)
+
+        response, content_data = self.request(
+            {
+                "repository_uuid": self.repository.uuid,
+                "repository_version": self.repository_version.pk,
+                "value": "other",
+            },
             self.owner_token,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)

@@ -6,14 +6,18 @@ import django.db.models.deletion
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('common', '0055_auto_20200512_1513'),
-    ]
+    dependencies = [("common", "0055_auto_20200512_1513")]
 
     operations = [
         migrations.AlterField(
-            model_name='repositoryentity',
-            name='label',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='entities', to='common.RepositoryEntityGroup'),
-        ),
+            model_name="repositoryentity",
+            name="label",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="entities",
+                to="common.RepositoryEntityGroup",
+            ),
+        )
     ]

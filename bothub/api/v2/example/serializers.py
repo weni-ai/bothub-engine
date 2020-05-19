@@ -1,11 +1,10 @@
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
-from rest_framework.fields import empty
 
 from bothub.api.v2.fields import EntityValueField, RepositoryVersionRelatedField
-from bothub.api.v2.fields import LabelValueField
+from bothub.api.v2.fields import GroupValueField
 from bothub.api.v2.repository.validators import (
-    EntityNotEqualLabelValidator,
+    EntityNotEqualGroupValidator,
     CanContributeInRepositoryVersionValidator,
 )
 from bothub.common.models import RepositoryExample, RepositoryVersion
@@ -21,7 +20,7 @@ class RepositoryExampleEntitySerializer(serializers.ModelSerializer):
             "start",
             "end",
             "entity",
-            "label",
+            "group",
             "created_at",
             "value",
         ]
@@ -32,29 +31,30 @@ class RepositoryExampleEntitySerializer(serializers.ModelSerializer):
     )
 
     entity = EntityValueField()
-    label = LabelValueField(allow_blank=True, required=False)
+    group = GroupValueField(allow_blank=True, required=False)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if kwargs.get("data") == "GET":
-            self.fields["label"] = serializers.SerializerMethodField(required=False)
-        self.validators.append(EntityNotEqualLabelValidator())
+            self.fields["group"] = serializers.SerializerMethodField(required=False)
+        self.validators.append(EntityNotEqualGroupValidator())
 
-    def get_label(self, obj):
-        if not obj.entity.label:
+    def get_group(self, obj):
+        if not obj.entity.group:
             return None
-        return obj.entity.label.value
+        return obj.entity.group.value
 
     def create(self, validated_data):
+        # TODO: Verificar
         repository_example = validated_data.pop("repository_example", None)
         assert repository_example
-        label = validated_data.pop("label", empty)
+        # group = validated_data.pop("group", empty)
         example_entity = self.Meta.model.objects.create(
             repository_example=repository_example, **validated_data
         )
-        if label is not empty:
-            example_entity.entity.set_label(label)
-            example_entity.entity.save(update_fields=["label"])
+        # if group is not empty:
+        #     example_entity.entity.set_label(group)
+        #     example_entity.entity.save(update_fields=["label"])
         return example_entity
 
 

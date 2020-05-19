@@ -14,13 +14,14 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from bothub.api.v2.nlp.serializers import NLPSerializer, RepositoryNLPLogSerializer
-from bothub.api.v2.repository.serializers import RepositorySerializer
+from bothub.api.v2.repository.serializers import IntentSerializer
 from bothub.authentication.models import User
 from bothub.common import languages
 from bothub.common.models import (
     RepositoryAuthorization,
     RepositoryVersionLanguage,
     RepositoryNLPLog,
+    RepositoryExample,
 )
 from bothub.common.models import RepositoryEntity
 from bothub.common.models import RepositoryEvaluateResult
@@ -110,7 +111,7 @@ class RepositoryAuthorizationTrainViewSet(
         )
 
         page = self.paginate_queryset(
-            queryset.examples.filter(entities__entity__label__isnull=False)
+            queryset.examples.filter(entities__entity__group__isnull=False)
             .annotate(entities_count=models.Count("entities"))
             .filter(entities_count__gt=0)
         )
@@ -120,9 +121,9 @@ class RepositoryAuthorizationTrainViewSet(
         for label_examples in page:
 
             entities = [
-                example_entity.get_rasa_nlu_data(label_as_entity=True)
+                example_entity.get_rasa_nlu_data(group_as_entity=True)
                 for example_entity in filter(
-                    lambda ee: ee.entity.label,
+                    lambda ee: ee.entity.group,
                     label_examples.get_entities(request.query_params.get("language")),
                 )
             ]
@@ -230,9 +231,9 @@ class RepositoryAuthorizationParseViewSet(mixins.RetrieveModelMixin, GenericView
 
         return Response(
             {
-                "label": True if repository_entity.label else False,
-                "label_value": repository_entity.label.value
-                if repository_entity.label
+                "label": True if repository_entity.group else False,
+                "label_value": repository_entity.group.value
+                if repository_entity.group
                 else None,
             }
         )
@@ -247,8 +248,27 @@ class RepositoryAuthorizationInfoViewSet(mixins.RetrieveModelMixin, GenericViewS
         check_auth(request)
         repository_authorization = self.get_object()
         repository = repository_authorization.repository
-        serializer = RepositorySerializer(repository)
-        return Response(serializer.data)
+
+        queryset = RepositoryExample.objects.filter(
+            repository_version_language__repository_version__repository=repository,
+            repository_version_language__repository_version__is_default=True,
+        )
+        serializer = IntentSerializer(
+            map(
+                lambda intent: {
+                    "value": intent,
+                    "examples__count": repository.examples(
+                        queryset=queryset, version_default=True
+                    )
+                    .filter(intent=intent)
+                    .count(),
+                },
+                repository.intents(queryset=queryset, version_default=True),
+            ),
+            many=True,
+        ).data
+
+        return Response({"intents": serializer})
 
 
 class RepositoryAuthorizationEvaluateViewSet(mixins.RetrieveModelMixin, GenericViewSet):

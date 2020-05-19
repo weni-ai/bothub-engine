@@ -19,13 +19,13 @@ class ThereIsIntentValidator(object):
 class ThereIsEntityValidator(object):
     def __call__(self, attrs):
         entities = attrs.get("entities")
-        repository = attrs.get("repository")
+        repository_version = attrs.get("repository_version_language")
 
         if entities:
             entities_list = list(
                 set(map(lambda x: x.get("entity"), attrs.get("entities")))
             )
-            repository_entities_list = repository.entities.filter(
+            repository_entities_list = repository_version.entities.filter(
                 value__in=entities_list
             )
 

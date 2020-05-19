@@ -37,6 +37,16 @@ Run ```pipenv run python ./manage.py fill_db_using_fake_data``` to fill database
 Run ```pipenv run python ./manage.py transfer_train_aws``` Migrate all trainings to an aws bucket defined in project settings.
 
 
+### Enable all repository to train
+
+Run ```pipenv run python ./manage.py enable_all_train```
+
+
+### Start Train in all repositories
+
+Run ```pipenv run python ./manage.py start_all_repository_train```
+
+
 #### Fake users infos:
 
 | nickname | email | password | is superuser |
