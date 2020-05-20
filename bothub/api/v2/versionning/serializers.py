@@ -16,6 +16,8 @@ from bothub.common.models import (
     RepositoryEvaluateEntity,
     RepositoryVersionLanguage,
     Repository,
+    RepositoryEntity,
+    RepositoryEntityGroup,
 )
 
 
@@ -63,8 +65,6 @@ class RepositoryVersionSeralizer(serializers.ModelSerializer):
         return super().update(instance, validated_data)
 
     def create(self, validated_data):  # pragma: no cover
-        # if True:
-        #     return {}
         id_clone = validated_data.pop("id")
         repository = validated_data.get("repository")
         name = validated_data.get("name")
@@ -115,13 +115,35 @@ class RepositoryVersionSeralizer(serializers.ModelSerializer):
                 )
 
                 for example_entity in example_entites:
-                    RepositoryExampleEntity.objects.create(
-                        repository_example=example_id,
-                        start=example_entity.start,
-                        end=example_entity.end,
-                        entity=example_entity.entity,
-                        created_at=example_entity.created_at,
-                    )
+                    if example_entity.entity.group:
+                        group, created_group = RepositoryEntityGroup.objects.get_or_create(
+                            repository_version=instance,
+                            value=example_entity.entity.group.value,
+                        )
+                        entity, created_entity = RepositoryEntity.objects.get_or_create(
+                            repository_version=instance,
+                            value=example_entity.entity.value,
+                            group=group,
+                        )
+                        RepositoryExampleEntity.objects.create(
+                            repository_example=example_id,
+                            start=example_entity.start,
+                            end=example_entity.end,
+                            entity=entity,
+                            created_at=example_entity.created_at,
+                        )
+                    else:
+                        entity, created = RepositoryEntity.objects.get_or_create(
+                            repository_version=instance,
+                            value=example_entity.entity.value,
+                        )
+                        RepositoryExampleEntity.objects.create(
+                            repository_example=example_id,
+                            start=example_entity.start,
+                            end=example_entity.end,
+                            entity=entity,
+                            created_at=example_entity.created_at,
+                        )
 
                 translated_examples = RepositoryTranslatedExample.objects.filter(
                     original_example=example
@@ -142,13 +164,23 @@ class RepositoryVersionSeralizer(serializers.ModelSerializer):
                     )
 
                     for translated_entity in translated_entity_examples:
-                        RepositoryTranslatedExampleEntity.objects.create(
-                            repository_translated_example=translated,
-                            start=translated_entity.start,
-                            end=translated_entity.end,
-                            entity=translated_entity.entity,
-                            created_at=translated_entity.created_at,
-                        )
+                        if translated_entity.entity.group:
+                            group, created_group = RepositoryEntityGroup.objects.get(
+                                repository_version=instance,
+                                value=translated_entity.entity.group.value,
+                            )
+                            entity, created_entity = RepositoryEntity.objects.get(
+                                repository_version=instance,
+                                value=translated_entity.entity.value,
+                                group=group,
+                            )
+                            RepositoryTranslatedExampleEntity.objects.create(
+                                repository_translated_example=translated,
+                                start=translated_entity.start,
+                                end=translated_entity.end,
+                                entity=entity,
+                                created_at=translated_entity.created_at,
+                            )
 
             evaluates = RepositoryEvaluate.objects.filter(
                 repository_version_language=version

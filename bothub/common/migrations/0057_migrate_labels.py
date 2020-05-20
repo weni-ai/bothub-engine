@@ -12,7 +12,9 @@ def migrate(apps, schema_editor):  # pragma: no cover
     RepositoryEntityGroup = apps.get_model("common", "RepositoryEntityGroup")
     RepositoryEntity = apps.get_model("common", "RepositoryEntity")
     RepositoryExampleEntity = apps.get_model("common", "RepositoryExampleEntity")
-    RepositoryTranslatedExampleEntity = apps.get_model("common", "RepositoryTranslatedExampleEntity")
+    RepositoryTranslatedExampleEntity = apps.get_model(
+        "common", "RepositoryTranslatedExampleEntity"
+    )
 
     for repository in Repository.objects.all():
         for repository_version in RepositoryVersion.objects.filter(
@@ -27,34 +29,19 @@ def migrate(apps, schema_editor):  # pragma: no cover
                 )
 
         for entity_version in RepositoryEntity.objects.filter(repository=repository):
-            if entity_version.label:
-                entity_version.group = RepositoryEntityGroup.objects.filter(
-                    pk=entity_version.label.pk
-                ).first()
-
             entity_version.repository_version = RepositoryVersion.objects.get(
                 repository=repository, is_default=True
             )
-            entity_version.save(update_fields=["group", "repository_version"])
+            entity_version.save(update_fields=["repository_version"])
 
             for version in RepositoryVersion.objects.filter(
                 repository=repository, is_default=False
             ):
-                if entity_version.label:
-                    RepositoryEntity.objects.create(
-                        repository=entity_version.repository,
-                        value=entity_version.value,
-                        group=RepositoryEntityGroup.objects.filter(
-                            repository_version=version, value=entity_version.label.value
-                        ).first(),
-                        repository_version=version,
-                    )
-                else:
-                    RepositoryEntity.objects.create(
-                        repository=entity_version.repository,
-                        value=entity_version.value,
-                        repository_version=version,
-                    )
+                RepositoryEntity.objects.create(
+                    repository=entity_version.repository,
+                    value=entity_version.value,
+                    repository_version=version,
+                )
 
     for example_entity in RepositoryExampleEntity.objects.all():
         if (

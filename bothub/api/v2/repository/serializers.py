@@ -342,19 +342,7 @@ class NewRepositorySerializer(serializers.ModelSerializer):
         )
 
     def get_groups_list(self, obj):
-        queryset = RepositoryExample.objects.filter(
-            repository_version_language__repository_version=obj
-        )
-        return (
-            obj.groups.filter(
-                entities__value__in=obj.entities_list(
-                    queryset=queryset, version_default=obj.is_default
-                )
-            )
-            .distinct()
-            .values_list("value", flat=True)
-            .distinct()
-        )
+        return obj.groups.distinct().values_list("value", flat=True).distinct()
 
     def get_ready_for_train(self, obj):
         # TODO: Verificar se realmente está funcionando
@@ -426,11 +414,7 @@ class NewRepositorySerializer(serializers.ModelSerializer):
         )
 
         # TODO: remover antigo repository-info e apagar a @property
-        current_groups = obj.groups.filter(
-            entities__value__in=obj.entities_list(
-                queryset=queryset, version_default=obj.is_default
-            )
-        ).distinct()
+        current_groups = obj.groups.distinct()
 
         return list(
             map(
