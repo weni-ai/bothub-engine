@@ -12,6 +12,7 @@ def migrate(apps, schema_editor):  # pragma: no cover
     RepositoryEntityGroup = apps.get_model("common", "RepositoryEntityGroup")
     RepositoryEntity = apps.get_model("common", "RepositoryEntity")
     RepositoryExampleEntity = apps.get_model("common", "RepositoryExampleEntity")
+    RepositoryTranslatedExampleEntity = apps.get_model("common", "RepositoryTranslatedExampleEntity")
 
     for repository in Repository.objects.all():
         for repository_version in RepositoryVersion.objects.filter(
@@ -64,6 +65,16 @@ def migrate(apps, schema_editor):  # pragma: no cover
                 value=example_entity.entity.value,
             ).first()
             example_entity.save(update_fields=["entity"])
+
+    for example_translated_entity in RepositoryTranslatedExampleEntity.objects.all():
+        if (
+            not example_translated_entity.repository_translated_example.repository_version_language.repository_version.is_default
+        ):
+            example_translated_entity.entity = RepositoryEntity.objects.filter(
+                repository_version=example_translated_entity.repository_translated_example.repository_version_language.repository_version,
+                value=example_translated_entity.entity.value,
+            ).first()
+            example_translated_entity.save(update_fields=["entity"])
 
 
 class Migration(migrations.Migration):
