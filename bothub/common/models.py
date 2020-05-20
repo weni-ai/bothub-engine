@@ -1167,7 +1167,9 @@ class RepositoryEntity(models.Model):
         unique_together = ["repository_version", "value"]
 
     repository_version = models.ForeignKey(
-        RepositoryVersion, models.CASCADE, related_name="entities"
+        RepositoryVersion, models.CASCADE, related_name="entities",
+        null=True,
+        blank=True,
     )
     value = models.CharField(
         _("entity"),
