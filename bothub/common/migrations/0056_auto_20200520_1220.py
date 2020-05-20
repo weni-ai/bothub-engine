@@ -36,6 +36,28 @@ class Migration(migrations.Migration):
                                     related_name='entities', to='common.RepositoryEntityGroup'),
         ),
 
+        migrations.AlterField(
+            model_name="repositoryentity",
+            name="repository",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE, to="common.Repository"
+            ),
+        ),
+
+        migrations.AlterUniqueTogether(
+            name='repositoryentitylabel',
+            unique_together=set(),
+        ),
+
+        migrations.AlterUniqueTogether(
+            name='repositoryentity',
+            unique_together={('repository_version', 'value')},
+        ),
+        migrations.AlterUniqueTogether(
+            name='repositoryentitygroup',
+            unique_together={('repository_version', 'value')},
+        ),
+
 
 
 

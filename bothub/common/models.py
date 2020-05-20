@@ -445,6 +445,7 @@ class Repository(models.Model):
         version_default=True,
         repository_version=None,
     ):
+        print('chegou')
         if repository_version:
             return map(
                 lambda lang: self.get_specific_version_id(
