@@ -445,7 +445,6 @@ class Repository(models.Model):
         version_default=True,
         repository_version=None,
     ):
-        print('chegou')
         if repository_version:
             return map(
                 lambda lang: self.get_specific_version_id(
@@ -1168,7 +1167,9 @@ class RepositoryEntity(models.Model):
         unique_together = ["repository_version", "value"]
 
     repository_version = models.ForeignKey(
-        RepositoryVersion, models.CASCADE, related_name="entities",
+        RepositoryVersion,
+        models.CASCADE,
+        related_name="entities",
         null=True,
         blank=True,
     )

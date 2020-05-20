@@ -435,7 +435,7 @@ class NewRepositorySerializer(serializers.ModelSerializer):
         return list(
             map(
                 lambda group: {
-                    "repository": group.repository.pk,
+                    "repository": group.repository_version.repository.pk,
                     "value": group.value,
                     "entities": list(
                         map(

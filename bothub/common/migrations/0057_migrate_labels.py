@@ -14,41 +14,56 @@ def migrate(apps, schema_editor):  # pragma: no cover
     RepositoryExampleEntity = apps.get_model("common", "RepositoryExampleEntity")
 
     for repository in Repository.objects.all():
-
-        for repository_version in RepositoryVersion.objects.filter(repository=repository):
-            old_labels = RepositoryEntityLabel.objects.filter(repository=repository_version.repository)
+        for repository_version in RepositoryVersion.objects.filter(
+            repository=repository
+        ):
+            old_labels = RepositoryEntityLabel.objects.filter(
+                repository=repository_version.repository
+            )
             for label in old_labels:
                 RepositoryEntityGroup.objects.create(
-                    repository_version=repository_version,
-                    value=label.value
+                    repository_version=repository_version, value=label.value
                 )
 
         for entity_version in RepositoryEntity.objects.filter(repository=repository):
             if entity_version.label:
-                entity_version.group = RepositoryEntityGroup.objects.filter(pk=entity_version.label.pk).first()
+                entity_version.group = RepositoryEntityGroup.objects.filter(
+                    pk=entity_version.label.pk
+                ).first()
 
-            entity_version.repository_version = RepositoryVersion.objects.get(repository=repository, is_default=True)
+            entity_version.repository_version = RepositoryVersion.objects.get(
+                repository=repository, is_default=True
+            )
             entity_version.save(update_fields=["group", "repository_version"])
 
-            for version in RepositoryVersion.objects.filter(repository=repository, is_default=False):
+            for version in RepositoryVersion.objects.filter(
+                repository=repository, is_default=False
+            ):
                 if entity_version.label:
                     RepositoryEntity.objects.create(
                         repository=entity_version.repository,
                         value=entity_version.value,
-                        group=RepositoryEntityGroup.objects.filter(repository_version=version, value=entity_version.label.value).first(),
-                        repository_version=version
+                        group=RepositoryEntityGroup.objects.filter(
+                            repository_version=version, value=entity_version.label.value
+                        ).first(),
+                        repository_version=version,
                     )
                 else:
                     RepositoryEntity.objects.create(
                         repository=entity_version.repository,
                         value=entity_version.value,
-                        repository_version=version
+                        repository_version=version,
                     )
 
-        for example_entity in RepositoryExampleEntity.objects.all():
-            print(example_entity.repository_example.repository_version_language.repository_version)
-
-
+    for example_entity in RepositoryExampleEntity.objects.all():
+        if (
+            not example_entity.repository_example.repository_version_language.repository_version.is_default
+        ):
+            example_entity.entity = RepositoryEntity.objects.filter(
+                repository_version=example_entity.repository_example.repository_version_language.repository_version,
+                value=example_entity.entity.value,
+            ).first()
+            example_entity.save(update_fields=["entity"])
 
 
 class Migration(migrations.Migration):
