@@ -8,7 +8,6 @@ def noop(apps, schema_editor):  # pragma: no cover
 def migrate(apps, schema_editor):  # pragma: no cover
     Repository = apps.get_model("common", "Repository")
     RepositoryVersion = apps.get_model("common", "RepositoryVersion")
-    RepositoryEntityLabel = apps.get_model("common", "RepositoryEntityLabel")
     RepositoryEntityGroup = apps.get_model("common", "RepositoryEntityGroup")
     RepositoryEntity = apps.get_model("common", "RepositoryEntity")
     RepositoryExampleEntity = apps.get_model("common", "RepositoryExampleEntity")
@@ -17,31 +16,38 @@ def migrate(apps, schema_editor):  # pragma: no cover
     )
 
     for repository in Repository.objects.all():
-        for repository_version in RepositoryVersion.objects.filter(
-            repository=repository
-        ):
-            old_labels = RepositoryEntityLabel.objects.filter(
-                repository=repository_version.repository
-            )
-            for label in old_labels:
-                RepositoryEntityGroup.objects.create(
-                    repository_version=repository_version, value=label.value
-                )
-
         for entity_version in RepositoryEntity.objects.filter(repository=repository):
-            entity_version.repository_version = RepositoryVersion.objects.get(
+            repository_version = RepositoryVersion.objects.get(
                 repository=repository, is_default=True
             )
-            entity_version.save(update_fields=["repository_version"])
+            entity_version.repository_version = repository_version
+            if entity_version.label:
+                group, created = RepositoryEntityGroup.objects.get_or_create(
+                    repository_version=repository_version,
+                    value=entity_version.label.value,
+                )
+                entity_version.group = group
+            entity_version.save(update_fields=["group", "repository_version"])
 
             for version in RepositoryVersion.objects.filter(
                 repository=repository, is_default=False
             ):
-                RepositoryEntity.objects.create(
-                    repository=entity_version.repository,
-                    value=entity_version.value,
-                    repository_version=version,
-                )
+                if entity_version.group:
+                    group_version, created = RepositoryEntityGroup.objects.get_or_create(
+                        repository_version=version, value=entity_version.group.value
+                    )
+                    RepositoryEntity.objects.create(
+                        repository=entity_version.repository,
+                        value=entity_version.value,
+                        repository_version=version,
+                        group=group_version,
+                    )
+                else:
+                    RepositoryEntity.objects.create(
+                        repository=entity_version.repository,
+                        value=entity_version.value,
+                        repository_version=version,
+                    )
 
     for example_entity in RepositoryExampleEntity.objects.all():
         if (
