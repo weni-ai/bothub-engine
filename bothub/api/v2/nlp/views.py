@@ -444,7 +444,9 @@ class RepositoryUpdateInterpretersViewSet(
     def retrieve(self, request, *args, **kwargs):
         check_auth(request)
         update = self.get_object()
-        rasa_version = request.query_params.get("rasa_version", settings.BOTHUB_NLP_RASA_VERSION)
+        rasa_version = request.query_params.get(
+            "rasa_version", settings.BOTHUB_NLP_RASA_VERSION
+        )
 
         validator = URLValidator()
 

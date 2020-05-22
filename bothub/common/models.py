@@ -898,15 +898,13 @@ class RepositoryVersionLanguage(models.Model):
 
     def get_trainer(self, rasa_version):
         trainer, created = RepositoryNLPTrain.objects.get_or_create(
-            repositoryversionlanguage=self,
-            rasa_version=rasa_version,
+            repositoryversionlanguage=self, rasa_version=rasa_version
         )
         return trainer
 
-    def update_trainer(self, bot_data, repositoryversionlanguage, rasa_version):
+    def update_trainer(self, bot_data, rasa_version):
         trainer, created = RepositoryNLPTrain.objects.get_or_create(
-            repositoryversionlanguage=repositoryversionlanguage,
-            rasa_version=rasa_version,
+            repositoryversionlanguage=self, rasa_version=rasa_version
         )
         trainer.bot_data = bot_data
         trainer.save(update_fields=["bot_data"])
@@ -916,18 +914,15 @@ class RepositoryVersionLanguage(models.Model):
 
         self.training_end_at = last_time
         self.last_update = last_time
-        self.update_trainer(bot_data, self, rasa_version=rasa_version)
+        self.update_trainer(bot_data, rasa_version=rasa_version)
         self.total_training_end += 1
         self.save(
-            update_fields=[
-                "total_training_end",
-                "training_end_at",
-                "last_update",
-            ]
+            update_fields=["total_training_end", "training_end_at", "last_update"]
         )
 
+    @property
     def get_bot_data(self):
-        return self.get_trainer(settings.BOTHUB_NLP_RASA_VERSION).bot_data
+        return self.get_trainer(settings.BOTHUB_NLP_RASA_VERSION)
 
     def train_fail(self):
         self.failed_at = timezone.now()
