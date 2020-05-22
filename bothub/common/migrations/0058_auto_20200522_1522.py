@@ -6,14 +6,18 @@ import django.db.models.deletion
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('common', '0057_migrate_trainers'),
-    ]
+    dependencies = [("common", "0057_migrate_trainers")]
 
     operations = [
         migrations.AlterField(
-            model_name='repositorynlplogintent',
-            name='repository_nlp_log',
-            field=models.ForeignKey(editable=False, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='repository_nlp_log', to='common.RepositoryNLPLog'),
-        ),
+            model_name="repositorynlplogintent",
+            name="repository_nlp_log",
+            field=models.ForeignKey(
+                editable=False,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="repository_nlp_log",
+                to="common.RepositoryNLPLog",
+            ),
+        )
     ]

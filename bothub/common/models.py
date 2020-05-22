@@ -974,7 +974,11 @@ class RepositoryNLPLogIntent(models.Model):
     confidence = models.FloatField(help_text=_("Confidence"))
     is_default = models.BooleanField(help_text=_("is default, intent selected"))
     repository_nlp_log = models.ForeignKey(
-        RepositoryNLPLog, models.CASCADE, editable=False, null=True, related_name="repository_nlp_log"
+        RepositoryNLPLog,
+        models.CASCADE,
+        editable=False,
+        null=True,
+        related_name="repository_nlp_log",
     )
 
 
