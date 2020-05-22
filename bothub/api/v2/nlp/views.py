@@ -450,11 +450,11 @@ class RepositoryUpdateInterpretersViewSet(
         aws = False
 
         try:
-            validator(str(update.bot_data))
-            bot_data = update.bot_data
+            validator(str(update.get_trainer.bot_data))
+            bot_data = update.get_trainer.bot_data
             aws = True
         except ValidationError:
-            bot_data = update.bot_data
+            bot_data = update.get_trainer.bot_data
         except Exception:
             bot_data = b""
 
