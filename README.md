@@ -37,6 +37,16 @@ Run ```pipenv run python ./manage.py fill_db_using_fake_data``` to fill database
 Run ```pipenv run python ./manage.py transfer_train_aws``` Migrate all trainings to an aws bucket defined in project settings.
 
 
+### Enable all repository to train
+
+Run ```pipenv run python ./manage.py enable_all_train```
+
+
+### Start Train in all repositories
+
+Run ```pipenv run python ./manage.py start_all_repository_train```
+
+
 #### Fake users infos:
 
 | nickname | email | password | is superuser |
@@ -100,4 +110,5 @@ You can set environment variables in your OS, write on ```.env``` file or pass v
 | BOTHUB_BOT_NICKNAME |  ```string``` | ```bot_repository``` | Nickname that the system will use to create the account
 | BOTHUB_ENGINE_USE_SENTRY |  ```bool``` | ```False``` | Enable Support Sentry
 | BOTHUB_ENGINE_SENTRY |  ```string``` | ```None``` | URL Sentry
+| BOTHUB_NLP_RASA_VERSION |  ```string``` | ```1.4.3``` | Specify the version of rasa used in the nlp worker
 | ENVIRONMENT |  ```string``` | ```production``` | 

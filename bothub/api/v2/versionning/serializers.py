@@ -83,7 +83,6 @@ class RepositoryVersionSeralizer(serializers.ModelSerializer):
 
             version_language = RepositoryVersionLanguage.objects.create(
                 language=version.language,
-                bot_data=version.bot_data,
                 training_started_at=version.training_started_at,
                 training_end_at=version.training_end_at,
                 failed_at=version.failed_at,
@@ -95,6 +94,9 @@ class RepositoryVersionSeralizer(serializers.ModelSerializer):
                 training_log=version.training_log,
                 last_update=version.last_update,
                 total_training_end=version.total_training_end,
+            )
+            version_language.update_trainer(
+                version.get_bot_data.bot_data, version.get_bot_data.rasa_version
             )
 
             examples = RepositoryExample.objects.filter(
