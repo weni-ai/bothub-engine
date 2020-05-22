@@ -767,6 +767,19 @@ class RepositorySerializer(serializers.ModelSerializer):
 
         return repository
 
+    def update(self, instance, validated_data):
+        if validated_data.get("algorithm") in [
+            Repository.ALGORITHM_TRANSFORMER_NETWORK_DIET,
+            Repository.ALGORITHM_TRANSFORMER_NETWORK_DIET_WORD_EMBEDDING,
+        ]:
+            raise PermissionDenied(
+                _(
+                    f"The algorithm {validated_data.get('algorithm')} is not available at this "
+                    f"time, please try again later"
+                )
+            )
+        return super().update(instance, validated_data)
+
     def get_entities(self, obj):
         return obj.current_entities().values("value", "id").distinct()
 
