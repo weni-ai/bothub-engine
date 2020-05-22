@@ -180,7 +180,6 @@ class DefaultRepositoryVersionAPITestCase(TestCase):
 
         self.version_language = RepositoryVersionLanguage.objects.create(
             language=self.repository.current_version().language,
-            bot_data=self.repository.current_version().bot_data,
             training_started_at=self.repository.current_version().training_started_at,
             training_end_at=self.repository.current_version().training_end_at,
             failed_at=self.repository.current_version().failed_at,
@@ -192,6 +191,10 @@ class DefaultRepositoryVersionAPITestCase(TestCase):
             training_log=self.repository.current_version().training_log,
             last_update=self.repository.current_version().last_update,
             total_training_end=self.repository.current_version().total_training_end,
+        )
+        self.version_language.update_trainer(
+            self.repository.current_version().get_bot_data.bot_data,
+            self.repository.current_version().get_bot_data.rasa_version,
         )
 
     def request(self, version, token, data):

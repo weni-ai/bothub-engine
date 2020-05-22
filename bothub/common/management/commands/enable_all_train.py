@@ -7,4 +7,4 @@ from bothub.common.models import RepositoryVersionLanguage
 class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         RepositoryVersionLanguage.objects.all().update(last_update=timezone.now())
-        print('END')
+        print("END")
