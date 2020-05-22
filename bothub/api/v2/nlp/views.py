@@ -444,17 +444,18 @@ class RepositoryUpdateInterpretersViewSet(
     def retrieve(self, request, *args, **kwargs):
         check_auth(request)
         update = self.get_object()
+        rasa_version = request.query_params.get("rasa_version", settings.BOTHUB_NLP_RASA_VERSION)
 
         validator = URLValidator()
 
         aws = False
 
         try:
-            validator(str(update.get_trainer.bot_data))
-            bot_data = update.get_trainer.bot_data
+            validator(str(update.get_trainer(rasa_version).bot_data))
+            bot_data = update.get_trainer(rasa_version).bot_data
             aws = True
         except ValidationError:
-            bot_data = update.get_trainer.bot_data
+            bot_data = update.get_trainer(rasa_version).bot_data
         except Exception:
             bot_data = b""
 
