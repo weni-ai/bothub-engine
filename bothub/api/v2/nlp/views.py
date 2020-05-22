@@ -472,12 +472,15 @@ class RepositoryUpdateInterpretersViewSet(
     def create(self, request, *args, **kwargs):
         check_auth(request)
         id = request.data.get("id")
+        rasa_version = request.data.get(
+            "rasa_version", settings.BOTHUB_NLP_RASA_VERSION
+        )
         repository = get_object_or_404(RepositoryVersionLanguage, pk=id)
         if settings.AWS_SEND:
             bot_data = base64.b64decode(request.data.get("bot_data"))
-            repository.save_training(send_bot_data_file_aws(id, bot_data))
+            repository.save_training(send_bot_data_file_aws(id, bot_data), rasa_version)
         else:
-            repository.save_training(request.data.get("bot_data"))
+            repository.save_training(request.data.get("bot_data"), rasa_version)
         return Response({})
 
 

@@ -738,7 +738,7 @@ class RepositoryVersionLanguage(models.Model):
     language = models.CharField(
         _("language"), max_length=5, validators=[languages.validate_language]
     )
-    bot_data = models.TextField(_("bot data"), blank=True)
+    # bot_data = models.TextField(_("bot data"), blank=True)
     training_started_at = models.DateTimeField(
         _("training started at"), blank=True, null=True
     )
@@ -760,6 +760,9 @@ class RepositoryVersionLanguage(models.Model):
     total_training_end = models.IntegerField(
         _("total training end"), default=0, blank=False, null=False
     )
+
+    # @property
+    # def get_trainer(self):
 
     @property
     def examples(self):
@@ -893,12 +896,28 @@ class RepositoryVersionLanguage(models.Model):
         )
         self.repository_version.save(update_fields=["created_by"])
 
-    def save_training(self, bot_data):
+    @property
+    def get_trainer(self):
+        trainer, created = RepositoryNLPTrain.objects.get_or_create(
+            repositoryversionlanguage=self,
+            rasa_version=settings.BOTHUB_NLP_RASA_VERSION,
+        )
+        return trainer
+
+    def update_trainer(self, bot_data, repositoryversionlanguage, rasa_version):
+        trainer, created = RepositoryNLPTrain.objects.get_or_create(
+            repositoryversionlanguage=repositoryversionlanguage,
+            rasa_version=rasa_version,
+        )
+        trainer.bot_data = bot_data
+        trainer.save(update_fields=["bot_data"])
+
+    def save_training(self, bot_data, rasa_version):
         last_time = timezone.now()
 
         self.training_end_at = last_time
         self.last_update = last_time
-        self.bot_data = bot_data
+        self.update_trainer(bot_data, self, rasa_version=rasa_version)
         self.total_training_end += 1
         self.save(
             update_fields=[
@@ -910,11 +929,24 @@ class RepositoryVersionLanguage(models.Model):
         )
 
     def get_bot_data(self):
-        return self.bot_data
+        return self.get_trainer.bot_data
 
     def train_fail(self):
         self.failed_at = timezone.now()
         self.save(update_fields=["failed_at"])
+
+
+class RepositoryNLPTrain(models.Model):
+    class Meta:
+        verbose_name = _("repository nlp train")
+        unique_together = ["repositoryversionlanguage", "rasa_version"]
+
+    bot_data = models.TextField(_("bot data"), blank=True)
+    repositoryversionlanguage = models.ForeignKey(
+        RepositoryVersionLanguage, models.CASCADE, related_name="trainers"
+    )
+    rasa_version = models.CharField(_("Rasa Version Code"), max_length=20)
+    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
 
 
 class RepositoryNLPLog(models.Model):

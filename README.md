@@ -110,4 +110,5 @@ You can set environment variables in your OS, write on ```.env``` file or pass v
 | BOTHUB_BOT_NICKNAME |  ```string``` | ```bot_repository``` | Nickname that the system will use to create the account
 | BOTHUB_ENGINE_USE_SENTRY |  ```bool``` | ```False``` | Enable Support Sentry
 | BOTHUB_ENGINE_SENTRY |  ```string``` | ```None``` | URL Sentry
+| BOTHUB_NLP_RASA_VERSION |  ```string``` | ```1.4.3``` | Specify the version of rasa used in the nlp worker
 | ENVIRONMENT |  ```string``` | ```production``` | 
