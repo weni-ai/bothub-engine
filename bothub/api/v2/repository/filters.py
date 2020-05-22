@@ -133,13 +133,7 @@ class RepositoryNLPLogFilter(filters.FilterSet):
         )
 
     def filter_intent(self, queryset, name, value):
-        return queryset.filter(
-            Q(
-                pk__in=RepositoryNLPLogIntent.objects.filter(intent=value).values(
-                    "repository_nlp_log"
-                )
-            )
-        )
+        return queryset.filter(repository_nlp_log__intent=value, repository_nlp_log__is_default=True)
 
 
 class RepositoryEntitiesFilter(filters.FilterSet):
