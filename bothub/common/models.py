@@ -1101,6 +1101,13 @@ class RepositoryTranslatedExample(models.Model):
 
     objects = RepositoryTranslatedExampleManager()
 
+    def save(self, *args, **kwargs):
+        self.original_example.last_update = timezone.now()
+        self.original_example.save(update_fields=['last_update'])
+        self.repository_version_language.last_update = timezone.now()
+        self.repository_version_language.save(update_fields=["last_update"])
+        super(RepositoryTranslatedExample, self).save(*args, **kwargs)
+
     def entities_list_lambda_sort(item):
         return item.get("entity")
 
