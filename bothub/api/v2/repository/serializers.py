@@ -1192,7 +1192,7 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
         validated_data.pop("repository_version_language")
         validated_data.pop("language")
 
-        self.Meta.model.objects.update(**validated_data)
+        instance_update = super().update(instance, validated_data)
 
         RepositoryExampleEntity.objects.filter(repository_example=instance.pk).delete()
 
@@ -1201,7 +1201,7 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
             entity_serializer = RepositoryExampleEntitySerializer(data=entity_data)
             entity_serializer.is_valid(raise_exception=True)
             entity_serializer.save()
-        return instance
+        return instance_update
 
 
 class AnalyzeTextSerializer(serializers.Serializer):
