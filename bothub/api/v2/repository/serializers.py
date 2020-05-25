@@ -18,6 +18,7 @@ from bothub.common.models import (
     RepositoryNLPLog,
     RepositoryEntity,
     RepositoryEvaluate,
+    RepositoryExampleEntity,
 )
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryCategory
@@ -1184,6 +1185,23 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
             entity_serializer.is_valid(raise_exception=True)
             entity_serializer.save()
         return example
+
+    def update(self, instance, validated_data):
+        entities_data = validated_data.pop("entities")
+        validated_data.pop("repository")
+        validated_data.pop("repository_version_language")
+        validated_data.pop("language")
+
+        self.Meta.model.objects.update(**validated_data)
+
+        RepositoryExampleEntity.objects.filter(repository_example=instance.pk).delete()
+
+        for entity_data in entities_data:
+            entity_data.update({"repository_example": instance.pk})
+            entity_serializer = RepositoryExampleEntitySerializer(data=entity_data)
+            entity_serializer.is_valid(raise_exception=True)
+            entity_serializer.save()
+        return instance
 
 
 class AnalyzeTextSerializer(serializers.Serializer):

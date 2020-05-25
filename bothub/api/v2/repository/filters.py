@@ -4,11 +4,7 @@ from django_filters import rest_framework as filters
 from rest_framework.exceptions import NotFound
 from rest_framework.exceptions import PermissionDenied
 
-from bothub.common.models import (
-    Repository,
-    RepositoryNLPLog,
-    RepositoryEntity,
-)
+from bothub.common.models import Repository, RepositoryNLPLog, RepositoryEntity
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RequestRepositoryAuthorization
 
