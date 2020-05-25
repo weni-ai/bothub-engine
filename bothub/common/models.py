@@ -100,7 +100,9 @@ class Repository(models.Model):
     ALGORITHM_NEURAL_NETWORK_INTERNAL = "neural_network_internal"
     ALGORITHM_NEURAL_NETWORK_EXTERNAL = "neural_network_external"
     ALGORITHM_TRANSFORMER_NETWORK_DIET = "transformer_network_diet"
-    ALGORITHM_TRANSFORMER_NETWORK_DIET_WORD_EMBEDDING = "transformer_network_diet_word_embedding"
+    ALGORITHM_TRANSFORMER_NETWORK_DIET_WORD_EMBEDDING = (
+        "transformer_network_diet_word_embedding"
+    )
     ALGORITHM_CHOICES = [
         (
             ALGORITHM_NEURAL_NETWORK_INTERNAL,
@@ -1097,14 +1099,14 @@ class RepositoryTranslatedExample(models.Model):
 
     def save(self, *args, **kwargs):
         self.original_example.last_update = timezone.now()
-        self.original_example.save(update_fields=['last_update'])
+        self.original_example.save(update_fields=["last_update"])
         self.repository_version_language.last_update = timezone.now()
         self.repository_version_language.save(update_fields=["last_update"])
         super(RepositoryTranslatedExample, self).save(*args, **kwargs)
 
     def delete(self, using=None, keep_parents=False):
         self.original_example.last_update = timezone.now()
-        self.original_example.save(update_fields=['last_update'])
+        self.original_example.save(update_fields=["last_update"])
         self.repository_version_language.last_update = timezone.now()
         self.repository_version_language.save(update_fields=["last_update"])
         super(RepositoryTranslatedExample, self).delete(using, keep_parents)
