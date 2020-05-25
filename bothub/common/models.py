@@ -99,10 +99,6 @@ class Repository(models.Model):
 
     ALGORITHM_NEURAL_NETWORK_INTERNAL = "neural_network_internal"
     ALGORITHM_NEURAL_NETWORK_EXTERNAL = "neural_network_external"
-    ALGORITHM_TRANSFORMER_NETWORK_DIET = "transformer_network_diet"
-    ALGORITHM_TRANSFORMER_NETWORK_DIET_WORD_EMBEDDING = (
-        "transformer_network_diet_word_embedding"
-    )
     ALGORITHM_CHOICES = [
         (
             ALGORITHM_NEURAL_NETWORK_INTERNAL,
@@ -111,14 +107,6 @@ class Repository(models.Model):
         (
             ALGORITHM_NEURAL_NETWORK_EXTERNAL,
             _("Neural Network with external vocabulary (BETA)"),
-        ),
-        (
-            ALGORITHM_TRANSFORMER_NETWORK_DIET,
-            _("Transformer Neural Network with internal vocabulary"),
-        ),
-        (
-            ALGORITHM_TRANSFORMER_NETWORK_DIET_WORD_EMBEDDING,
-            _("Transformer Neural Network with word embedding external vocabulary"),
         ),
     ]
 
@@ -734,7 +722,7 @@ class RepositoryVersionLanguage(models.Model):
     language = models.CharField(
         _("language"), max_length=5, validators=[languages.validate_language]
     )
-    bot_data = models.TextField(_("bot data"), blank=True)
+    # bot_data = models.TextField(_("bot data"), blank=True)
     training_started_at = models.DateTimeField(
         _("training started at"), blank=True, null=True
     )
@@ -756,6 +744,9 @@ class RepositoryVersionLanguage(models.Model):
     total_training_end = models.IntegerField(
         _("total training end"), default=0, blank=False, null=False
     )
+
+    # @property
+    # def get_trainer(self):
 
     @property
     def examples(self):
@@ -889,28 +880,50 @@ class RepositoryVersionLanguage(models.Model):
         )
         self.repository_version.save(update_fields=["created_by"])
 
-    def save_training(self, bot_data):
+    def get_trainer(self, rasa_version):
+        trainer, created = RepositoryNLPTrain.objects.get_or_create(
+            repositoryversionlanguage=self, rasa_version=rasa_version
+        )
+        return trainer
+
+    def update_trainer(self, bot_data, rasa_version):
+        trainer, created = RepositoryNLPTrain.objects.get_or_create(
+            repositoryversionlanguage=self, rasa_version=rasa_version
+        )
+        trainer.bot_data = bot_data
+        trainer.save(update_fields=["bot_data"])
+
+    def save_training(self, bot_data, rasa_version):
         last_time = timezone.now()
 
         self.training_end_at = last_time
         self.last_update = last_time
-        self.bot_data = bot_data
+        self.update_trainer(bot_data, rasa_version=rasa_version)
         self.total_training_end += 1
         self.save(
-            update_fields=[
-                "total_training_end",
-                "training_end_at",
-                "bot_data",
-                "last_update",
-            ]
+            update_fields=["total_training_end", "training_end_at", "last_update"]
         )
 
+    @property
     def get_bot_data(self):
-        return self.bot_data
+        return self.get_trainer(settings.BOTHUB_NLP_RASA_VERSION)
 
     def train_fail(self):
         self.failed_at = timezone.now()
         self.save(update_fields=["failed_at"])
+
+
+class RepositoryNLPTrain(models.Model):
+    class Meta:
+        verbose_name = _("repository nlp train")
+        unique_together = ["repositoryversionlanguage", "rasa_version"]
+
+    bot_data = models.TextField(_("bot data"), blank=True)
+    repositoryversionlanguage = models.ForeignKey(
+        RepositoryVersionLanguage, models.CASCADE, related_name="trainers"
+    )
+    rasa_version = models.CharField(_("Rasa Version Code"), max_length=20)
+    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
 
 
 class RepositoryNLPLog(models.Model):
@@ -945,7 +958,11 @@ class RepositoryNLPLogIntent(models.Model):
     confidence = models.FloatField(help_text=_("Confidence"))
     is_default = models.BooleanField(help_text=_("is default, intent selected"))
     repository_nlp_log = models.ForeignKey(
-        RepositoryNLPLog, models.CASCADE, editable=False, null=True
+        RepositoryNLPLog,
+        models.CASCADE,
+        editable=False,
+        null=True,
+        related_name="repository_nlp_log",
     )
 
 
@@ -1067,6 +1084,20 @@ class RepositoryTranslatedExample(models.Model):
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
 
     objects = RepositoryTranslatedExampleManager()
+
+    def save(self, *args, **kwargs):
+        self.original_example.last_update = timezone.now()
+        self.original_example.save(update_fields=['last_update'])
+        self.repository_version_language.last_update = timezone.now()
+        self.repository_version_language.save(update_fields=["last_update"])
+        super(RepositoryTranslatedExample, self).save(*args, **kwargs)
+
+    def delete(self, using=None, keep_parents=False):
+        self.original_example.last_update = timezone.now()
+        self.original_example.save(update_fields=['last_update'])
+        self.repository_version_language.last_update = timezone.now()
+        self.repository_version_language.save(update_fields=["last_update"])
+        super(RepositoryTranslatedExample, self).delete(using, keep_parents)
 
     def entities_list_lambda_sort(item):
         return item.get("entity")

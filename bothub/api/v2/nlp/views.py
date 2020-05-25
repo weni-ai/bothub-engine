@@ -464,17 +464,20 @@ class RepositoryUpdateInterpretersViewSet(
     def retrieve(self, request, *args, **kwargs):
         check_auth(request)
         update = self.get_object()
+        rasa_version = request.query_params.get(
+            "rasa_version", settings.BOTHUB_NLP_RASA_VERSION
+        )
 
         validator = URLValidator()
 
         aws = False
 
         try:
-            validator(str(update.bot_data))
-            bot_data = update.bot_data
+            validator(str(update.get_trainer(rasa_version).bot_data))
+            bot_data = update.get_trainer(rasa_version).bot_data
             aws = True
         except ValidationError:
-            bot_data = update.bot_data
+            bot_data = update.get_trainer(rasa_version).bot_data
         except Exception:
             bot_data = b""
 
@@ -492,12 +495,15 @@ class RepositoryUpdateInterpretersViewSet(
     def create(self, request, *args, **kwargs):
         check_auth(request)
         id = request.data.get("id")
+        rasa_version = request.data.get(
+            "rasa_version", settings.BOTHUB_NLP_RASA_VERSION
+        )
         repository = get_object_or_404(RepositoryVersionLanguage, pk=id)
         if settings.AWS_SEND:
             bot_data = base64.b64decode(request.data.get("bot_data"))
-            repository.save_training(send_bot_data_file_aws(id, bot_data))
+            repository.save_training(send_bot_data_file_aws(id, bot_data), rasa_version)
         else:
-            repository.save_training(request.data.get("bot_data"))
+            repository.save_training(request.data.get("bot_data"), rasa_version)
         return Response({})
 
 

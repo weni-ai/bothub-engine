@@ -15,7 +15,7 @@ from bothub.common.models import RepositoryEvaluateResult
 class EvaluatesFilter(filters.FilterSet):
     class Meta:
         model = RepositoryEvaluate
-        fields = ["text", "language", "intent"]
+        fields = ["language", "intent"]
 
     repository_uuid = filters.CharFilter(
         field_name="repository_uuid",
@@ -59,7 +59,7 @@ class EvaluatesFilter(filters.FilterSet):
                 version = get_object_or_404(
                     RepositoryVersion, pk=request.query_params.get("repository_version")
                 )
-                queryset = RepositoryEvaluate.objects.filter(
+                queryset = queryset.filter(
                     repository_version_language__repository_version=version
                 )
                 return repository.evaluations(

@@ -225,7 +225,7 @@ class RepositoryTestCase(TestCase):
         update_1.start_training(self.owner)
         update_2 = self.repository.current_version()
         update_2.start_training(self.owner)
-        update_1.save_training(b"bot")
+        update_1.save_training(b"bot", settings.BOTHUB_NLP_RASA_VERSION)
         self.assertEqual(update_1, self.repository.last_trained_update())
         update_2.train_fail()
         self.assertEqual(update_1, self.repository.last_trained_update())
@@ -474,8 +474,8 @@ class RepositoryVersionTrainingTestCase(TestCase):
 
         bot_data = "https://s3.amazonaws.com"
 
-        update.save_training(bot_data)
-        self.assertEqual(update.get_bot_data(), bot_data)
+        update.save_training(bot_data, settings.BOTHUB_NLP_RASA_VERSION)
+        self.assertEqual(update.get_bot_data.bot_data, bot_data)
 
     def test_training_not_allowed(self):
         user = User.objects.create_user("fake@user.com", "fake")
@@ -506,7 +506,7 @@ class RepositoryVersionExamplesTestCase(TestCase):
 
         self.update = self.repository.current_version()
         self.update.start_training(self.owner)
-        self.update.save_training(b"")
+        self.update.save_training(b"", settings.BOTHUB_NLP_RASA_VERSION)
 
     def test_okay(self):
         new_update_1 = self.repository.current_version()
@@ -599,7 +599,7 @@ class RepositoryReadyForTrain(TestCase):
                 self.repository.save()
                 current_version = self.repository.current_version()
                 current_version.start_training(self.owner)
-                current_version.save_training(b"")
+                current_version.save_training(b"", settings.BOTHUB_NLP_RASA_VERSION)
                 # self.assertFalse(self.repository.ready_for_train())
                 self.repository.algorithm = val_next
                 self.repository.save()
@@ -965,7 +965,7 @@ class UseLanguageModelFeaturizerTestCase(TestCase):
         self.repository.algorithm = Repository.ALGORITHM_NEURAL_NETWORK_INTERNAL
         self.repository.save()
         current_version.start_training(self.owner)
-        current_version.save_training(b"")
+        current_version.save_training(b"", settings.BOTHUB_NLP_RASA_VERSION)
         self.assertFalse(current_version.use_language_model_featurizer)
 
 
@@ -998,7 +998,7 @@ class UseCompetingIntentsTestCase(TestCase):
         self.assertTrue(self.repository.ready_for_train())
         current_version = self.repository.current_version()
         current_version.start_training(self.owner)
-        current_version.save_training(b"")
+        current_version.save_training(b"", settings.BOTHUB_NLP_RASA_VERSION)
         # self.assertFalse(self.repository.ready_for_train())
         self.repository.use_competing_intents = False
         self.repository.save()
@@ -1012,7 +1012,7 @@ class UseCompetingIntentsTestCase(TestCase):
         self.repository.use_competing_intents = False
         self.repository.save()
         current_version.start_training(self.owner)
-        current_version.save_training(b"")
+        current_version.save_training(b"", settings.BOTHUB_NLP_RASA_VERSION)
         self.assertFalse(current_version.use_competing_intents)
 
 
@@ -1045,7 +1045,7 @@ class UseNameEntitiesTestCase(TestCase):
         self.assertTrue(self.repository.ready_for_train())
         current_version = self.repository.current_version()
         current_version.start_training(self.owner)
-        current_version.save_training(b"")
+        current_version.save_training(b"", settings.BOTHUB_NLP_RASA_VERSION)
         # self.assertFalse(self.repository.ready_for_train())
         self.repository.use_name_entities = False
         self.repository.save()
@@ -1059,7 +1059,7 @@ class UseNameEntitiesTestCase(TestCase):
         self.repository.use_name_entities = False
         self.repository.save()
         current_version.start_training(self.owner)
-        current_version.save_training(b"")
+        current_version.save_training(b"", settings.BOTHUB_NLP_RASA_VERSION)
         self.assertFalse(current_version.use_name_entities)
 
 
