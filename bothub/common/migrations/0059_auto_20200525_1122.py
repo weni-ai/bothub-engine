@@ -9,7 +9,7 @@ import re
 
 class Migration(migrations.Migration):
 
-    dependencies = [("common", "0055_auto_20200518_1810")]
+    dependencies = [("common", "0058_auto_20200522_1522")]
 
     operations = [
         migrations.CreateModel(
@@ -93,33 +93,4 @@ class Migration(migrations.Migration):
             name="repositoryentitygroup",
             unique_together={("repository_version", "value")},
         ),
-        # migrations.AlterUniqueTogether(
-        #     name='repositoryentitylabel',
-        #     unique_together=set(),
-        # ),
-        # migrations.RemoveField(
-        #     model_name='repositoryentitylabel',
-        #     name='repository',
-        # ),
-        #
-        # migrations.RemoveField(
-        #     model_name='repositoryentity',
-        #     name='label',
-        # ),
-        # migrations.RemoveField(
-        #     model_name='repositoryentity',
-        #     name='repository',
-        # ),
-        #
-        # migrations.AlterUniqueTogether(
-        #     name='repositoryentity',
-        #     unique_together={('repository_version', 'value')},
-        # ),
-        # migrations.DeleteModel(
-        #     name='RepositoryEntityLabel',
-        # ),
-        # migrations.AlterUniqueTogether(
-        #     name='repositoryentitygroup',
-        #     unique_together={('repository_version', 'value')},
-        # ),
     ]
