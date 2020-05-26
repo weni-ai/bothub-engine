@@ -594,6 +594,7 @@ class RepositoryExampleViewSet(
         for data in json_data:
             response_data = data
             response_data["repository"] = request.data.get("repository")
+            response_data["repository_version"] = request.data.get("repository_version")
             serializer = RepositoryExampleSerializer(
                 data=response_data, context={"request": request}
             )

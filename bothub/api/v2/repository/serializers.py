@@ -849,14 +849,14 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
     )
 
     entities = RepositoryExampleEntitySerializer(
-        many=True, style={"text_field": "text"}, required=False
+        many=True, style={"text_field": "text"}, required=True
     )
     translations = RepositoryTranslatedExampleSerializer(many=True, read_only=True)
     repository_version = RepositoryVersionRelatedField(
         source="repository_version_language",
         queryset=RepositoryVersion.objects,
         style={"show": False},
-        required=False,
+        required=True,
         validators=[CanContributeInRepositoryVersionValidator()],
     )
 
@@ -923,7 +923,7 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
         entities_data = validated_data.pop("entities")
         validated_data.pop("repository")
         validated_data.pop("repository_version_language")
-        validated_data.pop("language")
+        validated_data.pop("language", None)
 
         instance_update = super().update(instance, validated_data)
 

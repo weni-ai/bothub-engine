@@ -1199,7 +1199,11 @@ class RepositoryExampleUploadTestCase(TestCase):
 
         request = self.factory.post(
             "/v2/repository/example/upload_examples/",
-            {"file": uploaded_file, "repository": str(self.repository.uuid)},
+            {
+                "file": uploaded_file,
+                "repository": str(self.repository.uuid),
+                "repository_version": self.repository.current_version().repository_version.pk,
+            },
             format="multipart",
             **authorization_header,
         )
@@ -1334,7 +1338,13 @@ class RepositoryExampleUpdateTestCase(TestCase):
         response, content_data = self.request(
             self.example,
             self.owner_token,
-            {"repository": str(self.repository.uuid), "text": text, "intent": intent},
+            {
+                "repository": str(self.repository.uuid),
+                "text": text,
+                "intent": intent,
+                "entities": [],
+                "repository_version": self.repository.current_version().repository_version.pk,
+            },
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -1389,6 +1399,7 @@ class NewRepositoryExampleTestCase(TestCase):
                 "text": text,
                 "intent": intent,
                 "entities": [],
+                "repository_version": self.repository.current_version().repository_version.pk,
             },
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -1407,6 +1418,7 @@ class NewRepositoryExampleTestCase(TestCase):
                 "language": language,
                 "intent": intent,
                 "entities": [],
+                "repository_version": self.repository.current_version().repository_version.pk,
             },
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -1461,6 +1473,7 @@ class NewRepositoryExampleTestCase(TestCase):
                 "text": "my name is user",
                 "intent": "greet",
                 "entities": [{"start": 11, "end": 18, "entity": "name"}],
+                "repository_version": self.repository.current_version().repository_version.pk,
             },
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -1477,6 +1490,7 @@ class NewRepositoryExampleTestCase(TestCase):
                 "intent": intent,
                 "language": languages.LANGUAGE_EN,
                 "entities": [],
+                "repository_version": self.repository.current_version().repository_version.pk,
             },
         )
 
@@ -1490,6 +1504,7 @@ class NewRepositoryExampleTestCase(TestCase):
                 "text": text,
                 "intent": intent,
                 "entities": [],
+                "repository_version": self.repository.current_version().repository_version.pk,
             },
         )
 
@@ -1498,22 +1513,6 @@ class NewRepositoryExampleTestCase(TestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-    def test_with_entities_with_label(self):
-        response, content_data = self.request(
-            self.owner_token,
-            {
-                "repository": str(self.repository.uuid),
-                "language": languages.LANGUAGE_EN,
-                "text": "my name is user",
-                "intent": "greet",
-                "entities": [{"start": 11, "end": 18, "entity": "name"}],
-            },
-        )
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(len(content_data.get("entities")), 1)
-        id = content_data.get("id")
-        RepositoryExample.objects.get(id=id)
 
     def test_intent_or_entity_required(self):
         response, content_data = self.request(
