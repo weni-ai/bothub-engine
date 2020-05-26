@@ -74,6 +74,4 @@ class Migration(migrations.Migration):
 
     dependencies = [("common", "0059_auto_20200525_1122")]
 
-    operations = [
-        migrations.RunPython(migrate, noop),
-    ]
+    operations = [migrations.RunPython(migrate, noop)]
