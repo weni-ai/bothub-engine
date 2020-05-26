@@ -425,7 +425,7 @@ class NewRepositorySerializer(serializers.ModelSerializer):
                     "group_id": group.pk,
                     "entities": list(
                         map(
-                            lambda e: e.value,
+                            lambda e: {"entity_id": e.pk, "value": e.value},
                             group.other_entities(
                                 queryset=queryset, version_default=obj.is_default
                             )
@@ -460,7 +460,9 @@ class NewRepositorySerializer(serializers.ModelSerializer):
         return {
             "repository": obj.repository.pk,
             "value": "other",
-            "entities": list(map(lambda e: e.value, group)),
+            "entities": list(
+                map(lambda e: {"entity_id": e.pk, "value": e.value}, group)
+            ),
             "examples__count": (
                 obj.repository.examples(
                     queryset=queryset, version_default=obj.is_default
