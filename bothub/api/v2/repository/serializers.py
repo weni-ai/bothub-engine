@@ -2,6 +2,7 @@ import json
 
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
+from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied
 
@@ -100,14 +101,11 @@ class RepositoryCategorySerializer(serializers.ModelSerializer):
 class RepositoryEntityGroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = RepositoryEntityGroup
-        fields = [
-            "repository_version__repository",
-            "value",
-            "entities",
-            "examples__count",
-        ]
+        fields = ["id", "repository", "value", "entities", "examples__count"]
         ref_name = None
 
+    id = serializers.PrimaryKeyRelatedField(read_only=True)
+    repository = serializers.UUIDField(source="repository_version.repository.uuid")
     entities = serializers.SerializerMethodField()
     examples__count = serializers.SerializerMethodField()
 
@@ -1024,16 +1022,31 @@ class RepositoryNLPLogSerializer(serializers.ModelSerializer):
 class RepositoryEntitySerializer(serializers.ModelSerializer):
     class Meta:
         model = RepositoryEntity
-        fields = ["repository", "value", "group"]
+        fields = ["id", "repository", "value", "group_id", "group"]
         ref_name = None
 
-    repository = serializers.UUIDField(source="repository_version.repository")
-    group = serializers.SerializerMethodField()
+    id = serializers.PrimaryKeyRelatedField(read_only=True)
+    repository = serializers.UUIDField(
+        source="repository_version.repository", read_only=True
+    )
+    group_id = serializers.IntegerField(
+        required=False,
+        allow_null=True,
+        help_text=_("Allows you to define a group for a specific entity"),
+    )
+    group = RepositoryEntityGroupSerializer(many=False, read_only=True)
 
-    def get_group(self, obj):
-        if not obj.group:
-            return None
-        return obj.group.value
+    def update(self, instance, validated_data):
+        group_id = validated_data.get("group_id", False)
+        if group_id or group_id is None:
+            if group_id is None:
+                instance.group = None
+            else:
+                instance.group = get_object_or_404(RepositoryEntityGroup, pk=group_id)
+            instance.save(update_fields=["group"])
+            validated_data.pop("group_id")
+
+        return super().update(instance, validated_data)
 
 
 class RasaUploadSerializer(serializers.Serializer):

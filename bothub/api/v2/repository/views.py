@@ -622,11 +622,17 @@ class RepositoryNLPLogViewSet(
     ordering_fields = ["-created_at"]
 
 
-class RepositoryEntitiesViewSet(mixins.ListModelMixin, GenericViewSet):
-    queryset = RepositoryEntity.objects.all()
+class RepositoryEntitiesViewSet(
+    mixins.ListModelMixin, mixins.UpdateModelMixin, GenericViewSet
+):
+    queryset = RepositoryEntity.objects
     serializer_class = RepositoryEntitySerializer
-    filter_class = RepositoryEntitiesFilter
     permission_classes = [IsAuthenticated, RepositoryEntityHasPermission]
+
+    def list(self, request, *args, **kwargs):
+        self.queryset = RepositoryEntity.objects.all()
+        self.filter_class = RepositoryEntitiesFilter
+        return super().list(request, *args, **kwargs)
 
 
 class RasaUploadViewSet(
