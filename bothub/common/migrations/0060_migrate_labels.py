@@ -72,6 +72,6 @@ def migrate(apps, schema_editor):  # pragma: no cover
 
 class Migration(migrations.Migration):
 
-    dependencies = [("common", "0056_auto_20200520_1220")]
+    dependencies = [("common", "0059_auto_20200525_1122")]
 
     operations = [migrations.RunPython(migrate, noop)]

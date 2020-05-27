@@ -1,16 +1,10 @@
-from django_filters import rest_framework as filters
-from django.utils.translation import ugettext_lazy as _
-from django.db.models import Q
-from rest_framework.exceptions import PermissionDenied
-from rest_framework.exceptions import NotFound
 from django.core.exceptions import ValidationError as DjangoValidationError
+from django.utils.translation import ugettext_lazy as _
+from django_filters import rest_framework as filters
+from rest_framework.exceptions import NotFound
+from rest_framework.exceptions import PermissionDenied
 
-from bothub.common.models import (
-    Repository,
-    RepositoryNLPLog,
-    RepositoryNLPLogIntent,
-    RepositoryEntity,
-)
+from bothub.common.models import Repository, RepositoryNLPLog, RepositoryEntity
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RequestRepositoryAuthorization
 
@@ -134,11 +128,7 @@ class RepositoryNLPLogFilter(filters.FilterSet):
 
     def filter_intent(self, queryset, name, value):
         return queryset.filter(
-            Q(
-                pk__in=RepositoryNLPLogIntent.objects.filter(intent=value).values(
-                    "repository_nlp_log"
-                )
-            )
+            repository_nlp_log__intent=value, repository_nlp_log__is_default=True
         )
 
 

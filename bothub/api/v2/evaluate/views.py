@@ -132,7 +132,6 @@ class EvaluateViewSet(
         self.filter_backends = [OrderingFilter, SearchFilter, DjangoFilterBackend]
         self.search_fields = ["$text", "^text", "=text"]
         self.ordering_fields = ["created_at"]
-
         return super().list(request, *args, **kwargs)
 
 

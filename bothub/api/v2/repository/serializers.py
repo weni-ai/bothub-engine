@@ -2,6 +2,7 @@ import json
 
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
+from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied
 
@@ -18,6 +19,7 @@ from bothub.common.models import (
     RepositoryNLPLog,
     RepositoryEntity,
     RepositoryEvaluate,
+    RepositoryExampleEntity,
 )
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryCategory
@@ -99,14 +101,11 @@ class RepositoryCategorySerializer(serializers.ModelSerializer):
 class RepositoryEntityGroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = RepositoryEntityGroup
-        fields = [
-            "repository_version__repository",
-            "value",
-            "entities",
-            "examples__count",
-        ]
+        fields = ["id", "repository", "value", "entities", "examples__count"]
         ref_name = None
 
+    id = serializers.PrimaryKeyRelatedField(read_only=True)
+    repository = serializers.UUIDField(source="repository_version.repository.uuid")
     entities = serializers.SerializerMethodField()
     examples__count = serializers.SerializerMethodField()
 
@@ -421,9 +420,10 @@ class NewRepositorySerializer(serializers.ModelSerializer):
                 lambda group: {
                     "repository": group.repository_version.repository.pk,
                     "value": group.value,
+                    "group_id": group.pk,
                     "entities": list(
                         map(
-                            lambda e: e.value,
+                            lambda e: {"entity_id": e.pk, "value": e.value},
                             group.other_entities(
                                 queryset=queryset, version_default=obj.is_default
                             )
@@ -458,7 +458,9 @@ class NewRepositorySerializer(serializers.ModelSerializer):
         return {
             "repository": obj.repository.pk,
             "value": "other",
-            "entities": list(map(lambda e: e.value, group)),
+            "entities": list(
+                map(lambda e: {"entity_id": e.pk, "value": e.value}, group)
+            ),
             "examples__count": (
                 obj.repository.examples(
                     queryset=queryset, version_default=obj.is_default
@@ -832,14 +834,14 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
     )
 
     entities = RepositoryExampleEntitySerializer(
-        many=True, style={"text_field": "text"}, required=False
+        many=True, style={"text_field": "text"}, required=True
     )
     translations = RepositoryTranslatedExampleSerializer(many=True, read_only=True)
     repository_version = RepositoryVersionRelatedField(
         source="repository_version_language",
         queryset=RepositoryVersion.objects,
         style={"show": False},
-        required=False,
+        required=True,
         validators=[CanContributeInRepositoryVersionValidator()],
     )
 
@@ -901,6 +903,23 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
             entity_serializer.is_valid(raise_exception=True)
             entity_serializer.save()
         return example
+
+    def update(self, instance, validated_data):
+        entities_data = validated_data.pop("entities")
+        validated_data.pop("repository")
+        validated_data.pop("repository_version_language")
+        validated_data.pop("language", None)
+
+        instance_update = super().update(instance, validated_data)
+
+        RepositoryExampleEntity.objects.filter(repository_example=instance.pk).delete()
+
+        for entity_data in entities_data:
+            entity_data.update({"repository_example": instance.pk})
+            entity_serializer = RepositoryExampleEntitySerializer(data=entity_data)
+            entity_serializer.is_valid(raise_exception=True)
+            entity_serializer.save()
+        return instance_update
 
 
 class AnalyzeTextSerializer(serializers.Serializer):
@@ -990,16 +1009,31 @@ class RepositoryNLPLogSerializer(serializers.ModelSerializer):
 class RepositoryEntitySerializer(serializers.ModelSerializer):
     class Meta:
         model = RepositoryEntity
-        fields = ["repository", "value", "group"]
+        fields = ["id", "repository", "value", "group_id", "group"]
         ref_name = None
 
-    repository = serializers.UUIDField(source="repository_version.repository")
-    group = serializers.SerializerMethodField()
+    id = serializers.PrimaryKeyRelatedField(read_only=True)
+    repository = serializers.UUIDField(
+        source="repository_version.repository", read_only=True
+    )
+    group_id = serializers.IntegerField(
+        required=False,
+        allow_null=True,
+        help_text=_("Allows you to define a group for a specific entity"),
+    )
+    group = RepositoryEntityGroupSerializer(many=False, read_only=True)
 
-    def get_group(self, obj):
-        if not obj.group:
-            return None
-        return obj.group.value
+    def update(self, instance, validated_data):
+        group_id = validated_data.get("group_id", False)
+        if group_id or group_id is None:
+            if group_id is None:
+                instance.group = None
+            else:
+                instance.group = get_object_or_404(RepositoryEntityGroup, pk=group_id)
+            instance.save(update_fields=["group"])
+            validated_data.pop("group_id")
+
+        return super().update(instance, validated_data)
 
 
 class RasaUploadSerializer(serializers.Serializer):

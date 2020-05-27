@@ -734,7 +734,7 @@ class RepositoryVersionLanguage(models.Model):
     language = models.CharField(
         _("language"), max_length=5, validators=[languages.validate_language]
     )
-    bot_data = models.TextField(_("bot data"), blank=True)
+    # bot_data = models.TextField(_("bot data"), blank=True)
     training_started_at = models.DateTimeField(
         _("training started at"), blank=True, null=True
     )
@@ -756,6 +756,9 @@ class RepositoryVersionLanguage(models.Model):
     total_training_end = models.IntegerField(
         _("total training end"), default=0, blank=False, null=False
     )
+
+    # @property
+    # def get_trainer(self):
 
     @property
     def examples(self):
@@ -889,28 +892,50 @@ class RepositoryVersionLanguage(models.Model):
         )
         self.repository_version.save(update_fields=["created_by"])
 
-    def save_training(self, bot_data):
+    def get_trainer(self, rasa_version):
+        trainer, created = RepositoryNLPTrain.objects.get_or_create(
+            repositoryversionlanguage=self, rasa_version=rasa_version
+        )
+        return trainer
+
+    def update_trainer(self, bot_data, rasa_version):
+        trainer, created = RepositoryNLPTrain.objects.get_or_create(
+            repositoryversionlanguage=self, rasa_version=rasa_version
+        )
+        trainer.bot_data = bot_data
+        trainer.save(update_fields=["bot_data"])
+
+    def save_training(self, bot_data, rasa_version):
         last_time = timezone.now()
 
         self.training_end_at = last_time
         self.last_update = last_time
-        self.bot_data = bot_data
+        self.update_trainer(bot_data, rasa_version=rasa_version)
         self.total_training_end += 1
         self.save(
-            update_fields=[
-                "total_training_end",
-                "training_end_at",
-                "bot_data",
-                "last_update",
-            ]
+            update_fields=["total_training_end", "training_end_at", "last_update"]
         )
 
+    @property
     def get_bot_data(self):
-        return self.bot_data
+        return self.get_trainer(settings.BOTHUB_NLP_RASA_VERSION)
 
     def train_fail(self):
         self.failed_at = timezone.now()
         self.save(update_fields=["failed_at"])
+
+
+class RepositoryNLPTrain(models.Model):
+    class Meta:
+        verbose_name = _("repository nlp train")
+        unique_together = ["repositoryversionlanguage", "rasa_version"]
+
+    bot_data = models.TextField(_("bot data"), blank=True)
+    repositoryversionlanguage = models.ForeignKey(
+        RepositoryVersionLanguage, models.CASCADE, related_name="trainers"
+    )
+    rasa_version = models.CharField(_("Rasa Version Code"), max_length=20)
+    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
 
 
 class RepositoryNLPLog(models.Model):
@@ -945,7 +970,11 @@ class RepositoryNLPLogIntent(models.Model):
     confidence = models.FloatField(help_text=_("Confidence"))
     is_default = models.BooleanField(help_text=_("is default, intent selected"))
     repository_nlp_log = models.ForeignKey(
-        RepositoryNLPLog, models.CASCADE, editable=False, null=True
+        RepositoryNLPLog,
+        models.CASCADE,
+        editable=False,
+        null=True,
+        related_name="repository_nlp_log",
     )
 
 
@@ -1068,6 +1097,20 @@ class RepositoryTranslatedExample(models.Model):
 
     objects = RepositoryTranslatedExampleManager()
 
+    def save(self, *args, **kwargs):
+        self.original_example.last_update = timezone.now()
+        self.original_example.save(update_fields=["last_update"])
+        self.repository_version_language.last_update = timezone.now()
+        self.repository_version_language.save(update_fields=["last_update"])
+        super(RepositoryTranslatedExample, self).save(*args, **kwargs)
+
+    def delete(self, using=None, keep_parents=False):
+        self.original_example.last_update = timezone.now()
+        self.original_example.save(update_fields=["last_update"])
+        self.repository_version_language.last_update = timezone.now()
+        self.repository_version_language.save(update_fields=["last_update"])
+        super(RepositoryTranslatedExample, self).delete(using, keep_parents)
+
     def entities_list_lambda_sort(item):
         return item.get("entity")
 
@@ -1106,19 +1149,6 @@ class RepositoryTranslatedExample(models.Model):
         )
 
 
-class RepositoryEntityGroupQueryset(models.QuerySet):
-    def get(self, repository_version, value):
-        try:
-            return super().get(repository_version=repository_version, value=value)
-        except self.model.DoesNotExist:
-            return super().create(repository_version=repository_version, value=value)
-
-
-class RepositoryEntityGroupManager(models.Manager):
-    def get_queryset(self):
-        return RepositoryEntityGroupQueryset(self.model, using=self._db)
-
-
 class RepositoryEntityGroup(models.Model):
     class Meta:
         unique_together = ["repository_version", "value"]
@@ -1134,8 +1164,6 @@ class RepositoryEntityGroup(models.Model):
     )
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
 
-    objects = RepositoryEntityGroupManager()
-
     def examples(self, queryset=None, version_default=None):  # pragma: no cover
         return self.repository_version.repository.examples(
             queryset=queryset, version_default=version_default
@@ -1144,17 +1172,18 @@ class RepositoryEntityGroup(models.Model):
 
 class RepositoryEntityQueryset(models.QuerySet):
     """
-    Customized QuerySet created on account of evaluate, when creating a test phrase in evaluate, it sends to the model entity of evaluate the reference of the entities in the examples, it was done just when there is no entity, in evaluate it does not create
+    Customized QuerySet created on account of evaluate, when creating a test phrase in evaluate, it sends to the model
+     entity of evaluate the reference of the entities in the examples, it was done just when there is no entity,
+     in evaluate it does not create
     """
 
-    def get(self, repository_version, value, create_entity=True):
+    def get(self, create_entity=True, *args, **kwargs):
         try:
-            return super().get(repository_version=repository_version, value=value)
+            return super().get(*args, **kwargs)
         except self.model.DoesNotExist:
             if not create_entity:
                 raise self.model.DoesNotExist  # pragma: no cover
-
-            return super().create(repository_version=repository_version, value=value)
+            return super().get(*args, **kwargs)
 
 
 class RepositoryEntityManager(models.Manager):
@@ -1194,7 +1223,7 @@ class RepositoryEntity(models.Model):
         if not value:
             self.group = None
         else:
-            self.group = RepositoryEntityGroup.objects.get(
+            self.group, created = RepositoryEntityGroup.objects.get_or_create(
                 repository_version=self.repository_version, value=value
             )
 
