@@ -8,7 +8,9 @@ from bothub.api.v2.metadata import Metadata
 from bothub.common.models import RepositoryEntityGroup
 
 
-class RepositoryEntityGroupViewSet(mixins.CreateModelMixin, GenericViewSet):
+class RepositoryEntityGroupViewSet(
+    mixins.CreateModelMixin, mixins.DestroyModelMixin, GenericViewSet
+):
     queryset = RepositoryEntityGroup.objects
     serializer_class = RepositoryEntityGroupSeralizer
     permission_classes = [IsAuthenticated, RepositoryEntityGroupHasPermission]

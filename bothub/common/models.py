@@ -1149,19 +1149,6 @@ class RepositoryTranslatedExample(models.Model):
         )
 
 
-class RepositoryEntityGroupQueryset(models.QuerySet):
-    def get(self, repository_version, value):
-        try:
-            return super().get(repository_version=repository_version, value=value)
-        except self.model.DoesNotExist:
-            return super().create(repository_version=repository_version, value=value)
-
-
-class RepositoryEntityGroupManager(models.Manager):
-    def get_queryset(self):
-        return RepositoryEntityGroupQueryset(self.model, using=self._db)
-
-
 class RepositoryEntityGroup(models.Model):
     class Meta:
         unique_together = ["repository_version", "value"]
@@ -1177,8 +1164,6 @@ class RepositoryEntityGroup(models.Model):
     )
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
 
-    objects = RepositoryEntityGroupManager()
-
     def examples(self, queryset=None, version_default=None):  # pragma: no cover
         return self.repository_version.repository.examples(
             queryset=queryset, version_default=version_default
@@ -1187,21 +1172,18 @@ class RepositoryEntityGroup(models.Model):
 
 class RepositoryEntityQueryset(models.QuerySet):
     """
-    Customized QuerySet created on account of evaluate, when creating a test phrase in evaluate, it sends to the model entity of evaluate the reference of the entities in the examples, it was done just when there is no entity, in evaluate it does not create
+    Customized QuerySet created on account of evaluate, when creating a test phrase in evaluate, it sends to the model
+     entity of evaluate the reference of the entities in the examples, it was done just when there is no entity,
+     in evaluate it does not create
     """
 
-    def get(self, repository_version, value, create_entity=True, *args, **kwargs):
+    def get(self, create_entity=True, *args, **kwargs):
         try:
-            return super().get(
-                repository_version=repository_version, value=value, **kwargs
-            )
+            return super().get(*args, **kwargs)
         except self.model.DoesNotExist:
             if not create_entity:
                 raise self.model.DoesNotExist  # pragma: no cover
-
-            return super().create(
-                repository_version=repository_version, value=value, **kwargs
-            )
+            return super().get(*args, **kwargs)
 
 
 class RepositoryEntityManager(models.Manager):
@@ -1241,7 +1223,7 @@ class RepositoryEntity(models.Model):
         if not value:
             self.group = None
         else:
-            self.group = RepositoryEntityGroup.objects.get(
+            self.group, created = RepositoryEntityGroup.objects.get_or_create(
                 repository_version=self.repository_version, value=value
             )
 
