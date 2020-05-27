@@ -623,7 +623,10 @@ class RepositoryNLPLogViewSet(
 
 
 class RepositoryEntitiesViewSet(
-    mixins.ListModelMixin, mixins.UpdateModelMixin, GenericViewSet
+    mixins.ListModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    GenericViewSet,
 ):
     queryset = RepositoryEntity.objects
     serializer_class = RepositoryEntitySerializer
