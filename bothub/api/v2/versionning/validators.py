@@ -12,13 +12,15 @@ class VersionNameNotExistValidator(object):
         name = attrs.get("name")
 
         if name and re.search("[^A-Za-z0-9]+", name):
-            raise ValidationError(_("Only letters and numbers allowed"))
+            raise ValidationError(
+                _("Only letters and numbers allowed")
+            )  # pragma: no cover
 
         if (
             RepositoryVersion.objects.filter(repository=repository, name=name).count()
             > 0
         ):
-            raise ValidationError(_("This Repository already exists"))
+            raise ValidationError(_("This Repository Version already exists"))
 
 
 class CanUseNameVersionValidator(object):
