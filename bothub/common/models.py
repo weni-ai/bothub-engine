@@ -1286,11 +1286,19 @@ class EntityBase(models.Model):
 
     @property
     def rasa_nlu_data(self):  # pragma: no cover
+        if self.entity.group is not None or self.entity.group == "":
+            return {
+                "start": self.start,
+                "end": self.end,
+                "value": self.value,
+                "entity": self.entity.value
+            }
         return {
             "start": self.start,
             "end": self.end,
             "value": self.value,
             "entity": self.entity.value,
+            "role": self.entity.group.value,
         }
 
     @property
