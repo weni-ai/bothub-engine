@@ -35,7 +35,7 @@ validate_item_key = RegexValidator(
 )
 
 
-def can_t_be_other(value):
+def can_t_be_other(value):  # pragma: no cover
     if value == "other":
         raise ValidationError(_('The label can\'t be named as "other"'))
 
@@ -460,7 +460,7 @@ class Repository(models.Model):
         )
 
     @property
-    def requirements_to_train(self):
+    def requirements_to_train(self):  # pragma: no cover
         return dict(
             filter(
                 lambda l: l[1],
@@ -472,7 +472,7 @@ class Repository(models.Model):
         )
 
     @property
-    def languages_ready_for_train(self):
+    def languages_ready_for_train(self):  # pragma: no cover
         return dict(
             map(lambda u: (u.language, u.ready_for_train), self.current_versions())
         )
@@ -490,7 +490,7 @@ class Repository(models.Model):
             False,
         )
 
-    def languages_warnings(self, language=None, queryset=None, version_default=True):
+    def languages_warnings(self, language=None, queryset=None, version_default=True):  # pragma: no cover
         return dict(
             filter(
                 lambda w: len(w[1]) > 0,
@@ -547,7 +547,7 @@ class Repository(models.Model):
             query = query.filter(repository_version_language__language=language)
         return query
 
-    def evaluations(self, language=None, queryset=None, version_default=True):
+    def evaluations(self, language=None, queryset=None, version_default=True):  # pragma: no cover
         if queryset is None:
             queryset = RepositoryEvaluate.objects
         query = queryset.filter(
@@ -624,7 +624,7 @@ class Repository(models.Model):
         )
         return repository_version_language
 
-    def last_trained_update(self, language=None):
+    def last_trained_update(self, language=None):  # pragma: no cover
         language = language or self.language
         version = self.versions.filter(is_default=True).first()
 
@@ -634,7 +634,7 @@ class Repository(models.Model):
             ).first()
         return RepositoryVersionLanguage.objects.none()
 
-    def get_specific_version_language(self, language=None):
+    def get_specific_version_language(self, language=None):  # pragma: no cover
         query = RepositoryVersionLanguage.objects.filter(
             repository_version__repository=self
         )
@@ -700,7 +700,7 @@ class RepositoryVersion(models.Model):
             .distinct()
         )
 
-    def entities_list(self, queryset=None, version_default=None):
+    def entities_list(self, queryset=None, version_default=None):  # pragma: no cover
         return (
             self.current_entities(queryset=queryset, version_default=version_default)
             .values_list("value", flat=True)
