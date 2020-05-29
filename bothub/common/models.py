@@ -490,7 +490,9 @@ class Repository(models.Model):
             False,
         )
 
-    def languages_warnings(self, language=None, queryset=None, version_default=True):  # pragma: no cover
+    def languages_warnings(
+        self, language=None, queryset=None, version_default=True
+    ):  # pragma: no cover
         return dict(
             filter(
                 lambda w: len(w[1]) > 0,
@@ -547,7 +549,9 @@ class Repository(models.Model):
             query = query.filter(repository_version_language__language=language)
         return query
 
-    def evaluations(self, language=None, queryset=None, version_default=True):  # pragma: no cover
+    def evaluations(
+        self, language=None, queryset=None, version_default=True
+    ):  # pragma: no cover
         if queryset is None:
             queryset = RepositoryEvaluate.objects
         query = queryset.filter(
@@ -1164,6 +1168,16 @@ class RepositoryEntityGroup(models.Model):
             queryset=queryset, version_default=version_default
         ).filter(entities__entity__group=self)
 
+    def delete(self, using=None, keep_parents=False):
+        """
+            Before deleting the group it updates all the entities and places
+            it as not grouped so that they are not deleted
+        """
+        self.entities.filter(
+            repository_version=self.repository_version, group=self
+        ).update(group=None)
+        return super().delete(using=using, keep_parents=keep_parents)
+
 
 class RepositoryEntityQueryset(models.QuerySet):
     """
@@ -1286,7 +1300,7 @@ class EntityBase(models.Model):
                 "start": self.start,
                 "end": self.end,
                 "value": self.value,
-                "entity": self.entity.value
+                "entity": self.entity.value,
             }
         return {
             "start": self.start,
