@@ -521,7 +521,7 @@ class RepositoryVersionExamplesTestCase(TestCase):
             text="good morning",
             intent="greet",
         )
-        self.assertEqual(self.update.examples.count(), 2)
+        self.assertEqual(self.update.examples.count(), 3)
         self.assertEqual(new_update_1.examples.count(), 3)
         self.assertEqual(new_update_2.examples.count(), 3)
 

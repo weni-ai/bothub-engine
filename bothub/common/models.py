@@ -757,9 +757,6 @@ class RepositoryVersionLanguage(models.Model):
         _("total training end"), default=0, blank=False, null=False
     )
 
-    # @property
-    # def get_trainer(self):
-
     @property
     def examples(self):
         examples = self.repository_version.repository.examples(
@@ -768,9 +765,7 @@ class RepositoryVersionLanguage(models.Model):
             models.Q(repository_version_language__language=self.language)
             | models.Q(translations__language=self.language)
         )
-        if self.training_end_at and (self.training_end_at >= self.last_update):
-            examples = examples.exclude(models.Q(last_update__lte=self.training_end_at))
-        return examples.distinct()
+        return examples
 
     @property
     def requirements_to_train(self):
