@@ -34,7 +34,7 @@ class ListExamplesAPITestCase(TestCase):
         entity_1 = RepositoryExampleEntity.objects.create(
             repository_example=self.example_1, start=0, end=0, entity="hi"
         )
-        entity_1.entity.set_label("greet")
+        entity_1.entity.set_group("greet")
         entity_1.entity.save()
         self.example_2 = RepositoryExample.objects.create(
             repository_version_language=self.repository.current_version(),
@@ -210,7 +210,7 @@ class ListExamplesAPITestCase(TestCase):
 
     def test_filter_label(self):
         response, content_data = self.request(
-            {"repository_uuid": self.repository.uuid, "label": "greet"},
+            {"repository_uuid": self.repository.uuid, "group": "greet"},
             self.owner_token,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)

@@ -135,13 +135,20 @@ class RepositoryNLPLogFilter(filters.FilterSet):
 class RepositoryEntitiesFilter(filters.FilterSet):
     class Meta:
         model = RepositoryEntity
-        fields = ["repository_uuid", "value"]
+        fields = ["repository_uuid", "repository_version", "value"]
 
-    repository_uuid = filters.CharFilter(
+    repository_uuid = filters.UUIDFilter(
         field_name="repository_uuid",
         required=True,
         method="filter_repository_uuid",
         help_text=_("Repository's UUID"),
+    )
+
+    repository_version = filters.CharFilter(
+        field_name="repository_version",
+        required=True,
+        method="filter_repository_version",
+        help_text=_("Repository Version ID"),
     )
 
     def filter_repository_uuid(self, queryset, name, value):
@@ -151,8 +158,11 @@ class RepositoryEntitiesFilter(filters.FilterSet):
             authorization = repository.get_user_authorization(request.user)
             if not authorization.can_translate:
                 raise PermissionDenied()
-            return queryset.filter(repository=repository)
+            return queryset.filter(repository_version__repository=repository)
         except Repository.DoesNotExist:
             raise NotFound(_("Repository {} does not exist").format(value))
         except DjangoValidationError:
             raise NotFound(_("Invalid repository UUID"))
+
+    def filter_repository_version(self, queryset, name, value):
+        return queryset.filter(repository_version=value)
