@@ -39,10 +39,10 @@ class ExamplesFilter(filters.FilterSet):
         method="filter_order_by_translation",
         help_text=_("Order examples with translation by language"),
     )
-    label = filters.CharFilter(
-        field_name="label",
-        method="filter_label",
-        help_text=_("Filter for examples with entities with specific label."),
+    group = filters.CharFilter(
+        field_name="group",
+        method="filter_group",
+        help_text=_("Filter for examples with entities with specific group."),
     )
     entity = filters.CharFilter(
         field_name="entity",
@@ -106,10 +106,10 @@ class ExamplesFilter(filters.FilterSet):
         )
         return result_queryset
 
-    def filter_label(self, queryset, name, value):
+    def filter_group(self, queryset, name, value):
         if value == "other":
-            return queryset.filter(entities__entity__label__isnull=True)
-        return queryset.filter(entities__entity__label__value=value)
+            return queryset.filter(entities__entity__group__isnull=True)
+        return queryset.filter(entities__entity__group__value=value)
 
     def filter_entity(self, queryset, name, value):
         return queryset.filter(entities__entity__value=value)

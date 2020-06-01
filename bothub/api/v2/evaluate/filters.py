@@ -30,10 +30,10 @@ class EvaluatesFilter(filters.FilterSet):
         help_text="Filter by language, default is repository base language",
     )
 
-    label = filters.CharFilter(
-        field_name="label",
-        method="filter_label",
-        help_text=_("Filter evaluations with entities with a specific label."),
+    group = filters.CharFilter(
+        field_name="group",
+        method="filter_group",
+        help_text=_("Filter evaluations with entities with a specific group."),
     )
 
     entity = filters.CharFilter(
@@ -77,10 +77,10 @@ class EvaluatesFilter(filters.FilterSet):
     def filter_repository_version(self, queryset, name, value):
         return queryset
 
-    def filter_label(self, queryset, name, value):
+    def filter_group(self, queryset, name, value):
         if value == "other":
-            return queryset.filter(entities__entity__label__isnull=True)
-        return queryset.filter(entities__entity__label__value=value)
+            return queryset.filter(entities__entity__group__isnull=True)
+        return queryset.filter(entities__entity__group__value=value)
 
     def filter_entity(self, queryset, name, value):
         return queryset.filter(entities__entity__value=value)

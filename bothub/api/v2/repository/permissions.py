@@ -52,7 +52,9 @@ class RepositoryExamplePermission(permissions.BasePermission):
 
 class RepositoryEntityHasPermission(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
-        authorization = obj.repository.get_user_authorization(request.user)
+        authorization = obj.repository_version.repository.get_user_authorization(
+            request.user
+        )
         if request.method in READ_METHODS:
             return authorization.can_read
         if request.user.is_authenticated:
