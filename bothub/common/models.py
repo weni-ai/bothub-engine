@@ -1036,7 +1036,18 @@ class RepositoryExample(models.Model):
     def delete(self, using=None, keep_parents=False):
         self.repository_version_language.last_update = timezone.now()
         self.repository_version_language.save(update_fields=["last_update"])
-        return super().delete(using, keep_parents)
+
+        instance = super().delete(using, keep_parents)
+
+        repository_version = self.repository_version_language.repository_version
+
+        RepositoryEntity.objects.exclude(
+            pk__in=RepositoryExampleEntity.objects.filter(
+                repository_example__repository_version_language__repository_version=repository_version
+            ).values("entity")
+        ).filter(repository_version=repository_version).delete()
+
+        return instance
 
 
 class RepositoryTranslatedExampleManager(models.Manager):
