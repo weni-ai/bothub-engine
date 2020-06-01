@@ -1306,7 +1306,7 @@ class EntityBase(models.Model):
 
     @property
     def rasa_nlu_data(self):  # pragma: no cover
-        if self.entity.group is not None or self.entity.group == "":
+        if self.entity.group is None or self.entity.group == "":
             return {
                 "start": self.start,
                 "end": self.end,
