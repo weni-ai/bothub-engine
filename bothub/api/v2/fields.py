@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
-from bothub.common.models import RepositoryEntity, RepositoryVersionLanguage
-from bothub.common.models import RepositoryEntityGroup
+from bothub.common.models import RepositoryEntity
+from bothub.common.models import RepositoryVersionLanguage
 
 
 class ModelMultipleChoiceField(serializers.ManyRelatedField):
