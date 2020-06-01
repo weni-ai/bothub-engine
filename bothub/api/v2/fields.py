@@ -40,24 +40,6 @@ class EntityValueField(serializers.CharField):
         return obj.value  # pragma: no cover
 
 
-class GroupValueField(serializers.CharField):  # pragma: no cover
-    def __init__(self, *args, validators=[], **kwargs):
-        kwargs.pop("max_length", 0)
-        kwargs.pop("help_text", "")
-
-        value_field = RepositoryEntityGroup._meta.get_field("value")
-
-        super().__init__(
-            *args,
-            max_length=value_field.max_length,
-            validators=(validators + value_field.validators),
-            **kwargs
-        )
-
-    def to_representation(self, obj):
-        return obj.value  # pragma: no cover
-
-
 class RepositoryVersionRelatedField(serializers.PrimaryKeyRelatedField):
     def to_representation(self, value):
         version = RepositoryVersionLanguage.objects.get(

@@ -2,7 +2,6 @@ from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 
 from bothub.api.v2.fields import EntityValueField, RepositoryVersionRelatedField
-from bothub.api.v2.fields import GroupValueField
 from bothub.api.v2.repository.validators import (
     EntityNotEqualGroupValidator,
     CanContributeInRepositoryVersionValidator,
@@ -31,12 +30,10 @@ class RepositoryExampleEntitySerializer(serializers.ModelSerializer):
     )
 
     entity = EntityValueField()
-    group = GroupValueField(allow_blank=True, required=False)
+    group = serializers.SerializerMethodField(required=False)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if kwargs.get("data") == "GET":
-            self.fields["group"] = serializers.SerializerMethodField(required=False)
         self.validators.append(EntityNotEqualGroupValidator())
 
     def get_group(self, obj):
@@ -48,13 +45,9 @@ class RepositoryExampleEntitySerializer(serializers.ModelSerializer):
         # TODO: Verificar
         repository_example = validated_data.pop("repository_example", None)
         assert repository_example
-        # group = validated_data.pop("group", empty)
         example_entity = self.Meta.model.objects.create(
             repository_example=repository_example, **validated_data
         )
-        # if group is not empty:
-        #     example_entity.entity.set_label(group)
-        #     example_entity.entity.save(update_fields=["label"])
         return example_entity
 
 
