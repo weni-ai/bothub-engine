@@ -225,7 +225,7 @@ class RepositoryAuthorizationParseViewSet(mixins.RetrieveModelMixin, GenericView
         )
         repository_entity = get_object_or_404(
             RepositoryEntity,
-            repository=repository_update.repository_version.repository,
+            repository_version=repository_update.repository_version,
             value=request.query_params.get("entity"),
         )
 
@@ -426,7 +426,7 @@ class RepositoryAuthorizationEvaluateViewSet(mixins.RetrieveModelMixin, GenericV
 
         RepositoryEvaluateResultEntity.objects.create(
             entity=RepositoryEntity.objects.get(
-                repository=repository_update.repository_version.repository,
+                repository_version=repository_update.repository_version,
                 value=request.data.get("entity_key"),
                 create_entity=False,
             ),
