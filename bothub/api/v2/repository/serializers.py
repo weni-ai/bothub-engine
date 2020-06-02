@@ -1,8 +1,8 @@
 import json
 
 from django.conf import settings
-from django.utils.translation import ugettext_lazy as _
 from django.shortcuts import get_object_or_404
+from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied
 
@@ -101,11 +101,20 @@ class RepositoryCategorySerializer(serializers.ModelSerializer):
 class RepositoryEntityGroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = RepositoryEntityGroup
-        fields = ["id", "repository", "value", "entities", "examples__count"]
+        fields = [
+            "id",
+            "repository_version",
+            "repository",
+            "value",
+            "entities",
+            "examples__count",
+        ]
         ref_name = None
 
     id = serializers.PrimaryKeyRelatedField(read_only=True)
-    repository = serializers.UUIDField(source="repository_version.repository.uuid")
+    repository = serializers.UUIDField(
+        source="repository_version.repository.uuid", read_only=True
+    )
     entities = serializers.SerializerMethodField()
     examples__count = serializers.SerializerMethodField()
 
@@ -344,7 +353,6 @@ class NewRepositorySerializer(serializers.ModelSerializer):
         return obj.groups.distinct().values_list("value", flat=True).distinct()
 
     def get_ready_for_train(self, obj):
-        # TODO: Verificar se realmente está funcionando
         queryset = RepositoryExample.objects.filter(
             repository_version_language__repository_version=obj
         )
@@ -353,7 +361,6 @@ class NewRepositorySerializer(serializers.ModelSerializer):
         )
 
     def get_requirements_to_train(self, obj):
-        # TODO: Verificar se realmente está funcionando
         queryset = RepositoryExample.objects.filter(
             repository_version_language__repository_version=obj
         )
@@ -406,13 +413,10 @@ class NewRepositorySerializer(serializers.ModelSerializer):
         return RepositoryCategorySerializer(obj.repository.categories, many=True).data
 
     def get_groups(self, obj):
-        # TODO: Verificar
-        # RepositoryEntityLabelSerializer # TODO: DELETAR SERIALIZER
         queryset = RepositoryExample.objects.filter(
             repository_version_language__repository_version=obj
         )
 
-        # TODO: remover antigo repository-info e apagar a @property
         current_groups = obj.groups.distinct()
 
         return list(
@@ -448,7 +452,6 @@ class NewRepositorySerializer(serializers.ModelSerializer):
         )
 
     def get_other_group(self, obj):
-        # RepositoryEntityLabelSerializer # TODO: DELETAR SERIALIZER
         queryset = RepositoryExample.objects.filter(
             repository_version_language__repository_version=obj
         )
@@ -540,7 +543,6 @@ class NewRepositorySerializer(serializers.ModelSerializer):
             return True
 
     def get_languages_warnings(self, obj):
-        # TODO: deletar languages_warnings em model
         queryset = RepositoryExample.objects.filter(
             repository_version_language__repository_version=obj
         )
@@ -1009,13 +1011,10 @@ class RepositoryNLPLogSerializer(serializers.ModelSerializer):
 class RepositoryEntitySerializer(serializers.ModelSerializer):
     class Meta:
         model = RepositoryEntity
-        fields = ["id", "repository", "value", "group_id", "group"]
+        fields = ["id", "repository_version", "value", "group_id", "group"]
         ref_name = None
 
     id = serializers.PrimaryKeyRelatedField(read_only=True)
-    repository = serializers.UUIDField(
-        source="repository_version.repository", read_only=True
-    )
     group_id = serializers.IntegerField(
         required=False,
         allow_null=True,
@@ -1025,11 +1024,16 @@ class RepositoryEntitySerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         group_id = validated_data.get("group_id", False)
+        repository_version = validated_data.get("repository_version")
         if group_id or group_id is None:
             if group_id is None:
                 instance.group = None
             else:
-                instance.group = get_object_or_404(RepositoryEntityGroup, pk=group_id)
+                instance.group = get_object_or_404(
+                    RepositoryEntityGroup,
+                    pk=group_id,
+                    repository_version=repository_version,
+                )
             instance.save(update_fields=["group"])
             validated_data.pop("group_id")
 
