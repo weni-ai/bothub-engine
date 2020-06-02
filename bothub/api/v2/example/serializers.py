@@ -42,7 +42,6 @@ class RepositoryExampleEntitySerializer(serializers.ModelSerializer):
         return obj.entity.group.value
 
     def create(self, validated_data):
-        # TODO: Verificar
         repository_example = validated_data.pop("repository_example", None)
         assert repository_example
         example_entity = self.Meta.model.objects.create(
