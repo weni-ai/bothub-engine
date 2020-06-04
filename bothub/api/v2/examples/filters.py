@@ -112,4 +112,4 @@ class ExamplesFilter(filters.FilterSet):
         return queryset.filter(entities__entity__group__value=value)
 
     def filter_entity(self, queryset, name, value):
-        return queryset.filter(entities__entity__value=value)
+        return queryset.filter(entities__entity__value=value).distinct()
