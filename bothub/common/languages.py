@@ -44,6 +44,18 @@ LANGUAGE_ZH = "zh"
 LANGUAGE_HA = "ha"
 LANGUAGE_KA = "ka"
 LANGUAGE_KK = "kk"
+LANGUAGE_SQ = "sq"
+LANGUAGE_HY = "hy"
+LANGUAGE_AZ = "az"
+LANGUAGE_BE = "be"
+LANGUAGE_BS = "bs"
+LANGUAGE_BG = "bg"
+LANGUAGE_CS = "cs"
+LANGUAGE_KY = "ky"
+LANGUAGE_MK = "mk"
+LANGUAGE_SR = "sr"
+LANGUAGE_UK = "uk"
+LANGUAGE_UZ = "uz"
 
 VERBOSE_LANGUAGES = {
     LANGUAGE_EN: _("English"),
@@ -87,6 +99,18 @@ VERBOSE_LANGUAGES = {
     LANGUAGE_HA: _("Hausa"),
     LANGUAGE_KA: _("Georgian"),
     LANGUAGE_KK: _("Kazakh"),
+    LANGUAGE_SQ: _("Albanian"),
+    LANGUAGE_HY: _("Armenian"),
+    LANGUAGE_AZ: _("Azerbaijani"),
+    LANGUAGE_BE: _("Belarusian"),
+    LANGUAGE_BS: _("Bosnian"),
+    LANGUAGE_BG: _("Bulgarian"),
+    LANGUAGE_CS: _("Czech"),
+    LANGUAGE_KY: _("Kyrgyz"),
+    LANGUAGE_MK: _("Macedonian"),
+    LANGUAGE_SR: _("Serbian"),
+    LANGUAGE_UK: _("Ukrainian"),
+    LANGUAGE_UZ: _("Uzbek"),
 }
 
 LANGUAGE_CHOICES = [

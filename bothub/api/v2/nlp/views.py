@@ -3,7 +3,6 @@ import base64
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
-from django.db import models
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
 from rest_framework import exceptions
@@ -101,43 +100,6 @@ class RepositoryAuthorizationTrainViewSet(
 
         return self.get_paginated_response(examples_return)
 
-    @action(
-        detail=True, methods=["GET"], url_name="get_examples_labels", lookup_field=[]
-    )
-    def get_examples_labels(self, request, **kwargs):
-        check_auth(request)
-        queryset = get_object_or_404(
-            RepositoryVersionLanguage, pk=request.query_params.get("repository_version")
-        )
-
-        page = self.paginate_queryset(
-            queryset.examples.filter(entities__entity__group__isnull=False)
-            .annotate(entities_count=models.Count("entities"))
-            .filter(entities_count__gt=0)
-        )
-
-        label_examples_query = []
-
-        for label_examples in page:
-
-            entities = [
-                example_entity.get_rasa_nlu_data(group_as_entity=True)
-                for example_entity in filter(
-                    lambda ee: ee.entity.group,
-                    label_examples.get_entities(request.query_params.get("language")),
-                )
-            ]
-
-            label_examples_query.append(
-                {
-                    "entities": entities,
-                    "text": label_examples.get_text(
-                        request.query_params.get("language")
-                    ),
-                }
-            )
-        return self.get_paginated_response(label_examples_query)
-
     @action(detail=True, methods=["POST"], url_name="start_training", lookup_field=[])
     def start_training(self, request, **kwargs):
         check_auth(request)
@@ -225,7 +187,7 @@ class RepositoryAuthorizationParseViewSet(mixins.RetrieveModelMixin, GenericView
         )
         repository_entity = get_object_or_404(
             RepositoryEntity,
-            repository=repository_update.repository_version.repository,
+            repository_version=repository_update.repository_version,
             value=request.query_params.get("entity"),
         )
 
@@ -426,7 +388,7 @@ class RepositoryAuthorizationEvaluateViewSet(mixins.RetrieveModelMixin, GenericV
 
         RepositoryEvaluateResultEntity.objects.create(
             entity=RepositoryEntity.objects.get(
-                repository=repository_update.repository_version.repository,
+                repository_version=repository_update.repository_version,
                 value=request.data.get("entity_key"),
                 create_entity=False,
             ),

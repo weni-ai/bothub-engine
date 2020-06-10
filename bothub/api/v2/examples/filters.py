@@ -49,6 +49,11 @@ class ExamplesFilter(filters.FilterSet):
         method="filter_entity",
         help_text=_("Filter for examples with entity."),
     )
+    entity_id = filters.CharFilter(
+        field_name="entity_id",
+        method="filter_entity_id",
+        help_text=_("Filter for examples with entity by id."),
+    )
     repository_version = filters.CharFilter(
         field_name="repository_version_language",
         method="filter_repository_version",
@@ -112,4 +117,7 @@ class ExamplesFilter(filters.FilterSet):
         return queryset.filter(entities__entity__group__value=value)
 
     def filter_entity(self, queryset, name, value):
-        return queryset.filter(entities__entity__value=value)
+        return queryset.filter(entities__entity__value=value).distinct()
+
+    def filter_entity_id(self, queryset, name, value):
+        return queryset.filter(entities__entity__pk=value).distinct()
