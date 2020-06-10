@@ -3,7 +3,6 @@ import base64
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
-from django.db import models
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
 from rest_framework import exceptions
@@ -14,13 +13,14 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from bothub.api.v2.nlp.serializers import NLPSerializer, RepositoryNLPLogSerializer
-from bothub.api.v2.repository.serializers import RepositorySerializer
+from bothub.api.v2.repository.serializers import IntentSerializer
 from bothub.authentication.models import User
 from bothub.common import languages
 from bothub.common.models import (
     RepositoryAuthorization,
     RepositoryVersionLanguage,
     RepositoryNLPLog,
+    RepositoryExample,
 )
 from bothub.common.models import RepositoryEntity
 from bothub.common.models import RepositoryEvaluateResult
@@ -99,43 +99,6 @@ class RepositoryAuthorizationTrainViewSet(
             )
 
         return self.get_paginated_response(examples_return)
-
-    @action(
-        detail=True, methods=["GET"], url_name="get_examples_labels", lookup_field=[]
-    )
-    def get_examples_labels(self, request, **kwargs):
-        check_auth(request)
-        queryset = get_object_or_404(
-            RepositoryVersionLanguage, pk=request.query_params.get("repository_version")
-        )
-
-        page = self.paginate_queryset(
-            queryset.examples.filter(entities__entity__label__isnull=False)
-            .annotate(entities_count=models.Count("entities"))
-            .filter(entities_count__gt=0)
-        )
-
-        label_examples_query = []
-
-        for label_examples in page:
-
-            entities = [
-                example_entity.get_rasa_nlu_data(label_as_entity=True)
-                for example_entity in filter(
-                    lambda ee: ee.entity.label,
-                    label_examples.get_entities(request.query_params.get("language")),
-                )
-            ]
-
-            label_examples_query.append(
-                {
-                    "entities": entities,
-                    "text": label_examples.get_text(
-                        request.query_params.get("language")
-                    ),
-                }
-            )
-        return self.get_paginated_response(label_examples_query)
 
     @action(detail=True, methods=["POST"], url_name="start_training", lookup_field=[])
     def start_training(self, request, **kwargs):
@@ -224,15 +187,15 @@ class RepositoryAuthorizationParseViewSet(mixins.RetrieveModelMixin, GenericView
         )
         repository_entity = get_object_or_404(
             RepositoryEntity,
-            repository=repository_update.repository_version.repository,
+            repository_version=repository_update.repository_version,
             value=request.query_params.get("entity"),
         )
 
         return Response(
             {
-                "label": True if repository_entity.label else False,
-                "label_value": repository_entity.label.value
-                if repository_entity.label
+                "label": True if repository_entity.group else False,
+                "label_value": repository_entity.group.value
+                if repository_entity.group
                 else None,
             }
         )
@@ -247,8 +210,27 @@ class RepositoryAuthorizationInfoViewSet(mixins.RetrieveModelMixin, GenericViewS
         check_auth(request)
         repository_authorization = self.get_object()
         repository = repository_authorization.repository
-        serializer = RepositorySerializer(repository)
-        return Response(serializer.data)
+
+        queryset = RepositoryExample.objects.filter(
+            repository_version_language__repository_version__repository=repository,
+            repository_version_language__repository_version__is_default=True,
+        )
+        serializer = IntentSerializer(
+            map(
+                lambda intent: {
+                    "value": intent,
+                    "examples__count": repository.examples(
+                        queryset=queryset, version_default=True
+                    )
+                    .filter(intent=intent)
+                    .count(),
+                },
+                repository.intents(queryset=queryset, version_default=True),
+            ),
+            many=True,
+        ).data
+
+        return Response({"intents": serializer})
 
 
 class RepositoryAuthorizationEvaluateViewSet(mixins.RetrieveModelMixin, GenericViewSet):
@@ -406,7 +388,7 @@ class RepositoryAuthorizationEvaluateViewSet(mixins.RetrieveModelMixin, GenericV
 
         RepositoryEvaluateResultEntity.objects.create(
             entity=RepositoryEntity.objects.get(
-                repository=repository_update.repository_version.repository,
+                repository_version=repository_update.repository_version,
                 value=request.data.get("entity_key"),
                 create_entity=False,
             ),

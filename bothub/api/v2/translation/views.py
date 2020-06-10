@@ -276,7 +276,6 @@ class RepositoryTranslatedExporterViewSet(
                         ),
                     )
                     if example.count() == 0:
-                        # TODO: Validation
                         worksheet.cell(
                             row=count, column=7, value="Sentence does not exist"
                         )
@@ -287,7 +286,6 @@ class RepositoryTranslatedExporterViewSet(
                     entity_validation = False
 
                     for entity in utils.find_entities_in_example(text_translated):
-                        # TODO: Validation
                         original_text_count_entity = RepositoryExampleEntity.objects.filter(
                             repository_example=example,
                             entity__repository=kwargs.get("repository__uuid"),
@@ -302,7 +300,6 @@ class RepositoryTranslatedExporterViewSet(
                             break
 
                     if entity_validation:
-                        # TODO: Validation
                         continue
 
                     translated_examples = RepositoryTranslatedExample.objects.filter(

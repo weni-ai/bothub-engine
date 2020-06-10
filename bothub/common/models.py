@@ -35,7 +35,7 @@ validate_item_key = RegexValidator(
 )
 
 
-def can_t_be_other(value):
+def can_t_be_other(value):  # pragma: no cover
     if value == "other":
         raise ValidationError(_('The label can\'t be named as "other"'))
 
@@ -100,7 +100,9 @@ class Repository(models.Model):
     ALGORITHM_NEURAL_NETWORK_INTERNAL = "neural_network_internal"
     ALGORITHM_NEURAL_NETWORK_EXTERNAL = "neural_network_external"
     ALGORITHM_TRANSFORMER_NETWORK_DIET = "transformer_network_diet"
-    ALGORITHM_TRANSFORMER_NETWORK_DIET_WORD_EMBEDDING = "transformer_network_diet_word_embedding"
+    ALGORITHM_TRANSFORMER_NETWORK_DIET_WORD_EMBEDDING = (
+        "transformer_network_diet_word_embedding"
+    )
     ALGORITHM_CHOICES = [
         (
             ALGORITHM_NEURAL_NETWORK_INTERNAL,
@@ -458,7 +460,7 @@ class Repository(models.Model):
         )
 
     @property
-    def requirements_to_train(self):
+    def requirements_to_train(self):  # pragma: no cover
         return dict(
             filter(
                 lambda l: l[1],
@@ -470,7 +472,7 @@ class Repository(models.Model):
         )
 
     @property
-    def languages_ready_for_train(self):
+    def languages_ready_for_train(self):  # pragma: no cover
         return dict(
             map(lambda u: (u.language, u.ready_for_train), self.current_versions())
         )
@@ -488,7 +490,9 @@ class Repository(models.Model):
             False,
         )
 
-    def languages_warnings(self, language=None, queryset=None, version_default=True):
+    def languages_warnings(
+        self, language=None, queryset=None, version_default=True
+    ):  # pragma: no cover
         return dict(
             filter(
                 lambda w: len(w[1]) > 0,
@@ -505,41 +509,11 @@ class Repository(models.Model):
 
     def intents(self, queryset=None, version_default=True):
         intents = (
-            self.examples(
-                exclude_deleted=True, queryset=queryset, version_default=version_default
-            )
+            self.examples(queryset=queryset, version_default=version_default)
             if queryset
-            else self.examples(exclude_deleted=True, version_default=version_default)
+            else self.examples(version_default=version_default)
         )
         return list(set(intents.exclude(intent="").values_list("intent", flat=True)))
-
-    def current_entities(self, queryset=None, version_default=True):
-        return self.entities.filter(
-            value__in=self.examples(queryset=queryset, version_default=version_default)
-            .exclude(entities__entity__value__isnull=True)
-            .values_list("entities__entity__value", flat=True)
-            .distinct()
-        )
-
-    def entities_list(self, queryset=None, version_default=None):
-        return (
-            self.current_entities(queryset=queryset, version_default=version_default)
-            .values_list("value", flat=True)
-            .distinct()
-        )
-
-    @property
-    def current_labels(self):
-        return self.labels.filter(entities__value__in=self.entities_list()).distinct()
-
-    @property
-    def labels_list(self):
-        return self.current_labels.values_list("value", flat=True).distinct()
-
-    def other_entities(self, queryset=None, version_default=None):
-        return self.current_entities(
-            queryset=queryset, version_default=version_default
-        ).filter(label__isnull=True)
 
     @property
     def admins(self):
@@ -560,9 +534,7 @@ class Repository(models.Model):
             self.name, self.owner.nickname, self.slug
         )  # pragma: no cover
 
-    def examples(
-        self, language=None, exclude_deleted=True, queryset=None, version_default=True
-    ):
+    def examples(self, language=None, queryset=None, version_default=True):
         if queryset is None:
             queryset = RepositoryExample.objects
         query = queryset.filter(
@@ -578,8 +550,8 @@ class Repository(models.Model):
         return query
 
     def evaluations(
-        self, language=None, exclude_deleted=True, queryset=None, version_default=True
-    ):
+        self, language=None, queryset=None, version_default=True
+    ):  # pragma: no cover
         if queryset is None:
             queryset = RepositoryEvaluate.objects
         query = queryset.filter(
@@ -656,7 +628,7 @@ class Repository(models.Model):
         )
         return repository_version_language
 
-    def last_trained_update(self, language=None):
+    def last_trained_update(self, language=None):  # pragma: no cover
         language = language or self.language
         version = self.versions.filter(is_default=True).first()
 
@@ -666,7 +638,7 @@ class Repository(models.Model):
             ).first()
         return RepositoryVersionLanguage.objects.none()
 
-    def get_specific_version_language(self, language=None):
+    def get_specific_version_language(self, language=None):  # pragma: no cover
         query = RepositoryVersionLanguage.objects.filter(
             repository_version__repository=self
         )
@@ -722,6 +694,36 @@ class RepositoryVersion(models.Model):
     def version_languages(self):
         return RepositoryVersionLanguage.objects.filter(repository_version=self)
 
+    def current_entities(self, queryset=None, version_default=True):
+        return self.entities.filter(
+            value__in=self.repository.examples(
+                queryset=queryset, version_default=version_default
+            )
+            .exclude(entities__entity__value__isnull=True)
+            .values_list("entities__entity__value", flat=True)
+            .distinct()
+        )
+
+    def entities_list(self, queryset=None, version_default=None):  # pragma: no cover
+        return (
+            self.current_entities(queryset=queryset, version_default=version_default)
+            .values_list("value", flat=True)
+            .distinct()
+        )
+
+    @property
+    def current_groups(self):
+        return self.groups.filter(entities__value__in=self.entities_list()).distinct()
+
+    @property
+    def groups_list(self):
+        return self.current_groups.values_list("value", flat=True).distinct()
+
+    def other_entities(self, queryset=None, version_default=None):
+        return self.current_entities(
+            queryset=queryset, version_default=version_default
+        ).filter(group__isnull=True)
+
 
 class RepositoryVersionLanguage(models.Model):
     class Meta:
@@ -759,9 +761,6 @@ class RepositoryVersionLanguage(models.Model):
         _("total training end"), default=0, blank=False, null=False
     )
 
-    # @property
-    # def get_trainer(self):
-
     @property
     def examples(self):
         examples = self.repository_version.repository.examples(
@@ -770,9 +769,7 @@ class RepositoryVersionLanguage(models.Model):
             models.Q(repository_version_language__language=self.language)
             | models.Q(translations__language=self.language)
         )
-        if self.training_end_at and (self.training_end_at >= self.last_update):
-            examples = examples.exclude(models.Q(last_update__lte=self.training_end_at))
-        return examples.distinct()
+        return examples
 
     @property
     def requirements_to_train(self):
@@ -1039,7 +1036,18 @@ class RepositoryExample(models.Model):
     def delete(self, using=None, keep_parents=False):
         self.repository_version_language.last_update = timezone.now()
         self.repository_version_language.save(update_fields=["last_update"])
-        return super().delete(using, keep_parents)
+
+        instance = super().delete(using, keep_parents)
+
+        repository_version = self.repository_version_language.repository_version
+
+        RepositoryEntity.objects.exclude(
+            pk__in=RepositoryExampleEntity.objects.filter(
+                repository_example__repository_version_language__repository_version=repository_version
+            ).values("entity")
+        ).filter(repository_version=repository_version).delete()
+
+        return instance
 
 
 class RepositoryTranslatedExampleManager(models.Manager):
@@ -1101,14 +1109,14 @@ class RepositoryTranslatedExample(models.Model):
 
     def save(self, *args, **kwargs):
         self.original_example.last_update = timezone.now()
-        self.original_example.save(update_fields=['last_update'])
+        self.original_example.save(update_fields=["last_update"])
         self.repository_version_language.last_update = timezone.now()
         self.repository_version_language.save(update_fields=["last_update"])
         super(RepositoryTranslatedExample, self).save(*args, **kwargs)
 
     def delete(self, using=None, keep_parents=False):
         self.original_example.last_update = timezone.now()
-        self.original_example.save(update_fields=['last_update'])
+        self.original_example.save(update_fields=["last_update"])
         self.repository_version_language.last_update = timezone.now()
         self.repository_version_language.save(update_fields=["last_update"])
         super(RepositoryTranslatedExample, self).delete(using, keep_parents)
@@ -1151,55 +1159,51 @@ class RepositoryTranslatedExample(models.Model):
         )
 
 
-class RepositoryEntityLabelQueryset(models.QuerySet):
-    def get(self, repository, value):
-        try:
-            return super().get(repository=repository, value=value)
-        except self.model.DoesNotExist:
-            return super().create(repository=repository, value=value)
-
-
-class RepositoryEntityLabelManager(models.Manager):
-    def get_queryset(self):
-        return RepositoryEntityLabelQueryset(self.model, using=self._db)
-
-
-class RepositoryEntityLabel(models.Model):
+class RepositoryEntityGroup(models.Model):
     class Meta:
-        unique_together = ["repository", "value"]
+        unique_together = ["repository_version", "value"]
 
-    repository = models.ForeignKey(
-        Repository, on_delete=models.CASCADE, related_name="labels"
+    repository_version = models.ForeignKey(
+        RepositoryVersion, models.CASCADE, related_name="groups"
     )
     value = models.CharField(
-        _("label"),
+        _("group"),
         max_length=64,
         validators=[validate_item_key, can_t_be_other],
         blank=True,
     )
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
 
-    objects = RepositoryEntityLabelManager()
+    def examples(self, queryset=None, version_default=None):  # pragma: no cover
+        return self.repository_version.repository.examples(
+            queryset=queryset, version_default=version_default
+        ).filter(entities__entity__group=self)
 
-    def examples(
-        self, exclude_deleted=True, queryset=None, version_default=None
-    ):  # pragma: no cover
-        return self.repository.examples(
-            exclude_deleted=exclude_deleted,
-            queryset=queryset,
-            version_default=version_default,
-        ).filter(entities__entity__label=self)
+    def delete(self, using=None, keep_parents=False):
+        """
+            Before deleting the group it updates all the entities and places
+            it as not grouped so that they are not deleted
+        """
+        self.entities.filter(
+            repository_version=self.repository_version, group=self
+        ).update(group=None)
+        return super().delete(using=using, keep_parents=keep_parents)
 
 
 class RepositoryEntityQueryset(models.QuerySet):
-    def get(self, repository, value, create_entity=True):
+    """
+    Customized QuerySet created on account of evaluate, when creating a test phrase in evaluate, it sends to the model
+     entity of evaluate the reference of the entities in the examples, it was done just when there is no entity,
+     in evaluate it does not create
+    """
+
+    def get(self, create_entity=True, *args, **kwargs):
         try:
-            return super().get(repository=repository, value=value)
+            return super().get(*args, **kwargs)
         except self.model.DoesNotExist:
             if not create_entity:
                 raise self.model.DoesNotExist  # pragma: no cover
-
-            return super().create(repository=repository, value=value)
+            return super().get(*args, **kwargs)
 
 
 class RepositoryEntityManager(models.Manager):
@@ -1209,10 +1213,14 @@ class RepositoryEntityManager(models.Manager):
 
 class RepositoryEntity(models.Model):
     class Meta:
-        unique_together = ["repository", "value"]
+        unique_together = ["repository_version", "value"]
 
-    repository = models.ForeignKey(
-        Repository, on_delete=models.CASCADE, related_name="entities"
+    repository_version = models.ForeignKey(
+        RepositoryVersion,
+        models.CASCADE,
+        related_name="entities",
+        null=True,
+        blank=True,
     )
     value = models.CharField(
         _("entity"),
@@ -1220,8 +1228,8 @@ class RepositoryEntity(models.Model):
         help_text=_("Entity name"),
         validators=[validate_item_key],
     )
-    label = models.ForeignKey(
-        RepositoryEntityLabel,
+    group = models.ForeignKey(
+        RepositoryEntityGroup,
         on_delete=models.CASCADE,
         related_name="entities",
         null=True,
@@ -1231,12 +1239,12 @@ class RepositoryEntity(models.Model):
 
     objects = RepositoryEntityManager()
 
-    def set_label(self, value):
+    def set_group(self, value):
         if not value:
-            self.label = None
+            self.group = None
         else:
-            self.label = RepositoryEntityLabel.objects.get(
-                repository=self.repository, value=value
+            self.group, created = RepositoryEntityGroup.objects.get_or_create(
+                repository_version=self.repository_version, value=value
             )
 
 
@@ -1246,20 +1254,22 @@ class EntityBaseQueryset(models.QuerySet):  # pragma: no cover
             instance = self.model(**kwargs)
             if "repository_evaluate_id" in instance.__dict__:
                 evaluate = instance.repository_evaluate
-                repository = (
-                    evaluate.repository_version_language.repository_version.repository
+                repository_version = (
+                    evaluate.repository_version_language.repository_version
                 )
             elif "evaluate_result_id" in instance.__dict__:
                 result = instance.evaluate_result
-                repository = (
-                    result.repository_version_language.repository_version.repository
+                repository_version = (
+                    result.repository_version_language.repository_version
                 )
             else:
-                repository = (
-                    instance.example.repository_version_language.repository_version.repository
+                repository_version = (
+                    instance.example.repository_version_language.repository_version
                 )
 
-            entity = RepositoryEntity.objects.get(repository=repository, value=entity)
+            entity, created = RepositoryEntity.objects.get_or_create(
+                repository_version=repository_version, value=entity
+            )
 
         return super().create(entity=entity, **kwargs)
 
@@ -1296,11 +1306,19 @@ class EntityBase(models.Model):
 
     @property
     def rasa_nlu_data(self):  # pragma: no cover
+        if self.entity.group is None or self.entity.group == "":
+            return {
+                "start": self.start,
+                "end": self.end,
+                "value": self.value,
+                "entity": self.entity.value,
+            }
         return {
             "start": self.start,
             "end": self.end,
             "value": self.value,
             "entity": self.entity.value,
+            "role": self.entity.group.value,
         }
 
     @property
@@ -1310,11 +1328,11 @@ class EntityBase(models.Model):
     def get_example(self):
         pass  # pragma: no cover
 
-    def get_rasa_nlu_data(self, label_as_entity=False):
+    def get_rasa_nlu_data(self, group_as_entity=False):
         return {
             "start": self.start,
             "end": self.end,
-            "entity": self.entity.label.value if label_as_entity else self.entity.value,
+            "entity": self.entity.group.value if group_as_entity else self.entity.value,
         }
 
 

@@ -1,6 +1,7 @@
 from rest_framework import routers
 
 from bothub.api.v2.versionning.views import RepositoryVersionViewSet
+from .groups.views import RepositoryEntityGroupViewSet
 from .repository.views import (
     RepositoryViewSet,
     RepositoryNLPLogViewSet,
@@ -134,6 +135,7 @@ router.register("repository/version", RepositoryVersionViewSet)
 router.register("repository/log", RepositoryNLPLogViewSet)
 router.register("repository/entities", RepositoryEntitiesViewSet)
 router.register("repository/upload-rasa-file", RasaUploadViewSet)
+router.register("repository/entity/group", RepositoryEntityGroupViewSet)
 router.register(
     "repository/nlp/authorization/train", RepositoryAuthorizationTrainViewSet
 )
