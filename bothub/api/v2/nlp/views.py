@@ -215,20 +215,7 @@ class RepositoryAuthorizationInfoViewSet(mixins.RetrieveModelMixin, GenericViewS
             repository_version_language__repository_version__repository=repository,
             repository_version_language__repository_version__is_default=True,
         )
-        serializer = IntentSerializer(
-            map(
-                lambda intent: {
-                    "value": intent,
-                    "examples__count": repository.examples(
-                        queryset=queryset, version_default=True
-                    )
-                    .filter(intent=intent)
-                    .count(),
-                },
-                repository.intents(queryset=queryset, version_default=True),
-            ),
-            many=True,
-        ).data
+        serializer = repository.intents(queryset=queryset, version_default=True)
 
         return Response({"intents": serializer})
 
