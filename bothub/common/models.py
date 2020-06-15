@@ -949,11 +949,11 @@ class RepositoryQueueTask(models.Model):
         (QUEUE_CELERY, _("Celery NLU Worker")),
     ]
 
-    QUEUE_PENDING = 0
+    STATUS_PENDING = 0
     STATUS_SUCCESS = 1
     STATUS_CHOICES = [
-        (QUEUE_AIPLATFORM, _("Ai Platform")),
-        (QUEUE_CELERY, _("Celery NLU Worker")),
+        (STATUS_PENDING, _("Pending")),
+        (STATUS_SUCCESS, _("Success")),
     ]
 
     repositoryversion = models.ForeignKey(
