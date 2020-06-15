@@ -942,9 +942,16 @@ class RepositoryQueueTask(models.Model):
         verbose_name = _("repository nlp queue train")
         unique_together = ["repositoryversion", "id_queue"]
 
-    QUEUE_AIPLATFORM = "ai-platform"
-    QUEUE_CELERY = "celery"
+    QUEUE_AIPLATFORM = 0
+    QUEUE_CELERY = 1
     QUEUE_CHOICES = [
+        (QUEUE_AIPLATFORM, _("Ai Platform")),
+        (QUEUE_CELERY, _("Celery NLU Worker")),
+    ]
+
+    QUEUE_PENDING = 0
+    STATUS_SUCCESS = 1
+    STATUS_CHOICES = [
         (QUEUE_AIPLATFORM, _("Ai Platform")),
         (QUEUE_CELERY, _("Celery NLU Worker")),
     ]
@@ -954,7 +961,10 @@ class RepositoryQueueTask(models.Model):
     )
     id_queue = models.TextField(_("id queue"))
     from_queue = models.PositiveIntegerField(
-        _("role"), choices=QUEUE_CHOICES, default=QUEUE_CELERY
+        _("From Queue NLP"), choices=QUEUE_CHOICES, default=QUEUE_CELERY
+    )
+    status = models.PositiveIntegerField(
+        _("Status Queue NLP"), choices=STATUS_CHOICES, default=QUEUE_CELERY
     )
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
 
