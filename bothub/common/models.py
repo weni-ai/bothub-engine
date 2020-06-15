@@ -937,6 +937,28 @@ class RepositoryNLPTrain(models.Model):
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
 
 
+class RepositoryQueueTrain(models.Model):
+    class Meta:
+        verbose_name = _("repository nlp queue train")
+        unique_together = ["repositoryversion", "id_queue"]
+
+    QUEUE_AIPLATFORM = "ai-platform"
+    QUEUE_CELERY = "celery"
+    QUEUE_CHOICES = [
+        (QUEUE_AIPLATFORM, _("Ai Platform")),
+        (QUEUE_CELERY, _("Celery NLU Worker")),
+    ]
+
+    repositoryversion = models.ForeignKey(
+        RepositoryVersion, models.CASCADE, related_name="queues"
+    )
+    id_queue = models.TextField(_("id queue"))
+    from_queue = models.PositiveIntegerField(
+        _("role"), choices=QUEUE_CHOICES, default=QUEUE_CELERY
+    )
+    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
+
+
 class RepositoryNLPLog(models.Model):
     class Meta:
         verbose_name = _("repository nlp logs")
