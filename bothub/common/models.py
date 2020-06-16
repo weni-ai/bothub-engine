@@ -972,6 +972,7 @@ class RepositoryQueueTask(models.Model):
     )
     ml_units = models.FloatField(_("Machine Learning Units AiPlatform"), default=0)
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
+    end_training = models.DateTimeField(_("end training"), null=True)
 
 
 class RepositoryNLPLog(models.Model):

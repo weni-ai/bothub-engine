@@ -20,7 +20,7 @@ from bothub.common.models import (
     RepositoryAuthorization,
     RepositoryVersionLanguage,
     RepositoryNLPLog,
-    RepositoryExample,
+    RepositoryExample, RepositoryQueueTask,
 )
 from bothub.common.models import RepositoryEntity
 from bothub.common.models import RepositoryEvaluateResult
@@ -460,3 +460,13 @@ class RepositoryNLPLogsViewSet(mixins.CreateModelMixin, GenericViewSet):
     queryset = RepositoryNLPLog.objects
     serializer_class = RepositoryNLPLogSerializer
     permission_classes = [AllowAny]
+
+
+class RepositoryNLPTaskQueueViewSet(mixins.CreateModelMixin, GenericViewSet):
+    queryset = RepositoryQueueTask.objects
+    serializer_class = NLPSerializer
+    permission_classes = [AllowAny]
+
+    def create(self, request, *args, **kwargs):
+        check_auth(request)
+        return Response({})
