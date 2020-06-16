@@ -6,6 +6,7 @@ import sentry_sdk
 from django.utils.log import DEFAULT_LOGGING
 from django.utils.translation import ugettext_lazy as _
 from sentry_sdk.integrations.django import DjangoIntegration
+from celery.schedules import crontab
 
 from .utils import cast_supported_languages
 from .utils import cast_empty_str_to_none
@@ -56,6 +57,7 @@ env = environ.Env(
     BOTHUB_ENGINE_USE_SENTRY=(bool, False),
     BOTHUB_ENGINE_SENTRY=(str, None),
     BOTHUB_NLP_RASA_VERSION=(str, "1.4.3"),
+    CELERY_BROKER_URL=(str, "redis://localhost:6379/0"),
 )
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -89,6 +91,8 @@ INSTALLED_APPS = [
     "bothub.authentication",
     "bothub.common",
     "bothub.api",
+    "django_celery_results",
+    'django_celery_beat',
 ]
 
 MIDDLEWARE = [
@@ -343,3 +347,12 @@ if BOTHUB_ENGINE_USE_SENTRY:
 # Rasa NLP Version
 
 BOTHUB_NLP_RASA_VERSION = env.str("BOTHUB_NLP_RASA_VERSION")
+
+
+# Celery
+
+CELERY_RESULT_BACKEND = "django-db"
+CELERY_BROKER_URL = env.str("CELERY_BROKER_URL")
+CELERY_ACCEPT_CONTENT = ["application/json"]
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TASK_SERIALIZER = "json"
