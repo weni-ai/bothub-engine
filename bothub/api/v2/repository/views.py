@@ -5,7 +5,6 @@ from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django.utils.translation import ugettext_lazy as _
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.filters import OrderingFilter
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import mixins
@@ -17,7 +16,9 @@ from rest_framework.exceptions import APIException
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.exceptions import UnsupportedMediaType
 from rest_framework.exceptions import ValidationError
+from rest_framework.filters import OrderingFilter
 from rest_framework.filters import SearchFilter
+from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
@@ -25,16 +26,25 @@ from rest_framework.viewsets import GenericViewSet
 
 from bothub.api.v2.mixins import MultipleFieldLookupMixin
 from bothub.authentication.models import User
-from bothub.common.models import Repository, RepositoryNLPLog
+from bothub.common.models import Repository, RepositoryNLPLog, RepositoryEntity
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryCategory
 from bothub.common.models import RepositoryExample
+from bothub.common.models import RepositoryVersion
 from bothub.common.models import RepositoryVote
 from bothub.common.models import RequestRepositoryAuthorization
-from .filters import RepositoriesFilter, RepositoryNLPLogFilter
+from .filters import (
+    RepositoriesFilter,
+    RepositoryNLPLogFilter,
+    RepositoryEntitiesFilter,
+)
 from .filters import RepositoryAuthorizationFilter
 from .filters import RepositoryAuthorizationRequestsFilter
-from .permissions import RepositoryAdminManagerAuthorization
+from .permissions import (
+    RepositoryAdminManagerAuthorization,
+    RepositoryEntityHasPermission,
+    RepositoryInfoPermission,
+)
 from .permissions import RepositoryExamplePermission
 from .permissions import RepositoryPermission
 from .serializers import (
@@ -42,6 +52,11 @@ from .serializers import (
     TrainSerializer,
     RepositoryNLPLogSerializer,
     DebugParseSerializer,
+    WordDistributionSerializer,
+    RepositoryEntitySerializer,
+    NewRepositorySerializer,
+    RasaUploadSerializer,
+    RasaSerializer,
 )
 from .serializers import EvaluateSerializer
 from .serializers import RepositoryAuthorizationRoleSerializer
@@ -57,9 +72,23 @@ from .serializers import ShortRepositorySerializer
 from ..metadata import Metadata
 
 
+class NewRepositoryViewSet(
+    MultipleFieldLookupMixin, mixins.RetrieveModelMixin, GenericViewSet
+):
+    """
+    Manager repository (bot).
+    """
+
+    queryset = RepositoryVersion.objects
+    lookup_field = "repository__uuid"
+    lookup_fields = ["repository__uuid", "pk"]
+    serializer_class = NewRepositorySerializer
+    permission_classes = [IsAuthenticatedOrReadOnly, RepositoryInfoPermission]
+    metadata_class = Metadata
+
+
 class RepositoryViewSet(
     mixins.CreateModelMixin,
-    mixins.RetrieveModelMixin,
     mixins.UpdateModelMixin,
     mixins.DestroyModelMixin,
     GenericViewSet,
@@ -192,6 +221,42 @@ class RepositoryViewSet(
     @action(
         detail=True,
         methods=["POST"],
+        url_name="repository-words-distribution",
+        permission_classes=[],
+        lookup_fields=["uuid"],
+        serializer_class=WordDistributionSerializer,
+    )
+    def words_distribution(self, request, **kwargs):
+        repository = self.get_object()
+        user_authorization = repository.get_user_authorization(request.user)
+        serializer = WordDistributionSerializer(data=request.data)  # pragma: no cover
+        serializer.is_valid(raise_exception=True)  # pragma: no cover
+        request = repository.request_nlp_words_distribution(
+            user_authorization, serializer.data
+        )  # pragma: no cover
+
+        if request.status_code == status.HTTP_200_OK:  # pragma: no cover
+            return Response(request.json())  # pragma: no cover
+
+        response = None  # pragma: no cover
+        try:  # pragma: no cover
+            response = request.json()  # pragma: no cover
+        except Exception:
+            pass
+
+        if not response:  # pragma: no cover
+            raise APIException(  # pragma: no cover
+                detail=_(
+                    "Something unexpected happened! " + "We couldn't debug your text."
+                )
+            )
+        error = response.get("error")  # pragma: no cover
+        message = error.get("message")  # pragma: no cover
+        raise APIException(detail=message)  # pragma: no cover
+
+    @action(
+        detail=True,
+        methods=["POST"],
         url_name="repository-evaluate",
         lookup_fields=["uuid"],
         serializer_class=EvaluateSerializer,
@@ -212,7 +277,7 @@ class RepositoryViewSet(
                 detail=_("You need to have at least " + "one registered test phrase")
             )  # pragma: no cover
 
-        if len(repository.intents) <= 1:
+        if len(repository.intents()) <= 1:
             raise APIException(
                 detail=_("You need to have at least " + "two registered intents")
             )  # pragma: no cover
@@ -529,6 +594,7 @@ class RepositoryExampleViewSet(
         for data in json_data:
             response_data = data
             response_data["repository"] = request.data.get("repository")
+            response_data["repository_version"] = request.data.get("repository_version")
             serializer = RepositoryExampleSerializer(
                 data=response_data, context={"request": request}
             )
@@ -542,12 +608,73 @@ class RepositoryExampleViewSet(
 
 
 class RepositoryNLPLogViewSet(
-    mixins.ListModelMixin, mixins.RetrieveModelMixin, GenericViewSet
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.DestroyModelMixin,
+    GenericViewSet,
 ):
     queryset = RepositoryNLPLog.objects
     serializer_class = RepositoryNLPLogSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, RepositoryPermission]
     filter_class = RepositoryNLPLogFilter
     filter_backends = [OrderingFilter, SearchFilter, DjangoFilterBackend]
     search_fields = ["$text", "^text", "=text"]
     ordering_fields = ["-created_at"]
+
+
+class RepositoryEntitiesViewSet(
+    mixins.ListModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    GenericViewSet,
+):
+    queryset = RepositoryEntity.objects
+    serializer_class = RepositoryEntitySerializer
+    permission_classes = [IsAuthenticated, RepositoryEntityHasPermission]
+
+    def list(self, request, *args, **kwargs):
+        self.queryset = RepositoryEntity.objects.all()
+        self.filter_class = RepositoryEntitiesFilter
+        return super().list(request, *args, **kwargs)
+
+
+class RasaUploadViewSet(
+    MultipleFieldLookupMixin, mixins.UpdateModelMixin, GenericViewSet
+):
+    queryset = RepositoryVersion.objects
+    lookup_field = "repository__uuid"
+    lookup_fields = ["repository__uuid", "pk"]
+    permission_classes = [IsAuthenticated, RepositoryInfoPermission]
+    serializer_class = RasaUploadSerializer
+    parser_classes = (MultiPartParser,)
+    metadata_class = Metadata
+
+    def update(self, request, *args, **kwargs):  # pragma: no cover
+        serializer = RasaUploadSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        serializer_rasa = RasaSerializer(data=json.load(request.data.get("file")))
+        serializer_rasa.is_valid(raise_exception=True)
+
+        for example in serializer_rasa.data.get("rasa_nlu_data", {}).get(
+            "common_examples", []
+        ):
+            if RepositoryExample.objects.filter(
+                repository_version_language__repository_version=kwargs.get("pk"),
+                text=example["text"],
+                intent=example["intent"],
+                repository_version_language__language=serializer.data.get("language"),
+            ).count():
+                continue
+
+            example["repository"] = kwargs.get("repository__uuid")
+            example["repository_version"] = kwargs.get("pk")
+            example["language"] = serializer.data.get("language")
+
+            serializer_example = RepositoryExampleSerializer(
+                data=example, context={"request": request}
+            )
+            if serializer_example.is_valid():
+                serializer_example.save()
+
+        return Response(202)

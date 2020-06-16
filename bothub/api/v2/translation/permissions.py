@@ -11,4 +11,10 @@ class RepositoryTranslatedExamplePermission(permissions.BasePermission):
         authorization = repository.get_user_authorization(request.user)
         if request.method in READ_METHODS:
             return authorization.can_read
-        return authorization.can_contribute
+        return authorization.can_translate
+
+
+class RepositoryTranslatedExampleExporterPermission(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        authorization = obj.repository.get_user_authorization(request.user)
+        return authorization.can_translate

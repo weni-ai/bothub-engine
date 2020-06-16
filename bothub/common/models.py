@@ -15,6 +15,7 @@ from rest_framework import status
 from rest_framework.exceptions import APIException
 
 from bothub.authentication.models import User
+from django.db.models import Sum, Q
 
 from . import languages
 from .exceptions import RepositoryUpdateAlreadyStartedTraining
@@ -34,7 +35,7 @@ validate_item_key = RegexValidator(
 )
 
 
-def can_t_be_other(value):
+def can_t_be_other(value):  # pragma: no cover
     if value == "other":
         raise ValidationError(_('The label can\'t be named as "other"'))
 
@@ -56,9 +57,11 @@ class RepositoryQuerySet(models.QuerySet):
         return self.filter(is_private=False)
 
     def order_by_relevance(self):
-        return self.order_by(
-            "-versions__repositoryversionlanguage__total_training_end", "-created_at"
-        ).distinct()
+        return self.annotate(
+            trainings_count=Sum(
+                "versions__repositoryversionlanguage__total_training_end"
+            )
+        ).order_by("-trainings_count", "-created_at")
 
     def supported_language(self, language):
         valid_examples = RepositoryExample.objects.all()
@@ -94,11 +97,13 @@ class Repository(models.Model):
     )
     DESCRIPTION_HELP_TEXT = _("Tell what your bot do!")
 
-    ALGORITHM_STATISTICAL_MODEL = "statistical_model"
     ALGORITHM_NEURAL_NETWORK_INTERNAL = "neural_network_internal"
     ALGORITHM_NEURAL_NETWORK_EXTERNAL = "neural_network_external"
+    ALGORITHM_TRANSFORMER_NETWORK_DIET = "transformer_network_diet"
+    ALGORITHM_TRANSFORMER_NETWORK_DIET_WORD_EMBEDDING = (
+        "transformer_network_diet_word_embedding"
+    )
     ALGORITHM_CHOICES = [
-        (ALGORITHM_STATISTICAL_MODEL, _("Statistical Model")),
         (
             ALGORITHM_NEURAL_NETWORK_INTERNAL,
             _("Neural Network with internal vocabulary"),
@@ -106,6 +111,14 @@ class Repository(models.Model):
         (
             ALGORITHM_NEURAL_NETWORK_EXTERNAL,
             _("Neural Network with external vocabulary (BETA)"),
+        ),
+        (
+            ALGORITHM_TRANSFORMER_NETWORK_DIET,
+            _("Transformer Neural Network with internal vocabulary"),
+        ),
+        (
+            ALGORITHM_TRANSFORMER_NETWORK_DIET_WORD_EMBEDDING,
+            _("Transformer Neural Network with word embedding external vocabulary"),
         ),
     ]
 
@@ -132,9 +145,9 @@ class Repository(models.Model):
     )
     algorithm = models.CharField(
         _("algorithm"),
-        max_length=24,
+        max_length=50,
         choices=ALGORITHM_CHOICES,
-        default=ALGORITHM_STATISTICAL_MODEL,
+        default=ALGORITHM_NEURAL_NETWORK_INTERNAL,
     )
     use_competing_intents = models.BooleanField(
         _("Use competing intents"),
@@ -262,6 +275,7 @@ class Repository(models.Model):
                         "text": data.get("text"),
                         "language": data.get("language"),
                         "repository_version": data.get("repository_version"),
+                        "from_backend": True,
                     },
                     headers={
                         "Authorization": "Bearer {}".format(user_authorization.uuid)
@@ -323,15 +337,71 @@ class Repository(models.Model):
                 code=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
 
+    def request_nlp_words_distribution(self, user_authorization, data):
+        try:  # pragma: no cover
+            if data.get("repository_version"):
+                r = requests.post(  # pragma: no cover
+                    "{}words_distribution/".format(
+                        self.nlp_server
+                        if self.nlp_server
+                        else settings.BOTHUB_NLP_BASE_URL
+                    ),
+                    data={
+                        "language": data.get("language"),
+                        "repository_version": data.get("repository_version"),
+                    },
+                    headers={
+                        "Authorization": "Bearer {}".format(user_authorization.uuid)
+                    },
+                )
+            else:
+                r = requests.post(  # pragma: no cover
+                    "{}words_distribution/".format(
+                        self.nlp_server
+                        if self.nlp_server
+                        else settings.BOTHUB_NLP_BASE_URL
+                    ),
+                    data={"language": data.get("language")},
+                    headers={
+                        "Authorization": "Bearer {}".format(user_authorization.uuid)
+                    },
+                )
+            return r  # pragma: no cover
+        except requests.exceptions.ConnectionError:  # pragma: no cover
+            raise APIException(  # pragma: no cover
+                {"status_code": status.HTTP_503_SERVICE_UNAVAILABLE},
+                code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
     def request_nlp_evaluate(self, user_authorization, data):
         try:  # pragma: no cover
-            r = requests.post(  # pragma: no cover
-                "{}evaluate/".format(
-                    self.nlp_server if self.nlp_server else settings.BOTHUB_NLP_BASE_URL
-                ),
-                data={"language": data.get("language")},
-                headers={"Authorization": "Bearer {}".format(user_authorization.uuid)},
-            )
+            if data.get("repository_version"):
+                r = requests.post(  # pragma: no cover
+                    "{}evaluate/".format(
+                        self.nlp_server
+                        if self.nlp_server
+                        else settings.BOTHUB_NLP_BASE_URL
+                    ),
+                    data={
+                        "language": data.get("language"),
+                        "repository_version": data.get("repository_version"),
+                    },
+                    headers={
+                        "Authorization": "Bearer {}".format(user_authorization.uuid)
+                    },
+                )
+            else:
+                r = requests.post(  # pragma: no cover
+                    "{}evaluate/".format(
+                        self.nlp_server
+                        if self.nlp_server
+                        else settings.BOTHUB_NLP_BASE_URL
+                    ),
+                    data={"language": data.get("language")},
+                    headers={
+                        "Authorization": "Bearer {}".format(user_authorization.uuid)
+                    },
+                )
             return r  # pragma: no cover
         except requests.exceptions.ConnectionError:  # pragma: no cover
             raise APIException(  # pragma: no cover
@@ -368,16 +438,29 @@ class Repository(models.Model):
             )
         )
 
-    def current_versions(self, language=None, queryset=None, version_default=True):
+    def current_versions(
+        self,
+        language=None,
+        queryset=None,
+        version_default=True,
+        repository_version=None,
+    ):
+        if repository_version:
+            return map(
+                lambda lang: self.get_specific_version_id(
+                    repository_version=repository_version, language=lang
+                ),
+                self.available_languages(language=language, queryset=queryset),
+            )
         return map(
-            lambda lang: self.current_version(lang),
+            lambda lang: self.current_version(lang, is_default=version_default),
             self.available_languages(
                 language=language, queryset=queryset, version_default=version_default
             ),
         )
 
     @property
-    def requirements_to_train(self):
+    def requirements_to_train(self):  # pragma: no cover
         return dict(
             filter(
                 lambda l: l[1],
@@ -389,20 +472,27 @@ class Repository(models.Model):
         )
 
     @property
-    def languages_ready_for_train(self):
+    def languages_ready_for_train(self):  # pragma: no cover
         return dict(
             map(lambda u: (u.language, u.ready_for_train), self.current_versions())
         )
 
-    @property
-    def ready_for_train(self):
+    def ready_for_train(
+        self, queryset=None, version_default=True, repository_version=None
+    ):
         return reduce(
             lambda current, u: u.ready_for_train or current,
-            self.current_versions(),
+            self.current_versions(
+                queryset=queryset,
+                version_default=version_default,
+                repository_version=repository_version,
+            ),
             False,
         )
 
-    def languages_warnings(self, language=None, queryset=None, version_default=True):
+    def languages_warnings(
+        self, language=None, queryset=None, version_default=True
+    ):  # pragma: no cover
         return dict(
             filter(
                 lambda w: len(w[1]) > 0,
@@ -419,38 +509,11 @@ class Repository(models.Model):
 
     def intents(self, queryset=None, version_default=True):
         intents = (
-            self.examples(
-                exclude_deleted=True, queryset=queryset, version_default=version_default
-            )
+            self.examples(queryset=queryset, version_default=version_default)
             if queryset
-            else self.examples(exclude_deleted=True, version_default=version_default)
+            else self.examples(version_default=version_default)
         )
         return list(set(intents.exclude(intent="").values_list("intent", flat=True)))
-
-    @property
-    def current_entities(self):
-        return self.entities.filter(
-            value__in=self.examples(exclude_deleted=True)
-            .exclude(entities__entity__value__isnull=True)
-            .values_list("entities__entity__value", flat=True)
-            .distinct()
-        )
-
-    @property
-    def entities_list(self):
-        return self.current_entities.values_list("value", flat=True).distinct()
-
-    @property
-    def current_labels(self):
-        return self.labels.filter(entities__value__in=self.entities_list).distinct()
-
-    @property
-    def labels_list(self):
-        return self.current_labels.values_list("value", flat=True).distinct()
-
-    @property
-    def other_entities(self):
-        return self.current_entities.filter(label__isnull=True)
 
     @property
     def admins(self):
@@ -471,9 +534,7 @@ class Repository(models.Model):
             self.name, self.owner.nickname, self.slug
         )  # pragma: no cover
 
-    def examples(
-        self, language=None, exclude_deleted=True, queryset=None, version_default=True
-    ):
+    def examples(self, language=None, queryset=None, version_default=True):
         if queryset is None:
             queryset = RepositoryExample.objects
         query = queryset.filter(
@@ -489,8 +550,8 @@ class Repository(models.Model):
         return query
 
     def evaluations(
-        self, language=None, exclude_deleted=True, queryset=None, version_default=True
-    ):
+        self, language=None, queryset=None, version_default=True
+    ):  # pragma: no cover
         if queryset is None:
             queryset = RepositoryEvaluate.objects
         query = queryset.filter(
@@ -567,11 +628,9 @@ class Repository(models.Model):
         )
         return repository_version_language
 
-    def last_trained_update(self, language=None):
+    def last_trained_update(self, language=None):  # pragma: no cover
         language = language or self.language
-        version = self.versions.filter(
-            created_by__isnull=False, is_default=True
-        ).first()
+        version = self.versions.filter(is_default=True).first()
 
         if version:
             return version.version_languages.filter(
@@ -579,7 +638,7 @@ class Repository(models.Model):
             ).first()
         return RepositoryVersionLanguage.objects.none()
 
-    def get_specific_version_language(self, language=None):
+    def get_specific_version_language(self, language=None):  # pragma: no cover
         query = RepositoryVersionLanguage.objects.filter(
             repository_version__repository=self
         )
@@ -613,7 +672,7 @@ class Repository(models.Model):
         return get
 
     def get_absolute_url(self):
-        return "{}{}/{}/".format(
+        return "{}dashboard/{}/{}/".format(
             settings.BOTHUB_WEBAPP_BASE_URL, self.owner.nickname, self.slug
         )
 
@@ -629,10 +688,41 @@ class RepositoryVersion(models.Model):
     repository = models.ForeignKey(Repository, models.CASCADE, related_name="versions")
     created_by = models.ForeignKey(User, models.CASCADE, blank=True, null=True)
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
+    is_deleted = models.BooleanField(_("is deleted"), default=False)
 
     @property
     def version_languages(self):
         return RepositoryVersionLanguage.objects.filter(repository_version=self)
+
+    def current_entities(self, queryset=None, version_default=True):
+        return self.entities.filter(
+            value__in=self.repository.examples(
+                queryset=queryset, version_default=version_default
+            )
+            .exclude(entities__entity__value__isnull=True)
+            .values_list("entities__entity__value", flat=True)
+            .distinct()
+        )
+
+    def entities_list(self, queryset=None, version_default=None):  # pragma: no cover
+        return (
+            self.current_entities(queryset=queryset, version_default=version_default)
+            .values_list("value", flat=True)
+            .distinct()
+        )
+
+    @property
+    def current_groups(self):
+        return self.groups.filter(entities__value__in=self.entities_list()).distinct()
+
+    @property
+    def groups_list(self):
+        return self.current_groups.values_list("value", flat=True).distinct()
+
+    def other_entities(self, queryset=None, version_default=None):
+        return self.current_entities(
+            queryset=queryset, version_default=version_default
+        ).filter(group__isnull=True)
 
 
 class RepositoryVersionLanguage(models.Model):
@@ -648,7 +738,7 @@ class RepositoryVersionLanguage(models.Model):
     language = models.CharField(
         _("language"), max_length=5, validators=[languages.validate_language]
     )
-    bot_data = models.TextField(_("bot data"), blank=True)
+    # bot_data = models.TextField(_("bot data"), blank=True)
     training_started_at = models.DateTimeField(
         _("training started at"), blank=True, null=True
     )
@@ -659,9 +749,9 @@ class RepositoryVersionLanguage(models.Model):
     use_competing_intents = models.BooleanField(default=False)
     algorithm = models.CharField(
         _("algorithm"),
-        max_length=24,
+        max_length=50,
         choices=Repository.ALGORITHM_CHOICES,
-        default=Repository.ALGORITHM_STATISTICAL_MODEL,
+        default=Repository.ALGORITHM_NEURAL_NETWORK_INTERNAL,
     )
     repository_version = models.ForeignKey(RepositoryVersion, models.CASCADE)
     training_log = models.TextField(_("training log"), blank=True, editable=False)
@@ -674,14 +764,12 @@ class RepositoryVersionLanguage(models.Model):
     @property
     def examples(self):
         examples = self.repository_version.repository.examples(
-            exclude_deleted=False
+            version_default=self.repository_version.is_default
         ).filter(
             models.Q(repository_version_language__language=self.language)
             | models.Q(translations__language=self.language)
         )
-        if self.training_end_at and (self.training_end_at >= self.last_update):
-            examples = examples.exclude(models.Q(last_update__lte=self.training_end_at))
-        return examples.distinct()
+        return examples
 
     @property
     def requirements_to_train(self):
@@ -776,6 +864,11 @@ class RepositoryVersionLanguage(models.Model):
         return "Repository Version Language #{}".format(self.id)  # pragma: no cover
 
     def validate_init_train(self, by=None):
+        if self.queues.filter(
+            Q(status=RepositoryQueueTask.STATUS_PENDING)
+            | Q(status=RepositoryQueueTask.STATUS_TRAINING)
+        ):
+            raise RepositoryUpdateAlreadyStartedTraining()
         if by:
             authorization = self.repository_version.repository.get_user_authorization(
                 by
@@ -803,28 +896,88 @@ class RepositoryVersionLanguage(models.Model):
         )
         self.repository_version.save(update_fields=["created_by"])
 
-    def save_training(self, bot_data):
+    def get_trainer(self, rasa_version):
+        trainer, created = RepositoryNLPTrain.objects.get_or_create(
+            repositoryversionlanguage=self, rasa_version=rasa_version
+        )
+        return trainer
+
+    def update_trainer(self, bot_data, rasa_version):
+        trainer, created = RepositoryNLPTrain.objects.get_or_create(
+            repositoryversionlanguage=self, rasa_version=rasa_version
+        )
+        trainer.bot_data = bot_data
+        trainer.save(update_fields=["bot_data"])
+
+    def save_training(self, bot_data, rasa_version):
         last_time = timezone.now()
 
         self.training_end_at = last_time
         self.last_update = last_time
-        self.bot_data = bot_data
+        self.update_trainer(bot_data, rasa_version=rasa_version)
         self.total_training_end += 1
         self.save(
-            update_fields=[
-                "total_training_end",
-                "training_end_at",
-                "bot_data",
-                "last_update",
-            ]
+            update_fields=["total_training_end", "training_end_at", "last_update"]
         )
 
+    @property
     def get_bot_data(self):
-        return self.bot_data
+        return self.get_trainer(settings.BOTHUB_NLP_RASA_VERSION)
 
     def train_fail(self):
         self.failed_at = timezone.now()
         self.save(update_fields=["failed_at"])
+
+
+class RepositoryNLPTrain(models.Model):
+    class Meta:
+        verbose_name = _("repository nlp train")
+        unique_together = ["repositoryversionlanguage", "rasa_version"]
+
+    bot_data = models.TextField(_("bot data"), blank=True)
+    repositoryversionlanguage = models.ForeignKey(
+        RepositoryVersionLanguage, models.CASCADE, related_name="trainers"
+    )
+    rasa_version = models.CharField(_("Rasa Version Code"), max_length=20)
+    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
+
+
+class RepositoryQueueTask(models.Model):
+    class Meta:
+        verbose_name = _("repository nlp queue train")
+        unique_together = ["repositoryversionlanguage"]
+
+    QUEUE_AIPLATFORM = 0
+    QUEUE_CELERY = 1
+    QUEUE_CHOICES = [
+        (QUEUE_AIPLATFORM, _("Ai Platform")),
+        (QUEUE_CELERY, _("Celery NLU Worker")),
+    ]
+
+    STATUS_PENDING = 0
+    STATUS_TRAINING = 1
+    STATUS_SUCCESS = 2
+    STATUS_FAILED = 3
+    STATUS_CHOICES = [
+        (STATUS_PENDING, _("Pending")),
+        (STATUS_SUCCESS, _("Success")),
+        (STATUS_TRAINING, _("Training")),
+        (STATUS_FAILED, _("Failed")),
+    ]
+
+    repositoryversionlanguage = models.ForeignKey(
+        RepositoryVersionLanguage, models.CASCADE, related_name="queues"
+    )
+    id_queue = models.TextField(_("id queue"))
+    from_queue = models.PositiveIntegerField(
+        _("From Queue NLP"), choices=QUEUE_CHOICES, default=QUEUE_CELERY
+    )
+    status = models.PositiveIntegerField(
+        _("Status Queue NLP"), choices=STATUS_CHOICES, default=STATUS_PENDING
+    )
+    ml_units = models.FloatField(_("Machine Learning Units AiPlatform"), default=0)
+    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
+    end_training = models.DateTimeField(_("end training"), null=True)
 
 
 class RepositoryNLPLog(models.Model):
@@ -833,6 +986,7 @@ class RepositoryNLPLog(models.Model):
 
     text = models.TextField(help_text=_("Text"))
     user_agent = models.TextField(help_text=_("User Agent"))
+    from_backend = models.BooleanField()
     repository_version_language = models.ForeignKey(
         RepositoryVersionLanguage,
         models.CASCADE,
@@ -858,7 +1012,11 @@ class RepositoryNLPLogIntent(models.Model):
     confidence = models.FloatField(help_text=_("Confidence"))
     is_default = models.BooleanField(help_text=_("is default, intent selected"))
     repository_nlp_log = models.ForeignKey(
-        RepositoryNLPLog, models.CASCADE, editable=False, null=True
+        RepositoryNLPLog,
+        models.CASCADE,
+        editable=False,
+        null=True,
+        related_name="repository_nlp_log",
     )
 
 
@@ -885,6 +1043,7 @@ class RepositoryExample(models.Model):
     )
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
     last_update = models.DateTimeField(_("last update"))
+    is_corrected = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
         self.last_update = timezone.now()
@@ -920,7 +1079,18 @@ class RepositoryExample(models.Model):
     def delete(self, using=None, keep_parents=False):
         self.repository_version_language.last_update = timezone.now()
         self.repository_version_language.save(update_fields=["last_update"])
-        return super().delete(using, keep_parents)
+
+        instance = super().delete(using, keep_parents)
+
+        repository_version = self.repository_version_language.repository_version
+
+        RepositoryEntity.objects.exclude(
+            pk__in=RepositoryExampleEntity.objects.filter(
+                repository_example__repository_version_language__repository_version=repository_version
+            ).values("entity")
+        ).filter(repository_version=repository_version).delete()
+
+        return instance
 
 
 class RepositoryTranslatedExampleManager(models.Manager):
@@ -980,6 +1150,20 @@ class RepositoryTranslatedExample(models.Model):
 
     objects = RepositoryTranslatedExampleManager()
 
+    def save(self, *args, **kwargs):
+        self.original_example.last_update = timezone.now()
+        self.original_example.save(update_fields=["last_update"])
+        self.repository_version_language.last_update = timezone.now()
+        self.repository_version_language.save(update_fields=["last_update"])
+        super(RepositoryTranslatedExample, self).save(*args, **kwargs)
+
+    def delete(self, using=None, keep_parents=False):
+        self.original_example.last_update = timezone.now()
+        self.original_example.save(update_fields=["last_update"])
+        self.repository_version_language.last_update = timezone.now()
+        self.repository_version_language.save(update_fields=["last_update"])
+        super(RepositoryTranslatedExample, self).delete(using, keep_parents)
+
     def entities_list_lambda_sort(item):
         return item.get("entity")
 
@@ -1018,51 +1202,51 @@ class RepositoryTranslatedExample(models.Model):
         )
 
 
-class RepositoryEntityLabelQueryset(models.QuerySet):
-    def get(self, repository, value):
-        try:
-            return super().get(repository=repository, value=value)
-        except self.model.DoesNotExist:
-            return super().create(repository=repository, value=value)
-
-
-class RepositoryEntityLabelManager(models.Manager):
-    def get_queryset(self):
-        return RepositoryEntityLabelQueryset(self.model, using=self._db)
-
-
-class RepositoryEntityLabel(models.Model):
+class RepositoryEntityGroup(models.Model):
     class Meta:
-        unique_together = ["repository", "value"]
+        unique_together = ["repository_version", "value"]
 
-    repository = models.ForeignKey(
-        Repository, on_delete=models.CASCADE, related_name="labels"
+    repository_version = models.ForeignKey(
+        RepositoryVersion, models.CASCADE, related_name="groups"
     )
     value = models.CharField(
-        _("label"),
+        _("group"),
         max_length=64,
         validators=[validate_item_key, can_t_be_other],
         blank=True,
     )
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
 
-    objects = RepositoryEntityLabelManager()
+    def examples(self, queryset=None, version_default=None):  # pragma: no cover
+        return self.repository_version.repository.examples(
+            queryset=queryset, version_default=version_default
+        ).filter(entities__entity__group=self)
 
-    def examples(self, exclude_deleted=True):  # pragma: no cover
-        return self.repository.examples(exclude_deleted=exclude_deleted).filter(
-            entities__entity__label=self
-        )
+    def delete(self, using=None, keep_parents=False):
+        """
+            Before deleting the group it updates all the entities and places
+            it as not grouped so that they are not deleted
+        """
+        self.entities.filter(
+            repository_version=self.repository_version, group=self
+        ).update(group=None)
+        return super().delete(using=using, keep_parents=keep_parents)
 
 
 class RepositoryEntityQueryset(models.QuerySet):
-    def get(self, repository, value, create_entity=True):
+    """
+    Customized QuerySet created on account of evaluate, when creating a test phrase in evaluate, it sends to the model
+     entity of evaluate the reference of the entities in the examples, it was done just when there is no entity,
+     in evaluate it does not create
+    """
+
+    def get(self, create_entity=True, *args, **kwargs):
         try:
-            return super().get(repository=repository, value=value)
+            return super().get(*args, **kwargs)
         except self.model.DoesNotExist:
             if not create_entity:
                 raise self.model.DoesNotExist  # pragma: no cover
-
-            return super().create(repository=repository, value=value)
+            return super().get(*args, **kwargs)
 
 
 class RepositoryEntityManager(models.Manager):
@@ -1072,10 +1256,14 @@ class RepositoryEntityManager(models.Manager):
 
 class RepositoryEntity(models.Model):
     class Meta:
-        unique_together = ["repository", "value"]
+        unique_together = ["repository_version", "value"]
 
-    repository = models.ForeignKey(
-        Repository, on_delete=models.CASCADE, related_name="entities"
+    repository_version = models.ForeignKey(
+        RepositoryVersion,
+        models.CASCADE,
+        related_name="entities",
+        null=True,
+        blank=True,
     )
     value = models.CharField(
         _("entity"),
@@ -1083,8 +1271,8 @@ class RepositoryEntity(models.Model):
         help_text=_("Entity name"),
         validators=[validate_item_key],
     )
-    label = models.ForeignKey(
-        RepositoryEntityLabel,
+    group = models.ForeignKey(
+        RepositoryEntityGroup,
         on_delete=models.CASCADE,
         related_name="entities",
         null=True,
@@ -1094,12 +1282,12 @@ class RepositoryEntity(models.Model):
 
     objects = RepositoryEntityManager()
 
-    def set_label(self, value):
+    def set_group(self, value):
         if not value:
-            self.label = None
+            self.group = None
         else:
-            self.label = RepositoryEntityLabel.objects.get(
-                repository=self.repository, value=value
+            self.group, created = RepositoryEntityGroup.objects.get_or_create(
+                repository_version=self.repository_version, value=value
             )
 
 
@@ -1109,20 +1297,22 @@ class EntityBaseQueryset(models.QuerySet):  # pragma: no cover
             instance = self.model(**kwargs)
             if "repository_evaluate_id" in instance.__dict__:
                 evaluate = instance.repository_evaluate
-                repository = (
-                    evaluate.repository_version_language.repository_version.repository
+                repository_version = (
+                    evaluate.repository_version_language.repository_version
                 )
             elif "evaluate_result_id" in instance.__dict__:
                 result = instance.evaluate_result
-                repository = (
-                    result.repository_version_language.repository_version.repository
+                repository_version = (
+                    result.repository_version_language.repository_version
                 )
             else:
-                repository = (
-                    instance.example.repository_version_language.repository_version.repository
+                repository_version = (
+                    instance.example.repository_version_language.repository_version
                 )
 
-            entity = RepositoryEntity.objects.get(repository=repository, value=entity)
+            entity, created = RepositoryEntity.objects.get_or_create(
+                repository_version=repository_version, value=entity
+            )
 
         return super().create(entity=entity, **kwargs)
 
@@ -1159,11 +1349,19 @@ class EntityBase(models.Model):
 
     @property
     def rasa_nlu_data(self):  # pragma: no cover
+        if self.entity.group is None or self.entity.group == "":
+            return {
+                "start": self.start,
+                "end": self.end,
+                "value": self.value,
+                "entity": self.entity.value,
+            }
         return {
             "start": self.start,
             "end": self.end,
             "value": self.value,
             "entity": self.entity.value,
+            "role": self.entity.group.value,
         }
 
     @property
@@ -1173,11 +1371,11 @@ class EntityBase(models.Model):
     def get_example(self):
         pass  # pragma: no cover
 
-    def get_rasa_nlu_data(self, label_as_entity=False):
+    def get_rasa_nlu_data(self, group_as_entity=False):
         return {
             "start": self.start,
             "end": self.end,
-            "entity": self.entity.label.value if label_as_entity else self.entity.value,
+            "entity": self.entity.group.value if group_as_entity else self.entity.value,
         }
 
 
@@ -1217,17 +1415,20 @@ class RepositoryAuthorization(models.Model):
     LEVEL_READER = 1
     LEVEL_CONTRIBUTOR = 2
     LEVEL_ADMIN = 3
+    LEVEL_TRANSLATE = 4
 
     ROLE_NOT_SETTED = 0
     ROLE_USER = 1
     ROLE_CONTRIBUTOR = 2
     ROLE_ADMIN = 3
+    ROLE_TRANSLATE = 4
 
     ROLE_CHOICES = [
         (ROLE_NOT_SETTED, _("not set")),
         (ROLE_USER, _("user")),
         (ROLE_CONTRIBUTOR, _("contributor")),
         (ROLE_ADMIN, _("admin")),
+        (ROLE_TRANSLATE, _("translate")),
     ]
 
     uuid = models.UUIDField(
@@ -1266,6 +1467,9 @@ class RepositoryAuthorization(models.Model):
         if self.role == RepositoryAuthorization.ROLE_ADMIN:
             return RepositoryAuthorization.LEVEL_ADMIN
 
+        if self.role == RepositoryAuthorization.ROLE_TRANSLATE:
+            return RepositoryAuthorization.LEVEL_TRANSLATE
+
         return RepositoryAuthorization.LEVEL_NOTHING  # pragma: no cover
 
     @property
@@ -1274,6 +1478,7 @@ class RepositoryAuthorization(models.Model):
             RepositoryAuthorization.LEVEL_READER,
             RepositoryAuthorization.LEVEL_CONTRIBUTOR,
             RepositoryAuthorization.LEVEL_ADMIN,
+            RepositoryAuthorization.LEVEL_TRANSLATE,
         ]
 
     @property
@@ -1286,6 +1491,14 @@ class RepositoryAuthorization(models.Model):
     @property
     def can_write(self):
         return self.level in [RepositoryAuthorization.LEVEL_ADMIN]
+
+    @property
+    def can_translate(self):
+        return self.level in [
+            RepositoryAuthorization.LEVEL_CONTRIBUTOR,
+            RepositoryAuthorization.LEVEL_ADMIN,
+            RepositoryAuthorization.LEVEL_TRANSLATE,
+        ]
 
     @property
     def is_admin(self):
@@ -1420,13 +1633,6 @@ class RepositoryEvaluate(models.Model):
         editable=False,
         null=True,
     )
-    deleted_in = models.ForeignKey(
-        RepositoryVersionLanguage,
-        models.CASCADE,
-        related_name="deleted_evaluate",
-        blank=True,
-        null=True,
-    )
     text = models.TextField(_("text"), help_text=_("Evaluate test text"))
     intent = models.CharField(
         _("intent"),
@@ -1450,12 +1656,6 @@ class RepositoryEvaluate(models.Model):
         if not language or language == self.repository_version_language.language:
             return self.entities.all()
         return None
-
-    def delete(self):
-        self.deleted_in = self.repository_version_language.repository_version.repository.current_version(
-            self.repository_version_language.language
-        )
-        self.save(update_fields=["deleted_in"])
 
     def delete_entities(self):
         self.entities.all().delete()
@@ -1490,7 +1690,7 @@ class RepositoryEvaluateResultScore(models.Model):
 
     recall = models.DecimalField(max_digits=3, decimal_places=2, null=True)
 
-    support = models.IntegerField(null=True)
+    support = models.FloatField(null=True)
 
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
 

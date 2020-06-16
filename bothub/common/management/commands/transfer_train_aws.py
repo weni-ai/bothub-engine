@@ -3,17 +3,17 @@ import base64
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
-from bothub.common.models import RepositoryUpdate
+from bothub.common.models import RepositoryNLPTrain
 from bothub.utils import send_bot_data_file_aws
 
 
 class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         if settings.AWS_SEND:
-            repo = RepositoryUpdate.objects.all().exclude(bot_data__exact="")
+            repo = RepositoryNLPTrain.objects.all().exclude(bot_data__exact="")
             for update in repo:
                 try:
-                    repository_update = RepositoryUpdate.objects.get(pk=update.pk)
+                    repository_update = RepositoryNLPTrain.objects.get(pk=update.pk)
                     bot_data = send_bot_data_file_aws(
                         update.pk, base64.b64decode(update.bot_data)
                     )

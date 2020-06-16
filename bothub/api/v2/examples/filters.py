@@ -39,15 +39,20 @@ class ExamplesFilter(filters.FilterSet):
         method="filter_order_by_translation",
         help_text=_("Order examples with translation by language"),
     )
-    label = filters.CharFilter(
-        field_name="label",
-        method="filter_label",
-        help_text=_("Filter for examples with entities with specific label."),
+    group = filters.CharFilter(
+        field_name="group",
+        method="filter_group",
+        help_text=_("Filter for examples with entities with specific group."),
     )
     entity = filters.CharFilter(
         field_name="entity",
         method="filter_entity",
         help_text=_("Filter for examples with entity."),
+    )
+    entity_id = filters.CharFilter(
+        field_name="entity_id",
+        method="filter_entity_id",
+        help_text=_("Filter for examples with entity by id."),
     )
     repository_version = filters.CharFilter(
         field_name="repository_version_language",
@@ -60,7 +65,7 @@ class ExamplesFilter(filters.FilterSet):
         try:
             repository = Repository.objects.get(uuid=value)
             authorization = repository.get_user_authorization(request.user)
-            if not authorization.can_read:
+            if not authorization.can_translate:
                 raise PermissionDenied()
             if request.query_params.get("repository_version"):
                 return repository.examples(queryset=queryset, version_default=False)
@@ -106,10 +111,13 @@ class ExamplesFilter(filters.FilterSet):
         )
         return result_queryset
 
-    def filter_label(self, queryset, name, value):
+    def filter_group(self, queryset, name, value):
         if value == "other":
-            return queryset.filter(entities__entity__label__isnull=True)
-        return queryset.filter(entities__entity__label__value=value)
+            return queryset.filter(entities__entity__group__isnull=True)
+        return queryset.filter(entities__entity__group__value=value)
 
     def filter_entity(self, queryset, name, value):
-        return queryset.filter(entities__entity__value=value)
+        return queryset.filter(entities__entity__value=value).distinct()
+
+    def filter_entity_id(self, queryset, name, value):
+        return queryset.filter(entities__entity__pk=value).distinct()

@@ -1,11 +1,10 @@
-from django_filters import rest_framework as filters
-from django.utils.translation import ugettext_lazy as _
-from django.db.models import Q
-from rest_framework.exceptions import PermissionDenied
-from rest_framework.exceptions import NotFound
 from django.core.exceptions import ValidationError as DjangoValidationError
+from django.utils.translation import ugettext_lazy as _
+from django_filters import rest_framework as filters
+from rest_framework.exceptions import NotFound
+from rest_framework.exceptions import PermissionDenied
 
-from bothub.common.models import Repository, RepositoryNLPLog, RepositoryNLPLogIntent
+from bothub.common.models import Repository, RepositoryNLPLog, RepositoryEntity
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RequestRepositoryAuthorization
 
@@ -105,8 +104,12 @@ class RepositoryNLPLogFilter(filters.FilterSet):
     )
 
     def filter_repository_uuid(self, queryset, name, value):
+        request = self.request
         try:
             repository = Repository.objects.get(uuid=value)
+            authorization = repository.get_user_authorization(request.user)
+            if not authorization.can_contribute:
+                raise PermissionDenied()
             return queryset.filter(
                 repository_version_language__repository_version__repository=repository
             )
@@ -125,9 +128,41 @@ class RepositoryNLPLogFilter(filters.FilterSet):
 
     def filter_intent(self, queryset, name, value):
         return queryset.filter(
-            Q(
-                pk__in=RepositoryNLPLogIntent.objects.filter(intent=value).values(
-                    "repository_nlp_log"
-                )
-            )
+            repository_nlp_log__intent=value, repository_nlp_log__is_default=True
         )
+
+
+class RepositoryEntitiesFilter(filters.FilterSet):
+    class Meta:
+        model = RepositoryEntity
+        fields = ["repository_uuid", "repository_version", "value"]
+
+    repository_uuid = filters.UUIDFilter(
+        field_name="repository_uuid",
+        required=True,
+        method="filter_repository_uuid",
+        help_text=_("Repository's UUID"),
+    )
+
+    repository_version = filters.CharFilter(
+        field_name="repository_version",
+        required=True,
+        method="filter_repository_version",
+        help_text=_("Repository Version ID"),
+    )
+
+    def filter_repository_uuid(self, queryset, name, value):
+        request = self.request
+        try:
+            repository = Repository.objects.get(uuid=value)
+            authorization = repository.get_user_authorization(request.user)
+            if not authorization.can_translate:
+                raise PermissionDenied()
+            return queryset.filter(repository_version__repository=repository)
+        except Repository.DoesNotExist:
+            raise NotFound(_("Repository {} does not exist").format(value))
+        except DjangoValidationError:
+            raise NotFound(_("Invalid repository UUID"))
+
+    def filter_repository_version(self, queryset, name, value):
+        return queryset.filter(repository_version=value)

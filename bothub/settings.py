@@ -56,6 +56,7 @@ env = environ.Env(
     BOTHUB_BOT_NICKNAME=(str, "bot_repository"),
     BOTHUB_ENGINE_USE_SENTRY=(bool, False),
     BOTHUB_ENGINE_SENTRY=(str, None),
+    BOTHUB_NLP_RASA_VERSION=(str, "1.4.3"),
     CELERY_BROKER_URL=(str, "redis://localhost:6379/0"),
 )
 
@@ -342,6 +343,10 @@ if BOTHUB_ENGINE_USE_SENTRY:
         integrations=[DjangoIntegration()],
         environment=env.str("ENVIRONMENT"),
     )
+
+# Rasa NLP Version
+
+BOTHUB_NLP_RASA_VERSION = env.str("BOTHUB_NLP_RASA_VERSION")
 
 
 # Celery

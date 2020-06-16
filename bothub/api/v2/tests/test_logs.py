@@ -50,6 +50,7 @@ class RepositoryNLPLogTestCase(TestCase):
         data = {
             "text": "test",
             "user_agent": "python-requests/2.20.1",
+            "from_backend": True,
             "user": str(self.repository_auth.pk),
             "repository_version_language": int(self.repository.current_version().pk),
             "nlp_log": json.dumps(
@@ -102,6 +103,7 @@ class ListRepositoryNLPLogTestCase(TestCase):
         nlp_log = RepositoryNLPLog.objects.create(
             text="test",
             user_agent="python-requests/2.20.1",
+            from_backend=True,
             repository_version_language=self.repository.current_version(),
             nlp_log=json.dumps(
                 {

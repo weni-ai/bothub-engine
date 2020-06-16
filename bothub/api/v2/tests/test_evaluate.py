@@ -42,7 +42,7 @@ class ListEvaluateTestCase(TestCase):
         self.repository_version_language = RepositoryVersionLanguage.objects.create(
             repository_version=self.repository_version,
             language=languages.LANGUAGE_EN,
-            algorithm="statistical_model",
+            algorithm="neural_network_internal",
         )
 
         self.example_1 = RepositoryExample.objects.create(
@@ -83,7 +83,7 @@ class ListEvaluateTestCase(TestCase):
         repository_version_language = RepositoryVersionLanguage.objects.create(
             repository_version=self.repository_version,
             language=languages.LANGUAGE_PT,
-            algorithm="statistical_model",
+            algorithm="neural_network_internal",
         )
 
         RepositoryExample.objects.create(
@@ -122,7 +122,7 @@ class ListEvaluateTestCase(TestCase):
         repository_version_language = RepositoryVersionLanguage.objects.create(
             repository_version=repository_version,
             language=languages.LANGUAGE_EN,
-            algorithm="statistical_model",
+            algorithm="neural_network_internal",
         )
 
         RepositoryExample.objects.create(
@@ -168,7 +168,7 @@ class NewEvaluateTestCase(TestCase):
         self.repository_version_language = RepositoryVersionLanguage.objects.create(
             repository_version=self.repository_version,
             language=languages.LANGUAGE_EN,
-            algorithm="statistical_model",
+            algorithm="neural_network_internal",
         )
 
         self.example_1 = RepositoryExample.objects.create(
@@ -196,6 +196,7 @@ class NewEvaluateTestCase(TestCase):
                 "repository": str(self.repository.uuid),
                 "text": "haha",
                 "language": languages.LANGUAGE_EN,
+                "repository_version": self.repository_version.pk,
                 "intent": "greet",
                 "entities": [],
             },
@@ -223,6 +224,7 @@ class NewEvaluateTestCase(TestCase):
         response, content_data = self.request(
             {
                 "repository": str(self.repository.uuid),
+                "repository_version": self.repository_version.pk,
                 "text": "haha",
                 "language": languages.LANGUAGE_EN,
                 "intent": "greet",
@@ -255,7 +257,7 @@ class NewEvaluateTestCase(TestCase):
         repository_version_language = RepositoryVersionLanguage.objects.create(
             repository_version=repository_version,
             language=languages.LANGUAGE_EN,
-            algorithm="statistical_model",
+            algorithm="neural_network_internal",
         )
 
         RepositoryExample.objects.create(
@@ -306,7 +308,7 @@ class EvaluateDestroyTestCase(TestCase):
         self.repository_version_language = RepositoryVersionLanguage.objects.create(
             repository_version=self.repository_version,
             language="en",
-            algorithm="statistical_model",
+            algorithm="neural_network_internal",
         )
 
         self.example_1 = RepositoryExample.objects.create(
@@ -349,8 +351,7 @@ class EvaluateDestroyTestCase(TestCase):
         self.repository_evaluate.delete()
         response = self.request(self.owner_token)
 
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertIsNotNone(self.repository_evaluate.deleted_in)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 
 class EvaluateUpdateTestCase(TestCase):
@@ -374,7 +375,7 @@ class EvaluateUpdateTestCase(TestCase):
         self.repository_version_language = RepositoryVersionLanguage.objects.create(
             repository_version=self.repository_version,
             language="en",
-            algorithm="statistical_model",
+            algorithm="neural_network_internal",
         )
 
         self.example_1 = RepositoryExample.objects.create(
@@ -416,6 +417,7 @@ class EvaluateUpdateTestCase(TestCase):
                 "repository": str(self.repository.uuid),
                 "text": text,
                 "language": languages.LANGUAGE_EN,
+                "repository_version": self.repository_version.pk,
                 "intent": "greet",
                 "entities": [],
             },
@@ -718,7 +720,7 @@ class ListEvaluateResultTestFilterCase(TestCase):
         response, content_data = self.request(
             self.owner_token, "?repository_uuid={}".format(self.repository.uuid)
         )
-        self.assertEqual(len(content_data["log"]), 4)
+        self.assertEqual(len(content_data["log"]["results"]), 4)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_okay_intent_filter(self):
@@ -728,7 +730,7 @@ class ListEvaluateResultTestFilterCase(TestCase):
                 self.repository.uuid
             ),
         )
-        self.assertEqual(len(content_data["log"]), 3)
+        self.assertEqual(len(content_data["log"]["results"]), 3)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_okay_without_intent_filter(self):
@@ -736,7 +738,7 @@ class ListEvaluateResultTestFilterCase(TestCase):
             self.owner_token,
             "?repository_uuid={}&min=0&max=100".format(self.repository.uuid),
         )
-        self.assertEqual(len(content_data["log"]), 4)
+        self.assertEqual(len(content_data["log"]["results"]), 4)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_okay_range_without_intent_filter(self):
@@ -744,7 +746,7 @@ class ListEvaluateResultTestFilterCase(TestCase):
             self.owner_token,
             "?repository_uuid={}&min=50&max=80".format(self.repository.uuid),
         )
-        self.assertEqual(len(content_data["log"]), 1)
+        self.assertEqual(len(content_data["log"]["results"]), 1)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_okay_range_with_intent_filter(self):
@@ -754,5 +756,5 @@ class ListEvaluateResultTestFilterCase(TestCase):
                 self.repository.uuid
             ),
         )
-        self.assertEqual(len(content_data["log"]), 1)
+        self.assertEqual(len(content_data["log"]["results"]), 1)
         self.assertEqual(response.status_code, status.HTTP_200_OK)

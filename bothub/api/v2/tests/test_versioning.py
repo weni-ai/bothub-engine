@@ -44,7 +44,7 @@ class CloneRepositoryVersionAPITestCase(TestCase):
         self.entity_1 = RepositoryExampleEntity.objects.create(
             repository_example=self.example_1, start=0, end=0, entity="hi"
         )
-        self.entity_1.entity.set_label("greet")
+        self.entity_1.entity.set_group("greet")
         self.entity_1.entity.save()
 
     def request(self, data, token=None):
@@ -99,6 +99,30 @@ class CloneRepositoryVersionAPITestCase(TestCase):
         ).first()
 
         self.assertEqual(example_translated.text, self.example_translated.text)
+
+    def test_only_letters_and_number(self):
+        response, content_data = self.request(
+            {
+                "repository": str(self.repository.pk),
+                "id": self.repository.current_version().repository_version.pk,
+                "name": "testversion#",
+            },
+            self.owner_token,
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_exist(self):
+        response, content_data = self.request(
+            {
+                "repository": str(self.repository.pk),
+                "id": self.repository.current_version().repository_version.pk,
+                "name": "master",
+            },
+            self.owner_token,
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
 class ListRepositoryVersionAPITestCase(TestCase):
@@ -180,7 +204,6 @@ class DefaultRepositoryVersionAPITestCase(TestCase):
 
         self.version_language = RepositoryVersionLanguage.objects.create(
             language=self.repository.current_version().language,
-            bot_data=self.repository.current_version().bot_data,
             training_started_at=self.repository.current_version().training_started_at,
             training_end_at=self.repository.current_version().training_end_at,
             failed_at=self.repository.current_version().failed_at,
@@ -192,6 +215,10 @@ class DefaultRepositoryVersionAPITestCase(TestCase):
             training_log=self.repository.current_version().training_log,
             last_update=self.repository.current_version().last_update,
             total_training_end=self.repository.current_version().total_training_end,
+        )
+        self.version_language.update_trainer(
+            self.repository.current_version().get_bot_data.bot_data,
+            self.repository.current_version().get_bot_data.rasa_version,
         )
 
     def request(self, version, token, data):

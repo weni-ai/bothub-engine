@@ -30,6 +30,7 @@ class RepositoryNLPLogSerializer(serializers.ModelSerializer):
             "nlp_log",
             "user",
             "log_intent",
+            "from_backend",
         ]
         ref_name = None
 

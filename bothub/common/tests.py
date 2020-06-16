@@ -10,7 +10,7 @@ from .exceptions import TrainingNotAllowed
 from .models import Repository
 from .models import RepositoryAuthorization
 from .models import RepositoryEntity
-from .models import RepositoryEntityLabel
+from .models import RepositoryEntityGroup
 from .models import RepositoryExample
 from .models import RepositoryExampleEntity
 from .models import RepositoryTranslatedExample
@@ -178,8 +178,15 @@ class RepositoryTestCase(TestCase):
         self.repository = Repository.objects.create(
             owner=self.owner, name="Test", slug="test", language=languages.LANGUAGE_EN
         )
+
+        self.repository_version = self.repository.current_version().repository_version
+
         self.private_repository = Repository.objects.create(
             owner=self.owner, name="Test", slug="private", is_private=True
+        )
+
+        self.repository_version_private = (
+            self.private_repository.current_version().repository_version
         )
 
         example_1 = RepositoryExample.objects.create(
@@ -218,7 +225,7 @@ class RepositoryTestCase(TestCase):
         update_1.start_training(self.owner)
         update_2 = self.repository.current_version()
         update_2.start_training(self.owner)
-        update_1.save_training(b"bot")
+        update_1.save_training(b"bot", settings.BOTHUB_NLP_RASA_VERSION)
         self.assertEqual(update_1, self.repository.last_trained_update())
         update_2.train_fail()
         self.assertEqual(update_1, self.repository.last_trained_update())
@@ -275,7 +282,9 @@ class RepositoryTestCase(TestCase):
             repository_example=example, start=11, end=18, entity="name"
         )
 
-        self.assertIn("name", self.repository.entities.values_list("value", flat=True))
+        self.assertIn(
+            "name", self.repository_version.entities.values_list("value", flat=True)
+        )
 
     def test_not_blank_value_in_intents(self):
         RepositoryExample.objects.create(
@@ -465,8 +474,8 @@ class RepositoryVersionTrainingTestCase(TestCase):
 
         bot_data = "https://s3.amazonaws.com"
 
-        update.save_training(bot_data)
-        self.assertEqual(update.get_bot_data(), bot_data)
+        update.save_training(bot_data, settings.BOTHUB_NLP_RASA_VERSION)
+        self.assertEqual(update.get_bot_data.bot_data, bot_data)
 
     def test_training_not_allowed(self):
         user = User.objects.create_user("fake@user.com", "fake")
@@ -497,7 +506,7 @@ class RepositoryVersionExamplesTestCase(TestCase):
 
         self.update = self.repository.current_version()
         self.update.start_training(self.owner)
-        self.update.save_training(b"")
+        self.update.save_training(b"", settings.BOTHUB_NLP_RASA_VERSION)
 
     def test_okay(self):
         new_update_1 = self.repository.current_version()
@@ -512,7 +521,7 @@ class RepositoryVersionExamplesTestCase(TestCase):
             text="good morning",
             intent="greet",
         )
-        self.assertEqual(self.update.examples.count(), 2)
+        self.assertEqual(self.update.examples.count(), 3)
         self.assertEqual(new_update_1.examples.count(), 3)
         self.assertEqual(new_update_2.examples.count(), 3)
 
@@ -551,11 +560,11 @@ class RepositoryReadyForTrain(TestCase):
         )
 
     def test_be_true(self):
-        self.assertTrue(self.repository.ready_for_train)
+        self.assertTrue(self.repository.ready_for_train())
 
     # def test_be_false(self):
     #     self.repository.current_version().start_training(self.owner)
-    #     self.assertFalse(self.repository.ready_for_train)
+    #     self.assertFalse(self.repository.ready_for_train())
 
     def test_be_true_when_new_translate(self):
         self.repository.current_version().start_training(self.owner)
@@ -566,13 +575,13 @@ class RepositoryReadyForTrain(TestCase):
             original_example=self.example_2, language=languages.LANGUAGE_PT, text="olá"
         )
         self.repository.current_version()
-        self.assertTrue(self.repository.ready_for_train)
+        self.assertTrue(self.repository.ready_for_train())
 
     def test_be_true_when_deleted_example(self):
         self.repository.current_version()
         self.repository.current_version().start_training(self.owner)
         self.example_1.delete()
-        self.assertTrue(self.repository.ready_for_train)
+        self.assertTrue(self.repository.ready_for_train())
 
     def test_last_train_failed(self):
         current_version = self.repository.current_version()
@@ -581,7 +590,7 @@ class RepositoryReadyForTrain(TestCase):
         self.assertTrue(self.repository.current_version().ready_for_train)
 
     def test_change_algorithm(self):
-        self.assertTrue(self.repository.ready_for_train)
+        self.assertTrue(self.repository.ready_for_train())
         for (val_current, verb_current) in Repository.ALGORITHM_CHOICES:
             for (val_next, verb_next) in Repository.ALGORITHM_CHOICES:
                 if val_current == val_next:
@@ -590,11 +599,11 @@ class RepositoryReadyForTrain(TestCase):
                 self.repository.save()
                 current_version = self.repository.current_version()
                 current_version.start_training(self.owner)
-                current_version.save_training(b"")
-                # self.assertFalse(self.repository.ready_for_train)
+                current_version.save_training(b"", settings.BOTHUB_NLP_RASA_VERSION)
+                # self.assertFalse(self.repository.ready_for_train())
                 self.repository.algorithm = val_next
                 self.repository.save()
-                self.assertTrue(self.repository.ready_for_train)
+                self.assertTrue(self.repository.ready_for_train())
 
 
 class RepositoryUpdateReadyForTrain(TestCase):
@@ -785,6 +794,8 @@ class RepositoryEntityTestCase(TestCase):
             owner=self.owner, name="Test", slug="test", language=self.language
         )
 
+        self.repository_version = self.repository.current_version().repository_version
+
         self.example = RepositoryExample.objects.create(
             repository_version_language=self.repository.current_version(),
             text="my name is User",
@@ -800,13 +811,13 @@ class RepositoryEntityTestCase(TestCase):
 
     def test_example_entity_create_entity(self):
         name_entity = RepositoryEntity.objects.get(
-            repository=self.repository, value="name"
+            repository_version=self.repository_version, value="name"
         )
         self.assertEqual(name_entity.pk, self.example_entity_1.entity.pk)
 
     def test_dont_duplicate_entity(self):
         name_entity = RepositoryEntity.objects.get(
-            repository=self.repository, value="name"
+            repository_version=self.repository_version, value="name"
         )
 
         new_example_entity = RepositoryExampleEntity.objects.create(
@@ -817,7 +828,7 @@ class RepositoryEntityTestCase(TestCase):
         self.assertEqual(name_entity.pk, new_example_entity.entity.pk)
 
 
-class RepositoryEntityLabelTestCase(TestCase):
+class RepositoryEntityGroupTestCase(TestCase):
     def setUp(self):
         self.language = languages.LANGUAGE_EN
 
@@ -826,6 +837,8 @@ class RepositoryEntityLabelTestCase(TestCase):
         self.repository = Repository.objects.create(
             owner=self.owner, name="Test", slug="test", language=self.language
         )
+
+        self.repository_version = self.repository.current_version().repository_version
 
         self.example = RepositoryExample.objects.create(
             repository_version_language=self.repository.current_version(),
@@ -842,52 +855,52 @@ class RepositoryEntityLabelTestCase(TestCase):
 
     def test_set_label(self):
         name_entity = RepositoryEntity.objects.get(
-            repository=self.repository, value="name"
+            repository_version=self.repository_version, value="name"
         )
 
-        name_entity.set_label("subject")
+        name_entity.set_group("subject")
 
-        self.assertIsNotNone(name_entity.label)
+        self.assertIsNotNone(name_entity.group)
 
     def test_entity_label_created(self):
         name_entity = RepositoryEntity.objects.get(
-            repository=self.repository, value="name"
+            repository_version=self.repository_version, value="name"
         )
 
-        name_entity.set_label("subject")
+        name_entity.set_group("subject")
 
-        subject_label = RepositoryEntityLabel.objects.get(
-            repository=self.repository, value="subject"
+        subject_label = RepositoryEntityGroup.objects.get(
+            repository_version=self.repository_version, value="subject"
         )
 
-        self.assertEqual(name_entity.label.pk, subject_label.pk)
+        self.assertEqual(name_entity.group.pk, subject_label.pk)
 
     def test_dont_duplicate_label(self):
         name_entity = RepositoryEntity.objects.get(
-            repository=self.repository, value="name"
+            repository_version=self.repository_version, value="name"
         )
-        name_entity.set_label("subject")
+        name_entity.set_group("subject")
 
         object_entity = RepositoryEntity.objects.get(
-            repository=self.repository, value="object"
+            repository_version=self.repository_version, value="object"
         )
-        object_entity.set_label("subject")
+        object_entity.set_group("subject")
 
-        subject_label = RepositoryEntityLabel.objects.get(
-            repository=self.repository, value="subject"
+        subject_label = RepositoryEntityGroup.objects.get(
+            repository_version=self.repository_version, value="subject"
         )
 
-        self.assertEqual(name_entity.label.pk, subject_label.pk)
-        self.assertEqual(object_entity.label.pk, subject_label.pk)
+        self.assertEqual(name_entity.group.pk, subject_label.pk)
+        self.assertEqual(object_entity.group.pk, subject_label.pk)
 
     def test_set_label_to_none(self):
         name_entity = RepositoryEntity.objects.get(
-            repository=self.repository, value="name"
+            repository_version=self.repository_version, value="name"
         )
 
-        name_entity.set_label(None)
+        name_entity.set_group(None)
 
-        self.assertIsNone(name_entity.label)
+        self.assertIsNone(name_entity.group)
 
 
 class RepositoryOtherEntitiesTest(TestCase):
@@ -898,6 +911,8 @@ class RepositoryOtherEntitiesTest(TestCase):
             owner=self.owner, name="Test", slug="test", language=languages.LANGUAGE_EN
         )
 
+        self.repository_version = self.repository.current_version().repository_version
+
         self.example = RepositoryExample.objects.create(
             repository_version_language=self.repository.current_version(),
             text="my name is User",
@@ -907,7 +922,7 @@ class RepositoryOtherEntitiesTest(TestCase):
             repository_example=self.example, start=11, end=18, entity="user"
         )
         entity = self.example_entity_1.entity
-        entity.set_label("name")
+        entity.set_group("name")
         entity.save()
 
         self.example_entity_2 = RepositoryExampleEntity.objects.create(
@@ -915,7 +930,7 @@ class RepositoryOtherEntitiesTest(TestCase):
         )
 
     def test_ok(self):
-        other_entities = self.repository.other_entities
+        other_entities = self.repository_version.other_entities()
         self.assertEqual(other_entities.count(), 1)
         self.assertIn(self.example_entity_2.entity, other_entities)
 
@@ -950,7 +965,7 @@ class UseLanguageModelFeaturizerTestCase(TestCase):
         self.repository.algorithm = Repository.ALGORITHM_NEURAL_NETWORK_INTERNAL
         self.repository.save()
         current_version.start_training(self.owner)
-        current_version.save_training(b"")
+        current_version.save_training(b"", settings.BOTHUB_NLP_RASA_VERSION)
         self.assertFalse(current_version.use_language_model_featurizer)
 
 
@@ -980,24 +995,24 @@ class UseCompetingIntentsTestCase(TestCase):
         )
 
     def test_change_ready_for_train(self):
-        self.assertTrue(self.repository.ready_for_train)
+        self.assertTrue(self.repository.ready_for_train())
         current_version = self.repository.current_version()
         current_version.start_training(self.owner)
-        current_version.save_training(b"")
-        # self.assertFalse(self.repository.ready_for_train)
+        current_version.save_training(b"", settings.BOTHUB_NLP_RASA_VERSION)
+        # self.assertFalse(self.repository.ready_for_train())
         self.repository.use_competing_intents = False
         self.repository.save()
-        self.assertTrue(self.repository.ready_for_train)
+        self.assertTrue(self.repository.ready_for_train())
         self.repository.use_competing_intents = True
         self.repository.save()
-        # self.assertFalse(self.repository.ready_for_train)
+        # self.assertFalse(self.repository.ready_for_train())
 
     def test_equal_repository_value_after_train(self):
         current_version = self.repository.current_version()
         self.repository.use_competing_intents = False
         self.repository.save()
         current_version.start_training(self.owner)
-        current_version.save_training(b"")
+        current_version.save_training(b"", settings.BOTHUB_NLP_RASA_VERSION)
         self.assertFalse(current_version.use_competing_intents)
 
 
@@ -1027,24 +1042,24 @@ class UseNameEntitiesTestCase(TestCase):
         )
 
     def test_change_ready_for_train(self):
-        self.assertTrue(self.repository.ready_for_train)
+        self.assertTrue(self.repository.ready_for_train())
         current_version = self.repository.current_version()
         current_version.start_training(self.owner)
-        current_version.save_training(b"")
-        # self.assertFalse(self.repository.ready_for_train)
+        current_version.save_training(b"", settings.BOTHUB_NLP_RASA_VERSION)
+        # self.assertFalse(self.repository.ready_for_train())
         self.repository.use_name_entities = False
         self.repository.save()
-        self.assertTrue(self.repository.ready_for_train)
+        self.assertTrue(self.repository.ready_for_train())
         self.repository.use_name_entities = True
         self.repository.save()
-        # self.assertFalse(self.repository.ready_for_train)
+        # self.assertFalse(self.repository.ready_for_train())
 
     def test_equal_repository_value_after_train(self):
         current_version = self.repository.current_version()
         self.repository.use_name_entities = False
         self.repository.save()
         current_version.start_training(self.owner)
-        current_version.save_training(b"")
+        current_version.save_training(b"", settings.BOTHUB_NLP_RASA_VERSION)
         self.assertFalse(current_version.use_name_entities)
 
 

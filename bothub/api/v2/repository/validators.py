@@ -55,14 +55,14 @@ class ExampleWithIntentOrEntityValidator(object):
             raise ValidationError(_("Define a intent or one entity"))
 
 
-class EntityNotEqualLabelValidator(object):
+class EntityNotEqualGroupValidator(object):
     def __call__(self, attrs):
         entity = attrs.get("entity")
-        label = attrs.get("label")
+        group = attrs.get("group")
 
-        if entity == label:
+        if entity == group:
             raise ValidationError(
-                {"label": _("Label name can't be equal to entity name")}
+                {"group": _("Group name can't be equal to entity name")}
             )
 
 
