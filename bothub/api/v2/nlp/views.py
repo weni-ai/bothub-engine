@@ -20,7 +20,8 @@ from bothub.common.models import (
     RepositoryAuthorization,
     RepositoryVersionLanguage,
     RepositoryNLPLog,
-    RepositoryExample, RepositoryQueueTask,
+    RepositoryExample,
+    RepositoryQueueTask,
 )
 from bothub.common.models import RepositoryEntity
 from bothub.common.models import RepositoryEvaluateResult

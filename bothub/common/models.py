@@ -940,7 +940,7 @@ class RepositoryNLPTrain(models.Model):
 class RepositoryQueueTask(models.Model):
     class Meta:
         verbose_name = _("repository nlp queue train")
-        unique_together = ["repositoryversion", "id_queue"]
+        unique_together = ["repositoryversionlanguage"]
 
     QUEUE_AIPLATFORM = 0
     QUEUE_CELERY = 1
@@ -960,15 +960,15 @@ class RepositoryQueueTask(models.Model):
         (STATUS_FAILED, _("Failed")),
     ]
 
-    repositoryversion = models.ForeignKey(
-        RepositoryVersion, models.CASCADE, related_name="queues"
+    repositoryversionlanguage = models.ForeignKey(
+        RepositoryVersionLanguage, models.CASCADE, related_name="queues"
     )
-    id_queue = models.TextField(_("id queue"), null=True)
+    id_queue = models.TextField(_("id queue"))
     from_queue = models.PositiveIntegerField(
         _("From Queue NLP"), choices=QUEUE_CHOICES, default=QUEUE_CELERY
     )
     status = models.PositiveIntegerField(
-        _("Status Queue NLP"), choices=STATUS_CHOICES, default=QUEUE_CELERY
+        _("Status Queue NLP"), choices=STATUS_CHOICES, default=STATUS_PENDING
     )
     ml_units = models.FloatField(_("Machine Learning Units AiPlatform"), default=0)
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
