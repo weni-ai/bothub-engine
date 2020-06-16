@@ -951,21 +951,26 @@ class RepositoryQueueTask(models.Model):
 
     STATUS_PENDING = 0
     STATUS_SUCCESS = 1
+    STATUS_TRAINING = 2
+    STATUS_FAILED = 3
     STATUS_CHOICES = [
         (STATUS_PENDING, _("Pending")),
         (STATUS_SUCCESS, _("Success")),
+        (STATUS_TRAINING, _("Training")),
+        (STATUS_FAILED, _("Failed")),
     ]
 
     repositoryversion = models.ForeignKey(
         RepositoryVersion, models.CASCADE, related_name="queues"
     )
-    id_queue = models.TextField(_("id queue"))
+    id_queue = models.TextField(_("id queue"), null=True)
     from_queue = models.PositiveIntegerField(
         _("From Queue NLP"), choices=QUEUE_CHOICES, default=QUEUE_CELERY
     )
     status = models.PositiveIntegerField(
         _("Status Queue NLP"), choices=STATUS_CHOICES, default=QUEUE_CELERY
     )
+    ml_units = models.FloatField(_("Machine Learning Units AiPlatform"), default=0)
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
 
 
