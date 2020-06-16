@@ -288,7 +288,7 @@ class RepositoryTranslatedExporterViewSet(
                     for entity in utils.find_entities_in_example(text_translated):
                         original_text_count_entity = RepositoryExampleEntity.objects.filter(
                             repository_example=example,
-                            entity__repository=kwargs.get("repository__uuid"),
+                            entity__repository_version=kwargs.get("pk"),
                             entity__value=entity.get("entity"),
                         ).count()
 
