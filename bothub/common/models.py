@@ -15,7 +15,7 @@ from rest_framework import status
 from rest_framework.exceptions import APIException
 
 from bothub.authentication.models import User
-from django.db.models import Sum
+from django.db.models import Sum, Q
 
 from . import languages
 from .exceptions import RepositoryUpdateAlreadyStartedTraining
@@ -864,6 +864,11 @@ class RepositoryVersionLanguage(models.Model):
         return "Repository Version Language #{}".format(self.id)  # pragma: no cover
 
     def validate_init_train(self, by=None):
+        if self.queues.filter(
+            Q(status=RepositoryQueueTask.STATUS_PENDING)
+            | Q(status=RepositoryQueueTask.STATUS_TRAINING)
+        ):
+            raise RepositoryUpdateAlreadyStartedTraining()
         if by:
             authorization = self.repository_version.repository.get_user_authorization(
                 by
@@ -950,8 +955,8 @@ class RepositoryQueueTask(models.Model):
     ]
 
     STATUS_PENDING = 0
-    STATUS_SUCCESS = 1
-    STATUS_TRAINING = 2
+    STATUS_TRAINING = 1
+    STATUS_SUCCESS = 2
     STATUS_FAILED = 3
     STATUS_CHOICES = [
         (STATUS_PENDING, _("Pending")),
