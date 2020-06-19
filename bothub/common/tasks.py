@@ -1,7 +1,6 @@
 import requests
 from datetime import timedelta
 from django.utils import timezone
-from collections import OrderedDict
 from urllib.parse import urlencode
 
 from django.conf import settings
@@ -25,12 +24,10 @@ def trainings_check_task():
         result = requests.get(
             url=f"{settings.BOTHUB_NLP_BASE_URL}v2/task-queue/",
             params=urlencode(
-                OrderedDict(
-                    [
-                        ("id_task", train.id_queue),
-                        ("from_queue", services.get(train.from_queue)),
-                    ]
-                )
+                {
+                    "id_task": train.id_queue,
+                    "from_queue": services.get(train.from_queue),
+                }
             ),
         ).json()
 
@@ -39,6 +36,8 @@ def trainings_check_task():
             train.save(update_fields=["status"])
             continue
 
+        # Verifica o treinamento que esta em execução, caso o tempo de criação seja maior que 2 horas
+        # ele torna a task como falha
         if train.created_at + timedelta(hours=2) > timezone.now():
             train.status = RepositoryQueueTask.STATUS_FAILED
             train.save(update_fields=["status"])

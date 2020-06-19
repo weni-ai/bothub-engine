@@ -6,7 +6,6 @@ import sentry_sdk
 from django.utils.log import DEFAULT_LOGGING
 from django.utils.translation import ugettext_lazy as _
 from sentry_sdk.integrations.django import DjangoIntegration
-from celery.schedules import crontab
 
 from .utils import cast_supported_languages
 from .utils import cast_empty_str_to_none
