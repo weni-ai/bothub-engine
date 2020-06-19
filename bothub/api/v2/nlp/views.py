@@ -112,6 +112,11 @@ class RepositoryAuthorizationTrainViewSet(
             get_object_or_404(User, pk=request.data.get("by_user"))
         )
 
+        id_queue = request.data.get("task_id")
+        from_queue = request.data.get("from_queue")
+
+        repository.create_task(id_queue=id_queue, from_queue=from_queue)
+
         return Response(
             {
                 "language": repository.language,
@@ -460,13 +465,3 @@ class RepositoryNLPLogsViewSet(mixins.CreateModelMixin, GenericViewSet):
     queryset = RepositoryNLPLog.objects
     serializer_class = RepositoryNLPLogSerializer
     permission_classes = [AllowAny]
-
-
-class RepositoryNLPTaskQueueViewSet(mixins.CreateModelMixin, GenericViewSet):
-    queryset = RepositoryQueueTask.objects
-    serializer_class = NLPSerializer
-    permission_classes = [AllowAny]
-
-    def create(self, request, *args, **kwargs):
-        check_auth(request)
-        return Response({})

@@ -92,7 +92,7 @@ INSTALLED_APPS = [
     "bothub.common",
     "bothub.api",
     "django_celery_results",
-    'django_celery_beat',
+    "django_celery_beat",
 ]
 
 MIDDLEWARE = [

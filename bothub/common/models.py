@@ -896,6 +896,11 @@ class RepositoryVersionLanguage(models.Model):
         )
         self.repository_version.save(update_fields=["created_by"])
 
+    def create_task(self, id_queue, from_queue):
+        RepositoryQueueTask.objects.create(
+            repositoryversionlanguage=self, id_queue=id_queue, from_queue=from_queue
+        )
+
     def get_trainer(self, rasa_version):
         trainer, created = RepositoryNLPTrain.objects.get_or_create(
             repositoryversionlanguage=self, rasa_version=rasa_version
@@ -945,7 +950,6 @@ class RepositoryNLPTrain(models.Model):
 class RepositoryQueueTask(models.Model):
     class Meta:
         verbose_name = _("repository nlp queue train")
-        unique_together = ["repositoryversionlanguage"]
 
     QUEUE_AIPLATFORM = 0
     QUEUE_CELERY = 1

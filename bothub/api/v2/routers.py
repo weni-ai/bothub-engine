@@ -17,11 +17,7 @@ from .repository.views import SearchRepositoriesViewSet
 from .repository.views import RepositoryAuthorizationViewSet
 from .repository.views import RepositoryAuthorizationRequestsViewSet
 from .repository.views import RepositoryExampleViewSet
-from .nlp.views import (
-    RepositoryAuthorizationTrainViewSet,
-    RepositoryNLPLogsViewSet,
-    RepositoryNLPTaskQueueViewSet,
-)
+from .nlp.views import RepositoryAuthorizationTrainViewSet, RepositoryNLPLogsViewSet
 from .nlp.views import RepositoryAuthorizationParseViewSet
 from .nlp.views import RepositoryAuthorizationInfoViewSet
 from .nlp.views import RepositoryAuthorizationEvaluateViewSet
@@ -154,7 +150,6 @@ router.register("repository/nlp/authorization/langs", NLPLangsViewSet)
 router.register(
     "repository/nlp/update_interpreters", RepositoryUpdateInterpretersViewSet
 )
-router.register("repository/nlp/task_queue", RepositoryNLPTaskQueueViewSet)
 router.register("repository/nlp/log", RepositoryNLPLogsViewSet)
 router.register("account/login", LoginViewSet)
 router.register("account/register", RegisterUserViewSet)

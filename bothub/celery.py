@@ -12,11 +12,10 @@ app.config_from_object("django.conf:settings", namespace="CELERY")
 app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
 
 app.conf.beat_schedule = {
-    'add-every-30-seconds': {
-        'task': 'bothub.common.tasks.test_task',
-        'schedule': 5.0,
-        # 'args': (16, 16)
-    },
+    "check-training-status": {
+        "task": "bothub.common.tasks.trainings_check_task",
+        "schedule": 5.0,
+    }
 }
 
 
