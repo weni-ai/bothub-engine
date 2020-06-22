@@ -13,7 +13,6 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from bothub.api.v2.nlp.serializers import NLPSerializer, RepositoryNLPLogSerializer
-from bothub.api.v2.repository.serializers import IntentSerializer
 from bothub.authentication.models import User
 from bothub.common import languages
 from bothub.common.models import (
