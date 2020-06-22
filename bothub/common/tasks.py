@@ -30,14 +30,20 @@ def trainings_check_task():
                 }
             ),
         ).json()
+        print(result)
 
         if int(result.get("status")) != train.status:
+            fields = ["status"]
             train.status = result.get("status")
-            train.save(update_fields=["status"])
+            if train.status == RepositoryQueueTask.STATUS_SUCCESS:
+                train.end_training = timezone.now()
+                fields.append("end_training")
+            train.save(update_fields=fields)
             continue
 
         # Verifica o treinamento que esta em execução, caso o tempo de criação seja maior que 2 horas
         # ele torna a task como falha
-        if train.created_at + timedelta(hours=2) > timezone.now():
+        if train.created_at + timedelta(hours=2) <= timezone.now():
             train.status = RepositoryQueueTask.STATUS_FAILED
-            train.save(update_fields=["status"])
+            train.end_training = timezone.now()
+            train.save(update_fields=["status", "end_training"])

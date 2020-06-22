@@ -20,6 +20,7 @@ from bothub.common.models import (
     RepositoryEntity,
     RepositoryEvaluate,
     RepositoryExampleEntity,
+    RepositoryQueueTask,
 )
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryCategory
@@ -1053,3 +1054,30 @@ class ObjectRasaSerializer(serializers.Serializer):
 
 class RasaSerializer(serializers.Serializer):
     rasa_nlu_data = ObjectRasaSerializer()
+
+
+class RepositoryQueueTaskSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RepositoryQueueTask
+        fields = [
+            "id",
+            "id_queue",
+            "from_queue",
+            "status",
+            "ml_units",
+            "created_at",
+            "end_training",
+            "status_codes",
+            "from_queue_codes",
+        ]
+        ref_name = None
+
+    id = serializers.PrimaryKeyRelatedField(read_only=True)
+    status_codes = serializers.SerializerMethodField()
+    from_queue_codes = serializers.SerializerMethodField()
+
+    def get_status_codes(self, obj):
+        return {key: value for key, value in RepositoryQueueTask.STATUS_CHOICES}
+
+    def get_from_queue_codes(self, obj):
+        return {key: value for key, value in RepositoryQueueTask.QUEUE_CHOICES}
