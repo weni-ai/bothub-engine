@@ -8,7 +8,6 @@
     ·
     <a href="https://act.unicefusa.org/blm" target="_blank">Supporting the cause</a>
     ·
-    <a href="http://www.wetheprotesters.org/" target="_blank">We The Protestors</a>
   </p>
 </p>
     
