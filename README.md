@@ -10,14 +10,7 @@
     ·
     <a href="http://www.wetheprotesters.org/" target="_blank">We The Protestors</a>
   </p>
-  
-
-  
 </p>
-
-<br />
-<br />
-<br />
     
 <p align="center">
     <img src="https://user-images.githubusercontent.com/5360835/65427083-1af35900-de01-11e9-86ef-59f1eee79a68.png" width="230" height="70" alt="Bothub" />
