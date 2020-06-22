@@ -1,6 +1,22 @@
 <p align="center">
-    <img src="https://user-images.githubusercontent.com/5360835/65427083-1af35900-de01-11e9-86ef-59f1eee79a68.png" width="230" height="70" alt="Bothub" />
+  <img src="https://i.imgur.com/PKrSNGY.png" alt="BLACK LIVES MATTER" />
+
+  <h3 align="center">BLACK LIVES MATTER</h3>
+
+  <p align="center">
+    <a href="https://blacklivesmatter.com/" target="_blank">Black Lives Matter</a>
+    ·
+    <a href="https://act.unicefusa.org/blm" target="_blank">Supporting the cause</a>
+    ·
+    <a href="http://www.wetheprotesters.org/" target="_blank">We The Protestors</a>
+  </p>
+  
+  <br />
+  <br />
+  <br />
+  <img src="https://user-images.githubusercontent.com/5360835/65427083-1af35900-de01-11e9-86ef-59f1eee79a68.png" width="230" height="70" alt="Bothub" />
 </p>
+
 
 # Bothub
 
@@ -112,3 +128,24 @@ You can set environment variables in your OS, write on ```.env``` file or pass v
 | BOTHUB_ENGINE_SENTRY |  ```string``` | ```None``` | URL Sentry
 | BOTHUB_NLP_RASA_VERSION |  ```string``` | ```1.4.3``` | Specify the version of rasa used in the nlp worker
 | ENVIRONMENT |  ```string``` | ```production``` | 
+
+## Roadmap
+
+See the [open issues](https://trello.com/b/ab5IvrLe/bothub-roadmap-2020) for a list of proposed features (and known issues).
+
+
+## License
+
+Distributed under the GPL-3.0 License. See `LICENSE` for more information.
+
+
+## Contributing
+
+Contributions are what make the open source community such an amazing place to be learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
