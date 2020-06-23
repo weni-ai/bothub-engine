@@ -33,11 +33,12 @@ def trainings_check_task():
         print(result)
 
         if int(result.get("status")) != train.status:
-            fields = ["status"]
+            fields = ["status", "ml_units"]
             train.status = result.get("status")
             if train.status == RepositoryQueueTask.STATUS_SUCCESS:
                 train.end_training = timezone.now()
                 fields.append("end_training")
+            train.ml_units = result.get("ml_units")
             train.save(update_fields=fields)
             continue
 
