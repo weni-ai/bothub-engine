@@ -55,6 +55,7 @@ class TrainStartTrainingTestCase(TestCase):
                 {
                     "repository_version": self.repository_version_language.pk,
                     "by_user": self.user.pk,
+                    "from_queue": "celery",
                 }
             ),
             content_type="application/json",

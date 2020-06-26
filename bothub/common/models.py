@@ -863,11 +863,14 @@ class RepositoryVersionLanguage(models.Model):
     def __str__(self):
         return "Repository Version Language #{}".format(self.id)  # pragma: no cover
 
-    def validate_init_train(self, by=None, from_queue='celery'):
-        if self.queues.filter(
-            Q(status=RepositoryQueueTask.STATUS_PENDING)
-            | Q(status=RepositoryQueueTask.STATUS_TRAINING)
-        ) and from_queue == 'celery':
+    def validate_init_train(self, by=None, from_queue="celery"):
+        if (
+            self.queues.filter(
+                Q(status=RepositoryQueueTask.STATUS_PENDING)
+                | Q(status=RepositoryQueueTask.STATUS_TRAINING)
+            )
+            and from_queue == "celery"
+        ):
             raise RepositoryUpdateAlreadyStartedTraining()
         if by:
             authorization = self.repository_version.repository.get_user_authorization(
@@ -876,7 +879,7 @@ class RepositoryVersionLanguage(models.Model):
             if not authorization.can_write:
                 raise TrainingNotAllowed()
 
-    def start_training(self, created_by, from_queue='celery'):
+    def start_training(self, created_by, from_queue="celery"):
         self.validate_init_train(created_by, from_queue=from_queue)
         self.training_started_at = timezone.now()
         self.algorithm = self.repository_version.repository.algorithm
