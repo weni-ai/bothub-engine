@@ -27,6 +27,7 @@ python-slugify = "==4.0.0"
 openpyxl = "==3.0.3"
 pillow = "==7.1.2"
 kombu = "==4.6.7"
+importlib-metadata = "==1.6.1"
 
 [dev-packages]
 "flake8" = "*"
