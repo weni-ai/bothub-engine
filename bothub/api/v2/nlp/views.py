@@ -13,7 +13,6 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from bothub.api.v2.nlp.serializers import NLPSerializer, RepositoryNLPLogSerializer
-from bothub.api.v2.repository.serializers import IntentSerializer
 from bothub.authentication.models import User
 from bothub.common import languages
 from bothub.common.models import (
@@ -100,16 +99,31 @@ class RepositoryAuthorizationTrainViewSet(
 
         return self.get_paginated_response(examples_return)
 
+    @action(detail=True, methods=["POST"], url_name="save_queue_id", lookup_field=[])
+    def save_queue_id(self, request, **kwargs):
+        check_auth(request)
+        repository = get_object_or_404(
+            RepositoryVersionLanguage, pk=request.data.get("repository_version")
+        )
+
+        id_queue = request.data.get("task_id")
+        from_queue = request.data.get("from_queue")
+        repository.create_task(id_queue=id_queue, from_queue=from_queue)
+        return Response({})
+
     @action(detail=True, methods=["POST"], url_name="start_training", lookup_field=[])
     def start_training(self, request, **kwargs):
         check_auth(request)
+
+        from_queue = request.data.get("from_queue", "celery")
 
         repository = get_object_or_404(
             RepositoryVersionLanguage, pk=request.data.get("repository_version")
         )
 
         repository.start_training(
-            get_object_or_404(User, pk=request.data.get("by_user"))
+            get_object_or_404(User, pk=request.data.get("by_user")),
+            from_queue=from_queue,
         )
 
         return Response(

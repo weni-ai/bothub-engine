@@ -15,7 +15,7 @@ from rest_framework import status
 from rest_framework.exceptions import APIException
 
 from bothub.authentication.models import User
-from django.db.models import Sum
+from django.db.models import Sum, Q
 
 from . import languages
 from .exceptions import RepositoryUpdateAlreadyStartedTraining
@@ -863,7 +863,15 @@ class RepositoryVersionLanguage(models.Model):
     def __str__(self):
         return "Repository Version Language #{}".format(self.id)  # pragma: no cover
 
-    def validate_init_train(self, by=None):
+    def validate_init_train(self, by=None, from_queue="celery"):
+        if (
+            self.queues.filter(
+                Q(status=RepositoryQueueTask.STATUS_PENDING)
+                | Q(status=RepositoryQueueTask.STATUS_TRAINING)
+            )
+            and from_queue == "celery"
+        ):
+            raise RepositoryUpdateAlreadyStartedTraining()
         if by:
             authorization = self.repository_version.repository.get_user_authorization(
                 by
@@ -871,8 +879,8 @@ class RepositoryVersionLanguage(models.Model):
             if not authorization.can_write:
                 raise TrainingNotAllowed()
 
-    def start_training(self, created_by):
-        self.validate_init_train(created_by)
+    def start_training(self, created_by, from_queue="celery"):
+        self.validate_init_train(created_by, from_queue=from_queue)
         self.training_started_at = timezone.now()
         self.algorithm = self.repository_version.repository.algorithm
         self.use_competing_intents = (
@@ -890,6 +898,11 @@ class RepositoryVersionLanguage(models.Model):
             ]
         )
         self.repository_version.save(update_fields=["created_by"])
+
+    def create_task(self, id_queue, from_queue):
+        RepositoryQueueTask.objects.create(
+            repositoryversionlanguage=self, id_queue=id_queue, from_queue=from_queue
+        )
 
     def get_trainer(self, rasa_version):
         trainer, created = RepositoryNLPTrain.objects.get_or_create(
@@ -935,6 +948,43 @@ class RepositoryNLPTrain(models.Model):
     )
     rasa_version = models.CharField(_("Rasa Version Code"), max_length=20)
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
+
+
+class RepositoryQueueTask(models.Model):
+    class Meta:
+        verbose_name = _("repository nlp queue train")
+
+    QUEUE_AIPLATFORM = 0
+    QUEUE_CELERY = 1
+    QUEUE_CHOICES = [
+        (QUEUE_AIPLATFORM, _("Ai Platform")),
+        (QUEUE_CELERY, _("Celery NLU Worker")),
+    ]
+
+    STATUS_PENDING = 0
+    STATUS_TRAINING = 1
+    STATUS_SUCCESS = 2
+    STATUS_FAILED = 3
+    STATUS_CHOICES = [
+        (STATUS_PENDING, _("Pending")),
+        (STATUS_SUCCESS, _("Success")),
+        (STATUS_TRAINING, _("Training")),
+        (STATUS_FAILED, _("Failed")),
+    ]
+
+    repositoryversionlanguage = models.ForeignKey(
+        RepositoryVersionLanguage, models.CASCADE, related_name="queues"
+    )
+    id_queue = models.TextField(_("id queue"))
+    from_queue = models.PositiveIntegerField(
+        _("From Queue NLP"), choices=QUEUE_CHOICES, default=QUEUE_CELERY
+    )
+    status = models.PositiveIntegerField(
+        _("Status Queue NLP"), choices=STATUS_CHOICES, default=STATUS_PENDING
+    )
+    ml_units = models.FloatField(_("Machine Learning Units AiPlatform"), default=0)
+    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
+    end_training = models.DateTimeField(_("end training"), null=True)
 
 
 class RepositoryNLPLog(models.Model):
