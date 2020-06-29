@@ -38,6 +38,7 @@ Use ```make``` commands to ```check_environment```, ```install_requirements```, 
 | make test | Run unit tests and show coverage report
 | make migrate | Update DB shema, apply migrations
 | make start | Start development web server
+| make start_celery | Start celery service
 | make migrations | Create DB migrations files
 | make collectstatic | Collects the static files into ```STATIC_ROOT```
 
