@@ -175,6 +175,15 @@ class Repository(models.Model):
         ),
         default=False,
     )
+    use_transformer_entities = models.BooleanField(
+        _("Use Transformer Entities"),
+        help_text=_(
+            "When selected, the entities will be trained on "
+            "a better entities recognition model but the training "
+            "time will be significantly increased"
+        ),
+        default=False,
+    )
     categories = models.ManyToManyField(
         RepositoryCategory, help_text=CATEGORIES_HELP_TEXT
     )
