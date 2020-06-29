@@ -209,6 +209,7 @@ class Repository(models.Model):
     __use_competing_intents = None
     __use_name_entities = None
     __use_analyze_char = None
+    __use_transformer_entities = None
 
     def __init__(self, *args, **kwargs):
         super(Repository, self).__init__(*args, **kwargs)
@@ -216,6 +217,7 @@ class Repository(models.Model):
         self.__use_competing_intents = self.use_competing_intents
         self.__use_name_entities = self.use_name_entities
         self.__use_analyze_char = self.use_analyze_char
+        self.__use_transformer_entities = self.use_transformer_entities
 
     def save(
         self, force_insert=False, force_update=False, using=None, update_fields=None
@@ -225,6 +227,7 @@ class Repository(models.Model):
             or self.use_competing_intents != self.__use_competing_intents
             or self.use_name_entities != self.__use_name_entities
             or self.use_analyze_char != self.__use_analyze_char
+            or self.use_transformer_entities != self.__use_transformer_entities
         ):
 
             update = self.current_version(self.language)
@@ -237,6 +240,7 @@ class Repository(models.Model):
         self.__use_competing_intents = self.use_competing_intents
         self.__use_name_entities = self.use_name_entities
         self.__use_analyze_char = self.use_analyze_char
+        self.__use_transformer_entities = self.use_transformer_entities
 
     def request_nlp_train(self, user_authorization, data):
         try:  # pragma: no cover
@@ -747,7 +751,6 @@ class RepositoryVersionLanguage(models.Model):
     language = models.CharField(
         _("language"), max_length=5, validators=[languages.validate_language]
     )
-    # bot_data = models.TextField(_("bot data"), blank=True)
     training_started_at = models.DateTimeField(
         _("training started at"), blank=True, null=True
     )
@@ -756,6 +759,7 @@ class RepositoryVersionLanguage(models.Model):
     use_analyze_char = models.BooleanField(default=False)
     use_name_entities = models.BooleanField(default=False)
     use_competing_intents = models.BooleanField(default=False)
+    use_transformer_entities = models.BooleanField(default=False)
     algorithm = models.CharField(
         _("algorithm"),
         max_length=50,
@@ -897,6 +901,9 @@ class RepositoryVersionLanguage(models.Model):
         )
         self.use_name_entities = self.repository_version.repository.use_name_entities
         self.use_analyze_char = self.repository_version.repository.use_analyze_char
+        self.use_transformer_entities = (
+            self.repository_version.repository.use_transformer_entities
+        )
         self.save(
             update_fields=[
                 "training_started_at",
@@ -904,6 +911,7 @@ class RepositoryVersionLanguage(models.Model):
                 "use_competing_intents",
                 "use_name_entities",
                 "use_analyze_char",
+                "use_transformer_entities",
             ]
         )
         self.repository_version.save(update_fields=["created_by"])
