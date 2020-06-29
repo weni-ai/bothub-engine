@@ -214,6 +214,7 @@ class NewRepositorySerializer(serializers.ModelSerializer):
             "use_competing_intents",
             "use_name_entities",
             "use_analyze_char",
+            "use_transformer_entities",
             "nlp_server",
             "version_default",
         ]
@@ -328,6 +329,17 @@ class NewRepositorySerializer(serializers.ModelSerializer):
         default=False,
         label=_("Use analyze char"),
         source="repository.use_analyze_char",
+    )
+    use_transformer_entities = serializers.BooleanField(
+        style={"show": False, "only_settings": True},
+        help_text=_(
+            "When selected, the entities will be trained on "
+            "a better entities recognition model but the training "
+            "time will be significantly increased"
+        ),
+        default=False,
+        label=_("Use Transformer Entities"),
+        source="repository.use_transformer_entities",
     )
     nlp_server = serializers.SerializerMethodField(style={"show": False})
     version_default = serializers.SerializerMethodField(style={"show": False})
@@ -593,6 +605,7 @@ class RepositorySerializer(serializers.ModelSerializer):
             "use_competing_intents",
             "use_name_entities",
             "use_analyze_char",
+            "use_transformer_entities",
         ]
         read_only = ["uuid", "created_at"]
         ref_name = None
@@ -633,6 +646,16 @@ class RepositorySerializer(serializers.ModelSerializer):
         ),
         default=False,
         label=_("Use analyze char"),
+    )
+    use_transformer_entities = serializers.BooleanField(
+        style={"show": False, "only_settings": True},
+        help_text=_(
+            "When selected, the entities will be trained on "
+            "a better entities recognition model but the training "
+            "time will be significantly increased"
+        ),
+        default=False,
+        label=_("Use Transformer Entities"),
     )
     created_at = serializers.DateTimeField(style={"show": False}, read_only=True)
 
