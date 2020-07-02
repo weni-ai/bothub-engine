@@ -229,9 +229,11 @@ class Repository(models.Model):
             or self.use_analyze_char != self.__use_analyze_char
             or self.use_transformer_entities != self.__use_transformer_entities
         ):
-            RepositoryVersionLanguage.objects.filter(
+            print(self)
+            x = RepositoryVersionLanguage.objects.filter(
                 repository_version__repository=self
-            ).update(last_update=timezone.now())
+            ).update(last_update=timezone.now(), training_end_at=None)
+            print(x)
 
         super(Repository, self).save(force_insert, force_update, using, update_fields)
 
@@ -844,6 +846,8 @@ class RepositoryVersionLanguage(models.Model):
             if self.last_update <= self.training_end_at:
                 return False
 
+        print(self.added.query)
+        print(self.translated_added.query)
         if not self.added.exists() and not self.translated_added.exists():
             return False
 
