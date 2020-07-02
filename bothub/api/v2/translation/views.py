@@ -285,10 +285,6 @@ class RepositoryTranslatedExporterViewSet(
 
                     entity_validation = False
 
-                    RepositoryTranslatedExample.objects.exclude(
-                        Q(repository_version_language__language=)
-                    )
-
                     for entity in utils.find_entities_in_example(text_translated):
                         original_text_count_entity = RepositoryExampleEntity.objects.filter(
                             repository_example=example,

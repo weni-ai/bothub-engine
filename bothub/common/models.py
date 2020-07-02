@@ -229,11 +229,9 @@ class Repository(models.Model):
             or self.use_analyze_char != self.__use_analyze_char
             or self.use_transformer_entities != self.__use_transformer_entities
         ):
-            print(self)
-            x = RepositoryVersionLanguage.objects.filter(
+            RepositoryVersionLanguage.objects.filter(
                 repository_version__repository=self
-            ).update(last_update=timezone.now(), training_end_at=None)
-            print(x)
+            ).update(last_update=timezone.now())
 
         super(Repository, self).save(force_insert, force_update, using, update_fields)
 
