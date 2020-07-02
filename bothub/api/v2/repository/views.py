@@ -457,7 +457,7 @@ class RepositoryAuthorizationViewSet(
 ):
     queryset = RepositoryAuthorization.objects.exclude(
         role=RepositoryAuthorization.ROLE_NOT_SETTED
-    )
+    ).distinct("user")
     serializer_class = RepositoryAuthorizationSerializer
     filter_class = RepositoryAuthorizationFilter
     lookup_fields = ["repository__uuid", "user__nickname"]
