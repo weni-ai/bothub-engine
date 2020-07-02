@@ -844,6 +844,8 @@ class RepositoryVersionLanguage(models.Model):
             if self.last_update <= self.training_end_at:
                 return False
 
+        print(self.added.query)
+        print(self.translated_added.query)
         if not self.added.exists() and not self.translated_added.exists():
             return False
 
