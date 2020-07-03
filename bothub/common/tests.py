@@ -615,7 +615,7 @@ class RepositoryUpdateReadyForTrain(TestCase):
             name="Test",
             slug="test",
             language=languages.LANGUAGE_EN,
-            algorithm=Repository.ALGORITHM_NEURAL_NETWORK_INTERNAL,
+            algorithm=Repository.ALGORITHM_TRANSFORMER_NETWORK_DIET,
         )
 
     def test_be_true(self):
@@ -962,7 +962,7 @@ class UseLanguageModelFeaturizerTestCase(TestCase):
 
     def test_equal_repository_value_after_train(self):
         current_version = self.repository.current_version()
-        self.repository.algorithm = Repository.ALGORITHM_NEURAL_NETWORK_INTERNAL
+        self.repository.algorithm = Repository.ALGORITHM_TRANSFORMER_NETWORK_DIET
         self.repository.save()
         current_version.start_training(self.owner)
         current_version.save_training(b"", settings.BOTHUB_NLP_RASA_VERSION)

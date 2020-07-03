@@ -147,7 +147,7 @@ class Repository(models.Model):
         _("algorithm"),
         max_length=50,
         choices=ALGORITHM_CHOICES,
-        default=ALGORITHM_NEURAL_NETWORK_INTERNAL,
+        default=ALGORITHM_TRANSFORMER_NETWORK_DIET,
     )
     use_competing_intents = models.BooleanField(
         _("Use competing intents"),
@@ -172,15 +172,6 @@ class Repository(models.Model):
             "When selected, the algorithm will learn the patterns of "
             + "individual characters instead of whole words. "
             + "This approach works better for some languages."
-        ),
-        default=False,
-    )
-    use_transformer_entities = models.BooleanField(
-        _("Use Transformer Entities"),
-        help_text=_(
-            "When selected, the entities will be trained on "
-            "a better entities recognition model but the training "
-            "time will be significantly increased"
         ),
         default=False,
     )
@@ -209,7 +200,6 @@ class Repository(models.Model):
     __use_competing_intents = None
     __use_name_entities = None
     __use_analyze_char = None
-    __use_transformer_entities = None
 
     def __init__(self, *args, **kwargs):
         super(Repository, self).__init__(*args, **kwargs)
@@ -217,7 +207,6 @@ class Repository(models.Model):
         self.__use_competing_intents = self.use_competing_intents
         self.__use_name_entities = self.use_name_entities
         self.__use_analyze_char = self.use_analyze_char
-        self.__use_transformer_entities = self.use_transformer_entities
 
     def save(
         self, force_insert=False, force_update=False, using=None, update_fields=None
@@ -227,7 +216,6 @@ class Repository(models.Model):
             or self.use_competing_intents != self.__use_competing_intents
             or self.use_name_entities != self.__use_name_entities
             or self.use_analyze_char != self.__use_analyze_char
-            or self.use_transformer_entities != self.__use_transformer_entities
         ):
             RepositoryVersionLanguage.objects.filter(
                 repository_version__repository=self
@@ -239,7 +227,6 @@ class Repository(models.Model):
         self.__use_competing_intents = self.use_competing_intents
         self.__use_name_entities = self.use_name_entities
         self.__use_analyze_char = self.use_analyze_char
-        self.__use_transformer_entities = self.use_transformer_entities
 
     def request_nlp_train(self, user_authorization, data):
         try:  # pragma: no cover
@@ -758,12 +745,11 @@ class RepositoryVersionLanguage(models.Model):
     use_analyze_char = models.BooleanField(default=False)
     use_name_entities = models.BooleanField(default=False)
     use_competing_intents = models.BooleanField(default=False)
-    use_transformer_entities = models.BooleanField(default=False)
     algorithm = models.CharField(
         _("algorithm"),
         max_length=50,
         choices=Repository.ALGORITHM_CHOICES,
-        default=Repository.ALGORITHM_NEURAL_NETWORK_INTERNAL,
+        default=Repository.ALGORITHM_TRANSFORMER_NETWORK_DIET,
     )
     repository_version = models.ForeignKey(RepositoryVersion, models.CASCADE)
     training_log = models.TextField(_("training log"), blank=True, editable=False)
@@ -900,9 +886,6 @@ class RepositoryVersionLanguage(models.Model):
         )
         self.use_name_entities = self.repository_version.repository.use_name_entities
         self.use_analyze_char = self.repository_version.repository.use_analyze_char
-        self.use_transformer_entities = (
-            self.repository_version.repository.use_transformer_entities
-        )
         self.save(
             update_fields=[
                 "training_started_at",
@@ -910,7 +893,6 @@ class RepositoryVersionLanguage(models.Model):
                 "use_competing_intents",
                 "use_name_entities",
                 "use_analyze_char",
-                "use_transformer_entities",
             ]
         )
         self.repository_version.save(update_fields=["created_by"])
