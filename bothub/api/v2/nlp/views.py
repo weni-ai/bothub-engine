@@ -136,6 +136,7 @@ class RepositoryAuthorizationTrainViewSet(
                 "use_name_entities": repository.use_name_entities,
                 "use_competing_intents": repository.use_competing_intents,
                 "use_analyze_char": repository.use_analyze_char,
+                "use_transformer_entities": repository.use_transformer_entities,
                 "total_training_end": repository.total_training_end,
             }
         )
