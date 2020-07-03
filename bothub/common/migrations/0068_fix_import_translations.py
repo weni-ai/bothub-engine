@@ -12,6 +12,12 @@ def migrate(apps, schema_editor):  # pragma: no cover
     RepositoryVersionLanguage = apps.get_model("common", "RepositoryVersionLanguage")
 
     for translated in list(RepositoryTranslatedExample.objects.all().iterator()):
+        if translated.repository_version_language is None:
+            translated.repository_version_language = (
+                translated.original_example.repository_version_language
+            )
+            translated.save(update_fields=["repository_version_language"])
+            continue
         if translated.repository_version_language.language != translated.language:
             repository_version_language, created = RepositoryVersionLanguage.objects.get_or_create(
                 repository_version=translated.repository_version_language.repository_version,
