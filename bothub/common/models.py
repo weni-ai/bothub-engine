@@ -881,7 +881,7 @@ class RepositoryVersionLanguage(models.Model):
                 Q(status=RepositoryQueueTask.STATUS_PENDING)
                 | Q(status=RepositoryQueueTask.STATUS_TRAINING)
             )
-            and from_queue == "celery"
+            and from_queue == RepositoryQueueTask.QUEUE_AIPLATFORM
         ):
             raise RepositoryUpdateAlreadyStartedTraining()
         if by:
