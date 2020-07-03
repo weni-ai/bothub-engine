@@ -70,6 +70,7 @@ class RepositoryAuthorizationTrainViewSet(
                 "current_version_id": current_version.id,
                 "repository_authorization_user_id": repository_authorization.user.id,
                 "language": current_version.language,
+                "algorithm": current_version.algorithm,
             }
         )
 
@@ -189,6 +190,7 @@ class RepositoryAuthorizationParseViewSet(mixins.RetrieveModelMixin, GenericView
                     "repository_version": update.id,
                     "total_training_end": update.total_training_end,
                     "language": update.language,
+                    "algorithm": update.algorithm,
                 }
             )
         except Exception:
@@ -262,6 +264,7 @@ class RepositoryAuthorizationEvaluateViewSet(mixins.RetrieveModelMixin, GenericV
                 "repository_version": update.pk,
                 "language": update.language,
                 "user_id": repository_authorization.user.pk,
+                "algorithm": update.algorithm,
             }
         )
 
