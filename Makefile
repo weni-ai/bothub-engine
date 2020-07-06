@@ -46,6 +46,13 @@ start:
 	@make migrate CHECK_ENVIRONMENT=false
 	@make collectstatic CHECK_ENVIRONMENT=false
 	@pipenv run python ./manage.py runserver
+	
+start_celery:
+	@make development_mode_guard
+	@make check_environment
+	@make migrate CHECK_ENVIRONMENT=false
+	@make collectstatic CHECK_ENVIRONMENT=false
+	@pipenv run celery -A bothub worker -l info -B
 
 migrations:
 	@make development_mode_guard

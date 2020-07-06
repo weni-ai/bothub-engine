@@ -70,6 +70,7 @@ class RepositoryAuthorizationTrainViewSet(
                 "current_version_id": current_version.id,
                 "repository_authorization_user_id": repository_authorization.user.id,
                 "language": current_version.language,
+                "algorithm": current_version.algorithm,
             }
         )
 
@@ -98,6 +99,18 @@ class RepositoryAuthorizationTrainViewSet(
             )
 
         return self.get_paginated_response(examples_return)
+
+    @action(detail=True, methods=["POST"], url_name="save_queue_id", lookup_field=[])
+    def save_queue_id(self, request, **kwargs):
+        check_auth(request)
+        repository = get_object_or_404(
+            RepositoryVersionLanguage, pk=request.data.get("repository_version")
+        )
+
+        id_queue = request.data.get("task_id")
+        from_queue = request.data.get("from_queue")
+        repository.create_task(id_queue=id_queue, from_queue=from_queue)
+        return Response({})
 
     @action(detail=True, methods=["POST"], url_name="start_training", lookup_field=[])
     def start_training(self, request, **kwargs):
@@ -173,6 +186,7 @@ class RepositoryAuthorizationParseViewSet(mixins.RetrieveModelMixin, GenericView
                     "repository_version": update.id,
                     "total_training_end": update.total_training_end,
                     "language": update.language,
+                    "algorithm": update.algorithm,
                 }
             )
         except Exception:
@@ -246,6 +260,7 @@ class RepositoryAuthorizationEvaluateViewSet(mixins.RetrieveModelMixin, GenericV
                 "repository_version": update.pk,
                 "language": update.language,
                 "user_id": repository_authorization.user.pk,
+                "algorithm": update.algorithm,
             }
         )
 

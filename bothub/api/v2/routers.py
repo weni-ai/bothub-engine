@@ -8,6 +8,7 @@ from .repository.views import (
     RepositoryEntitiesViewSet,
     NewRepositoryViewSet,
     RasaUploadViewSet,
+    RepositoryTaskQueueViewSet,
 )
 from .repository.views import RepositoryVotesViewSet
 from .repository.views import RepositoriesViewSet
@@ -134,6 +135,7 @@ router.register("repository/translation-export", RepositoryTranslatedExporterVie
 router.register("repository/version", RepositoryVersionViewSet)
 router.register("repository/log", RepositoryNLPLogViewSet)
 router.register("repository/entities", RepositoryEntitiesViewSet)
+router.register("repository/task-queue", RepositoryTaskQueueViewSet)
 router.register("repository/upload-rasa-file", RasaUploadViewSet)
 router.register("repository/entity/group", RepositoryEntityGroupViewSet)
 router.register(

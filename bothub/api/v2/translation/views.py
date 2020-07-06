@@ -309,8 +309,13 @@ class RepositoryTranslatedExporterViewSet(
                     if translated_examples.count() > 0:
                         translated_examples.delete()
 
+                    version_language = example.repository_version_language.repository_version.repository.current_version(
+                        language=for_language,
+                        is_default=example.repository_version_language.repository_version.is_default,
+                    )
+
                     translated = RepositoryTranslatedExample.objects.create(
-                        repository_version_language=example.repository_version_language,
+                        repository_version_language=version_language,
                         original_example=example,
                         language=for_language,
                         text=utils.get_without_entity(text_translated),
