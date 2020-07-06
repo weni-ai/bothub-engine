@@ -26,7 +26,12 @@ from rest_framework.viewsets import GenericViewSet
 
 from bothub.api.v2.mixins import MultipleFieldLookupMixin
 from bothub.authentication.models import User
-from bothub.common.models import Repository, RepositoryNLPLog, RepositoryEntity
+from bothub.common.models import (
+    Repository,
+    RepositoryNLPLog,
+    RepositoryEntity,
+    RepositoryQueueTask,
+)
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryCategory
 from bothub.common.models import RepositoryExample
@@ -37,6 +42,7 @@ from .filters import (
     RepositoriesFilter,
     RepositoryNLPLogFilter,
     RepositoryEntitiesFilter,
+    RepositoryQueueTaskFilter,
 )
 from .filters import RepositoryAuthorizationFilter
 from .filters import RepositoryAuthorizationRequestsFilter
@@ -57,6 +63,7 @@ from .serializers import (
     NewRepositorySerializer,
     RasaUploadSerializer,
     RasaSerializer,
+    RepositoryQueueTaskSerializer,
 )
 from .serializers import EvaluateSerializer
 from .serializers import RepositoryAuthorizationRoleSerializer
@@ -678,3 +685,13 @@ class RasaUploadViewSet(
                 serializer_example.save()
 
         return Response(202)
+
+
+class RepositoryTaskQueueViewSet(mixins.ListModelMixin, GenericViewSet):
+    queryset = RepositoryQueueTask.objects
+    serializer_class = RepositoryQueueTaskSerializer
+    filter_class = RepositoryQueueTaskFilter
+    permission_classes = [IsAuthenticated]
+
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
