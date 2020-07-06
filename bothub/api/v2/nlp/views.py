@@ -116,15 +116,12 @@ class RepositoryAuthorizationTrainViewSet(
     def start_training(self, request, **kwargs):
         check_auth(request)
 
-        from_queue = request.data.get("from_queue", "celery")
-
         repository = get_object_or_404(
             RepositoryVersionLanguage, pk=request.data.get("repository_version")
         )
 
         repository.start_training(
-            get_object_or_404(User, pk=request.data.get("by_user")),
-            from_queue=from_queue,
+            get_object_or_404(User, pk=request.data.get("by_user"))
         )
 
         return Response(

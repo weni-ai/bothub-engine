@@ -5,27 +5,67 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('common', '0068_fix_import_translations'),
-    ]
+    dependencies = [("common", "0068_fix_import_translations")]
 
     operations = [
         migrations.RemoveField(
-            model_name='repository',
-            name='use_transformer_entities',
+            model_name="repository", name="use_transformer_entities"
         ),
         migrations.RemoveField(
-            model_name='repositoryversionlanguage',
-            name='use_transformer_entities',
+            model_name="repositoryversionlanguage", name="use_transformer_entities"
         ),
         migrations.AlterField(
-            model_name='repository',
-            name='algorithm',
-            field=models.CharField(choices=[('neural_network_internal', 'Neural Network with internal vocabulary'), ('neural_network_external', 'Neural Network with external vocabulary (BETA)'), ('transformer_network_diet', 'Transformer Neural Network with internal vocabulary'), ('transformer_network_diet_word_embedding', 'Transformer Neural Network with word embedding external vocabulary')], default='transformer_network_diet', max_length=50, verbose_name='algorithm'),
+            model_name="repository",
+            name="algorithm",
+            field=models.CharField(
+                choices=[
+                    (
+                        "neural_network_internal",
+                        "Neural Network with internal vocabulary",
+                    ),
+                    (
+                        "neural_network_external",
+                        "Neural Network with external vocabulary (BETA)",
+                    ),
+                    (
+                        "transformer_network_diet",
+                        "Transformer Neural Network with internal vocabulary",
+                    ),
+                    (
+                        "transformer_network_diet_word_embedding",
+                        "Transformer Neural Network with word embedding external vocabulary",
+                    ),
+                ],
+                default="transformer_network_diet",
+                max_length=50,
+                verbose_name="algorithm",
+            ),
         ),
         migrations.AlterField(
-            model_name='repositoryversionlanguage',
-            name='algorithm',
-            field=models.CharField(choices=[('neural_network_internal', 'Neural Network with internal vocabulary'), ('neural_network_external', 'Neural Network with external vocabulary (BETA)'), ('transformer_network_diet', 'Transformer Neural Network with internal vocabulary'), ('transformer_network_diet_word_embedding', 'Transformer Neural Network with word embedding external vocabulary')], default='transformer_network_diet', max_length=50, verbose_name='algorithm'),
+            model_name="repositoryversionlanguage",
+            name="algorithm",
+            field=models.CharField(
+                choices=[
+                    (
+                        "neural_network_internal",
+                        "Neural Network with internal vocabulary",
+                    ),
+                    (
+                        "neural_network_external",
+                        "Neural Network with external vocabulary (BETA)",
+                    ),
+                    (
+                        "transformer_network_diet",
+                        "Transformer Neural Network with internal vocabulary",
+                    ),
+                    (
+                        "transformer_network_diet_word_embedding",
+                        "Transformer Neural Network with word embedding external vocabulary",
+                    ),
+                ],
+                default="transformer_network_diet",
+                max_length=50,
+                verbose_name="algorithm",
+            ),
         ),
     ]
