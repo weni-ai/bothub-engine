@@ -70,7 +70,7 @@ class RepositoryAuthorizationTrainViewSet(
                 "current_version_id": current_version.id,
                 "repository_authorization_user_id": repository_authorization.user.id,
                 "language": current_version.language,
-                "algorithm": current_version.algorithm,
+                "algorithm": current_version.repository_version.repository.algorithm,
             }
         )
 
