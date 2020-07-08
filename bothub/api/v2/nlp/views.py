@@ -70,7 +70,7 @@ class RepositoryAuthorizationTrainViewSet(
                 "current_version_id": current_version.id,
                 "repository_authorization_user_id": repository_authorization.user.id,
                 "language": current_version.language,
-                "algorithm": current_version.algorithm,
+                "algorithm": current_version.repository_version.repository.algorithm,
             }
         )
 
@@ -86,9 +86,9 @@ class RepositoryAuthorizationTrainViewSet(
         examples_return = []
 
         for example in page:
-            get_entities = example.get_entities(request.query_params.get("language"))
+            get_entities = example.get_entities(queryset.language)
 
-            get_text = example.get_text(request.query_params.get("language"))
+            get_text = example.get_text(queryset.language)
 
             examples_return.append(
                 {
