@@ -5,7 +5,7 @@ from django.core.management.base import BaseCommand
 from django.conf import settings
 
 from bothub.authentication.models import User
-from bothub.common.models import RepositoryCategory
+from bothub.common.models import RepositoryCategory, RepositoryOwner
 from bothub.common.models import Repository
 from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryExampleEntity
@@ -49,7 +49,9 @@ class Command(BaseCommand):
         # Repositories
 
         repository_1 = Repository.objects.create(
-            owner=user,
+            owner=RepositoryOwner.objects.create(
+                username=user
+            ),
             name="Repository 1",
             slug="repo1",
             language=languages.LANGUAGE_EN,
@@ -61,7 +63,9 @@ class Command(BaseCommand):
         repository_1.current_version()
 
         repository_2 = Repository.objects.create(
-            owner=user,
+            owner=RepositoryOwner.objects.create(
+                username=user
+            ),
             name="Repository 2",
             slug="repo2",
             language=languages.LANGUAGE_EN,
@@ -73,7 +77,9 @@ class Command(BaseCommand):
 
         for x in range(3, 46):
             new_repository = Repository.objects.create(
-                owner=user,
+                owner=RepositoryOwner.objects.create(
+                    username=user
+                ),
                 name="Repository {}".format(x),
                 slug="repo{}".format(x),
                 language=languages.LANGUAGE_EN,

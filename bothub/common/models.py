@@ -102,7 +102,7 @@ class RepositoryOwner(models.Model):
     class Meta:
         verbose_name = _("repository organization")
 
-    owner = models.ForeignKey(User, models.CASCADE, null=True)
+    username = models.ForeignKey(User, models.CASCADE, null=True)
     organization = models.ForeignKey(RepositoryOrganization, models.CASCADE, null=True)
 
 
@@ -110,7 +110,7 @@ class Repository(models.Model):
     class Meta:
         verbose_name = _("repository")
         verbose_name_plural = _("repositories")
-        unique_together = ["slug"]
+        unique_together = ["owner", "slug"]
 
     CATEGORIES_HELP_TEXT = _(
         "Categories for approaching repositories with " + "the same purpose"
@@ -641,7 +641,7 @@ class Repository(models.Model):
         repository_version, created = self.versions.get_or_create(is_default=is_default)
 
         if created:
-            repository_version.created_by = self.owner
+            repository_version.created_by = self.owner.username
             repository_version.save()
 
         repository_version_language, created = RepositoryVersionLanguage.objects.get_or_create(
@@ -694,7 +694,7 @@ class Repository(models.Model):
 
     def get_absolute_url(self):
         return "{}dashboard/{}/{}/".format(
-            settings.BOTHUB_WEBAPP_BASE_URL, self.owner.nickname, self.slug
+            settings.BOTHUB_WEBAPP_BASE_URL, self.owner.username.nickname if self.owner.username else self.owner.organization.name, self.slug
         )
 
 
