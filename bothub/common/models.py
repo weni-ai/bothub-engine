@@ -86,11 +86,31 @@ class RepositoryManager(models.Manager):
         return RepositoryQuerySet(self.model, using=self._db)
 
 
+class RepositoryOrganization(models.Model):
+    class Meta:
+        verbose_name = _("repository organization")
+
+    name = models.CharField(
+        _("name"), max_length=64, help_text=_("Repository Organization display name")
+    )
+    description = models.TextField(_("description"), blank=True)
+
+    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
+
+
+class RepositoryOwner(models.Model):
+    class Meta:
+        verbose_name = _("repository organization")
+
+    owner = models.ForeignKey(User, models.CASCADE, null=True)
+    organization = models.ForeignKey(RepositoryOrganization, models.CASCADE, null=True)
+
+
 class Repository(models.Model):
     class Meta:
         verbose_name = _("repository")
         verbose_name_plural = _("repositories")
-        unique_together = ["owner", "slug"]
+        unique_together = ["slug"]
 
     CATEGORIES_HELP_TEXT = _(
         "Categories for approaching repositories with " + "the same purpose"
@@ -125,7 +145,9 @@ class Repository(models.Model):
     uuid = models.UUIDField(
         _("UUID"), primary_key=True, default=uuid.uuid4, editable=False
     )
-    owner = models.ForeignKey(User, models.CASCADE, related_name="repositories")
+    owner = models.ForeignKey(
+        RepositoryOwner, models.CASCADE, related_name="repositories"
+    )
     name = models.CharField(
         _("name"), max_length=64, help_text=_("Repository display name")
     )
