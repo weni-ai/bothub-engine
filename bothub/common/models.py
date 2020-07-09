@@ -86,7 +86,7 @@ class RepositoryManager(models.Manager):
         return RepositoryQuerySet(self.model, using=self._db)
 
 
-class RepositoryOrganization(models.Model):
+class Organization(models.Model):
     class Meta:
         verbose_name = _("repository organization")
 
@@ -102,8 +102,8 @@ class RepositoryOwner(models.Model):
     class Meta:
         verbose_name = _("repository organization")
 
-    username = models.ForeignKey(User, models.CASCADE, null=True)
-    organization = models.ForeignKey(RepositoryOrganization, models.CASCADE, null=True)
+    authentication = models.ForeignKey(User, models.CASCADE, null=True)
+    organization = models.ForeignKey(Organization, models.CASCADE, null=True)
 
 
 class Repository(models.Model):
@@ -641,7 +641,7 @@ class Repository(models.Model):
         repository_version, created = self.versions.get_or_create(is_default=is_default)
 
         if created:
-            repository_version.created_by = self.owner.username
+            repository_version.created_by = self.owner.authentication
             repository_version.save()
 
         repository_version_language, created = RepositoryVersionLanguage.objects.get_or_create(
@@ -694,7 +694,7 @@ class Repository(models.Model):
 
     def get_absolute_url(self):
         return "{}dashboard/{}/{}/".format(
-            settings.BOTHUB_WEBAPP_BASE_URL, self.owner.username.nickname if self.owner.username else self.owner.organization.name, self.slug
+            settings.BOTHUB_WEBAPP_BASE_URL, self.owner.authentication.nickname if self.owner.authentication else self.owner.organization.name, self.slug
         )
 
 

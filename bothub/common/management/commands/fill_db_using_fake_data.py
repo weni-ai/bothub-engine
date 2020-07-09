@@ -50,7 +50,7 @@ class Command(BaseCommand):
 
         repository_1 = Repository.objects.create(
             owner=RepositoryOwner.objects.create(
-                username=user
+                authentication=user
             ),
             name="Repository 1",
             slug="repo1",
@@ -64,7 +64,7 @@ class Command(BaseCommand):
 
         repository_2 = Repository.objects.create(
             owner=RepositoryOwner.objects.create(
-                username=user
+                authentication=user
             ),
             name="Repository 2",
             slug="repo2",
@@ -78,7 +78,7 @@ class Command(BaseCommand):
         for x in range(3, 46):
             new_repository = Repository.objects.create(
                 owner=RepositoryOwner.objects.create(
-                    username=user
+                    authentication=user
                 ),
                 name="Repository {}".format(x),
                 slug="repo{}".format(x),

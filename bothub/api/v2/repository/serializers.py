@@ -724,8 +724,8 @@ class ShortRepositorySerializer(serializers.ModelSerializer):
 
     def get_owner(self, obj):
         return {
-            "owner_id": obj.owner.username.pk if obj.owner.username else None,
-            "user_nickname": obj.owner.username.nickname if obj.owner.username else None,
+            "owner_id": obj.owner.authentication.pk if obj.owner.authentication else None,
+            "user_nickname": obj.owner.authentication.nickname if obj.owner.authentication else None,
             "organization_name": obj.owner.organization.name if obj.owner.organization else None,
             "organization_id": obj.owner.organization.pk if obj.owner.organization else None,
             "is_organization": True if obj.owner.organization else False
