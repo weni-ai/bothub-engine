@@ -1,3 +1,4 @@
+import abc
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.base_user import BaseUserManager
@@ -56,15 +57,12 @@ class UserManager(BaseUserManager):
         return self._create_user(email, nickname, password, **extra_fields)
 
 
-class User(AbstractBaseUser, PermissionsMixin):
+class RepositoryOwner(models.Model):
     class Meta:
-        verbose_name = _("user")
-        verbose_name_plural = _("users")
+        verbose_name = _("repository organization")
 
-    USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["nickname"]
 
-    email = models.EmailField(_("email"), unique=True, help_text=_("User's email."))
     name = models.CharField(_("name"), max_length=32, help_text=_("User's name."))
     nickname = models.CharField(
         _("nickname"),
@@ -76,14 +74,34 @@ class User(AbstractBaseUser, PermissionsMixin):
         ),
         unique=True,
     )
+    joined_at = models.DateField(_("joined at"), auto_now_add=True)
+
+    # @abc.abstractmethod
+    def user_instance(self):
+        print('chegou1')
+        print(User(self).user_instance())
+        return None
+
+
+class User(AbstractBaseUser, PermissionsMixin, RepositoryOwner):
+    class Meta:
+        verbose_name = _("user")
+        verbose_name_plural = _("users")
+
+    USERNAME_FIELD = "email"
+
+    email = models.EmailField(_("email"), unique=True, help_text=_("User's email."))
+
     locale = models.CharField(
         _("locale"), max_length=48, help_text=_("User's locale."), blank=True
     )
     is_staff = models.BooleanField(_("staff status"), default=False)
     is_active = models.BooleanField(_("active"), default=True)
-    joined_at = models.DateField(_("joined at"), auto_now_add=True)
 
     objects = UserManager()
+
+    def user_instance(self):
+        return self
 
     @property
     def token_generator(self):

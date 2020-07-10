@@ -701,6 +701,7 @@ class ShortRepositorySerializer(serializers.ModelSerializer):
             "available_languages",
             "created_at",
             "owner",
+            "owner__nickname",
             "absolute_url",
             "votes",
         ]
@@ -711,25 +712,12 @@ class ShortRepositorySerializer(serializers.ModelSerializer):
     categories_list = serializers.SlugRelatedField(
         source="categories", slug_field="name", many=True, read_only=True
     )
-    # owner = serializers.PrimaryKeyRelatedField(
-    #     source="owner.username", read_only=True
-    # )
-    # owner__nickname = serializers.SlugRelatedField(
-    #     source="owner.username", slug_field="nickname", read_only=True
-    # )
-    owner = serializers.SerializerMethodField(read_only=True)
+    owner__nickname = serializers.SlugRelatedField(
+        source="owner", slug_field="nickname", read_only=True
+    )
     absolute_url = serializers.SerializerMethodField()
 
     votes = RepositoryVotesSerializer(many=True, read_only=True)
-
-    def get_owner(self, obj):
-        return {
-            "owner_id": obj.owner.authentication.pk if obj.owner.authentication else None,
-            "user_nickname": obj.owner.authentication.nickname if obj.owner.authentication else None,
-            "organization_name": obj.owner.organization.name if obj.owner.organization else None,
-            "organization_id": obj.owner.organization.pk if obj.owner.organization else None,
-            "is_organization": True if obj.owner.organization else False
-        }
 
     def get_absolute_url(self, obj):
         return obj.get_absolute_url()
