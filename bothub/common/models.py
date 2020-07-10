@@ -93,9 +93,12 @@ class Organization(RepositoryOwner):
     description = models.TextField(_("description"), blank=True)
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
 
-    def user_instance(self):
-        print('chegou')
-        return self.__class__
+    repository_owner = models.OneToOneField(
+        RepositoryOwner,
+        on_delete=models.CASCADE,
+        parent_link=True,
+        related_name='organization_owner'
+    )
 
 
 class Repository(models.Model):
@@ -685,7 +688,6 @@ class Repository(models.Model):
         return get
 
     def get_absolute_url(self):
-        print(self.owner.user_instance())
         return "{}dashboard/{}/{}/".format(
             settings.BOTHUB_WEBAPP_BASE_URL, self.owner.nickname, self.slug
         )

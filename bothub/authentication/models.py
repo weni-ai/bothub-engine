@@ -76,11 +76,13 @@ class RepositoryOwner(models.Model):
     )
     joined_at = models.DateField(_("joined at"), auto_now_add=True)
 
-    # @abc.abstractmethod
-    def user_instance(self):
-        print('chegou1')
-        print(User(self).user_instance())
-        return None
+    @property
+    def user(self):
+        return getattr(self, 'user_owner', None)
+
+    @property
+    def organization(self):
+        return getattr(self, 'organization_owner', None)
 
 
 class User(AbstractBaseUser, PermissionsMixin, RepositoryOwner):
@@ -97,6 +99,13 @@ class User(AbstractBaseUser, PermissionsMixin, RepositoryOwner):
     )
     is_staff = models.BooleanField(_("staff status"), default=False)
     is_active = models.BooleanField(_("active"), default=True)
+    repository_owner = models.ForeignKey(
+        RepositoryOwner,
+        on_delete=models.CASCADE,
+        parent_link=True,
+        related_name='user_owner',
+        null=True
+    )
 
     objects = UserManager()
 
