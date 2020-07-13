@@ -702,7 +702,7 @@ class RepositoryVersion(models.Model):
     last_update = models.DateTimeField(_("last update"), auto_now_add=True)
     is_default = models.BooleanField(default=True)
     repository = models.ForeignKey(Repository, models.CASCADE, related_name="versions")
-    created_by = models.ForeignKey(User, models.CASCADE, blank=True, null=True)
+    created_by = models.ForeignKey(RepositoryOwner, models.CASCADE, blank=True, null=True)
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
     is_deleted = models.BooleanField(_("is deleted"), default=False)
 
@@ -1472,7 +1472,7 @@ class RepositoryAuthorization(models.Model):
         except User.DoesNotExist:
             user = None
 
-        if user and self.repository.owner == user:
+        if user and self.repository.owner.user == user:
             return RepositoryAuthorization.LEVEL_ADMIN
 
         if self.role == RepositoryAuthorization.ROLE_NOT_SETTED:
@@ -1599,7 +1599,7 @@ class RequestRepositoryAuthorization(models.Model):
                 _("New authorization request in {}").format(self.repository.name),
                 render_to_string("common/emails/new_request.txt", context),
                 None,
-                [admin.email],
+                [admin.user.email],
                 html_message=render_to_string(
                     "common/emails/new_request.html", context
                 ),

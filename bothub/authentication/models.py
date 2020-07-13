@@ -69,7 +69,7 @@ class RepositoryOwner(models.Model):
         max_length=16,
         validators=[validate_user_nickname_format, validate_user_nickname_value],
         help_text=_(
-            "User's nickname, using letters, numbers, underscores "
+            "User's or Organization nickname, using letters, numbers, underscores "
             + "and hyphens without spaces."
         ),
         unique=True,
@@ -83,6 +83,10 @@ class RepositoryOwner(models.Model):
     @property
     def organization(self):
         return getattr(self, 'organization_owner', None)
+
+    @property
+    def is_organization(self):
+        return True if self.organization else False
 
 
 class User(AbstractBaseUser, PermissionsMixin, RepositoryOwner):
@@ -108,9 +112,6 @@ class User(AbstractBaseUser, PermissionsMixin, RepositoryOwner):
     )
 
     objects = UserManager()
-
-    def user_instance(self):
-        return self
 
     @property
     def token_generator(self):
