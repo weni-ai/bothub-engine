@@ -14,7 +14,7 @@ from django.core.exceptions import ValidationError
 from rest_framework import status
 from rest_framework.exceptions import APIException
 
-from bothub.authentication.models import User
+from bothub.authentication.models import User, RepositoryOwner
 from django.db.models import Sum, Q
 
 from . import languages
@@ -86,24 +86,19 @@ class RepositoryManager(models.Manager):
         return RepositoryQuerySet(self.model, using=self._db)
 
 
-class Organization(models.Model):
+class Organization(RepositoryOwner):
     class Meta:
         verbose_name = _("repository organization")
 
-    name = models.CharField(
-        _("name"), max_length=64, help_text=_("Repository Organization display name")
-    )
     description = models.TextField(_("description"), blank=True)
-
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
 
-
-class RepositoryOwner(models.Model):
-    class Meta:
-        verbose_name = _("repository organization")
-
-    authentication = models.ForeignKey(User, models.CASCADE, null=True)
-    organization = models.ForeignKey(Organization, models.CASCADE, null=True)
+    repository_owner = models.OneToOneField(
+        RepositoryOwner,
+        on_delete=models.CASCADE,
+        parent_link=True,
+        related_name='organization_owner'
+    )
 
 
 class Repository(models.Model):
@@ -641,7 +636,7 @@ class Repository(models.Model):
         repository_version, created = self.versions.get_or_create(is_default=is_default)
 
         if created:
-            repository_version.created_by = self.owner.authentication
+            repository_version.created_by = self.owner
             repository_version.save()
 
         repository_version_language, created = RepositoryVersionLanguage.objects.get_or_create(
@@ -694,7 +689,7 @@ class Repository(models.Model):
 
     def get_absolute_url(self):
         return "{}dashboard/{}/{}/".format(
-            settings.BOTHUB_WEBAPP_BASE_URL, self.owner.authentication.nickname if self.owner.authentication else self.owner.organization.name, self.slug
+            settings.BOTHUB_WEBAPP_BASE_URL, self.owner.nickname, self.slug
         )
 
 
@@ -707,7 +702,7 @@ class RepositoryVersion(models.Model):
     last_update = models.DateTimeField(_("last update"), auto_now_add=True)
     is_default = models.BooleanField(default=True)
     repository = models.ForeignKey(Repository, models.CASCADE, related_name="versions")
-    created_by = models.ForeignKey(User, models.CASCADE, blank=True, null=True)
+    created_by = models.ForeignKey(RepositoryOwner, models.CASCADE, blank=True, null=True)
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
     is_deleted = models.BooleanField(_("is deleted"), default=False)
 
@@ -1477,7 +1472,7 @@ class RepositoryAuthorization(models.Model):
         except User.DoesNotExist:
             user = None
 
-        if user and self.repository.owner == user:
+        if user and self.repository.owner.user == user:
             return RepositoryAuthorization.LEVEL_ADMIN
 
         if self.role == RepositoryAuthorization.ROLE_NOT_SETTED:
@@ -1604,7 +1599,7 @@ class RequestRepositoryAuthorization(models.Model):
                 _("New authorization request in {}").format(self.repository.name),
                 render_to_string("common/emails/new_request.txt", context),
                 None,
-                [admin.email],
+                [admin.user.email],
                 html_message=render_to_string(
                     "common/emails/new_request.html", context
                 ),
