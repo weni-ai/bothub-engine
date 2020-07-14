@@ -528,7 +528,7 @@ class NewRepositorySerializer(serializers.ModelSerializer):
 
     def get_available_request_authorization(self, obj):
         request = self.context.get("request")
-        if not request or not request.user.user.is_authenticated:
+        if not request or not request.user.is_authenticated:
             return False
         authorization = obj.repository.get_user_authorization(request.user.user)
         if authorization.role is not RepositoryAuthorization.ROLE_NOT_SETTED:
