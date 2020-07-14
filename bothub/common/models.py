@@ -1532,7 +1532,7 @@ class RepositoryAuthorization(models.Model):
             user = self.user
         except User.DoesNotExist:  # pragma: no cover
             return False  # pragma: no cover
-        return self.repository.owner == user
+        return self.repository.owner.user == user
 
     @property
     def role_verbose(self):

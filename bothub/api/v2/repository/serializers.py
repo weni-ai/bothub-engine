@@ -528,16 +528,16 @@ class NewRepositorySerializer(serializers.ModelSerializer):
 
     def get_available_request_authorization(self, obj):
         request = self.context.get("request")
-        if not request or not request.user.is_authenticated:
+        if not request or not request.user.user.is_authenticated:
             return False
-        authorization = obj.repository.get_user_authorization(request.user)
+        authorization = obj.repository.get_user_authorization(request.user.user)
         if authorization.role is not RepositoryAuthorization.ROLE_NOT_SETTED:
             return False
         if authorization.is_owner:
             return False
         try:
             RequestRepositoryAuthorization.objects.get(
-                user=request.user, repository=obj.repository
+                user=request.user.user, repository=obj.repository
             )
             return False
         except RequestRepositoryAuthorization.DoesNotExist:
@@ -739,7 +739,7 @@ class RepositoryAuthorizationRoleSerializer(serializers.ModelSerializer):
         ref_name = None
 
     def validate(self, data):
-        if self.instance.user == self.instance.repository.owner:
+        if self.instance.user == self.instance.repository.owner.user:
             raise PermissionDenied(_("The owner role can't be changed."))
         if data.get("role") == RepositoryAuthorization.LEVEL_NOTHING:
             raise PermissionDenied(_("You cannot set user role 0"))
