@@ -118,6 +118,7 @@ class Repository(models.Model):
     ALGORITHM_TRANSFORMER_NETWORK_DIET_WORD_EMBEDDING = (
         "transformer_network_diet_word_embedding"
     )
+    ALGORITHM_TRANSFORMER_NETWORK_DIET_BERT = "transformer_network_diet_bert"
     ALGORITHM_CHOICES = [
         (
             ALGORITHM_NEURAL_NETWORK_INTERNAL,
@@ -134,6 +135,10 @@ class Repository(models.Model):
         (
             ALGORITHM_TRANSFORMER_NETWORK_DIET_WORD_EMBEDDING,
             _("Transformer Neural Network with word embedding external vocabulary"),
+        ),
+        (
+            ALGORITHM_TRANSFORMER_NETWORK_DIET_BERT,
+            _("Transformer Neural Network with BERT word embedding"),
         ),
     ]
 
