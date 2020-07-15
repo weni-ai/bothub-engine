@@ -76,6 +76,9 @@ class RepositoryOwner(models.Model):
     )
     joined_at = models.DateField(_("joined at"), auto_now_add=True)
 
+    def __str__(self):
+        return self.name  # pragma: no cover
+
     @property
     def user(self):
         return getattr(self, 'user_owner', None)

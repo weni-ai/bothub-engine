@@ -11,6 +11,7 @@ from bothub.api.v2.example.serializers import RepositoryExampleEntitySerializer
 from bothub.api.v2.fields import EntityText, RepositoryVersionRelatedField
 from bothub.api.v2.fields import ModelMultipleChoiceField
 from bothub.api.v2.fields import TextField
+from bothub.authentication.models import RepositoryOwner
 from bothub.common import languages
 from bothub.common.languages import LANGUAGE_CHOICES
 from bothub.common.models import (
@@ -216,6 +217,7 @@ class NewRepositorySerializer(serializers.ModelSerializer):
             "use_analyze_char",
             "nlp_server",
             "version_default",
+            "is_organization",
         ]
         read_only = [
             "uuid",
@@ -230,6 +232,7 @@ class NewRepositorySerializer(serializers.ModelSerializer):
             "created_at",
             "authorization",
             "nlp_server",
+            "is_organization",
         ]
         ref_name = None
 
@@ -331,6 +334,7 @@ class NewRepositorySerializer(serializers.ModelSerializer):
     )
     nlp_server = serializers.SerializerMethodField(style={"show": False})
     version_default = serializers.SerializerMethodField(style={"show": False})
+    is_organization = serializers.BooleanField(source='repository.owner.is_organization')
 
     def get_available_languages(self, obj):
         queryset = RepositoryExample.objects.filter(
@@ -637,7 +641,7 @@ class RepositorySerializer(serializers.ModelSerializer):
     created_at = serializers.DateTimeField(style={"show": False}, read_only=True)
 
     language = serializers.ChoiceField(LANGUAGE_CHOICES, label=_("Language"))
-    owner = serializers.PrimaryKeyRelatedField(read_only=True, style={"show": False})
+    owner = serializers.PrimaryKeyRelatedField(style={"show": False}, required=False, queryset=RepositoryOwner.objects.all())
     owner__nickname = serializers.SlugRelatedField(
         source="owner", slug_field="nickname", read_only=True, style={"show": False}
     )
@@ -652,7 +656,8 @@ class RepositorySerializer(serializers.ModelSerializer):
     categories_list = serializers.SerializerMethodField(style={"show": False})
 
     def create(self, validated_data):
-        validated_data.update({"owner": self.context["request"].user})
+        if not validated_data.get('owner', None):
+            validated_data.update({"owner": self.context["request"].user})
         validated_data.update(
             {"slug": utils.unique_slug_generator(validated_data, Repository)}
         )
