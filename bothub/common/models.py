@@ -685,6 +685,7 @@ class Repository(models.Model):
         return query
 
     def get_user_authorization(self, user):
+        print(user.is_anonymous)
         if user.is_anonymous:
             return RepositoryAuthorization(repository=self)
         get, created = RepositoryAuthorization.objects.get_or_create(
@@ -893,13 +894,16 @@ class RepositoryVersionLanguage(models.Model):
         ):
             raise RepositoryUpdateAlreadyStartedTraining()
         if by:
+            print(f'validate_init_train {by}')
             authorization = self.repository_version.repository.get_user_authorization(
                 by
             )
+            print(authorization)
             if not authorization.can_write:
                 raise TrainingNotAllowed()
 
     def start_training(self, created_by):
+        print(f'Start Training: {created_by}')
         self.validate_init_train(created_by, from_nlp=True)
         self.training_started_at = timezone.now()
         self.algorithm = self.repository_version.repository.algorithm
@@ -1022,7 +1026,7 @@ class RepositoryNLPLog(models.Model):
         null=True,
     )
     nlp_log = models.TextField(help_text=_("NLP Log"), blank=True)
-    user = models.ForeignKey(User, models.CASCADE)
+    user = models.ForeignKey(RepositoryOwner, models.CASCADE)
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
 
     def intents(self, repository_nlp_log):
@@ -1577,7 +1581,7 @@ class RepositoryVote(models.Model):
         verbose_name_plural = _("repository votes")
         unique_together = ["user", "repository"]
 
-    user = models.ForeignKey(User, models.CASCADE, related_name="repository_votes")
+    user = models.ForeignKey(RepositoryOwner, models.CASCADE, related_name="repository_votes")
     repository = models.ForeignKey(Repository, models.CASCADE, related_name="votes")
     created = models.DateTimeField(editable=False, default=timezone.now)
 
@@ -1586,10 +1590,10 @@ class RequestRepositoryAuthorization(models.Model):
     class Meta:
         unique_together = ["user", "repository"]
 
-    user = models.ForeignKey(User, models.CASCADE, related_name="requests")
+    user = models.ForeignKey(RepositoryOwner, models.CASCADE, related_name="requests")
     repository = models.ForeignKey(Repository, models.CASCADE, related_name="requests")
     text = models.CharField(_("text"), max_length=250)
-    approved_by = models.ForeignKey(User, models.CASCADE, blank=True, null=True)
+    approved_by = models.ForeignKey(RepositoryOwner, models.CASCADE, blank=True, null=True)
     created_at = models.DateTimeField(
         _("created at"), auto_now_add=True, editable=False
     )

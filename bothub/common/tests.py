@@ -176,13 +176,13 @@ class RepositoryTestCase(TestCase):
         self.user = User.objects.create_user("fake@user.com", "user")
 
         self.repository = Repository.objects.create(
-            owner=self.owner, name="Test", slug="test", language=languages.LANGUAGE_EN
+            owner=self.owner.repository_owner, name="Test", slug="test", language=languages.LANGUAGE_EN
         )
 
         self.repository_version = self.repository.current_version().repository_version
 
         self.private_repository = Repository.objects.create(
-            owner=self.owner, name="Test", slug="private", is_private=True
+            owner=self.owner.repository_owner, name="Test", slug="private", is_private=True
         )
 
         self.repository_version_private = (
@@ -222,9 +222,9 @@ class RepositoryTestCase(TestCase):
     def test_last_trained_update(self):
         self.assertFalse(self.repository.last_trained_update())
         update_1 = self.repository.current_version()
-        update_1.start_training(self.owner)
+        update_1.start_training(self.owner.repository_owner)
         update_2 = self.repository.current_version()
-        update_2.start_training(self.owner)
+        update_2.start_training(self.owner.repository_owner)
         update_1.save_training(b"bot", settings.BOTHUB_NLP_RASA_VERSION)
         self.assertEqual(update_1, self.repository.last_trained_update())
         update_2.train_fail()
@@ -304,7 +304,7 @@ class RepositoryExampleTestCase(TestCase):
         self.owner = User.objects.create_user("owner@user.com", "user")
 
         self.repository = Repository.objects.create(
-            owner=self.owner, name="Test", slug="test", language=self.language
+            owner=self.owner.repository_owner, name="Test", slug="test", language=self.language
         )
 
         self.example = RepositoryExample.objects.create(
@@ -326,14 +326,14 @@ class RepositoryAuthorizationTestCase(TestCase):
         self.user = User.objects.create_user("fake@user.com", "user")
 
         self.repository = Repository.objects.create(
-            owner=self.owner, name="Test", slug="test"
+            owner=self.owner.repository_owner, name="Test", slug="test"
         )
         self.private_repository = Repository.objects.create(
-            owner=self.owner, name="Test", slug="private", is_private=True
+            owner=self.owner.repository_owner, name="Test", slug="private", is_private=True
         )
 
     def test_admin_level(self):
-        authorization = self.repository.get_user_authorization(self.owner)
+        authorization = self.repository.get_user_authorization(self.owner.repository_owner)
         self.assertEqual(authorization.level, RepositoryAuthorization.LEVEL_ADMIN)
 
     def test_read_level(self):
@@ -346,14 +346,14 @@ class RepositoryAuthorizationTestCase(TestCase):
 
     def test_can_read(self):
         # repository owner
-        authorization_owner = self.repository.get_user_authorization(self.owner)
+        authorization_owner = self.repository.get_user_authorization(self.owner.repository_owner)
         self.assertTrue(authorization_owner.can_read)
         # secondary user in public repository
         authorization_user = self.repository.get_user_authorization(self.user)
         self.assertTrue(authorization_user.can_read)
         # private repository owner
         private_authorization_owner = self.private_repository.get_user_authorization(
-            self.owner
+            self.owner.repository_owner
         )
         self.assertTrue(private_authorization_owner.can_read)
         # secondary user in private repository
@@ -364,14 +364,14 @@ class RepositoryAuthorizationTestCase(TestCase):
 
     def test_can_contribute(self):
         # repository owner
-        authorization_owner = self.repository.get_user_authorization(self.owner)
+        authorization_owner = self.repository.get_user_authorization(self.owner.repository_owner)
         self.assertTrue(authorization_owner.can_contribute)
         # secondary user in public repository
         authorization_user = self.repository.get_user_authorization(self.user)
         self.assertFalse(authorization_user.can_contribute)
         # private repository owner
         private_authorization_owner = self.private_repository.get_user_authorization(
-            self.owner
+            self.owner.repository_owner
         )
         self.assertTrue(private_authorization_owner.can_contribute)
         # secondary user in private repository
@@ -382,14 +382,14 @@ class RepositoryAuthorizationTestCase(TestCase):
 
     def test_can_write(self):
         # repository owner
-        authorization_owner = self.repository.get_user_authorization(self.owner)
+        authorization_owner = self.repository.get_user_authorization(self.owner.repository_owner)
         self.assertTrue(authorization_owner.can_write)
         # secondary user in public repository
         authorization_user = self.repository.get_user_authorization(self.user)
         self.assertFalse(authorization_user.can_write)
         # private repository owner
         private_authorization_owner = self.private_repository.get_user_authorization(
-            self.owner
+            self.owner.repository_owner
         )
         self.assertTrue(private_authorization_owner.can_write)
         # secondary user in private repository
@@ -400,14 +400,14 @@ class RepositoryAuthorizationTestCase(TestCase):
 
     def test_is_admin(self):
         # repository owner
-        authorization_owner = self.repository.get_user_authorization(self.owner)
+        authorization_owner = self.repository.get_user_authorization(self.owner.repository_owner)
         self.assertTrue(authorization_owner.is_admin)
         # secondary user in public repository
         authorization_user = self.repository.get_user_authorization(self.user)
         self.assertFalse(authorization_user.is_admin)
         # private repository owner
         private_authorization_owner = self.private_repository.get_user_authorization(
-            self.owner
+            self.owner.repository_owner
         )
         self.assertTrue(private_authorization_owner.is_admin)
         # secondary user in private repository
@@ -417,7 +417,7 @@ class RepositoryAuthorizationTestCase(TestCase):
         self.assertFalse(private_authorization_user.is_admin)
 
     def test_owner_ever_admin(self):
-        authorization_owner = self.repository.get_user_authorization(self.owner)
+        authorization_owner = self.repository.get_user_authorization(self.owner.repository_owner)
         self.assertTrue(authorization_owner.is_admin)
 
     def test_role_user_can_read(self):
@@ -465,12 +465,12 @@ class RepositoryVersionTrainingTestCase(TestCase):
         self.owner = User.objects.create_user("owner@user.com", "user")
 
         self.repository = Repository.objects.create(
-            owner=self.owner, name="Test", slug="test", language=languages.LANGUAGE_EN
+            owner=self.owner.repository_owner, name="Test", slug="test", language=languages.LANGUAGE_EN
         )
 
     def test_train(self):
         update = self.repository.current_version()
-        update.start_training(self.owner)
+        update.start_training(self.owner.repository_owner)
 
         bot_data = "https://s3.amazonaws.com"
 
@@ -490,7 +490,7 @@ class RepositoryVersionExamplesTestCase(TestCase):
         self.owner = User.objects.create_user("owner@user.com", "user")
 
         self.repository = Repository.objects.create(
-            owner=self.owner, name="Test", slug="test", language=languages.LANGUAGE_EN
+            owner=self.owner.repository_owner, name="Test", slug="test", language=languages.LANGUAGE_EN
         )
         RepositoryExample.objects.create(
             repository_version_language=self.repository.current_version(),
@@ -505,7 +505,7 @@ class RepositoryVersionExamplesTestCase(TestCase):
         example.delete()
 
         self.update = self.repository.current_version()
-        self.update.start_training(self.owner)
+        self.update.start_training(self.owner.repository_owner)
         self.update.save_training(b"", settings.BOTHUB_NLP_RASA_VERSION)
 
     def test_okay(self):
@@ -513,7 +513,7 @@ class RepositoryVersionExamplesTestCase(TestCase):
         RepositoryExample.objects.create(
             repository_version_language=new_update_1, text="hello", intent="greet"
         )
-        new_update_1.start_training(self.owner)
+        new_update_1.start_training(self.owner.repository_owner)
 
         new_update_2 = self.repository.current_version()
         RepositoryExample.objects.create(
@@ -531,7 +531,7 @@ class RepositoryReadyForTrain(TestCase):
         self.owner = User.objects.create_user("owner@user.com", "user")
 
         self.repository = Repository.objects.create(
-            owner=self.owner, name="Test", slug="test", language=languages.LANGUAGE_EN
+            owner=self.owner.repository_owner, name="Test", slug="test", language=languages.LANGUAGE_EN
         )
         self.example_1 = RepositoryExample.objects.create(
             repository_version_language=self.repository.current_version(),
@@ -563,11 +563,11 @@ class RepositoryReadyForTrain(TestCase):
         self.assertTrue(self.repository.ready_for_train())
 
     # def test_be_false(self):
-    #     self.repository.current_version().start_training(self.owner)
+    #     self.repository.current_version().start_training(self.owner.repository_owner)
     #     self.assertFalse(self.repository.ready_for_train())
 
     def test_be_true_when_new_translate(self):
-        self.repository.current_version().start_training(self.owner)
+        self.repository.current_version().start_training(self.owner.repository_owner)
         RepositoryTranslatedExample.objects.create(
             original_example=self.example_1, language=languages.LANGUAGE_PT, text="oi"
         )
@@ -579,13 +579,13 @@ class RepositoryReadyForTrain(TestCase):
 
     def test_be_true_when_deleted_example(self):
         self.repository.current_version()
-        self.repository.current_version().start_training(self.owner)
+        self.repository.current_version().start_training(self.owner.repository_owner)
         self.example_1.delete()
         self.assertTrue(self.repository.ready_for_train())
 
     def test_last_train_failed(self):
         current_version = self.repository.current_version()
-        current_version.start_training(self.owner)
+        current_version.start_training(self.owner.repository_owner)
         current_version.train_fail()
         self.assertTrue(self.repository.current_version().ready_for_train)
 
@@ -598,7 +598,7 @@ class RepositoryReadyForTrain(TestCase):
                 self.repository.algorithm = val_current
                 self.repository.save()
                 current_version = self.repository.current_version()
-                current_version.start_training(self.owner)
+                current_version.start_training(self.owner.repository_owner)
                 current_version.save_training(b"", settings.BOTHUB_NLP_RASA_VERSION)
                 # self.assertFalse(self.repository.ready_for_train())
                 self.repository.algorithm = val_next
@@ -610,13 +610,16 @@ class RepositoryUpdateReadyForTrain(TestCase):
     def setUp(self):
         self.owner = User.objects.create_user("owner@user.com", "user")
 
+        print(self.owner)
+
         self.repository = Repository.objects.create(
-            owner=self.owner,
+            owner=self.owner.repository_owner,
             name="Test",
             slug="test",
             language=languages.LANGUAGE_EN,
             algorithm=Repository.ALGORITHM_NEURAL_NETWORK_INTERNAL,
         )
+        print(self.repository.owner)
 
     def test_be_true(self):
         RepositoryExample.objects.create(
@@ -645,7 +648,7 @@ class RepositoryUpdateReadyForTrain(TestCase):
             text="hello",
             intent="greet",
         )
-        self.repository.current_version().start_training(self.owner)
+        self.repository.current_version().start_training(self.owner.repository_owner)
         RepositoryTranslatedExample.objects.create(
             original_example=example_1, language=languages.LANGUAGE_PT, text="oi"
         )
@@ -672,7 +675,7 @@ class RepositoryUpdateReadyForTrain(TestCase):
             text="hellow",
             intent="greet",
         )
-        self.repository.current_version().start_training(self.owner)
+        self.repository.current_version().start_training(self.owner.repository_owner)
         example.delete()
         self.assertTrue(self.repository.current_version().ready_for_train)
 
@@ -724,7 +727,7 @@ class RepositoryUpdateReadyForTrain(TestCase):
         self.assertTrue(self.repository.current_version().ready_for_train)
 
     def test_settings_change_exists_requirements(self):
-        self.repository.current_version().start_training(self.owner)
+        self.repository.current_version().start_training(self.owner.repository_owner)
         self.repository.algorithm = Repository.ALGORITHM_NEURAL_NETWORK_EXTERNAL
         self.repository.save()
         RepositoryExample.objects.create(
@@ -743,7 +746,8 @@ class RepositoryUpdateReadyForTrain(TestCase):
             text="hi",
             intent="greet",
         )
-        self.repository.current_version().start_training(self.owner)
+        print(self.owner)
+        self.repository.current_version().start_training(self.owner.repository_owner)
         example.delete()
         self.assertFalse(self.repository.current_version().ready_for_train)
 
@@ -752,7 +756,7 @@ class RequestRepositoryAuthorizationTestCase(TestCase):
     def setUp(self):
         self.owner = User.objects.create_user("owner@user.com", "owner")
         repository = Repository.objects.create(
-            owner=self.owner, name="Test", slug="test", language=languages.LANGUAGE_EN
+            owner=self.owner.repository_owner, name="Test", slug="test", language=languages.LANGUAGE_EN
         )
         self.user = User.objects.create_user("user@user.com", "user")
         self.ra = RequestRepositoryAuthorization.objects.create(
@@ -764,20 +768,20 @@ class RequestRepositoryAuthorizationTestCase(TestCase):
         admin_authorization.save()
 
     def test_approve(self):
-        self.ra.approved_by = self.owner
+        self.ra.approved_by = self.owner.repository_owner
         self.ra.save()
         user_authorization = self.ra.repository.get_user_authorization(self.ra.user)
         self.assertEqual(user_authorization.role, RepositoryAuthorization.ROLE_USER)
 
     def test_approve_twice(self):
-        self.ra.approved_by = self.owner
+        self.ra.approved_by = self.owner.repository_owner
         self.ra.save()
         with self.assertRaises(ValidationError):
-            self.ra.approved_by = self.owner
+            self.ra.approved_by = self.owner.repository_owner
             self.ra.save()
 
     def test_approve_twice_another_admin(self):
-        self.ra.approved_by = self.owner
+        self.ra.approved_by = self.owner.repository_owner
         self.ra.save()
         with self.assertRaises(ValidationError):
             self.ra.approved_by = self.admin
@@ -791,7 +795,7 @@ class RepositoryEntityTestCase(TestCase):
         self.owner = User.objects.create_user("owner@user.com", "user")
 
         self.repository = Repository.objects.create(
-            owner=self.owner, name="Test", slug="test", language=self.language
+            owner=self.owner.repository_owner, name="Test", slug="test", language=self.language
         )
 
         self.repository_version = self.repository.current_version().repository_version
@@ -835,7 +839,7 @@ class RepositoryEntityGroupTestCase(TestCase):
         self.owner = User.objects.create_user("owner@user.com", "user")
 
         self.repository = Repository.objects.create(
-            owner=self.owner, name="Test", slug="test", language=self.language
+            owner=self.owner.repository_owner, name="Test", slug="test", language=self.language
         )
 
         self.repository_version = self.repository.current_version().repository_version
@@ -908,7 +912,7 @@ class RepositoryOtherEntitiesTest(TestCase):
         self.owner = User.objects.create_user("owner@user.com", "user")
 
         self.repository = Repository.objects.create(
-            owner=self.owner, name="Test", slug="test", language=languages.LANGUAGE_EN
+            owner=self.owner.repository_owner, name="Test", slug="test", language=languages.LANGUAGE_EN
         )
 
         self.repository_version = self.repository.current_version().repository_version
@@ -942,7 +946,7 @@ class UseLanguageModelFeaturizerTestCase(TestCase):
         self.owner = User.objects.create_user("owner@user.com", "user")
 
         self.repository = Repository.objects.create(
-            owner=self.owner,
+            owner=self.owner.repository_owner,
             name="Test",
             slug="test",
             language=self.language,
@@ -964,7 +968,7 @@ class UseLanguageModelFeaturizerTestCase(TestCase):
         current_version = self.repository.current_version()
         self.repository.algorithm = Repository.ALGORITHM_NEURAL_NETWORK_INTERNAL
         self.repository.save()
-        current_version.start_training(self.owner)
+        current_version.start_training(self.owner.repository_owner)
         current_version.save_training(b"", settings.BOTHUB_NLP_RASA_VERSION)
         self.assertFalse(current_version.use_language_model_featurizer)
 
@@ -976,7 +980,7 @@ class UseCompetingIntentsTestCase(TestCase):
         self.owner = User.objects.create_user("owner@user.com", "user")
 
         self.repository = Repository.objects.create(
-            owner=self.owner,
+            owner=self.owner.repository_owner,
             name="Test",
             slug="test",
             language=self.language,
@@ -997,7 +1001,7 @@ class UseCompetingIntentsTestCase(TestCase):
     def test_change_ready_for_train(self):
         self.assertTrue(self.repository.ready_for_train())
         current_version = self.repository.current_version()
-        current_version.start_training(self.owner)
+        current_version.start_training(self.owner.repository_owner)
         current_version.save_training(b"", settings.BOTHUB_NLP_RASA_VERSION)
         # self.assertFalse(self.repository.ready_for_train())
         self.repository.use_competing_intents = False
@@ -1011,7 +1015,7 @@ class UseCompetingIntentsTestCase(TestCase):
         current_version = self.repository.current_version()
         self.repository.use_competing_intents = False
         self.repository.save()
-        current_version.start_training(self.owner)
+        current_version.start_training(self.owner.repository_owner)
         current_version.save_training(b"", settings.BOTHUB_NLP_RASA_VERSION)
         self.assertFalse(current_version.use_competing_intents)
 
@@ -1023,7 +1027,7 @@ class UseNameEntitiesTestCase(TestCase):
         self.owner = User.objects.create_user("owner@user.com", "user")
 
         self.repository = Repository.objects.create(
-            owner=self.owner,
+            owner=self.owner.repository_owner,
             name="Test",
             slug="test",
             language=self.language,
@@ -1044,7 +1048,7 @@ class UseNameEntitiesTestCase(TestCase):
     def test_change_ready_for_train(self):
         self.assertTrue(self.repository.ready_for_train())
         current_version = self.repository.current_version()
-        current_version.start_training(self.owner)
+        current_version.start_training(self.owner.repository_owner)
         current_version.save_training(b"", settings.BOTHUB_NLP_RASA_VERSION)
         # self.assertFalse(self.repository.ready_for_train())
         self.repository.use_name_entities = False
@@ -1058,7 +1062,7 @@ class UseNameEntitiesTestCase(TestCase):
         current_version = self.repository.current_version()
         self.repository.use_name_entities = False
         self.repository.save()
-        current_version.start_training(self.owner)
+        current_version.start_training(self.owner.repository_owner)
         current_version.save_training(b"", settings.BOTHUB_NLP_RASA_VERSION)
         self.assertFalse(current_version.use_name_entities)
 
@@ -1070,7 +1074,7 @@ class RepositoryUpdateWarnings(TestCase):
         self.owner = User.objects.create_user("owner@user.com", "user")
 
         self.repository = Repository.objects.create(
-            owner=self.owner,
+            owner=self.owner.repository_owner,
             name="Test",
             slug="test",
             language=self.language,
@@ -1101,7 +1105,7 @@ class RepositorySupportedLanguageQueryTestCase(TestCase):
     def _create_repository(self, language):
         self.uid += 1
         return Repository.objects.create(
-            owner=self.owner,
+            owner=self.owner.repository_owner,
             name="Test {}".format(language),
             slug="test-{}-{}".format(self.uid, language),
             language=language,

@@ -42,7 +42,7 @@ class RepositoryAuthorizationFilter(filters.FilterSet):
         request = self.request
         try:
             repository = Repository.objects.get(uuid=value)
-            authorization = repository.get_user_authorization(request.user)
+            authorization = repository.get_user_authorization(request.user.repository_owner)
             if not authorization.is_admin:
                 raise PermissionDenied()
             return queryset.filter(repository=repository)
@@ -68,7 +68,7 @@ class RepositoryAuthorizationRequestsFilter(filters.FilterSet):
         request = self.request
         try:
             repository = Repository.objects.get(uuid=value)
-            authorization = repository.get_user_authorization(request.user)
+            authorization = repository.get_user_authorization(request.user.repository_owner)
             if not authorization.is_admin:
                 raise PermissionDenied()
             return queryset.filter(repository=repository)
@@ -112,7 +112,7 @@ class RepositoryNLPLogFilter(filters.FilterSet):
         request = self.request
         try:
             repository = Repository.objects.get(uuid=value)
-            authorization = repository.get_user_authorization(request.user)
+            authorization = repository.get_user_authorization(request.user.repository_owner)
             if not authorization.can_contribute:
                 raise PermissionDenied()
             return queryset.filter(
@@ -160,7 +160,7 @@ class RepositoryEntitiesFilter(filters.FilterSet):
         request = self.request
         try:
             repository = Repository.objects.get(uuid=value)
-            authorization = repository.get_user_authorization(request.user)
+            authorization = repository.get_user_authorization(request.user.repository_owner)
             if not authorization.can_translate:
                 raise PermissionDenied()
             return queryset.filter(repository_version__repository=repository)
@@ -196,7 +196,7 @@ class RepositoryQueueTaskFilter(filters.FilterSet):
         request = self.request
         try:
             repository = Repository.objects.get(uuid=value)
-            authorization = repository.get_user_authorization(request.user)
+            authorization = repository.get_user_authorization(request.user.repository_owner)
             if not authorization.can_translate:
                 raise PermissionDenied()
             return queryset.filter(

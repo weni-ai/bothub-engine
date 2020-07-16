@@ -22,7 +22,7 @@ class TranslateExampleTestCase(TestCase):
         self.owner, self.owner_token = create_user_and_token("owner")
 
         self.repository = Repository.objects.create(
-            owner=self.owner,
+            owner=self.owner.repository_owner,
             name="Testing",
             slug="test",
             language=languages.LANGUAGE_EN,
@@ -241,7 +241,7 @@ class RepositoryTranslatedExampleDestroyTestCase(TestCase):
         self.owner, self.owner_token = create_user_and_token("owner")
 
         self.repository = Repository.objects.create(
-            owner=self.owner,
+            owner=self.owner.repository_owner,
             name="Testing",
             slug="test",
             language=languages.LANGUAGE_EN,
@@ -281,7 +281,7 @@ class TranslationsViewTest(TestCase):
         self.owner, self.owner_token = create_user_and_token("owner")
 
         self.repository = Repository.objects.create(
-            owner=self.owner,
+            owner=self.owner.repository_owner,
             name="Testing",
             slug="test",
             language=languages.LANGUAGE_EN,
@@ -355,6 +355,7 @@ class TranslationsViewTest(TestCase):
                 "from_language": self.example.repository_version_language.language,
             }
         )
+        print(content_data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(content_data.get("count"), 1)
         self.assertEqual(content_data.get("results")[0].get("id"), self.translated.id)

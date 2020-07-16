@@ -6,7 +6,7 @@ from .. import READ_METHODS
 class RepositoryExamplePermission(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         authorization = obj.repository_update.repository.get_user_authorization(
-            request.user
+            request.user.repository_owner
         )
         if request.method in READ_METHODS:
             return authorization.can_read

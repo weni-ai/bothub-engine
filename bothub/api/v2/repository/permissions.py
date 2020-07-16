@@ -6,7 +6,7 @@ from .. import WRITE_METHODS
 
 class RepositoryPermission(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
-        authorization = obj.get_user_authorization(request.user)
+        authorization = obj.get_user_authorization(request.user.repository_owner)
         if request.method in READ_METHODS and not request.user.is_authenticated:
             return authorization.can_read
 
@@ -21,7 +21,7 @@ class RepositoryPermission(permissions.BasePermission):
 
 class RepositoryInfoPermission(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
-        authorization = obj.repository.get_user_authorization(request.user)
+        authorization = obj.repository.get_user_authorization(request.user.repository_owner)
         if request.method in READ_METHODS and not request.user.is_authenticated:
             return authorization.can_read
 
@@ -36,14 +36,14 @@ class RepositoryInfoPermission(permissions.BasePermission):
 
 class RepositoryAdminManagerAuthorization(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
-        authorization = obj.repository.get_user_authorization(request.user)
+        authorization = obj.repository.get_user_authorization(request.user.repository_owner)
         return authorization.is_admin
 
 
 class RepositoryExamplePermission(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         authorization = obj.repository_version_language.repository_version.repository.get_user_authorization(
-            request.user
+            request.user.repository_owner
         )
         if request.method in READ_METHODS:
             return authorization.can_read
@@ -53,7 +53,7 @@ class RepositoryExamplePermission(permissions.BasePermission):
 class RepositoryEntityHasPermission(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         authorization = obj.repository_version.repository.get_user_authorization(
-            request.user
+            request.user.repository_owner
         )
         if request.method in READ_METHODS:
             return authorization.can_read

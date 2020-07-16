@@ -7,7 +7,7 @@ from rest_framework.exceptions import ValidationError
 class CanContributeInRepositoryExampleValidator(object):
     def __call__(self, value):
         repository = value.repository_update.repository
-        user_authorization = repository.get_user_authorization(self.request.user)
+        user_authorization = repository.get_user_authorization(self.request.user.repository_owner)
         if not user_authorization.can_contribute:
             raise PermissionDenied(_("You can't contribute in this repository"))
 
@@ -18,7 +18,7 @@ class CanContributeInRepositoryExampleValidator(object):
 class CanContributeInRepositoryTranslatedExampleValidator(object):
     def __call__(self, value):
         repository = value.original_example.repository_update.repository
-        user_authorization = repository.get_user_authorization(self.request.user)
+        user_authorization = repository.get_user_authorization(self.request.user.repository_owner)
         if not user_authorization.can_contribute:
             raise PermissionDenied(_("You can't contribute in this repository"))
 
@@ -28,7 +28,7 @@ class CanContributeInRepositoryTranslatedExampleValidator(object):
 
 class CanContributeInRepositoryValidator(object):
     def __call__(self, value):
-        user_authorization = value.get_user_authorization(self.request.user)
+        user_authorization = value.get_user_authorization(self.request.user.repository_owner)
         if not user_authorization.can_contribute:
             raise PermissionDenied(_("You can't contribute in this repository"))
 
@@ -38,7 +38,7 @@ class CanContributeInRepositoryValidator(object):
 
 class CanContributeInRepositoryVersionValidator(object):
     def __call__(self, value):
-        user_authorization = value.repository.get_user_authorization(self.request.user)
+        user_authorization = value.repository.get_user_authorization(self.request.user.repository_owner)
         if not user_authorization.can_contribute:
             raise PermissionDenied(_("You can't contribute in this repository"))
 

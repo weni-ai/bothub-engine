@@ -182,7 +182,7 @@ class DefaultRepositoryVersionAPITestCase(TestCase):
         self.user, self.user_token = create_user_and_token("user")
 
         self.repository = Repository.objects.create(
-            owner=self.owner,
+            owner=self.owner.repository_owner,
             name="Repository 1",
             slug="repo",
             language=languages.LANGUAGE_EN,

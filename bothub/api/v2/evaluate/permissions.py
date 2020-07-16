@@ -14,7 +14,7 @@ class RepositoryEvaluatePermission(permissions.BasePermission):
                 else request.GET.get("repository_uuid")
             )
             repository = Repository.objects.get(uuid=repository_uuid)
-            authorization = repository.get_user_authorization(request.user)
+            authorization = repository.get_user_authorization(request.user.repository_owner)
 
             if request.method in READ_METHODS and not request.user.is_authenticated:
                 return authorization.can_read
