@@ -92,7 +92,7 @@ class RepositoryOwner(models.Model):
         return True if self.organization else False
 
 
-class User(AbstractBaseUser, PermissionsMixin, RepositoryOwner):
+class User(RepositoryOwner, AbstractBaseUser, PermissionsMixin):
     class Meta:
         verbose_name = _("user")
         verbose_name_plural = _("users")
@@ -106,12 +106,11 @@ class User(AbstractBaseUser, PermissionsMixin, RepositoryOwner):
     )
     is_staff = models.BooleanField(_("staff status"), default=False)
     is_active = models.BooleanField(_("active"), default=True)
-    repository_owner = models.ForeignKey(
+    repository_owner = models.OneToOneField(
         RepositoryOwner,
         on_delete=models.CASCADE,
         parent_link=True,
-        related_name='user_owner',
-        null=True
+        related_name='user_owner'
     )
 
     objects = UserManager()

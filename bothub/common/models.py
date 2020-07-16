@@ -1461,7 +1461,7 @@ class RepositoryAuthorization(models.Model):
     uuid = models.UUIDField(
         _("UUID"), primary_key=True, default=uuid.uuid4, editable=False
     )
-    user = models.ForeignKey(User, models.CASCADE)
+    user = models.ForeignKey(RepositoryOwner, models.CASCADE)
     repository = models.ForeignKey(
         Repository, models.CASCADE, related_name="authorizations"
     )
@@ -1470,6 +1470,11 @@ class RepositoryAuthorization(models.Model):
     )
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
 
+    def save(self, *args, **kwargs):
+        if self.is_owner:
+            self.role = RepositoryAuthorization.ROLE_ADMIN
+        super(RepositoryAuthorization, self).save(*args, **kwargs)
+
     @property
     def level(self):
         try:
@@ -1477,7 +1482,7 @@ class RepositoryAuthorization(models.Model):
         except User.DoesNotExist:
             user = None
 
-        if user and self.repository.owner.user == user:
+        if user and self.repository.owner == user:
             return RepositoryAuthorization.LEVEL_ADMIN
 
         if self.role == RepositoryAuthorization.ROLE_NOT_SETTED:
@@ -1537,7 +1542,7 @@ class RepositoryAuthorization(models.Model):
             user = self.user
         except User.DoesNotExist:  # pragma: no cover
             return False  # pragma: no cover
-        return self.repository.owner.user == user
+        return self.repository.owner == user
 
     @property
     def role_verbose(self):
@@ -1561,7 +1566,7 @@ class RepositoryAuthorization(models.Model):
             _("New role in {}").format(self.repository.name),
             render_to_string("common/emails/new_role.txt", context),
             None,
-            [self.user.email],
+            [self.user.user.email],
             html_message=render_to_string("common/emails/new_role.html", context),
         )
 
