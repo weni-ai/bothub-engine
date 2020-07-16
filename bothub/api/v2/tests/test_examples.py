@@ -104,7 +104,6 @@ class ListExamplesAPITestCase(TestCase):
         response, content_data = self.request(
             {"repository_uuid": self.repository.uuid}, self.owner_token
         )
-        print(content_data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(content_data.get("count"), 3)
 

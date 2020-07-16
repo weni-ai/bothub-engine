@@ -39,8 +39,7 @@ class TranslationsFilter(filters.FilterSet):
         request = self.request
         try:
             repository = Repository.objects.get(uuid=value)
-            print(request.user)
-            authorization = repository.get_user_authorization(request.user.repository_owner)
+            authorization = repository.get_user_authorization(request.user)
             if not authorization.can_read:
                 raise PermissionDenied()
             if request.query_params.get("repository_version"):

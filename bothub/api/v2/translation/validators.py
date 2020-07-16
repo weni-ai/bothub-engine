@@ -8,7 +8,7 @@ from bothub.common.models import RepositoryTranslatedExample
 class CanContributeInRepositoryExampleValidator(object):
     def __call__(self, value):
         repository = value.repository_version_language.repository_version.repository
-        user_authorization = repository.get_user_authorization(self.request.user.repository_owner)
+        user_authorization = repository.get_user_authorization(self.request.user)
         if not user_authorization.can_translate:
             raise PermissionDenied(_("You can't contribute in this repository"))
 
@@ -19,7 +19,7 @@ class CanContributeInRepositoryExampleValidator(object):
 class CanContributeInRepositoryTranslatedExampleValidator(object):
     def __call__(self, value):
         repository = value.original_example.repository_update.repository
-        user_authorization = repository.get_user_authorization(self.request.user.repository_owner)
+        user_authorization = repository.get_user_authorization(self.request.user)
         if not user_authorization.can_translate:
             raise PermissionDenied(_("You can't contribute in this repository"))
 

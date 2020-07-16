@@ -6,7 +6,7 @@ from .. import WRITE_METHODS
 
 class RepositoryVersionHasPermission(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
-        authorization = obj.repository.get_user_authorization(request.user.repository_owner)
+        authorization = obj.repository.get_user_authorization(request.user)
         if request.method in READ_METHODS:
             return authorization.can_read  # pragma: no cover
         if request.user.is_authenticated:

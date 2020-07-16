@@ -491,7 +491,7 @@ class RepositoryAuthorizationViewSet(
                 == 0
             ):
                 RequestRepositoryAuthorization.objects.create(
-                    user=instance.user,
+                    user=instance.user.user,
                     repository=instance.repository,
                     approved_by=self.request.user,
                 )

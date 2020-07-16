@@ -685,11 +685,10 @@ class Repository(models.Model):
         return query
 
     def get_user_authorization(self, user):
-        print(user.is_anonymous)
         if user.is_anonymous:
             return RepositoryAuthorization(repository=self)
         get, created = RepositoryAuthorization.objects.get_or_create(
-            user=user, repository=self
+            user=user.repository_owner, repository=self
         )
         return get
 
@@ -894,16 +893,13 @@ class RepositoryVersionLanguage(models.Model):
         ):
             raise RepositoryUpdateAlreadyStartedTraining()
         if by:
-            print(f'validate_init_train {by}')
             authorization = self.repository_version.repository.get_user_authorization(
                 by
             )
-            print(authorization)
             if not authorization.can_write:
                 raise TrainingNotAllowed()
 
     def start_training(self, created_by):
-        print(f'Start Training: {created_by}')
         self.validate_init_train(created_by, from_nlp=True)
         self.training_started_at = timezone.now()
         self.algorithm = self.repository_version.repository.algorithm
@@ -1465,7 +1461,7 @@ class RepositoryAuthorization(models.Model):
     uuid = models.UUIDField(
         _("UUID"), primary_key=True, default=uuid.uuid4, editable=False
     )
-    user = models.ForeignKey(RepositoryOwner, models.CASCADE)
+    user = models.ForeignKey(RepositoryOwner, models.CASCADE, null=True)
     repository = models.ForeignKey(
         Repository, models.CASCADE, related_name="authorizations"
     )
@@ -1590,10 +1586,10 @@ class RequestRepositoryAuthorization(models.Model):
     class Meta:
         unique_together = ["user", "repository"]
 
-    user = models.ForeignKey(RepositoryOwner, models.CASCADE, related_name="requests")
+    user = models.ForeignKey(User, models.CASCADE, related_name="requests")
     repository = models.ForeignKey(Repository, models.CASCADE, related_name="requests")
     text = models.CharField(_("text"), max_length=250)
-    approved_by = models.ForeignKey(RepositoryOwner, models.CASCADE, blank=True, null=True)
+    approved_by = models.ForeignKey(User, models.CASCADE, blank=True, null=True)
     created_at = models.DateTimeField(
         _("created at"), auto_now_add=True, editable=False
     )

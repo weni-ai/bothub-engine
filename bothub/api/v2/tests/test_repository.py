@@ -229,7 +229,7 @@ class RepositoryAuthorizationTestCase(TestCase):
         self.category = RepositoryCategory.objects.create(name="Category 1")
 
         self.repositories = [
-            create_repository_from_mockup(self.owner, **mockup)
+            create_repository_from_mockup(self.owner.repository_owner, **mockup)
             for mockup in get_valid_mockups([self.category])
         ]
 
@@ -892,10 +892,10 @@ class RepositoryAuthorizationRequestsTestCase(TestCase):
         )
 
         RequestRepositoryAuthorization.objects.create(
-            user=self.user.repository_owner, repository=self.repository, text="I can contribute"
+            user=self.user, repository=self.repository, text="I can contribute"
         )
 
-        admin_autho = self.repository.get_user_authorization(self.admin.repository_owner)
+        admin_autho = self.repository.get_user_authorization(self.admin)
         admin_autho.role = RepositoryAuthorization.ROLE_ADMIN
         admin_autho.save()
 
@@ -917,7 +917,6 @@ class RepositoryAuthorizationRequestsTestCase(TestCase):
         response, content_data = self.request(
             {"repository_uuid": self.repository.uuid}, self.owner_token
         )
-        print(content_data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(content_data.get("count"), 1)
 
@@ -994,7 +993,7 @@ class ReviewAuthorizationRequestTestCase(TestCase):
         self.user, self.user_token = create_user_and_token()
 
         repository = Repository.objects.create(
-            owner=self.owner,
+            owner=self.owner.repository_owner,
             name="Testing",
             slug="test",
             language=languages.LANGUAGE_EN,
@@ -1217,7 +1216,6 @@ class RepositoryExampleUploadTestCase(TestCase):
 
     def test_okay(self):
         response, content_data = self.request(self.owner_token)
-        print(content_data)
         self.assertEqual(content_data.get("added"), 2)
         self.assertEqual(len(content_data.get("not_added")), 0)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -1766,7 +1764,7 @@ class VersionsTestCase(TestCase):
         self.owner, self.owner_token = create_user_and_token("owner")
 
         self.repository = Repository.objects.create(
-            owner=self.owner,
+            owner=self.owner.repository_owner,
             name="Testing",
             slug="test",
             language=languages.LANGUAGE_EN,
