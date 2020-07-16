@@ -688,7 +688,7 @@ class Repository(models.Model):
         if user.is_anonymous:
             return RepositoryAuthorization(repository=self)
         get, created = RepositoryAuthorization.objects.get_or_create(
-            user=user, repository=self
+            user=user.repository_owner, repository=self
         )
         return get
 
@@ -1022,7 +1022,7 @@ class RepositoryNLPLog(models.Model):
         null=True,
     )
     nlp_log = models.TextField(help_text=_("NLP Log"), blank=True)
-    user = models.ForeignKey(User, models.CASCADE)
+    user = models.ForeignKey(RepositoryOwner, models.CASCADE)
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
 
     def intents(self, repository_nlp_log):
@@ -1461,7 +1461,7 @@ class RepositoryAuthorization(models.Model):
     uuid = models.UUIDField(
         _("UUID"), primary_key=True, default=uuid.uuid4, editable=False
     )
-    user = models.ForeignKey(RepositoryOwner, models.CASCADE)
+    user = models.ForeignKey(RepositoryOwner, models.CASCADE, null=True)
     repository = models.ForeignKey(
         Repository, models.CASCADE, related_name="authorizations"
     )
@@ -1577,7 +1577,7 @@ class RepositoryVote(models.Model):
         verbose_name_plural = _("repository votes")
         unique_together = ["user", "repository"]
 
-    user = models.ForeignKey(User, models.CASCADE, related_name="repository_votes")
+    user = models.ForeignKey(RepositoryOwner, models.CASCADE, related_name="repository_votes")
     repository = models.ForeignKey(Repository, models.CASCADE, related_name="votes")
     created = models.DateTimeField(editable=False, default=timezone.now)
 

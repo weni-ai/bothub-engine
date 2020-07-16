@@ -176,13 +176,13 @@ class RepositoryTestCase(TestCase):
         self.user = User.objects.create_user("fake@user.com", "user")
 
         self.repository = Repository.objects.create(
-            owner=self.owner, name="Test", slug="test", language=languages.LANGUAGE_EN
+            owner=self.owner.repository_owner, name="Test", slug="test", language=languages.LANGUAGE_EN
         )
 
         self.repository_version = self.repository.current_version().repository_version
 
         self.private_repository = Repository.objects.create(
-            owner=self.owner, name="Test", slug="private", is_private=True
+            owner=self.owner.repository_owner, name="Test", slug="private", is_private=True
         )
 
         self.repository_version_private = (
@@ -304,7 +304,7 @@ class RepositoryExampleTestCase(TestCase):
         self.owner = User.objects.create_user("owner@user.com", "user")
 
         self.repository = Repository.objects.create(
-            owner=self.owner, name="Test", slug="test", language=self.language
+            owner=self.owner.repository_owner, name="Test", slug="test", language=self.language
         )
 
         self.example = RepositoryExample.objects.create(
@@ -326,10 +326,10 @@ class RepositoryAuthorizationTestCase(TestCase):
         self.user = User.objects.create_user("fake@user.com", "user")
 
         self.repository = Repository.objects.create(
-            owner=self.owner, name="Test", slug="test"
+            owner=self.owner.repository_owner, name="Test", slug="test"
         )
         self.private_repository = Repository.objects.create(
-            owner=self.owner, name="Test", slug="private", is_private=True
+            owner=self.owner.repository_owner, name="Test", slug="private", is_private=True
         )
 
     def test_admin_level(self):
@@ -465,7 +465,7 @@ class RepositoryVersionTrainingTestCase(TestCase):
         self.owner = User.objects.create_user("owner@user.com", "user")
 
         self.repository = Repository.objects.create(
-            owner=self.owner, name="Test", slug="test", language=languages.LANGUAGE_EN
+            owner=self.owner.repository_owner, name="Test", slug="test", language=languages.LANGUAGE_EN
         )
 
     def test_train(self):
@@ -490,7 +490,7 @@ class RepositoryVersionExamplesTestCase(TestCase):
         self.owner = User.objects.create_user("owner@user.com", "user")
 
         self.repository = Repository.objects.create(
-            owner=self.owner, name="Test", slug="test", language=languages.LANGUAGE_EN
+            owner=self.owner.repository_owner, name="Test", slug="test", language=languages.LANGUAGE_EN
         )
         RepositoryExample.objects.create(
             repository_version_language=self.repository.current_version(),
@@ -531,7 +531,7 @@ class RepositoryReadyForTrain(TestCase):
         self.owner = User.objects.create_user("owner@user.com", "user")
 
         self.repository = Repository.objects.create(
-            owner=self.owner, name="Test", slug="test", language=languages.LANGUAGE_EN
+            owner=self.owner.repository_owner, name="Test", slug="test", language=languages.LANGUAGE_EN
         )
         self.example_1 = RepositoryExample.objects.create(
             repository_version_language=self.repository.current_version(),
@@ -611,7 +611,7 @@ class RepositoryUpdateReadyForTrain(TestCase):
         self.owner = User.objects.create_user("owner@user.com", "user")
 
         self.repository = Repository.objects.create(
-            owner=self.owner,
+            owner=self.owner.repository_owner,
             name="Test",
             slug="test",
             language=languages.LANGUAGE_EN,
@@ -752,7 +752,7 @@ class RequestRepositoryAuthorizationTestCase(TestCase):
     def setUp(self):
         self.owner = User.objects.create_user("owner@user.com", "owner")
         repository = Repository.objects.create(
-            owner=self.owner, name="Test", slug="test", language=languages.LANGUAGE_EN
+            owner=self.owner.repository_owner, name="Test", slug="test", language=languages.LANGUAGE_EN
         )
         self.user = User.objects.create_user("user@user.com", "user")
         self.ra = RequestRepositoryAuthorization.objects.create(
@@ -791,7 +791,7 @@ class RepositoryEntityTestCase(TestCase):
         self.owner = User.objects.create_user("owner@user.com", "user")
 
         self.repository = Repository.objects.create(
-            owner=self.owner, name="Test", slug="test", language=self.language
+            owner=self.owner.repository_owner, name="Test", slug="test", language=self.language
         )
 
         self.repository_version = self.repository.current_version().repository_version
@@ -835,7 +835,7 @@ class RepositoryEntityGroupTestCase(TestCase):
         self.owner = User.objects.create_user("owner@user.com", "user")
 
         self.repository = Repository.objects.create(
-            owner=self.owner, name="Test", slug="test", language=self.language
+            owner=self.owner.repository_owner, name="Test", slug="test", language=self.language
         )
 
         self.repository_version = self.repository.current_version().repository_version
@@ -908,7 +908,7 @@ class RepositoryOtherEntitiesTest(TestCase):
         self.owner = User.objects.create_user("owner@user.com", "user")
 
         self.repository = Repository.objects.create(
-            owner=self.owner, name="Test", slug="test", language=languages.LANGUAGE_EN
+            owner=self.owner.repository_owner, name="Test", slug="test", language=languages.LANGUAGE_EN
         )
 
         self.repository_version = self.repository.current_version().repository_version
@@ -942,7 +942,7 @@ class UseLanguageModelFeaturizerTestCase(TestCase):
         self.owner = User.objects.create_user("owner@user.com", "user")
 
         self.repository = Repository.objects.create(
-            owner=self.owner,
+            owner=self.owner.repository_owner,
             name="Test",
             slug="test",
             language=self.language,
@@ -976,7 +976,7 @@ class UseCompetingIntentsTestCase(TestCase):
         self.owner = User.objects.create_user("owner@user.com", "user")
 
         self.repository = Repository.objects.create(
-            owner=self.owner,
+            owner=self.owner.repository_owner,
             name="Test",
             slug="test",
             language=self.language,
@@ -1023,7 +1023,7 @@ class UseNameEntitiesTestCase(TestCase):
         self.owner = User.objects.create_user("owner@user.com", "user")
 
         self.repository = Repository.objects.create(
-            owner=self.owner,
+            owner=self.owner.repository_owner,
             name="Test",
             slug="test",
             language=self.language,
@@ -1070,7 +1070,7 @@ class RepositoryUpdateWarnings(TestCase):
         self.owner = User.objects.create_user("owner@user.com", "user")
 
         self.repository = Repository.objects.create(
-            owner=self.owner,
+            owner=self.owner.repository_owner,
             name="Test",
             slug="test",
             language=self.language,
@@ -1101,7 +1101,7 @@ class RepositorySupportedLanguageQueryTestCase(TestCase):
     def _create_repository(self, language):
         self.uid += 1
         return Repository.objects.create(
-            owner=self.owner,
+            owner=self.owner.repository_owner,
             name="Test {}".format(language),
             slug="test-{}-{}".format(self.uid, language),
             language=language,

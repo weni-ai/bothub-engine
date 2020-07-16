@@ -80,6 +80,10 @@ class RepositoryOwner(models.Model):
         return self.name  # pragma: no cover
 
     @property
+    def is_anonymous(self):
+        return self.user.is_anonymous
+
+    @property
     def user(self):
         return getattr(self, 'user_owner', None)
 
@@ -92,7 +96,7 @@ class RepositoryOwner(models.Model):
         return True if self.organization else False
 
 
-class User(RepositoryOwner, AbstractBaseUser, PermissionsMixin):
+class User(AbstractBaseUser, RepositoryOwner, PermissionsMixin):
     class Meta:
         verbose_name = _("user")
         verbose_name_plural = _("users")

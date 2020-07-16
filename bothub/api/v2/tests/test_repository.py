@@ -229,7 +229,7 @@ class RepositoryAuthorizationTestCase(TestCase):
         self.category = RepositoryCategory.objects.create(name="Category 1")
 
         self.repositories = [
-            create_repository_from_mockup(self.owner, **mockup)
+            create_repository_from_mockup(self.owner.repository_owner, **mockup)
             for mockup in get_valid_mockups([self.category])
         ]
 
@@ -795,7 +795,7 @@ class ListAuthorizationTestCase(TestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertEqual(content_data.get("count"), 1)
+        self.assertEqual(content_data.get("count"), 2)
 
         self.assertEqual(content_data.get("results")[0].get("user"), self.user.id)
 
@@ -885,7 +885,7 @@ class RepositoryAuthorizationRequestsTestCase(TestCase):
         self.user, self.user_token = create_user_and_token()
 
         self.repository = Repository.objects.create(
-            owner=self.owner,
+            owner=self.owner.repository_owner,
             name="Testing",
             slug="test",
             language=languages.LANGUAGE_EN,
@@ -993,7 +993,7 @@ class ReviewAuthorizationRequestTestCase(TestCase):
         self.user, self.user_token = create_user_and_token()
 
         repository = Repository.objects.create(
-            owner=self.owner,
+            owner=self.owner.repository_owner,
             name="Testing",
             slug="test",
             language=languages.LANGUAGE_EN,
@@ -1160,7 +1160,7 @@ class RepositoryExampleUploadTestCase(TestCase):
         self.user, self.user_token = create_user_and_token()
 
         self.repository = Repository.objects.create(
-            owner=self.owner,
+            owner=self.owner.repository_owner,
             name="Testing",
             slug="test",
             language=languages.LANGUAGE_EN,
@@ -1764,7 +1764,7 @@ class VersionsTestCase(TestCase):
         self.owner, self.owner_token = create_user_and_token("owner")
 
         self.repository = Repository.objects.create(
-            owner=self.owner,
+            owner=self.owner.repository_owner,
             name="Testing",
             slug="test",
             language=languages.LANGUAGE_EN,

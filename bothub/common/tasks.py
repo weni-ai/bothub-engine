@@ -30,7 +30,6 @@ def trainings_check_task():
                 }
             ),
         ).json()
-        print(result)
 
         if int(result.get("status")) != train.status:
             fields = ["status", "ml_units"]
