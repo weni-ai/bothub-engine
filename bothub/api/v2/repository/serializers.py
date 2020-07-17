@@ -515,10 +515,6 @@ class NewRepositorySerializer(serializers.ModelSerializer):
         request = self.context.get("request")
         if not request or not request.user.is_authenticated:
             return None
-        if obj.repository.owner.is_organization:
-            return OrganizationAuthorizationSerializer(
-                obj.repository.get_organization_authorization(request.user)
-            ).data
         return RepositoryAuthorizationSerializer(
             obj.repository.get_user_authorization(request.user)
         ).data
@@ -661,13 +657,22 @@ class RepositorySerializer(serializers.ModelSerializer):
     categories_list = serializers.SerializerMethodField(style={"show": False})
 
     def create(self, validated_data):
-        if not validated_data.get('owner', None):
+        owner = validated_data.get('owner', None)
+        if not owner or not owner.is_organization:
             validated_data.update({"owner": self.context["request"].user})
+            owner = self.context["request"].user
+
         validated_data.update(
             {"slug": utils.unique_slug_generator(validated_data, Repository)}
         )
 
         repository = super().create(validated_data)
+
+        if owner.is_organization:
+            repository.authorizations.create(
+                user=owner,
+                role=RepositoryAuthorization.ROLE_ADMIN
+            )
 
         repository.versions.create(
             is_default=True, created_by=self.context["request"].user
