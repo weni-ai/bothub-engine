@@ -37,6 +37,7 @@ from .validators import CanContributeInRepositoryTranslatedExampleValidator
 from .validators import CanContributeInRepositoryValidator
 from .validators import CanContributeInRepositoryVersionValidator
 from .validators import ExampleWithIntentOrEntityValidator
+from ..organization.serializers import OrganizationAuthorizationSerializer
 
 
 class RequestRepositoryAuthorizationSerializer(serializers.ModelSerializer):
@@ -514,6 +515,10 @@ class NewRepositorySerializer(serializers.ModelSerializer):
         request = self.context.get("request")
         if not request or not request.user.is_authenticated:
             return None
+        if obj.repository.owner.is_organization:
+            return OrganizationAuthorizationSerializer(
+                obj.repository.get_organization_authorization(request.user)
+            ).data
         return RepositoryAuthorizationSerializer(
             obj.repository.get_user_authorization(request.user)
         ).data

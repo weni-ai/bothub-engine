@@ -101,6 +101,97 @@ class Organization(RepositoryOwner):
     )
 
 
+class OrganizationAuthorization(models.Model):
+    class Meta:
+        verbose_name = _("organization authorization")
+        verbose_name_plural = _("organization authorizations")
+        unique_together = ["user", "organization"]
+
+    LEVEL_NOTHING = 0
+    LEVEL_READER = 1
+    LEVEL_CONTRIBUTOR = 2
+    LEVEL_ADMIN = 3
+    LEVEL_TRANSLATE = 4
+
+    ROLE_NOT_SETTED = 0
+    ROLE_USER = 1
+    ROLE_CONTRIBUTOR = 2
+    ROLE_ADMIN = 3
+    ROLE_TRANSLATE = 4
+
+    ROLE_CHOICES = [
+        (ROLE_NOT_SETTED, _("not set")),
+        (ROLE_USER, _("user")),
+        (ROLE_CONTRIBUTOR, _("contributor")),
+        (ROLE_ADMIN, _("admin")),
+        (ROLE_TRANSLATE, _("translate")),
+    ]
+
+    uuid = models.UUIDField(
+        _("UUID"), primary_key=True, default=uuid.uuid4, editable=False
+    )
+    user = models.ForeignKey(RepositoryOwner, models.CASCADE, null=True)
+    organization = models.ForeignKey(
+        Organization, models.CASCADE, related_name="organization_authorizations"
+    )
+    role = models.PositiveIntegerField(
+        _("role"), choices=ROLE_CHOICES, default=ROLE_NOT_SETTED
+    )
+    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
+
+    @property
+    def level(self):
+        if self.role == RepositoryAuthorization.ROLE_USER:
+            return RepositoryAuthorization.LEVEL_READER
+
+        if self.role == RepositoryAuthorization.ROLE_CONTRIBUTOR:
+            return RepositoryAuthorization.LEVEL_CONTRIBUTOR
+
+        if self.role == RepositoryAuthorization.ROLE_ADMIN:
+            return RepositoryAuthorization.LEVEL_ADMIN
+
+        if self.role == RepositoryAuthorization.ROLE_TRANSLATE:
+            return RepositoryAuthorization.LEVEL_TRANSLATE
+
+        return RepositoryAuthorization.LEVEL_NOTHING  # pragma: no cover
+
+    @property
+    def can_read(self):
+        return self.level in [
+            RepositoryAuthorization.LEVEL_READER,
+            RepositoryAuthorization.LEVEL_CONTRIBUTOR,
+            RepositoryAuthorization.LEVEL_ADMIN,
+            RepositoryAuthorization.LEVEL_TRANSLATE,
+        ]
+
+    @property
+    def can_contribute(self):
+        return self.level in [
+            RepositoryAuthorization.LEVEL_CONTRIBUTOR,
+            RepositoryAuthorization.LEVEL_ADMIN,
+        ]
+
+    @property
+    def can_write(self):
+        return self.level in [RepositoryAuthorization.LEVEL_ADMIN]
+
+    @property
+    def can_translate(self):
+        return self.level in [
+            RepositoryAuthorization.LEVEL_CONTRIBUTOR,
+            RepositoryAuthorization.LEVEL_ADMIN,
+            RepositoryAuthorization.LEVEL_TRANSLATE,
+        ]
+
+    @property
+    def is_admin(self):
+        return self.level == RepositoryAuthorization.LEVEL_ADMIN
+
+    @property
+    def role_verbose(self):
+        return dict(RepositoryAuthorization.ROLE_CHOICES).get(self.role)
+
+
 class Repository(models.Model):
     class Meta:
         verbose_name = _("repository")
@@ -683,6 +774,14 @@ class Repository(models.Model):
                 language=language,
             )
         return query
+
+    def get_organization_authorization(self, user):
+        if user.is_anonymous:
+            return OrganizationAuthorization(organization=self.owner)
+        get, created = OrganizationAuthorization.objects.get_or_create(
+            user=user.repository_owner, organization=self.owner
+        )
+        return get
 
     def get_user_authorization(self, user):
         if user.is_anonymous:
