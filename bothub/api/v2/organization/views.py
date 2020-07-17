@@ -9,6 +9,7 @@ from .serializers import OrganizationSeralizer
 
 class OrganizationViewSet(
     mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
     mixins.CreateModelMixin,
     mixins.UpdateModelMixin,
     mixins.DestroyModelMixin,
