@@ -13,6 +13,7 @@ class OrganizationSeralizer(serializers.ModelSerializer):
             "name",
             "nickname",
             "description",
+            "verificated",
         ]
         ref_name = None
 

@@ -18,6 +18,7 @@ class OrganizationViewSet(
     queryset = Organization.objects.all()
     serializer_class = OrganizationSeralizer
     permission_classes = [IsAuthenticated]#, OrganizationHasPermission]
+    lookup_field = 'nickname'
     metadata_class = Metadata
 
     def list(self, request, *args, **kwargs):
