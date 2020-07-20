@@ -468,7 +468,7 @@ class RepositoryAuthorizationViewSet(
         user_nickname = self.kwargs.get("user__nickname")
 
         repository = get_object_or_404(Repository, uuid=repository_uuid)
-        user = get_object_or_404(User, nickname=user_nickname)
+        user = get_object_or_404(RepositoryOwner, nickname=user_nickname)
 
         obj = repository.get_user_authorization(user)
 
