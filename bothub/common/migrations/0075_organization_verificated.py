@@ -5,14 +5,12 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('common', '0074_auto_20200717_1541'),
-    ]
+    dependencies = [("common", "0074_auto_20200717_1541")]
 
     operations = [
         migrations.AddField(
-            model_name='organization',
-            name='verificated',
+            model_name="organization",
+            name="verificated",
             field=models.BooleanField(default=False),
-        ),
+        )
     ]

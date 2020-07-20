@@ -2,7 +2,7 @@ from rest_framework import routers
 
 from bothub.api.v2.versionning.views import RepositoryVersionViewSet
 from .groups.views import RepositoryEntityGroupViewSet
-from .organization.views import OrganizationViewSet
+from .organization.views import OrganizationViewSet, OrganizationProfileViewSet
 from .repository.views import (
     RepositoryViewSet,
     RepositoryNLPLogViewSet,
@@ -163,3 +163,4 @@ router.register("account/my-profile", MyUserProfileViewSet)
 router.register("account/search-user", SearchUserViewSet)
 router.register("account/reset-password", ResetPasswordViewSet)
 router.register("org/organization", OrganizationViewSet)
+router.register("org/profile", OrganizationProfileViewSet)

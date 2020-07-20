@@ -37,7 +37,6 @@ from .validators import CanContributeInRepositoryTranslatedExampleValidator
 from .validators import CanContributeInRepositoryValidator
 from .validators import CanContributeInRepositoryVersionValidator
 from .validators import ExampleWithIntentOrEntityValidator
-from ..organization.serializers import OrganizationAuthorizationSerializer
 
 
 class RequestRepositoryAuthorizationSerializer(serializers.ModelSerializer):
@@ -161,12 +160,16 @@ class RepositoryAuthorizationSerializer(serializers.ModelSerializer):
             "is_admin",
             "created_at",
             "id_request_authorizations",
+            "user__is_organization",
         ]
         read_only = ["user", "user__nickname", "repository", "role", "created_at"]
         ref_name = None
 
     user__nickname = serializers.SlugRelatedField(
         source="user", slug_field="nickname", read_only=True
+    )
+    user__is_organization = serializers.SlugRelatedField(
+        source="user", slug_field="is_organization", read_only=True
     )
 
     id_request_authorizations = serializers.SerializerMethodField()
@@ -335,7 +338,9 @@ class NewRepositorySerializer(serializers.ModelSerializer):
     )
     nlp_server = serializers.SerializerMethodField(style={"show": False})
     version_default = serializers.SerializerMethodField(style={"show": False})
-    is_organization = serializers.BooleanField(source='repository.owner.is_organization')
+    is_organization = serializers.BooleanField(
+        source="repository.owner.is_organization"
+    )
 
     def get_available_languages(self, obj):
         queryset = RepositoryExample.objects.filter(
@@ -642,7 +647,9 @@ class RepositorySerializer(serializers.ModelSerializer):
     created_at = serializers.DateTimeField(style={"show": False}, read_only=True)
 
     language = serializers.ChoiceField(LANGUAGE_CHOICES, label=_("Language"))
-    owner = serializers.PrimaryKeyRelatedField(style={"show": False}, required=False, queryset=RepositoryOwner.objects.all())
+    owner = serializers.PrimaryKeyRelatedField(
+        style={"show": False}, required=False, queryset=RepositoryOwner.objects.all()
+    )
     owner__nickname = serializers.SlugRelatedField(
         source="owner", slug_field="nickname", read_only=True, style={"show": False}
     )
@@ -657,7 +664,7 @@ class RepositorySerializer(serializers.ModelSerializer):
     categories_list = serializers.SerializerMethodField(style={"show": False})
 
     def create(self, validated_data):
-        owner = validated_data.get('owner', None)
+        owner = validated_data.get("owner", None)
         if not owner or not owner.is_organization:
             validated_data.update({"owner": self.context["request"].user})
             owner = self.context["request"].user
@@ -670,8 +677,7 @@ class RepositorySerializer(serializers.ModelSerializer):
 
         if owner.is_organization:
             repository.authorizations.create(
-                user=owner,
-                role=RepositoryAuthorization.ROLE_ADMIN
+                user=owner, role=RepositoryAuthorization.ROLE_ADMIN
             )
 
         repository.versions.create(

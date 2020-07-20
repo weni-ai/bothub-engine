@@ -98,7 +98,7 @@ class Organization(RepositoryOwner):
         RepositoryOwner,
         on_delete=models.CASCADE,
         parent_link=True,
-        related_name='organization_owner'
+        related_name="organization_owner",
     )
 
 
@@ -131,7 +131,12 @@ class OrganizationAuthorization(models.Model):
     uuid = models.UUIDField(
         _("UUID"), primary_key=True, default=uuid.uuid4, editable=False
     )
-    user = models.ForeignKey(RepositoryOwner, models.CASCADE, null=True, related_name='organization_user_authorization')
+    user = models.ForeignKey(
+        RepositoryOwner,
+        models.CASCADE,
+        null=True,
+        related_name="organization_user_authorization",
+    )
     organization = models.ForeignKey(
         Organization, models.CASCADE, related_name="organization_authorizations"
     )
@@ -799,7 +804,9 @@ class RepositoryVersion(models.Model):
     last_update = models.DateTimeField(_("last update"), auto_now_add=True)
     is_default = models.BooleanField(default=True)
     repository = models.ForeignKey(Repository, models.CASCADE, related_name="versions")
-    created_by = models.ForeignKey(RepositoryOwner, models.CASCADE, blank=True, null=True)
+    created_by = models.ForeignKey(
+        RepositoryOwner, models.CASCADE, blank=True, null=True
+    )
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
     is_deleted = models.BooleanField(_("is deleted"), default=False)
 
@@ -1598,7 +1605,7 @@ class RepositoryAuthorization(models.Model):
         user = self.user.organization_user_authorization.filter(
             organization=self.repository.owner
         ).first()
-        print(user.role)
+
         if user:
             if user.role == RepositoryAuthorization.ROLE_NOT_SETTED:
                 if user.repository.is_private:
@@ -1616,7 +1623,6 @@ class RepositoryAuthorization(models.Model):
 
             if user.role == RepositoryAuthorization.ROLE_TRANSLATE:
                 return RepositoryAuthorization.LEVEL_TRANSLATE
-
 
         return RepositoryAuthorization.LEVEL_NOTHING  # pragma: no cover
 
@@ -1693,7 +1699,9 @@ class RepositoryVote(models.Model):
         verbose_name_plural = _("repository votes")
         unique_together = ["user", "repository"]
 
-    user = models.ForeignKey(RepositoryOwner, models.CASCADE, related_name="repository_votes")
+    user = models.ForeignKey(
+        RepositoryOwner, models.CASCADE, related_name="repository_votes"
+    )
     repository = models.ForeignKey(Repository, models.CASCADE, related_name="votes")
     created = models.DateTimeField(editable=False, default=timezone.now)
 

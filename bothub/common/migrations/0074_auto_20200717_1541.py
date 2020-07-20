@@ -6,14 +6,17 @@ import django.db.models.deletion
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('common', '0073_auto_20200717_1100'),
-    ]
+    dependencies = [("common", "0073_auto_20200717_1100")]
 
     operations = [
         migrations.AlterField(
-            model_name='organizationauthorization',
-            name='user',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='organization_user_authorization', to='authentication.RepositoryOwner'),
-        ),
+            model_name="organizationauthorization",
+            name="user",
+            field=models.ForeignKey(
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="organization_user_authorization",
+                to="authentication.RepositoryOwner",
+            ),
+        )
     ]

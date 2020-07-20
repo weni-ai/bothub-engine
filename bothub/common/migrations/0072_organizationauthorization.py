@@ -8,24 +8,63 @@ import uuid
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('authentication', '0006_auto_20200716_1554'),
-        ('common', '0071_auto_20200716_1554'),
+        ("authentication", "0006_auto_20200716_1554"),
+        ("common", "0071_auto_20200716_1554"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='OrganizationAuthorization',
+            name="OrganizationAuthorization",
             fields=[
-                ('uuid', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False, verbose_name='UUID')),
-                ('role', models.PositiveIntegerField(choices=[(0, 'not set'), (1, 'user'), (2, 'contributor'), (3, 'admin'), (4, 'translate')], default=0, verbose_name='role')),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='created at')),
-                ('organization', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='authorizations', to='common.Organization')),
-                ('user', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='authentication.RepositoryOwner')),
+                (
+                    "uuid",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="UUID",
+                    ),
+                ),
+                (
+                    "role",
+                    models.PositiveIntegerField(
+                        choices=[
+                            (0, "not set"),
+                            (1, "user"),
+                            (2, "contributor"),
+                            (3, "admin"),
+                            (4, "translate"),
+                        ],
+                        default=0,
+                        verbose_name="role",
+                    ),
+                ),
+                (
+                    "created_at",
+                    models.DateTimeField(auto_now_add=True, verbose_name="created at"),
+                ),
+                (
+                    "organization",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="authorizations",
+                        to="common.Organization",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="authentication.RepositoryOwner",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'organization authorization',
-                'verbose_name_plural': 'organization authorizations',
-                'unique_together': {('user', 'organization')},
+                "verbose_name": "organization authorization",
+                "verbose_name_plural": "organization authorizations",
+                "unique_together": {("user", "organization")},
             },
-        ),
+        )
     ]

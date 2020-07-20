@@ -85,11 +85,11 @@ class RepositoryOwner(models.Model):
 
     @property
     def user(self):
-        return getattr(self, 'user_owner', None)
+        return getattr(self, "user_owner", None)
 
     @property
     def organization(self):
-        return getattr(self, 'organization_owner', None)
+        return getattr(self, "organization_owner", None)
 
     @property
     def is_organization(self):
@@ -114,7 +114,7 @@ class User(AbstractBaseUser, RepositoryOwner, PermissionsMixin):
         RepositoryOwner,
         on_delete=models.CASCADE,
         parent_link=True,
-        related_name='user_owner'
+        related_name="user_owner",
     )
 
     objects = UserManager()

@@ -17,9 +17,19 @@ class OrganizationViewSet(
 ):
     queryset = Organization.objects.all()
     serializer_class = OrganizationSeralizer
-    permission_classes = [IsAuthenticated]#, OrganizationHasPermission]
-    lookup_field = 'nickname'
+    permission_classes = [IsAuthenticated]  # , OrganizationHasPermission]
+    lookup_field = "nickname"
     metadata_class = Metadata
 
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
+
+
+class OrganizationProfileViewSet(mixins.RetrieveModelMixin, GenericViewSet):
+    """
+    Get organization profile
+    """
+
+    serializer_class = OrganizationSeralizer
+    queryset = Organization.objects
+    lookup_field = "nickname"
