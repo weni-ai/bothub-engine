@@ -5,7 +5,7 @@ from django.core.management.base import BaseCommand
 from django.conf import settings
 
 from bothub.authentication.models import User
-from bothub.common.models import RepositoryCategory, RepositoryOwner
+from bothub.common.models import RepositoryCategory
 from bothub.common.models import Repository
 from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryExampleEntity

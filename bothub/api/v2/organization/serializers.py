@@ -44,7 +44,14 @@ class OrganizationAuthorizationSerializer(serializers.ModelSerializer):
             "created_at",
             "user__is_organization",
         ]
-        read_only = ["user", "user__nickname", "organization", "organization__nickname", "role", "created_at"]
+        read_only = [
+            "user",
+            "user__nickname",
+            "organization",
+            "organization__nickname",
+            "role",
+            "created_at",
+        ]
         ref_name = None
 
     user__nickname = serializers.SlugRelatedField(

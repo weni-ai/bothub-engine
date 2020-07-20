@@ -2,7 +2,11 @@ from rest_framework import routers
 
 from bothub.api.v2.versionning.views import RepositoryVersionViewSet
 from .groups.views import RepositoryEntityGroupViewSet
-from .organization.views import OrganizationViewSet, OrganizationProfileViewSet, OrganizationAuthorizationViewSet
+from .organization.views import (
+    OrganizationViewSet,
+    OrganizationProfileViewSet,
+    OrganizationAuthorizationViewSet,
+)
 from .repository.views import (
     RepositoryViewSet,
     RepositoryNLPLogViewSet,

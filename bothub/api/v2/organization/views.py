@@ -36,9 +36,7 @@ class OrganizationProfileViewSet(mixins.RetrieveModelMixin, GenericViewSet):
 
 
 class OrganizationAuthorizationViewSet(
-    MultipleFieldLookupMixin,
-    mixins.ListModelMixin,
-    GenericViewSet,
+    MultipleFieldLookupMixin, mixins.ListModelMixin, GenericViewSet
 ):
     queryset = OrganizationAuthorization.objects.exclude(
         role=OrganizationAuthorization.ROLE_NOT_SETTED
