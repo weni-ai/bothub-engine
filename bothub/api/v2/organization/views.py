@@ -6,6 +6,7 @@ from rest_framework.viewsets import GenericViewSet
 from bothub.api.v2.metadata import Metadata
 from bothub.authentication.models import RepositoryOwner
 from bothub.common.models import Organization, OrganizationAuthorization, Repository
+from .filters import OrganizationAuthorizationFilter
 from .serializers import OrganizationSeralizer, OrganizationAuthorizationSerializer
 from ..mixins import MultipleFieldLookupMixin
 
@@ -42,17 +43,5 @@ class OrganizationAuthorizationViewSet(
         role=OrganizationAuthorization.ROLE_NOT_SETTED
     )
     serializer_class = OrganizationAuthorizationSerializer
-    lookup_fields = ["repository__uuid", "user__nickname"]
+    filter_class = OrganizationAuthorizationFilter
     permission_classes = [IsAuthenticated]
-
-    def get_object(self):
-        repository_uuid = self.kwargs.get("repository__uuid")
-        user_nickname = self.kwargs.get("org__nickname")
-
-        repository = get_object_or_404(Repository, uuid=repository_uuid)
-        user = get_object_or_404(RepositoryOwner, nickname=user_nickname)
-
-        obj = repository.get_user_authorization(user)
-
-        self.check_object_permissions(self.request, obj)
-        return obj
