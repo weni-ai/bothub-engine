@@ -1577,52 +1577,58 @@ class RepositoryAuthorization(models.Model):
     @property
     def level(self):
         try:
-            user = self.user
-        except User.DoesNotExist:
-            user = None
+            org = self.user.organization_user_authorization.filter(
+                organization=self.repository.owner
+            ).first()
+        except AttributeError:
+            org = None
 
-        if not self.repository.owner.is_organization:
-            if user and self.repository.owner == user:
-                return RepositoryAuthorization.LEVEL_ADMIN
+        if org is not None:
+            if org.role > self.role:
+                role = org.role
+            else:
+                role = self.role
+        else:
+            role = self.role
 
-            if self.role == RepositoryAuthorization.ROLE_NOT_SETTED:
-                if self.repository.is_private:
-                    return RepositoryAuthorization.LEVEL_NOTHING
-                return RepositoryAuthorization.LEVEL_READER
+        if role == RepositoryAuthorization.ROLE_NOT_SETTED:
+            if self.repository.is_private:
+                return RepositoryAuthorization.LEVEL_NOTHING
+            return RepositoryAuthorization.LEVEL_READER
 
-            if self.role == RepositoryAuthorization.ROLE_USER:
-                return RepositoryAuthorization.LEVEL_READER
+        if role == RepositoryAuthorization.ROLE_USER:
+            return RepositoryAuthorization.LEVEL_READER
 
-            if self.role == RepositoryAuthorization.ROLE_CONTRIBUTOR:
-                return RepositoryAuthorization.LEVEL_CONTRIBUTOR
+        if role == RepositoryAuthorization.ROLE_CONTRIBUTOR:
+            return RepositoryAuthorization.LEVEL_CONTRIBUTOR
 
-            if self.role == RepositoryAuthorization.ROLE_ADMIN:
-                return RepositoryAuthorization.LEVEL_ADMIN
+        if role == RepositoryAuthorization.ROLE_ADMIN:
+            return RepositoryAuthorization.LEVEL_ADMIN
 
-            if self.role == RepositoryAuthorization.ROLE_TRANSLATE:
-                return RepositoryAuthorization.LEVEL_TRANSLATE
-
-        user = self.user.organization_user_authorization.filter(
-            organization=self.repository.owner
-        ).first()
-
-        if user:
-            if user.role == RepositoryAuthorization.ROLE_NOT_SETTED:
-                if user.repository.is_private:
-                    return RepositoryAuthorization.LEVEL_NOTHING
-                return RepositoryAuthorization.LEVEL_READER
-
-            if user.role == RepositoryAuthorization.ROLE_USER:
-                return RepositoryAuthorization.LEVEL_READER
-
-            if user.role == RepositoryAuthorization.ROLE_CONTRIBUTOR:
-                return RepositoryAuthorization.LEVEL_CONTRIBUTOR
-
-            if user.role == RepositoryAuthorization.ROLE_ADMIN:
-                return RepositoryAuthorization.LEVEL_ADMIN
-
-            if user.role == RepositoryAuthorization.ROLE_TRANSLATE:
-                return RepositoryAuthorization.LEVEL_TRANSLATE
+        if role == RepositoryAuthorization.ROLE_TRANSLATE:
+            return RepositoryAuthorization.LEVEL_TRANSLATE
+        #
+        # user = self.user.organization_user_authorization.filter(
+        #     organization=self.repository.owner
+        # ).first()
+        #
+        # if user:
+        #     if user.role == RepositoryAuthorization.ROLE_NOT_SETTED:
+        #         if user.repository.is_private:
+        #             return RepositoryAuthorization.LEVEL_NOTHING
+        #         return RepositoryAuthorization.LEVEL_READER
+        #
+        #     if user.role == RepositoryAuthorization.ROLE_USER:
+        #         return RepositoryAuthorization.LEVEL_READER
+        #
+        #     if user.role == RepositoryAuthorization.ROLE_CONTRIBUTOR:
+        #         return RepositoryAuthorization.LEVEL_CONTRIBUTOR
+        #
+        #     if user.role == RepositoryAuthorization.ROLE_ADMIN:
+        #         return RepositoryAuthorization.LEVEL_ADMIN
+        #
+        #     if user.role == RepositoryAuthorization.ROLE_TRANSLATE:
+        #         return RepositoryAuthorization.LEVEL_TRANSLATE
 
         return RepositoryAuthorization.LEVEL_NOTHING  # pragma: no cover
 

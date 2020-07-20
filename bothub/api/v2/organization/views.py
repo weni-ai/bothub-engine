@@ -21,9 +21,6 @@ class OrganizationViewSet(
     lookup_field = "nickname"
     metadata_class = Metadata
 
-    def list(self, request, *args, **kwargs):
-        return super().list(request, *args, **kwargs)
-
 
 class OrganizationProfileViewSet(mixins.RetrieveModelMixin, GenericViewSet):
     """
