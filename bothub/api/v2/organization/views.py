@@ -42,7 +42,10 @@ class OrganizationProfileViewSet(mixins.RetrieveModelMixin, GenericViewSet):
 
 
 class OrganizationAuthorizationViewSet(
-    mixins.ListModelMixin, mixins.UpdateModelMixin, GenericViewSet
+    mixins.ListModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    GenericViewSet,
 ):
     queryset = OrganizationAuthorization.objects.exclude(
         role=OrganizationAuthorization.ROLE_NOT_SETTED
@@ -73,3 +76,12 @@ class OrganizationAuthorizationViewSet(
         response = super().update(*args, **kwargs)
         self.get_object()
         return response
+
+    def destroy(self, request, *args, **kwargs):
+        self.filter_class = None
+        self.serializer_class = OrganizationAuthorizationRoleSerializer
+        self.permission_classes = [
+            IsAuthenticated,
+            OrganizationAdminManagerAuthorization,
+        ]
+        return super().destroy(request, *args, **kwargs)
