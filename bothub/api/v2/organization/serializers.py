@@ -1,4 +1,6 @@
 from rest_framework import serializers
+from django.utils.translation import ugettext_lazy as _
+from rest_framework.exceptions import PermissionDenied
 
 from bothub.common.models import Organization, OrganizationAuthorization
 
@@ -66,3 +68,15 @@ class OrganizationAuthorizationSerializer(serializers.ModelSerializer):
     user__is_organization = serializers.SlugRelatedField(
         source="user", slug_field="is_organization", read_only=True
     )
+
+
+class OrganizationAuthorizationRoleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrganizationAuthorization
+        fields = ["role"]
+        ref_name = None
+
+    def validate(self, data):
+        if data.get("role") == OrganizationAuthorization.LEVEL_NOTHING:
+            raise PermissionDenied(_("You cannot set user role 0"))
+        return data

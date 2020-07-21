@@ -4,10 +4,15 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
 
 from bothub.api.v2.metadata import Metadata
-from bothub.authentication.models import RepositoryOwner
+from bothub.authentication.models import RepositoryOwner, User
 from bothub.common.models import Organization, OrganizationAuthorization, Repository
 from .filters import OrganizationAuthorizationFilter
-from .serializers import OrganizationSeralizer, OrganizationAuthorizationSerializer
+from .permissions import OrganizationAdminManagerAuthorization
+from .serializers import (
+    OrganizationSeralizer,
+    OrganizationAuthorizationSerializer,
+    OrganizationAuthorizationRoleSerializer,
+)
 from ..mixins import MultipleFieldLookupMixin
 
 
@@ -37,7 +42,7 @@ class OrganizationProfileViewSet(mixins.RetrieveModelMixin, GenericViewSet):
 
 
 class OrganizationAuthorizationViewSet(
-    MultipleFieldLookupMixin, mixins.ListModelMixin, GenericViewSet
+    mixins.ListModelMixin, mixins.UpdateModelMixin, GenericViewSet
 ):
     queryset = OrganizationAuthorization.objects.exclude(
         role=OrganizationAuthorization.ROLE_NOT_SETTED
@@ -45,3 +50,26 @@ class OrganizationAuthorizationViewSet(
     serializer_class = OrganizationAuthorizationSerializer
     filter_class = OrganizationAuthorizationFilter
     permission_classes = [IsAuthenticated]
+    lookup_fields = ["organization_nickname", "user__nickname"]
+
+    def get_object(self):
+        organization = get_object_or_404(
+            Organization, nickname=self.kwargs.get("organization_nickname")
+        )
+        user = get_object_or_404(User, nickname=self.kwargs.get("user__nickname"))
+
+        obj = organization.get_organization_authorization(user)
+
+        self.check_object_permissions(self.request, obj)
+        return obj
+
+    def update(self, *args, **kwargs):
+        self.filter_class = None
+        self.serializer_class = OrganizationAuthorizationRoleSerializer
+        self.permission_classes = [
+            IsAuthenticated,
+            OrganizationAdminManagerAuthorization,
+        ]
+        response = super().update(*args, **kwargs)
+        self.get_object()
+        return response
