@@ -2,6 +2,8 @@ from rest_framework import mixins
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
+from django.utils.translation import ugettext_lazy as _
+from rest_framework.exceptions import PermissionDenied
 
 from bothub.api.v2.metadata import Metadata
 from bothub.authentication.models import RepositoryOwner, User
@@ -85,3 +87,11 @@ class OrganizationAuthorizationViewSet(
             OrganizationAdminManagerAuthorization,
         ]
         return super().destroy(request, *args, **kwargs)
+
+    def perform_destroy(self, instance):
+        user = self.kwargs.get("user__nickname")
+
+        if self.request.user.nickname == user:
+            raise PermissionDenied(_("You cannot delete your own user."))
+
+        return super().perform_destroy(instance)
