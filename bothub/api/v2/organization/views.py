@@ -1,13 +1,13 @@
+from django.utils.translation import ugettext_lazy as _
 from rest_framework import mixins
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
-from django.utils.translation import ugettext_lazy as _
-from rest_framework.exceptions import PermissionDenied
 
 from bothub.api.v2.metadata import Metadata
-from bothub.authentication.models import RepositoryOwner, User
-from bothub.common.models import Organization, OrganizationAuthorization, Repository
+from bothub.authentication.models import User
+from bothub.common.models import Organization, OrganizationAuthorization
 from .filters import OrganizationAuthorizationFilter
 from .permissions import OrganizationAdminManagerAuthorization
 from .serializers import (
@@ -15,7 +15,6 @@ from .serializers import (
     OrganizationAuthorizationSerializer,
     OrganizationAuthorizationRoleSerializer,
 )
-from ..mixins import MultipleFieldLookupMixin
 
 
 class OrganizationViewSet(
@@ -31,6 +30,14 @@ class OrganizationViewSet(
     permission_classes = [IsAuthenticated]  # , OrganizationHasPermission]
     lookup_field = "nickname"
     metadata_class = Metadata
+
+    def get_queryset(self, *args, **kwargs):
+        auth = (
+            OrganizationAuthorization.objects.exclude(role=0)
+            .filter(user=self.request.user)
+            .values("organization")
+        )
+        return self.queryset.filter(repository_owner__in=auth)
 
 
 class OrganizationProfileViewSet(mixins.RetrieveModelMixin, GenericViewSet):

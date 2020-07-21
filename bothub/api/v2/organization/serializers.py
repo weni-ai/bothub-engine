@@ -15,7 +15,7 @@ class OrganizationSeralizer(serializers.ModelSerializer):
 
     id = serializers.PrimaryKeyRelatedField(style={"show": False}, read_only=True)
     name = serializers.CharField(max_length=40, required=True)
-    nickname = serializers.SlugField(read_only=True, style={"show": False})
+    nickname = serializers.SlugField(required=True)
     verificated = serializers.BooleanField(style={"show": False}, read_only=True)
 
     def create(self, validated_data):
