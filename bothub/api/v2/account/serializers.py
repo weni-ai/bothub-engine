@@ -74,6 +74,8 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ["nickname", "name", "locale", "is_organization"]
         ref_name = None
 
+    is_organization = serializers.BooleanField(style={"show": False}, read_only=True)
+
 
 class ResetPasswordSerializer(serializers.ModelSerializer):
     token = serializers.CharField(label=_("Token"), style={"show": False})
