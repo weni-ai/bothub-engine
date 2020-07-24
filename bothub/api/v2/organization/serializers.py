@@ -25,8 +25,8 @@ class OrganizationSeralizer(serializers.ModelSerializer):
     name = serializers.CharField(max_length=40, required=True)
     nickname = serializers.SlugField(required=True)
     verificated = serializers.BooleanField(style={"show": False}, read_only=True)
-    count_repositories = serializers.SerializerMethodField()
-    count_members = serializers.SerializerMethodField()
+    count_repositories = serializers.SerializerMethodField(style={"show": False})
+    count_members = serializers.SerializerMethodField(style={"show": False})
 
     def create(self, validated_data):
         instance = super().create(validated_data)
