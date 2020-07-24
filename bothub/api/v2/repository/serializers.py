@@ -603,6 +603,7 @@ class RepositorySerializer(serializers.ModelSerializer):
             "use_competing_intents",
             "use_name_entities",
             "use_analyze_char",
+            "organization",
         ]
         read_only = ["uuid", "created_at"]
         ref_name = None
@@ -647,9 +648,7 @@ class RepositorySerializer(serializers.ModelSerializer):
     created_at = serializers.DateTimeField(style={"show": False}, read_only=True)
 
     language = serializers.ChoiceField(LANGUAGE_CHOICES, label=_("Language"))
-    owner = serializers.PrimaryKeyRelatedField(
-        style={"show": False}, required=False, queryset=RepositoryOwner.objects.all()
-    )
+    owner = serializers.PrimaryKeyRelatedField(style={"show": False}, read_only=True)
     owner__nickname = serializers.SlugRelatedField(
         source="owner", slug_field="nickname", read_only=True, style={"show": False}
     )
@@ -661,11 +660,18 @@ class RepositorySerializer(serializers.ModelSerializer):
         help_text=Repository.CATEGORIES_HELP_TEXT,
         label=_("Categories"),
     )
+    organization = serializers.IntegerField(
+        required=False, help_text="Specify the organization id"
+    )
     categories_list = serializers.SerializerMethodField(style={"show": False})
 
     def create(self, validated_data):
-        owner = validated_data.get("owner", None)
-        if not owner or not owner.is_organization:
+        organization = validated_data.pop("organization", None)
+
+        if organization:
+            owner = get_object_or_404(RepositoryOwner, pk=organization)
+            validated_data.update({"owner": owner})
+        else:
             validated_data.update({"owner": self.context["request"].user})
             owner = self.context["request"].user
 

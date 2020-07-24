@@ -8,7 +8,15 @@ from bothub.common.models import Organization, OrganizationAuthorization
 class OrganizationSeralizer(serializers.ModelSerializer):
     class Meta:
         model = Organization
-        fields = ["id", "name", "nickname", "description", "verificated"]
+        fields = [
+            "id",
+            "name",
+            "nickname",
+            "description",
+            "verificated",
+            "count_repositories",
+            "count_members",
+        ]
         ref_name = None
 
     read_only = ["id", "verificated"]
@@ -17,6 +25,8 @@ class OrganizationSeralizer(serializers.ModelSerializer):
     name = serializers.CharField(max_length=40, required=True)
     nickname = serializers.SlugField(required=True)
     verificated = serializers.BooleanField(style={"show": False}, read_only=True)
+    count_repositories = serializers.SerializerMethodField()
+    count_members = serializers.SerializerMethodField()
 
     def create(self, validated_data):
         instance = super().create(validated_data)
@@ -28,6 +38,15 @@ class OrganizationSeralizer(serializers.ModelSerializer):
         )
 
         return instance
+
+    def get_count_repositories(self, obj):
+        return obj.repository_owner.repositories.count()
+
+    def get_count_members(self, obj):
+        auths = OrganizationAuthorization.objects.filter(organization=obj).exclude(
+            role=OrganizationAuthorization.LEVEL_NOTHING
+        )
+        return auths.count()
 
 
 class OrganizationAuthorizationSerializer(serializers.ModelSerializer):
