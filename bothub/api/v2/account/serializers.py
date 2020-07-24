@@ -5,7 +5,7 @@ from rest_framework.authtoken.serializers import AuthTokenSerializer
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from bothub.authentication.models import User
+from bothub.authentication.models import User, RepositoryOwner
 from ..fields import PasswordField
 
 
@@ -70,8 +70,8 @@ class RequestResetPasswordSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
-        model = User
-        fields = ["nickname", "name", "locale"]
+        model = RepositoryOwner
+        fields = ["nickname", "name", "locale", "is_organization"]
         ref_name = None
 
 

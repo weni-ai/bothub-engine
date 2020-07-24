@@ -63,6 +63,9 @@ class RepositoryOwner(models.Model):
     REQUIRED_FIELDS = ["nickname"]
 
     name = models.CharField(_("name"), max_length=32, help_text=_("User's name."))
+    locale = models.CharField(
+        _("locale"), max_length=48, help_text=_("User's locale."), blank=True
+    )
     nickname = models.CharField(
         _("nickname"),
         max_length=16,
@@ -104,9 +107,6 @@ class User(AbstractBaseUser, RepositoryOwner, PermissionsMixin):
 
     email = models.EmailField(_("email"), unique=True, help_text=_("User's email."))
 
-    locale = models.CharField(
-        _("locale"), max_length=48, help_text=_("User's locale."), blank=True
-    )
     is_staff = models.BooleanField(_("staff status"), default=False)
     is_active = models.BooleanField(_("active"), default=True)
     repository_owner = models.OneToOneField(
