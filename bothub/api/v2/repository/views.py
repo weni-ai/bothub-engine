@@ -25,7 +25,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from bothub.api.v2.mixins import MultipleFieldLookupMixin
-from bothub.authentication.models import User
+from bothub.authentication.models import User, RepositoryOwner
 from bothub.common.models import (
     Repository,
     RepositoryNLPLog,
@@ -468,8 +468,7 @@ class RepositoryAuthorizationViewSet(
         user_nickname = self.kwargs.get("user__nickname")
 
         repository = get_object_or_404(Repository, uuid=repository_uuid)
-        user = get_object_or_404(User, nickname=user_nickname)
-
+        user = get_object_or_404(RepositoryOwner, nickname=user_nickname)
         obj = repository.get_user_authorization(user)
 
         self.check_object_permissions(self.request, obj)
@@ -483,7 +482,7 @@ class RepositoryAuthorizationViewSet(
         self.permission_classes = [IsAuthenticated, RepositoryAdminManagerAuthorization]
         response = super().update(*args, **kwargs)
         instance = self.get_object()
-        if instance.role is not RepositoryAuthorization.ROLE_NOT_SETTED:
+        if instance.role is not RepositoryAuthorization.ROLE_NOT_SETTED and not instance.user.is_organization:
             if (
                 RequestRepositoryAuthorization.objects.filter(
                     user=instance.user, repository=instance.repository

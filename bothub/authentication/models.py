@@ -83,7 +83,7 @@ class RepositoryOwner(models.Model):
 
     @property
     def is_anonymous(self):
-        return self.user.is_anonymous
+        return False if self.is_organization else self.user.is_anonymous
 
     @property
     def user(self):
@@ -96,6 +96,10 @@ class RepositoryOwner(models.Model):
     @property
     def is_organization(self):
         return True if self.organization else False
+
+    @property
+    def repository_owner(self):
+        return self
 
 
 class User(AbstractBaseUser, RepositoryOwner, PermissionsMixin):
