@@ -76,6 +76,7 @@ class RepositoryOwner(models.Model):
         ),
         unique=True,
     )
+    biography = models.TextField(_("biography"), blank=True, null=True)
     joined_at = models.DateField(_("joined at"), auto_now_add=True)
 
     def __str__(self):
