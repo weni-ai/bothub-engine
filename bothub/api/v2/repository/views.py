@@ -64,6 +64,7 @@ from .serializers import (
     RasaUploadSerializer,
     RasaSerializer,
     RepositoryQueueTaskSerializer,
+    RepositoryPermissionSerializer,
 )
 from .serializers import EvaluateSerializer
 from .serializers import RepositoryAuthorizationRoleSerializer
@@ -449,6 +450,23 @@ class SearchRepositoriesViewSet(mixins.ListModelMixin, GenericViewSet):
             return self.queryset.none()
 
 
+class RepositoriesPermissionsViewSet(mixins.ListModelMixin, GenericViewSet):
+    """
+    List all user's repositories permissions
+    """
+
+    queryset = RepositoryAuthorization.objects
+    serializer_class = RepositoryPermissionSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self, *args, **kwargs):
+        return (
+            self.queryset.exclude(repository__owner=self.request.user)
+            .exclude(role=RepositoryAuthorization.ROLE_NOT_SETTED)
+            .filter(user=self.request.user)
+        )
+
+
 class RepositoryAuthorizationViewSet(
     MultipleFieldLookupMixin,
     mixins.UpdateModelMixin,
@@ -482,7 +500,10 @@ class RepositoryAuthorizationViewSet(
         self.permission_classes = [IsAuthenticated, RepositoryAdminManagerAuthorization]
         response = super().update(*args, **kwargs)
         instance = self.get_object()
-        if instance.role is not RepositoryAuthorization.ROLE_NOT_SETTED and not instance.user.is_organization:
+        if (
+            instance.role is not RepositoryAuthorization.ROLE_NOT_SETTED
+            and not instance.user.is_organization
+        ):
             if (
                 RequestRepositoryAuthorization.objects.filter(
                     user=instance.user, repository=instance.repository

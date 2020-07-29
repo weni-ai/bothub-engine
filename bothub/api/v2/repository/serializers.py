@@ -696,6 +696,60 @@ class RepositorySerializer(serializers.ModelSerializer):
         return RepositoryCategorySerializer(obj.categories, many=True).data
 
 
+class RepositoryPermissionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RepositoryAuthorization
+        fields = [
+            "uuid",
+            "name",
+            "slug",
+            "role",
+            "created_at",
+            "language",
+            "owner",
+            "owner__nickname",
+            "categories",
+            "categories_list",
+        ]
+        ref_name = None
+
+    uuid = serializers.UUIDField(
+        style={"show": False}, read_only=True, source="repository.uuid"
+    )
+    name = serializers.CharField(source="repository.name")
+    slug = serializers.SlugField(
+        style={"show": False}, read_only=True, source="repository.slug"
+    )
+    created_at = serializers.DateTimeField(
+        style={"show": False}, read_only=True, source="repository.created_at"
+    )
+    language = serializers.ChoiceField(
+        LANGUAGE_CHOICES, label=_("Language"), source="repository.language"
+    )
+    owner = serializers.PrimaryKeyRelatedField(
+        style={"show": False}, read_only=True, source="repository.owner"
+    )
+    owner__nickname = serializers.SlugRelatedField(
+        source="repository.owner",
+        slug_field="nickname",
+        read_only=True,
+        style={"show": False},
+    )
+    categories = ModelMultipleChoiceField(
+        child_relation=serializers.PrimaryKeyRelatedField(
+            queryset=RepositoryCategory.objects.all()
+        ),
+        allow_empty=False,
+        help_text=Repository.CATEGORIES_HELP_TEXT,
+        label=_("Categories"),
+        source="repository.categories",
+    )
+    categories_list = serializers.SerializerMethodField(style={"show": False})
+
+    def get_categories_list(self, obj):
+        return RepositoryCategorySerializer(obj.repository.categories, many=True).data
+
+
 class RepositoryVotesSerializer(serializers.ModelSerializer):
     class Meta:
         model = RepositoryVote

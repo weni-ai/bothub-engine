@@ -5,14 +5,12 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('authentication', '0009_remove_user_biography'),
-    ]
+    dependencies = [("authentication", "0009_remove_user_biography")]
 
     operations = [
         migrations.AddField(
-            model_name='repositoryowner',
-            name='biography',
-            field=models.TextField(blank=True, null=True, verbose_name='biography'),
-        ),
+            model_name="repositoryowner",
+            name="biography",
+            field=models.TextField(blank=True, null=True, verbose_name="biography"),
+        )
     ]

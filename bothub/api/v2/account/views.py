@@ -175,14 +175,7 @@ class SearchUserViewSet(mixins.ListModelMixin, GenericViewSet):
     serializer_class = UserSerializer
     queryset = RepositoryOwner.objects.all()
     filter_backends = [DjangoFilterBackend, SearchFilter]
-    search_fields = [
-        "=name",
-        "^name",
-        "$name",
-        "=nickname",
-        "^nickname",
-        "$nickname",
-    ]
+    search_fields = ["=name", "^name", "$name", "=nickname", "^nickname", "$nickname"]
     pagination_class = None
     limit = 5
 
