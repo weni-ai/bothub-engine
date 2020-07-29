@@ -1162,3 +1162,32 @@ class RepositoryQueueTaskSerializer(serializers.ModelSerializer):
 
     def get_from_queue_codes(self, obj):
         return {key: value for key, value in RepositoryQueueTask.QUEUE_CHOICES}
+
+
+class RepositoryNLPLogReportsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Repository
+        fields = [
+            "uuid",
+            "name",
+            "slug",
+            "description",
+            "is_private",
+            "owner",
+            "total_count",
+        ]
+        ref_name = None
+
+    uuid = serializers.UUIDField(style={"show": False}, read_only=True)
+    name = serializers.CharField(style={"show": False}, read_only=True)
+    slug = serializers.SlugField(style={"show": False}, read_only=True)
+    description = serializers.CharField(style={"show": False}, read_only=True)
+    is_private = serializers.BooleanField(style={"show": False}, read_only=True)
+    total_count = serializers.SerializerMethodField()
+    owner = serializers.SerializerMethodField()
+
+    def get_total_count(self, obj):
+        return obj.total_count
+
+    def get_owner(self, obj):
+        return {"id": obj.owner.pk, "nickname": obj.owner.nickname}
