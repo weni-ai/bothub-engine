@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.shortcuts import get_object_or_404
@@ -25,7 +26,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from bothub.api.v2.mixins import MultipleFieldLookupMixin
-from bothub.authentication.models import User, RepositoryOwner
+from bothub.authentication.models import RepositoryOwner
 from bothub.common.models import (
     Repository,
     RepositoryNLPLog,
@@ -43,6 +44,7 @@ from .filters import (
     RepositoryNLPLogFilter,
     RepositoryEntitiesFilter,
     RepositoryQueueTaskFilter,
+    RepositoryNLPLogReportsFilter,
 )
 from .filters import RepositoryAuthorizationFilter
 from .filters import RepositoryAuthorizationRequestsFilter
@@ -65,6 +67,7 @@ from .serializers import (
     RasaSerializer,
     RepositoryQueueTaskSerializer,
     RepositoryPermissionSerializer,
+    RepositoryNLPLogReportsSerializer,
 )
 from .serializers import EvaluateSerializer
 from .serializers import RepositoryAuthorizationRoleSerializer
@@ -715,3 +718,27 @@ class RepositoryTaskQueueViewSet(mixins.ListModelMixin, GenericViewSet):
 
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
+
+
+class RepositoryNLPLogReportsViewSet(mixins.ListModelMixin, GenericViewSet):
+    """
+    List all public repositories.
+    """
+
+    serializer_class = RepositoryNLPLogReportsSerializer
+    queryset = Repository.objects.all()
+    filter_class = RepositoryNLPLogReportsFilter
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend]
+
+    def get_queryset(self, *args, **kwargs):
+        x = self.queryset.count_logs(
+            start_date=datetime.strptime(
+                self.request.query_params.get("start_date", None), "%Y-%m-%d"
+            ).replace(hour=0, minute=0),
+            end_date=datetime.strptime(
+                self.request.query_params.get("end_date", None), "%Y-%m-%d"
+            ).replace(hour=23, minute=59),
+            authorizations__user=self.request.user,
+        ).order_by("-total_count")
+        return x

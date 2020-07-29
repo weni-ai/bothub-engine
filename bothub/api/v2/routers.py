@@ -15,6 +15,7 @@ from .repository.views import (
     RasaUploadViewSet,
     RepositoryTaskQueueViewSet,
     RepositoriesPermissionsViewSet,
+    RepositoryNLPLogReportsViewSet,
 )
 from .repository.views import RepositoryVotesViewSet
 from .repository.views import RepositoriesViewSet
@@ -126,6 +127,7 @@ router.register("repository/repositories", RepositoriesViewSet)
 router.register(
     "repository/repositories-contributions", RepositoriesContributionsViewSet
 )
+router.register("repository/repository-reports", RepositoryNLPLogReportsViewSet)
 router.register("repository/categories", RepositoryCategoriesView)
 router.register("repository/examples", ExamplesViewSet)
 router.register("repository/search-repositories", SearchRepositoriesViewSet)

@@ -15,14 +15,14 @@ from rest_framework import status
 from rest_framework.exceptions import APIException
 
 from bothub.authentication.models import User, RepositoryOwner
-from django.db.models import Sum, Q
+from django.db.models import Sum, Q, OuterRef
 
 from . import languages
 from .exceptions import RepositoryUpdateAlreadyStartedTraining
 from .exceptions import RepositoryUpdateAlreadyTrained
 from .exceptions import TrainingNotAllowed
 from .exceptions import DoesNotHaveTranslation
-
+from ..utils import CountSubquery
 
 item_key_regex = _lazy_re_compile(r"^[-a-z0-9_]+\Z")
 validate_item_key = RegexValidator(
@@ -79,6 +79,19 @@ class RepositoryQuerySet(models.QuerySet):
                 versions__repositoryversionlanguage__added__translations__language=language,
             )
         )
+
+    def count_logs(self, start_date=None, end_date=None, *args, **kwargs):
+        return self.annotate(
+            total_count=CountSubquery(
+                RepositoryNLPLog.objects.filter(
+                    repository_version_language__repository_version__repository=OuterRef(
+                        "uuid"
+                    ),
+                    from_backend=False,
+                    created_at__range=(start_date, end_date),
+                )
+            )
+        ).filter(*args, **kwargs)
 
 
 class RepositoryManager(models.Manager):
@@ -807,6 +820,12 @@ class RepositoryVersion(models.Model):
     class Meta:
         verbose_name = _("repository version")
         ordering = ["-is_default"]
+        indexes = [
+            models.Index(
+                name="common_repository_version_idx",
+                fields=("created_by", "repository"),
+            )
+        ]
 
     name = models.CharField(max_length=40, default="master")
     last_update = models.DateTimeField(_("last update"), auto_now_add=True)
@@ -1117,6 +1136,13 @@ class RepositoryQueueTask(models.Model):
 class RepositoryNLPLog(models.Model):
     class Meta:
         verbose_name = _("repository nlp logs")
+        indexes = [
+            models.Index(
+                name="common_repo_nlp_log_idx",
+                fields=("repository_version_language", "user"),
+                condition=Q(from_backend=False),
+            )
+        ]
 
     text = models.TextField(help_text=_("Text"))
     user_agent = models.TextField(help_text=_("User Agent"))
