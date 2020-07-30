@@ -16,6 +16,9 @@ def noop(apps, schema_editor):  # pragma: no cover
 def migrate_users(apps, schema_editor):  # pragma: no cover
     User = apps.get_model("authentication", "User")
     RepositoryOwner = apps.get_model("authentication", "RepositoryOwner")
+    RepositoryAuthorization = apps.get_model(
+        "authentication", "RepositoryAuthorization"
+    )
 
     RepositoryOwner.objects.bulk_create(
         (
@@ -33,6 +36,11 @@ def migrate_users(apps, schema_editor):  # pragma: no cover
     sequence_sql = connection.ops.sequence_reset_sql(no_style(), [RepositoryOwner])
     with connection.cursor() as cursor:
         cursor.execute(sequence_sql[0])
+
+    for auth in RepositoryAuthorization.objects.all():
+        if auth.is_owner:
+            auth.role = RepositoryAuthorization.ROLE_ADMIN
+            auth.save(update_fields=["role"])
 
 
 class Migration(migrations.Migration):
