@@ -3,6 +3,8 @@
 import bothub.authentication.models
 import django.core.validators
 from django.db import migrations, models
+from django.core.management.color import no_style
+from django.db import connection
 import django.db.models.deletion
 import re
 
@@ -15,16 +17,22 @@ def migrate_users(apps, schema_editor):  # pragma: no cover
     User = apps.get_model("authentication", "User")
     RepositoryOwner = apps.get_model("authentication", "RepositoryOwner")
 
-    for user in User.objects.all():
-        RepositoryOwner.objects.create(
-            pk=user.pk,
-            name=user.name,
-            locale=user.locale,
-            nickname=user.nickname,
-            joined_at=user.joined_at,
+    RepositoryOwner.objects.bulk_create(
+        (
+            RepositoryOwner(
+                pk=user.pk,
+                name=user.name,
+                locale=user.locale,
+                nickname=user.nickname,
+                joined_at=user.joined_at,
+            )
+            for user in User.objects.all()
         )
-        user.repository_owner = user.pk
-        user.save(update_fields=["repository_owner"])
+    )
+
+    sequence_sql = connection.ops.sequence_reset_sql(no_style(), [RepositoryOwner])
+    with connection.cursor() as cursor:
+        cursor.execute(sequence_sql[0])
 
 
 class Migration(migrations.Migration):
@@ -87,14 +95,10 @@ class Migration(migrations.Migration):
             ],
             options={"verbose_name": "repository organization"},
         ),
-        migrations.AddField(
-            model_name="user",
-            name="repository_owner",
-            field=models.CharField(default="", max_length=24),
-            preserve_default=False,
+        migrations.RenameField(
+            model_name="user", old_name="id", new_name="repository_owner"
         ),
         migrations.RunPython(migrate_users, noop),
-        migrations.RemoveField(model_name="user", name="id"),
         migrations.RemoveField(model_name="user", name="joined_at"),
         migrations.RemoveField(model_name="user", name="locale"),
         migrations.RemoveField(model_name="user", name="name"),
