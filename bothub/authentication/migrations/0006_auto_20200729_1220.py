@@ -17,7 +17,7 @@ def migrate_users(apps, schema_editor):  # pragma: no cover
 
     for user in User.objects.all():
         RepositoryOwner.objects.create(
-            id=user.pk,
+            pk=user.pk,
             name=user.name,
             locale=user.locale,
             nickname=user.nickname,
