@@ -4,8 +4,20 @@ python:
 services:
   - docker
   - postgresql
+addons:
+  postgresql: '11'
+  apt:
+    packages:
+      - postgresql-11
+      - postgresql-client-11
+      - postgresql-server-dev-11
+before_install:
+  - sudo pg_dropcluster --stop 12 main
+  - sudo pg_upgradecluster 11 main
+  - sudo pg_ctlcluster 12 main restart
+  - sudo pg_dropcluster 11 main
+  - psql -c 'create database bothub;' -U postgres
 install:
-  - psql -c 'create database bothub' -U bothub
   - pip install pipenv
   - pipenv install --system --dev
   - pip install coveralls
@@ -13,7 +25,7 @@ install:
   - python manage.py collectstatic
 env:
   global:
-    - PGUSER=bothub
+    - PGUSER=postgres
     - PGPORT=5432
     - SECRET_KEY=SK
     - SUPPORTED_LANGUAGES="en|pt"
