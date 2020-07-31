@@ -15,7 +15,7 @@ before_install:
   - sudo apt-get update
   - sudo apt-get install language-pack-es
   - sudo /etc/init.d/postgresql stop
-  - sudo /etc/init.d/postgresql start 11
+  - sudo /etc/init.d/postgresql start
   - psql -c 'create database bothub;' -U postgres
 install:
   - pip install pipenv
