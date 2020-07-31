@@ -5,18 +5,18 @@ services:
   - postgresql
   - docker
 addons:
-  postgresql: '11'
+  postgresql: '12'
   apt:
     packages:
-      - postgresql-11
-      - postgresql-client-11
-      - postgresql-server-dev-11
+      - postgresql-12
+      - postgresql-client-12
 before_install:
-  - sudo apt-get update
-  - sudo apt-get install language-pack-es
-  - sudo /etc/init.d/postgresql stop
-  - sudo /etc/init.d/postgresql start
-  - psql -c 'create database bothub;' -U postgres
+  - sudo pg_dropcluster --stop 12 main
+  - sudo pg_upgradecluster 11 main
+  - sudo pg_ctlcluster 12 main restart
+  - sudo pg_dropcluster 11 main
+  - psql -c "CREATE DATABASE bothub;" -U postgres
+  - psql -c "CREATE USER bothub WITH PASSWORD 'bothub';" -U postgres
 install:
   - pip install pipenv
   - pipenv install --system --dev
@@ -29,7 +29,7 @@ env:
     - PGPORT=5432
     - SECRET_KEY=SK
     - SUPPORTED_LANGUAGES="en|pt"
-    - DEFAULT_DATABASE="postgres://postgres:@localhost:5432/bothub"
+    - DEFAULT_DATABASE="postgres://bothub:bothub@localhost:5432/bothub"
 script:
   - flake8
   - travis_wait coverage run manage.py test
