@@ -2,8 +2,8 @@ language: python
 python:
   - "3.6"
 services:
-  - docker
   - postgresql
+  - docker
 addons:
   postgresql: '11'
   apt:
@@ -12,6 +12,10 @@ addons:
       - postgresql-client-11
       - postgresql-server-dev-11
 before_install:
+  - sudo apt-get update
+  - sudo apt-get install language-pack-es
+  - sudo /etc/init.d/postgresql stop
+  - sudo /etc/init.d/postgresql start 11
   - psql -c 'create database bothub;' -U postgres
 install:
   - pip install pipenv
