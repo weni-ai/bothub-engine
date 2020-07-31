@@ -4,9 +4,8 @@ python:
 services:
   - docker
   - postgresql
-before_script:
-  - psql -c 'create database bothub' -U bothub
 install:
+  - psql -c 'create database bothub' -U bothub
   - pip install pipenv
   - pipenv install --system --dev
   - pip install coveralls
