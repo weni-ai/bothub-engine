@@ -3,6 +3,15 @@ python:
   - "3.6"
 services:
   - docker
+  - postgresql
+before_script:
+  - psql -c 'create database bothub' -U bothub
+before_install:
+  - sudo apt-get update
+  - sudo apt-get --yes remove postgresql\*
+  - sudo apt-get install -y postgresql-11 postgresql-client-11
+  - sudo cp /etc/postgresql/11/main/pg_hba.conf
+  - sudo service postgresql restart 11
 install:
   - pip install pipenv
   - pipenv install --system --dev
@@ -11,8 +20,11 @@ install:
   - python manage.py collectstatic
 env:
   global:
+    - PGUSER=bothub
+    - PGPORT=5432
     - SECRET_KEY=SK
     - SUPPORTED_LANGUAGES="en|pt"
+    - DEFAULT_DATABASE="postgres://bothub:@localhost:5432/bothub"
 script:
   - flake8
   - travis_wait coverage run manage.py test
