@@ -12,7 +12,7 @@ services:
 
 before_install:
   # install the chosen PG version
-  - sudo -E apt-get -yq --no-install-suggests --no-install-recommends install postgresql-11 postgresql-client-11 postgresql-11-postgis-$PGIS postgresql-11-postgis-$PGIS-scripts
+  - sudo -E apt-get -yq --no-install-suggests --no-install-recommends install postgresql-11 postgresql-client-11
   - sudo -E sed -i -e '/local.*peer/s/postgres/all/' -e 's/peer\|md5/trust/g' /etc/postgresql/*/main/pg_hba.conf
   - sudo -E sed -i 's/port = 5433/port = 5432/' /etc/postgresql/*/main/postgresql.conf
 
