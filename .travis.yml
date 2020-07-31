@@ -34,7 +34,7 @@ before_script:
   # setup test database
   - psql -U postgres -c "CREATE USER bothub WITH PASSWORD 'bothub';"
   - psql -U postgres -c "ALTER ROLE bothub WITH SUPERUSER;"
-  - psql -U temba postgres -c "CREATE DATABASE bothub;"
+  - psql -U bothub postgres -c "CREATE DATABASE bothub;"
 
 install:
   - pip install pipenv
