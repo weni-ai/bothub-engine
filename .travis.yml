@@ -12,10 +12,6 @@ addons:
       - postgresql-client-11
       - postgresql-server-dev-11
 before_install:
-  - sudo pg_dropcluster --stop 12 main
-  - sudo pg_upgradecluster 11 main
-  - sudo pg_ctlcluster 12 main restart
-  - sudo pg_dropcluster 11 main
   - psql -c 'create database bothub;' -U postgres
 install:
   - pip install pipenv
@@ -29,7 +25,7 @@ env:
     - PGPORT=5432
     - SECRET_KEY=SK
     - SUPPORTED_LANGUAGES="en|pt"
-    - DEFAULT_DATABASE="postgres://bothub:@localhost:5432/bothub"
+    - DEFAULT_DATABASE="postgres://postgres:@localhost:5432/bothub"
 script:
   - flake8
   - travis_wait coverage run manage.py test
