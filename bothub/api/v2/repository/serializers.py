@@ -822,7 +822,7 @@ class RepositoryAuthorizationRoleSerializer(serializers.ModelSerializer):
         ref_name = None
 
     def validate(self, data):
-        if self.instance.user == self.instance.repository.owner.user:
+        if self.instance.user == self.instance.repository.owner:
             raise PermissionDenied(_("The owner role can't be changed."))
         if data.get("role") == RepositoryAuthorization.LEVEL_NOTHING:
             raise PermissionDenied(_("You cannot set user role 0"))
