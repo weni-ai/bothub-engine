@@ -31,7 +31,7 @@ from bothub.common.models import RepositoryTranslatedExample
 from bothub.common.models import RepositoryTranslatedExampleEntity
 from bothub.common.models import RepositoryVote
 from bothub.common.models import RequestRepositoryAuthorization
-from .validators import APIExceptionCustom
+from .validators import APIExceptionCustom, CanCreateRepositoryInOrganizationValidator
 from .validators import CanContributeInRepositoryExampleValidator
 from .validators import CanContributeInRepositoryTranslatedExampleValidator
 from .validators import CanContributeInRepositoryValidator
@@ -661,7 +661,9 @@ class RepositorySerializer(serializers.ModelSerializer):
         label=_("Categories"),
     )
     organization = serializers.IntegerField(
-        required=False, help_text="Specify the organization id"
+        required=False,
+        help_text="Specify the organization id",
+        validators=[CanCreateRepositoryInOrganizationValidator()],
     )
     categories_list = serializers.SerializerMethodField(style={"show": False})
 
