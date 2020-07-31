@@ -209,7 +209,7 @@ class RepositoryVersionSeralizer(serializers.ModelSerializer):
                 )
 
                 evaluate_entities = RepositoryEvaluateEntity.objects.filter(
-                    repository_evaluate=evaluate_id
+                    repository_evaluate=evaluate
                 )
 
                 for evaluate_entity in evaluate_entities:
