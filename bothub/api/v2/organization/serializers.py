@@ -13,6 +13,7 @@ class OrganizationSeralizer(serializers.ModelSerializer):
             "name",
             "nickname",
             "description",
+            "locale",
             "verificated",
             "count_repositories",
             "count_members",

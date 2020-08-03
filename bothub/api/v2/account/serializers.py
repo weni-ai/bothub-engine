@@ -6,7 +6,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from bothub.authentication.models import User, RepositoryOwner
-from ..fields import PasswordField
+from ..fields import PasswordField, TextField
 
 
 class LoginSerializer(AuthTokenSerializer, serializers.ModelSerializer):
@@ -75,7 +75,7 @@ class UserSerializer(serializers.ModelSerializer):
         ref_name = None
 
     is_organization = serializers.BooleanField(style={"show": False}, read_only=True)
-    biography = serializers.CharField(style={"show": False})
+    biography = TextField(min_length=0, max_length=350, required=False)
 
 
 class ResetPasswordSerializer(serializers.ModelSerializer):
