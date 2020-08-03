@@ -162,12 +162,12 @@ class RepositoryVersionSeralizer(serializers.ModelSerializer):
                     )
 
                     translated_entity_examples = RepositoryTranslatedExampleEntity.objects.filter(
-                        repository_translated_example=translated
+                        repository_translated_example=translated_example
                     )
 
                     for translated_entity in translated_entity_examples:
                         if translated_entity.entity.group:
-                            group, created_group = RepositoryEntityGroup.objects.get(
+                            group, created_group = RepositoryEntityGroup.objects.get_or_create(
                                 repository_version=instance,
                                 value=translated_entity.entity.group.value,
                             )
@@ -175,6 +175,18 @@ class RepositoryVersionSeralizer(serializers.ModelSerializer):
                                 repository_version=instance,
                                 value=translated_entity.entity.value,
                                 group=group,
+                            )
+                            RepositoryTranslatedExampleEntity.objects.create(
+                                repository_translated_example=translated,
+                                start=translated_entity.start,
+                                end=translated_entity.end,
+                                entity=entity,
+                                created_at=translated_entity.created_at,
+                            )
+                        else:
+                            entity, created_entity = RepositoryEntity.objects.get_or_create(
+                                repository_version=instance,
+                                value=translated_entity.entity.value,
                             )
                             RepositoryTranslatedExampleEntity.objects.create(
                                 repository_translated_example=translated,
@@ -197,7 +209,7 @@ class RepositoryVersionSeralizer(serializers.ModelSerializer):
                 )
 
                 evaluate_entities = RepositoryEvaluateEntity.objects.filter(
-                    repository_evaluate=evaluate_id
+                    repository_evaluate=evaluate
                 )
 
                 for evaluate_entity in evaluate_entities:
