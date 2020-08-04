@@ -222,6 +222,7 @@ class NewRepositorySerializer(serializers.ModelSerializer):
             "nlp_server",
             "version_default",
             "is_organization",
+            "count_authorizations",
         ]
         read_only = [
             "uuid",
@@ -341,6 +342,13 @@ class NewRepositorySerializer(serializers.ModelSerializer):
     is_organization = serializers.BooleanField(
         source="repository.owner.is_organization"
     )
+    count_authorizations = serializers.SerializerMethodField(style={"show": False})
+
+    def get_count_authorizations(self, obj):
+        auths = RepositoryAuthorization.objects.filter(
+            repository=obj.repository
+        ).exclude(role=RepositoryAuthorization.ROLE_NOT_SETTED)
+        return auths.count()
 
     def get_available_languages(self, obj):
         queryset = RepositoryExample.objects.filter(
@@ -664,7 +672,7 @@ class RepositorySerializer(serializers.ModelSerializer):
         required=False,
         help_text="Specify the organization id",
         validators=[CanCreateRepositoryInOrganizationValidator()],
-        style={"show": False}
+        style={"show": False},
     )
     categories_list = serializers.SerializerMethodField(style={"show": False})
 
