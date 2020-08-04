@@ -24,7 +24,7 @@ class RepositoryEvaluatePermission(permissions.BasePermission):
                     return authorization.can_read
                 if request.method in WRITE_METHODS:
                     return authorization.can_write
-                return authorization.is_admin
+                return authorization.is_admin or authorization.is_owner
             return False
         except Repository.DoesNotExist:
             return False
