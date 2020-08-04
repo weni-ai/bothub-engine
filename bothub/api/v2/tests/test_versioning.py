@@ -10,10 +10,8 @@ from bothub.common import languages
 from bothub.common.models import (
     Repository,
     RepositoryExample,
-    RepositoryExampleEntity,
     RepositoryVersionLanguage,
     RepositoryVersion,
-    RepositoryTranslatedExample,
 )
 
 
