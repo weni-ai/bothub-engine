@@ -664,6 +664,7 @@ class RepositorySerializer(serializers.ModelSerializer):
         required=False,
         help_text="Specify the organization id",
         validators=[CanCreateRepositoryInOrganizationValidator()],
+        style={"show": False}
     )
     categories_list = serializers.SerializerMethodField(style={"show": False})
 
