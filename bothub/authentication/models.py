@@ -24,7 +24,14 @@ validate_user_nickname_format = RegexValidator(
 
 
 def validate_user_nickname_value(value):
-    if value in ["api", "docs", "admin", "ping", "static"]:
+    if value in [
+        "api",
+        "docs",
+        "admin",
+        "ping",
+        "static",
+        settings.BOTHUB_BOT_NICKNAME,
+    ]:
         raise ValidationError(_("The user nickname can't be '{}'").format(value))
 
 
