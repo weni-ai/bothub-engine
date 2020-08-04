@@ -539,7 +539,9 @@ class NewRepositorySerializer(serializers.ModelSerializer):
         ).data
 
         auth_organizations = (
-            OrganizationAuthorization.objects.exclude(role=OrganizationAuthorization.ROLE_NOT_SETTED)
+            OrganizationAuthorization.objects.exclude(
+                role=OrganizationAuthorization.ROLE_NOT_SETTED
+            )
             .filter(user=request.user)
             .values("uuid", "organization__name", "role")
         )
