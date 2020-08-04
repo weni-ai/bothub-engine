@@ -22,6 +22,7 @@ from bothub.common.models import (
     RepositoryEvaluate,
     RepositoryExampleEntity,
     RepositoryQueueTask,
+    OrganizationAuthorization,
 )
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryCategory
@@ -222,7 +223,7 @@ class NewRepositorySerializer(serializers.ModelSerializer):
             "nlp_server",
             "version_default",
             "is_organization",
-            "count_authorizations",
+            "authorizations",
         ]
         read_only = [
             "uuid",
@@ -342,13 +343,18 @@ class NewRepositorySerializer(serializers.ModelSerializer):
     is_organization = serializers.BooleanField(
         source="repository.owner.is_organization"
     )
-    count_authorizations = serializers.SerializerMethodField(style={"show": False})
+    authorizations = serializers.SerializerMethodField(style={"show": False})
 
-    def get_count_authorizations(self, obj):
+    def get_authorizations(self, obj):
         auths = RepositoryAuthorization.objects.filter(
             repository=obj.repository
         ).exclude(role=RepositoryAuthorization.ROLE_NOT_SETTED)
-        return auths.count()
+        return {
+            "count": auths.count(),
+            "users": [
+                {"nickname": i.user.nickname, "name": i.user.name} for i in auths
+            ],
+        }
 
     def get_available_languages(self, obj):
         queryset = RepositoryExample.objects.filter(
@@ -528,9 +534,17 @@ class NewRepositorySerializer(serializers.ModelSerializer):
         request = self.context.get("request")
         if not request or not request.user.is_authenticated:
             return None
-        return RepositoryAuthorizationSerializer(
+        data = RepositoryAuthorizationSerializer(
             obj.repository.get_user_authorization(request.user)
         ).data
+
+        auth_organizations = (
+            OrganizationAuthorization.objects.exclude(role=OrganizationAuthorization.ROLE_NOT_SETTED)
+            .filter(user=request.user)
+            .values("uuid", "organization__name", "role")
+        )
+        data.update({"organizations": auth_organizations})
+        return data
 
     def get_request_authorization(self, obj):
         request = self.context.get("request")
