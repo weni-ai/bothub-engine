@@ -22,7 +22,7 @@ class TranslateExampleTestCase(TestCase):
         self.owner, self.owner_token = create_user_and_token("owner")
 
         self.repository = Repository.objects.create(
-            owner=self.owner,
+            owner=self.owner.repository_owner,
             name="Testing",
             slug="test",
             language=languages.LANGUAGE_EN,
@@ -241,7 +241,7 @@ class RepositoryTranslatedExampleDestroyTestCase(TestCase):
         self.owner, self.owner_token = create_user_and_token("owner")
 
         self.repository = Repository.objects.create(
-            owner=self.owner,
+            owner=self.owner.repository_owner,
             name="Testing",
             slug="test",
             language=languages.LANGUAGE_EN,
@@ -281,7 +281,7 @@ class TranslationsViewTest(TestCase):
         self.owner, self.owner_token = create_user_and_token("owner")
 
         self.repository = Repository.objects.create(
-            owner=self.owner,
+            owner=self.owner.repository_owner,
             name="Testing",
             slug="test",
             language=languages.LANGUAGE_EN,
@@ -306,21 +306,27 @@ class TranslationsViewTest(TestCase):
         return (response, content_data)
 
     def test_okay(self):
-        response, content_data = self.request({"repository_uuid": self.repository.uuid})
+        response, content_data = self.request(
+            {"repository_uuid": self.repository.uuid}, user_token=self.owner_token
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(content_data.get("count"), 1)
 
     def test_repository_not_found(self):
-        response, content_data = self.request({"repository_uuid": uuid.uuid4()})
+        response, content_data = self.request(
+            {"repository_uuid": uuid.uuid4()}, self.owner_token
+        )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_repository_uuid_invalid(self):
-        response, content_data = self.request({"repository_uuid": "invalid"})
+        response, content_data = self.request(
+            {"repository_uuid": "invalid"}, self.owner_token
+        )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_forbidden(self):
         private_repository = Repository.objects.create(
-            owner=self.owner,
+            owner=self.owner.repository_owner,
             name="Testing",
             slug="private",
             language=languages.LANGUAGE_EN,
@@ -353,7 +359,8 @@ class TranslationsViewTest(TestCase):
             {
                 "repository_uuid": self.repository.uuid,
                 "from_language": self.example.repository_version_language.language,
-            }
+            },
+            user_token=self.owner_token,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(content_data.get("count"), 1)
@@ -363,7 +370,8 @@ class TranslationsViewTest(TestCase):
             {
                 "repository_uuid": self.repository.uuid,
                 "from_language": example.repository_version_language.language,
-            }
+            },
+            user_token=self.owner_token,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(content_data.get("count"), 1)
@@ -384,7 +392,8 @@ class TranslationsViewTest(TestCase):
             {
                 "repository_uuid": self.repository.uuid,
                 "to_language": self.translated.language,
-            }
+            },
+            user_token=self.owner_token,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(content_data.get("count"), 2)
@@ -393,7 +402,8 @@ class TranslationsViewTest(TestCase):
             {
                 "repository_uuid": self.repository.uuid,
                 "to_language": languages.LANGUAGE_DE,
-            }
+            },
+            user_token=self.owner_token,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(content_data.get("count"), 0)

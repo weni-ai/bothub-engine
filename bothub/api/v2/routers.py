@@ -2,6 +2,11 @@ from rest_framework import routers
 
 from bothub.api.v2.versionning.views import RepositoryVersionViewSet
 from .groups.views import RepositoryEntityGroupViewSet
+from .organization.views import (
+    OrganizationViewSet,
+    OrganizationProfileViewSet,
+    OrganizationAuthorizationViewSet,
+)
 from .repository.views import (
     RepositoryViewSet,
     RepositoryNLPLogViewSet,
@@ -9,6 +14,8 @@ from .repository.views import (
     NewRepositoryViewSet,
     RasaUploadViewSet,
     RepositoryTaskQueueViewSet,
+    RepositoriesPermissionsViewSet,
+    RepositoryNLPLogReportsViewSet,
 )
 from .repository.views import RepositoryVotesViewSet
 from .repository.views import RepositoriesViewSet
@@ -120,9 +127,11 @@ router.register("repository/repositories", RepositoriesViewSet)
 router.register(
     "repository/repositories-contributions", RepositoriesContributionsViewSet
 )
+router.register("repository/repository-reports", RepositoryNLPLogReportsViewSet)
 router.register("repository/categories", RepositoryCategoriesView)
 router.register("repository/examples", ExamplesViewSet)
 router.register("repository/search-repositories", SearchRepositoriesViewSet)
+router.register("repository/repositories-permissions", RepositoriesPermissionsViewSet)
 router.register("repository/authorizations", RepositoryAuthorizationViewSet)
 router.register(
     "repository/authorization-requests", RepositoryAuthorizationRequestsViewSet
@@ -161,3 +170,6 @@ router.register("account/user-profile", UserProfileViewSet)
 router.register("account/my-profile", MyUserProfileViewSet)
 router.register("account/search-user", SearchUserViewSet)
 router.register("account/reset-password", ResetPasswordViewSet)
+router.register("org/organization", OrganizationViewSet)
+router.register("org/profile", OrganizationProfileViewSet)
+router.register("org/authorizations", OrganizationAuthorizationViewSet)

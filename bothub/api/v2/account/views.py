@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from bothub.api.v2.metadata import Metadata
-from bothub.authentication.models import User
+from bothub.authentication.models import User, RepositoryOwner
 from bothub.common.models import Repository, RepositoryVersion
 from .serializers import ChangePasswordSerializer
 from .serializers import LoginSerializer
@@ -173,17 +173,9 @@ class UserProfileViewSet(mixins.RetrieveModelMixin, GenericViewSet):
 
 class SearchUserViewSet(mixins.ListModelMixin, GenericViewSet):
     serializer_class = UserSerializer
-    queryset = User.objects.all()
+    queryset = RepositoryOwner.objects.all()
     filter_backends = [DjangoFilterBackend, SearchFilter]
-    search_fields = [
-        "=name",
-        "^name",
-        "$name",
-        "=nickname",
-        "^nickname",
-        "$nickname",
-        "=email",
-    ]
+    search_fields = ["=name", "^name", "$name", "=nickname", "^nickname", "$nickname"]
     pagination_class = None
     limit = 5
 

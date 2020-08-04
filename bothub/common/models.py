@@ -14,15 +14,15 @@ from django.core.exceptions import ValidationError
 from rest_framework import status
 from rest_framework.exceptions import APIException
 
-from bothub.authentication.models import User
-from django.db.models import Sum, Q
+from bothub.authentication.models import User, RepositoryOwner
+from django.db.models import Sum, Q, OuterRef
 
 from . import languages
 from .exceptions import RepositoryUpdateAlreadyStartedTraining
 from .exceptions import RepositoryUpdateAlreadyTrained
 from .exceptions import TrainingNotAllowed
 from .exceptions import DoesNotHaveTranslation
-
+from ..utils import CountSubquery
 
 item_key_regex = _lazy_re_compile(r"^[-a-z0-9_]+\Z")
 validate_item_key = RegexValidator(
@@ -80,10 +80,143 @@ class RepositoryQuerySet(models.QuerySet):
             )
         )
 
+    def count_logs(self, start_date=None, end_date=None, *args, **kwargs):
+        return self.annotate(
+            total_count=CountSubquery(
+                RepositoryNLPLog.objects.filter(
+                    repository_version_language__repository_version__repository=OuterRef(
+                        "uuid"
+                    ),
+                    from_backend=False,
+                    created_at__range=(start_date, end_date),
+                )
+            )
+        ).filter(*args, **kwargs)
+
 
 class RepositoryManager(models.Manager):
     def get_queryset(self):
         return RepositoryQuerySet(self.model, using=self._db)
+
+
+class Organization(RepositoryOwner):
+    class Meta:
+        verbose_name = _("repository organization")
+
+    description = models.TextField(_("description"), blank=True)
+    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
+    verificated = models.BooleanField(default=False)
+
+    repository_owner = models.OneToOneField(
+        RepositoryOwner,
+        on_delete=models.CASCADE,
+        parent_link=True,
+        related_name="organization_owner",
+    )
+
+    def get_organization_authorization(self, org):
+        if org.is_anonymous:
+            return OrganizationAuthorization(organization=self)
+        get, created = OrganizationAuthorization.objects.get_or_create(
+            user=org.repository_owner, organization=self
+        )
+        return get
+
+
+class OrganizationAuthorization(models.Model):
+    class Meta:
+        verbose_name = _("organization authorization")
+        verbose_name_plural = _("organization authorizations")
+        unique_together = ["user", "organization"]
+
+    LEVEL_NOTHING = 0
+    LEVEL_READER = 1
+    LEVEL_CONTRIBUTOR = 2
+    LEVEL_ADMIN = 3
+    LEVEL_TRANSLATE = 4
+
+    ROLE_NOT_SETTED = 0
+    ROLE_USER = 1
+    ROLE_CONTRIBUTOR = 2
+    ROLE_ADMIN = 3
+    ROLE_TRANSLATE = 4
+
+    ROLE_CHOICES = [
+        (ROLE_NOT_SETTED, _("not set")),
+        (ROLE_USER, _("user")),
+        (ROLE_CONTRIBUTOR, _("contributor")),
+        (ROLE_ADMIN, _("admin")),
+        (ROLE_TRANSLATE, _("translate")),
+    ]
+
+    uuid = models.UUIDField(
+        _("UUID"), primary_key=True, default=uuid.uuid4, editable=False
+    )
+    user = models.ForeignKey(
+        RepositoryOwner,
+        models.CASCADE,
+        null=True,
+        related_name="organization_user_authorization",
+    )
+    organization = models.ForeignKey(
+        Organization, models.CASCADE, related_name="organization_authorizations"
+    )
+    role = models.PositiveIntegerField(
+        _("role"), choices=ROLE_CHOICES, default=ROLE_NOT_SETTED
+    )
+    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
+
+    @property
+    def level(self):
+        if self.role == RepositoryAuthorization.ROLE_USER:
+            return RepositoryAuthorization.LEVEL_READER
+
+        if self.role == RepositoryAuthorization.ROLE_CONTRIBUTOR:
+            return RepositoryAuthorization.LEVEL_CONTRIBUTOR
+
+        if self.role == RepositoryAuthorization.ROLE_ADMIN:
+            return RepositoryAuthorization.LEVEL_ADMIN
+
+        if self.role == RepositoryAuthorization.ROLE_TRANSLATE:
+            return RepositoryAuthorization.LEVEL_TRANSLATE
+
+        return RepositoryAuthorization.LEVEL_NOTHING  # pragma: no cover
+
+    @property
+    def can_read(self):
+        return self.level in [
+            RepositoryAuthorization.LEVEL_READER,
+            RepositoryAuthorization.LEVEL_CONTRIBUTOR,
+            RepositoryAuthorization.LEVEL_ADMIN,
+            RepositoryAuthorization.LEVEL_TRANSLATE,
+        ]
+
+    @property
+    def can_contribute(self):
+        return self.level in [
+            RepositoryAuthorization.LEVEL_CONTRIBUTOR,
+            RepositoryAuthorization.LEVEL_ADMIN,
+        ]
+
+    @property
+    def can_write(self):
+        return self.level in [RepositoryAuthorization.LEVEL_ADMIN]
+
+    @property
+    def can_translate(self):
+        return self.level in [
+            RepositoryAuthorization.LEVEL_CONTRIBUTOR,
+            RepositoryAuthorization.LEVEL_ADMIN,
+            RepositoryAuthorization.LEVEL_TRANSLATE,
+        ]
+
+    @property
+    def is_admin(self):
+        return self.level == RepositoryAuthorization.LEVEL_ADMIN
+
+    @property
+    def role_verbose(self):
+        return dict(RepositoryAuthorization.ROLE_CHOICES).get(self.role)
 
 
 class Repository(models.Model):
@@ -130,7 +263,9 @@ class Repository(models.Model):
     uuid = models.UUIDField(
         _("UUID"), primary_key=True, default=uuid.uuid4, editable=False
     )
-    owner = models.ForeignKey(User, models.CASCADE, related_name="repositories")
+    owner = models.ForeignKey(
+        RepositoryOwner, models.CASCADE, related_name="repositories"
+    )
     name = models.CharField(
         _("name"), max_length=64, help_text=_("Repository display name")
     )
@@ -671,7 +806,7 @@ class Repository(models.Model):
         if user.is_anonymous:
             return RepositoryAuthorization(repository=self)
         get, created = RepositoryAuthorization.objects.get_or_create(
-            user=user, repository=self
+            user=user.repository_owner, repository=self
         )
         return get
 
@@ -685,12 +820,20 @@ class RepositoryVersion(models.Model):
     class Meta:
         verbose_name = _("repository version")
         ordering = ["-is_default"]
+        indexes = [
+            models.Index(
+                name="common_repository_version_idx",
+                fields=("created_by", "repository"),
+            )
+        ]
 
     name = models.CharField(max_length=40, default="master")
     last_update = models.DateTimeField(_("last update"), auto_now_add=True)
     is_default = models.BooleanField(default=True)
     repository = models.ForeignKey(Repository, models.CASCADE, related_name="versions")
-    created_by = models.ForeignKey(User, models.CASCADE, blank=True, null=True)
+    created_by = models.ForeignKey(
+        RepositoryOwner, models.CASCADE, blank=True, null=True
+    )
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
     is_deleted = models.BooleanField(_("is deleted"), default=False)
 
@@ -993,6 +1136,13 @@ class RepositoryQueueTask(models.Model):
 class RepositoryNLPLog(models.Model):
     class Meta:
         verbose_name = _("repository nlp logs")
+        indexes = [
+            models.Index(
+                name="common_repo_nlp_log_idx",
+                fields=("repository_version_language", "user"),
+                condition=Q(from_backend=False),
+            )
+        ]
 
     text = models.TextField(help_text=_("Text"))
     user_agent = models.TextField(help_text=_("User Agent"))
@@ -1005,7 +1155,7 @@ class RepositoryNLPLog(models.Model):
         null=True,
     )
     nlp_log = models.TextField(help_text=_("NLP Log"), blank=True)
-    user = models.ForeignKey(User, models.CASCADE)
+    user = models.ForeignKey(RepositoryOwner, models.CASCADE)
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
 
     def intents(self, repository_nlp_log):
@@ -1444,7 +1594,7 @@ class RepositoryAuthorization(models.Model):
     uuid = models.UUIDField(
         _("UUID"), primary_key=True, default=uuid.uuid4, editable=False
     )
-    user = models.ForeignKey(User, models.CASCADE)
+    user = models.ForeignKey(RepositoryOwner, models.CASCADE, null=True)
     repository = models.ForeignKey(
         Repository, models.CASCADE, related_name="authorizations"
     )
@@ -1453,32 +1603,66 @@ class RepositoryAuthorization(models.Model):
     )
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
 
+    def save(self, *args, **kwargs):
+        if self.is_owner:
+            self.role = RepositoryAuthorization.ROLE_ADMIN
+        super(RepositoryAuthorization, self).save(*args, **kwargs)
+
     @property
     def level(self):
         try:
-            user = self.user
-        except User.DoesNotExist:
-            user = None
+            org = self.user.organization_user_authorization.filter(
+                organization=self.repository.owner
+            ).first()
+        except AttributeError:
+            org = None
 
-        if user and self.repository.owner == user:
-            return RepositoryAuthorization.LEVEL_ADMIN
+        if org is not None:
+            if org.role > self.role:
+                role = org.role
+            else:
+                role = self.role
+        else:
+            role = self.role
 
-        if self.role == RepositoryAuthorization.ROLE_NOT_SETTED:
+        if role == RepositoryAuthorization.ROLE_NOT_SETTED:
             if self.repository.is_private:
                 return RepositoryAuthorization.LEVEL_NOTHING
             return RepositoryAuthorization.LEVEL_READER
 
-        if self.role == RepositoryAuthorization.ROLE_USER:
+        if role == RepositoryAuthorization.ROLE_USER:
             return RepositoryAuthorization.LEVEL_READER
 
-        if self.role == RepositoryAuthorization.ROLE_CONTRIBUTOR:
+        if role == RepositoryAuthorization.ROLE_CONTRIBUTOR:
             return RepositoryAuthorization.LEVEL_CONTRIBUTOR
 
-        if self.role == RepositoryAuthorization.ROLE_ADMIN:
+        if role == RepositoryAuthorization.ROLE_ADMIN:
             return RepositoryAuthorization.LEVEL_ADMIN
 
-        if self.role == RepositoryAuthorization.ROLE_TRANSLATE:
+        if role == RepositoryAuthorization.ROLE_TRANSLATE:
             return RepositoryAuthorization.LEVEL_TRANSLATE
+        #
+        # user = self.user.organization_user_authorization.filter(
+        #     organization=self.repository.owner
+        # ).first()
+        #
+        # if user:
+        #     if user.role == RepositoryAuthorization.ROLE_NOT_SETTED:
+        #         if user.repository.is_private:
+        #             return RepositoryAuthorization.LEVEL_NOTHING
+        #         return RepositoryAuthorization.LEVEL_READER
+        #
+        #     if user.role == RepositoryAuthorization.ROLE_USER:
+        #         return RepositoryAuthorization.LEVEL_READER
+        #
+        #     if user.role == RepositoryAuthorization.ROLE_CONTRIBUTOR:
+        #         return RepositoryAuthorization.LEVEL_CONTRIBUTOR
+        #
+        #     if user.role == RepositoryAuthorization.ROLE_ADMIN:
+        #         return RepositoryAuthorization.LEVEL_ADMIN
+        #
+        #     if user.role == RepositoryAuthorization.ROLE_TRANSLATE:
+        #         return RepositoryAuthorization.LEVEL_TRANSLATE
 
         return RepositoryAuthorization.LEVEL_NOTHING  # pragma: no cover
 
@@ -1544,7 +1728,7 @@ class RepositoryAuthorization(models.Model):
             _("New role in {}").format(self.repository.name),
             render_to_string("common/emails/new_role.txt", context),
             None,
-            [self.user.email],
+            [self.user.user.email],
             html_message=render_to_string("common/emails/new_role.html", context),
         )
 
@@ -1555,7 +1739,9 @@ class RepositoryVote(models.Model):
         verbose_name_plural = _("repository votes")
         unique_together = ["user", "repository"]
 
-    user = models.ForeignKey(User, models.CASCADE, related_name="repository_votes")
+    user = models.ForeignKey(
+        RepositoryOwner, models.CASCADE, related_name="repository_votes"
+    )
     repository = models.ForeignKey(Repository, models.CASCADE, related_name="votes")
     created = models.DateTimeField(editable=False, default=timezone.now)
 
@@ -1587,7 +1773,7 @@ class RequestRepositoryAuthorization(models.Model):
                 _("New authorization request in {}").format(self.repository.name),
                 render_to_string("common/emails/new_request.txt", context),
                 None,
-                [admin.email],
+                [admin.user.email],
                 html_message=render_to_string(
                     "common/emails/new_request.html", context
                 ),

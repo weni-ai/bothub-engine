@@ -28,6 +28,7 @@ openpyxl = "==3.0.3"
 pillow = "==7.1.2"
 kombu = "==4.6.7"
 importlib-metadata = "==1.6.1"
+psycopg2-binary = "==2.7.7"
 
 [dev-packages]
 "flake8" = "*"

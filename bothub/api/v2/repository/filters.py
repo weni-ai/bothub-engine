@@ -211,3 +211,21 @@ class RepositoryQueueTaskFilter(filters.FilterSet):
         return queryset.filter(
             repositoryversionlanguage__repository_version=value
         ).order_by("-pk")
+
+
+class RepositoryNLPLogReportsFilter(filters.FilterSet):
+    class Meta:
+        model = Repository
+        fields = []
+
+    start_date = filters.DateTimeFilter(
+        field_name="start_date", method="filter_start_date"
+    )
+
+    end_date = filters.DateTimeFilter(field_name="end_date", method="filter_end_date")
+
+    def filter_start_date(self, queryset, name, value):
+        return queryset
+
+    def filter_end_date(self, queryset, name, value):
+        return queryset

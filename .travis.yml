@@ -1,19 +1,53 @@
+# use container-based Ubuntu Trusty
+dist: bionic
+sudo: true
+
 language: python
 python:
-  - "3.6"
+  - "3.6.8"
+
 services:
   - docker
+
+
+before_install:
+  # install the chosen PG version
+  - sudo -E apt-get -yq --no-install-suggests --no-install-recommends install postgresql-11 postgresql-client-11
+  - sudo -E sed -i -e '/local.*peer/s/postgres/all/' -e 's/peer\|md5/trust/g' /etc/postgresql/*/main/pg_hba.conf
+  - sudo -E sed -i 's/port = 5433/port = 5432/' /etc/postgresql/*/main/postgresql.conf
+
+  # give PG some time to finish setup
+  - sleep 10
+
+  # stop any running postgres versions
+  - sudo -E service postgresql stop 10
+  - sudo -E ps axuwww | grep -i postg
+
+  # possibly a Travis bug but data directory sometimes not initialized
+  - if [ ! -d /var/ramfs/postgresql/11/main ]; then sudo -u postgres /usr/lib/postgresql/11/bin/initdb -D /var/ramfs/postgresql/11/main; fi
+
+  # start the chosen PG version
+  - sudo -E systemctl -l restart postgresql@11-main
+  - sudo -E systemctl -l status postgresql@11-main
+
+before_script:
+  # setup test database
+  - psql -U postgres -c "CREATE USER bothub WITH PASSWORD 'bothub';"
+  - psql -U postgres -c "ALTER ROLE bothub WITH SUPERUSER;"
+  - psql -U bothub postgres -c "CREATE DATABASE bothub;"
+
 install:
   - pip install pipenv
   - pipenv install --system --dev
   - pip install coveralls
-  - python manage.py migrate
-  - python manage.py collectstatic
 env:
   global:
     - SECRET_KEY=SK
     - SUPPORTED_LANGUAGES="en|pt"
+    - DEFAULT_DATABASE="postgres://bothub:bothub@localhost:5432/bothub"
 script:
+  - python manage.py migrate
+  - python manage.py collectstatic
   - flake8
   - travis_wait coverage run manage.py test
 after_success:
