@@ -171,7 +171,7 @@ class RepositoryVersionSeralizer(serializers.ModelSerializer):
                                 repository_version=instance,
                                 value=translated_entity.entity.group.value,
                             )
-                            entity, created_entity = RepositoryEntity.objects.get(
+                            entity, created_entity = RepositoryEntity.objects.get_or_create(
                                 repository_version=instance,
                                 value=translated_entity.entity.value,
                                 group=group,
