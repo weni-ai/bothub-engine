@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.shortcuts import get_object_or_404
@@ -25,7 +26,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from bothub.api.v2.mixins import MultipleFieldLookupMixin
-from bothub.authentication.models import User
+from bothub.authentication.models import RepositoryOwner
 from bothub.common.models import (
     Repository,
     RepositoryNLPLog,
@@ -43,6 +44,7 @@ from .filters import (
     RepositoryNLPLogFilter,
     RepositoryEntitiesFilter,
     RepositoryQueueTaskFilter,
+    RepositoryNLPLogReportsFilter,
 )
 from .filters import RepositoryAuthorizationFilter
 from .filters import RepositoryAuthorizationRequestsFilter
@@ -64,6 +66,8 @@ from .serializers import (
     RasaUploadSerializer,
     RasaSerializer,
     RepositoryQueueTaskSerializer,
+    RepositoryPermissionSerializer,
+    RepositoryNLPLogReportsSerializer,
 )
 from .serializers import EvaluateSerializer
 from .serializers import RepositoryAuthorizationRoleSerializer
@@ -449,6 +453,23 @@ class SearchRepositoriesViewSet(mixins.ListModelMixin, GenericViewSet):
             return self.queryset.none()
 
 
+class RepositoriesPermissionsViewSet(mixins.ListModelMixin, GenericViewSet):
+    """
+    List all user's repositories permissions
+    """
+
+    queryset = RepositoryAuthorization.objects
+    serializer_class = RepositoryPermissionSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self, *args, **kwargs):
+        return (
+            self.queryset.exclude(repository__owner=self.request.user)
+            .exclude(role=RepositoryAuthorization.ROLE_NOT_SETTED)
+            .filter(user=self.request.user)
+        )
+
+
 class RepositoryAuthorizationViewSet(
     MultipleFieldLookupMixin,
     mixins.UpdateModelMixin,
@@ -468,8 +489,7 @@ class RepositoryAuthorizationViewSet(
         user_nickname = self.kwargs.get("user__nickname")
 
         repository = get_object_or_404(Repository, uuid=repository_uuid)
-        user = get_object_or_404(User, nickname=user_nickname)
-
+        user = get_object_or_404(RepositoryOwner, nickname=user_nickname)
         obj = repository.get_user_authorization(user)
 
         self.check_object_permissions(self.request, obj)
@@ -483,7 +503,10 @@ class RepositoryAuthorizationViewSet(
         self.permission_classes = [IsAuthenticated, RepositoryAdminManagerAuthorization]
         response = super().update(*args, **kwargs)
         instance = self.get_object()
-        if instance.role is not RepositoryAuthorization.ROLE_NOT_SETTED:
+        if (
+            instance.role is not RepositoryAuthorization.ROLE_NOT_SETTED
+            and not instance.user.is_organization
+        ):
             if (
                 RequestRepositoryAuthorization.objects.filter(
                     user=instance.user, repository=instance.repository
@@ -491,7 +514,7 @@ class RepositoryAuthorizationViewSet(
                 == 0
             ):
                 RequestRepositoryAuthorization.objects.create(
-                    user=instance.user,
+                    user=instance.user.user,
                     repository=instance.repository,
                     approved_by=self.request.user,
                 )
@@ -695,3 +718,27 @@ class RepositoryTaskQueueViewSet(mixins.ListModelMixin, GenericViewSet):
 
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
+
+
+class RepositoryNLPLogReportsViewSet(mixins.ListModelMixin, GenericViewSet):
+    """
+    List all public repositories.
+    """
+
+    serializer_class = RepositoryNLPLogReportsSerializer
+    queryset = Repository.objects.all()
+    filter_class = RepositoryNLPLogReportsFilter
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend]
+
+    def get_queryset(self, *args, **kwargs):
+        x = self.queryset.count_logs(
+            start_date=datetime.strptime(
+                self.request.query_params.get("start_date", None), "%Y-%m-%d"
+            ).replace(hour=0, minute=0),
+            end_date=datetime.strptime(
+                self.request.query_params.get("end_date", None), "%Y-%m-%d"
+            ).replace(hour=23, minute=59),
+            authorizations__user=self.request.user,
+        ).order_by("-total_count")
+        return x

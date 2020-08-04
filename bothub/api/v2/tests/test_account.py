@@ -277,7 +277,7 @@ class DestroyMyProfileTestCase(TestCase):
 
         repository = Repository.objects.get(pk=self.repository.pk)
 
-        self.assertEqual(repository.owner, User.generate_repository_user_bot())
+        self.assertEqual(repository.owner.user, User.generate_repository_user_bot())
 
 
 class UserUpdateTestCase(TestCase):

@@ -11,6 +11,7 @@ from bothub.api.v2.example.serializers import RepositoryExampleEntitySerializer
 from bothub.api.v2.fields import EntityText, RepositoryVersionRelatedField
 from bothub.api.v2.fields import ModelMultipleChoiceField
 from bothub.api.v2.fields import TextField
+from bothub.authentication.models import RepositoryOwner
 from bothub.common import languages
 from bothub.common.languages import LANGUAGE_CHOICES
 from bothub.common.models import (
@@ -21,6 +22,7 @@ from bothub.common.models import (
     RepositoryEvaluate,
     RepositoryExampleEntity,
     RepositoryQueueTask,
+    OrganizationAuthorization,
 )
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryCategory
@@ -30,7 +32,7 @@ from bothub.common.models import RepositoryTranslatedExample
 from bothub.common.models import RepositoryTranslatedExampleEntity
 from bothub.common.models import RepositoryVote
 from bothub.common.models import RequestRepositoryAuthorization
-from .validators import APIExceptionCustom
+from .validators import APIExceptionCustom, CanCreateRepositoryInOrganizationValidator
 from .validators import CanContributeInRepositoryExampleValidator
 from .validators import CanContributeInRepositoryTranslatedExampleValidator
 from .validators import CanContributeInRepositoryValidator
@@ -159,12 +161,16 @@ class RepositoryAuthorizationSerializer(serializers.ModelSerializer):
             "is_admin",
             "created_at",
             "id_request_authorizations",
+            "user__is_organization",
         ]
         read_only = ["user", "user__nickname", "repository", "role", "created_at"]
         ref_name = None
 
     user__nickname = serializers.SlugRelatedField(
         source="user", slug_field="nickname", read_only=True
+    )
+    user__is_organization = serializers.SlugRelatedField(
+        source="user", slug_field="is_organization", read_only=True
     )
 
     id_request_authorizations = serializers.SerializerMethodField()
@@ -216,6 +222,8 @@ class NewRepositorySerializer(serializers.ModelSerializer):
             "use_analyze_char",
             "nlp_server",
             "version_default",
+            "is_organization",
+            "authorizations",
         ]
         read_only = [
             "uuid",
@@ -230,6 +238,7 @@ class NewRepositorySerializer(serializers.ModelSerializer):
             "created_at",
             "authorization",
             "nlp_server",
+            "is_organization",
         ]
         ref_name = None
 
@@ -331,6 +340,21 @@ class NewRepositorySerializer(serializers.ModelSerializer):
     )
     nlp_server = serializers.SerializerMethodField(style={"show": False})
     version_default = serializers.SerializerMethodField(style={"show": False})
+    is_organization = serializers.BooleanField(
+        source="repository.owner.is_organization"
+    )
+    authorizations = serializers.SerializerMethodField(style={"show": False})
+
+    def get_authorizations(self, obj):
+        auths = RepositoryAuthorization.objects.filter(
+            repository=obj.repository
+        ).exclude(role=RepositoryAuthorization.ROLE_NOT_SETTED)
+        return {
+            "count": auths.count(),
+            "users": [
+                {"nickname": i.user.nickname, "name": i.user.name} for i in auths
+            ],
+        }
 
     def get_available_languages(self, obj):
         queryset = RepositoryExample.objects.filter(
@@ -510,9 +534,19 @@ class NewRepositorySerializer(serializers.ModelSerializer):
         request = self.context.get("request")
         if not request or not request.user.is_authenticated:
             return None
-        return RepositoryAuthorizationSerializer(
+        data = RepositoryAuthorizationSerializer(
             obj.repository.get_user_authorization(request.user)
         ).data
+
+        auth_organizations = (
+            OrganizationAuthorization.objects.exclude(
+                role=OrganizationAuthorization.ROLE_NOT_SETTED
+            )
+            .filter(user=request.user)
+            .values("uuid", "organization__name", "role")
+        )
+        data.update({"organizations": auth_organizations})
+        return data
 
     def get_request_authorization(self, obj):
         request = self.context.get("request")
@@ -530,14 +564,14 @@ class NewRepositorySerializer(serializers.ModelSerializer):
         request = self.context.get("request")
         if not request or not request.user.is_authenticated:
             return False
-        authorization = obj.repository.get_user_authorization(request.user)
+        authorization = obj.repository.get_user_authorization(request.user.user)
         if authorization.role is not RepositoryAuthorization.ROLE_NOT_SETTED:
             return False
         if authorization.is_owner:
             return False
         try:
             RequestRepositoryAuthorization.objects.get(
-                user=request.user, repository=obj.repository
+                user=request.user.user, repository=obj.repository
             )
             return False
         except RequestRepositoryAuthorization.DoesNotExist:
@@ -593,6 +627,7 @@ class RepositorySerializer(serializers.ModelSerializer):
             "use_competing_intents",
             "use_name_entities",
             "use_analyze_char",
+            "organization",
         ]
         read_only = ["uuid", "created_at"]
         ref_name = None
@@ -637,7 +672,7 @@ class RepositorySerializer(serializers.ModelSerializer):
     created_at = serializers.DateTimeField(style={"show": False}, read_only=True)
 
     language = serializers.ChoiceField(LANGUAGE_CHOICES, label=_("Language"))
-    owner = serializers.PrimaryKeyRelatedField(read_only=True, style={"show": False})
+    owner = serializers.PrimaryKeyRelatedField(style={"show": False}, read_only=True)
     owner__nickname = serializers.SlugRelatedField(
         source="owner", slug_field="nickname", read_only=True, style={"show": False}
     )
@@ -649,15 +684,34 @@ class RepositorySerializer(serializers.ModelSerializer):
         help_text=Repository.CATEGORIES_HELP_TEXT,
         label=_("Categories"),
     )
+    organization = serializers.IntegerField(
+        required=False,
+        help_text="Specify the organization id",
+        validators=[CanCreateRepositoryInOrganizationValidator()],
+        style={"show": False},
+    )
     categories_list = serializers.SerializerMethodField(style={"show": False})
 
     def create(self, validated_data):
-        validated_data.update({"owner": self.context["request"].user})
+        organization = validated_data.pop("organization", None)
+
+        if organization:
+            owner = get_object_or_404(RepositoryOwner, pk=organization)
+            validated_data.update({"owner": owner})
+        else:
+            validated_data.update({"owner": self.context["request"].user})
+            owner = self.context["request"].user
+
         validated_data.update(
             {"slug": utils.unique_slug_generator(validated_data, Repository)}
         )
 
         repository = super().create(validated_data)
+
+        if owner.is_organization:
+            repository.authorizations.create(
+                user=owner, role=RepositoryAuthorization.ROLE_ADMIN
+            )
 
         repository.versions.create(
             is_default=True, created_by=self.context["request"].user
@@ -667,6 +721,60 @@ class RepositorySerializer(serializers.ModelSerializer):
 
     def get_categories_list(self, obj):
         return RepositoryCategorySerializer(obj.categories, many=True).data
+
+
+class RepositoryPermissionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RepositoryAuthorization
+        fields = [
+            "uuid",
+            "name",
+            "slug",
+            "role",
+            "created_at",
+            "language",
+            "owner",
+            "owner__nickname",
+            "categories",
+            "categories_list",
+        ]
+        ref_name = None
+
+    uuid = serializers.UUIDField(
+        style={"show": False}, read_only=True, source="repository.uuid"
+    )
+    name = serializers.CharField(source="repository.name")
+    slug = serializers.SlugField(
+        style={"show": False}, read_only=True, source="repository.slug"
+    )
+    created_at = serializers.DateTimeField(
+        style={"show": False}, read_only=True, source="repository.created_at"
+    )
+    language = serializers.ChoiceField(
+        LANGUAGE_CHOICES, label=_("Language"), source="repository.language"
+    )
+    owner = serializers.PrimaryKeyRelatedField(
+        style={"show": False}, read_only=True, source="repository.owner"
+    )
+    owner__nickname = serializers.SlugRelatedField(
+        source="repository.owner",
+        slug_field="nickname",
+        read_only=True,
+        style={"show": False},
+    )
+    categories = ModelMultipleChoiceField(
+        child_relation=serializers.PrimaryKeyRelatedField(
+            queryset=RepositoryCategory.objects.all()
+        ),
+        allow_empty=False,
+        help_text=Repository.CATEGORIES_HELP_TEXT,
+        label=_("Categories"),
+        source="repository.categories",
+    )
+    categories_list = serializers.SerializerMethodField(style={"show": False})
+
+    def get_categories_list(self, obj):
+        return RepositoryCategorySerializer(obj.repository.categories, many=True).data
 
 
 class RepositoryVotesSerializer(serializers.ModelSerializer):
@@ -1081,3 +1189,32 @@ class RepositoryQueueTaskSerializer(serializers.ModelSerializer):
 
     def get_from_queue_codes(self, obj):
         return {key: value for key, value in RepositoryQueueTask.QUEUE_CHOICES}
+
+
+class RepositoryNLPLogReportsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Repository
+        fields = [
+            "uuid",
+            "name",
+            "slug",
+            "description",
+            "is_private",
+            "owner",
+            "total_count",
+        ]
+        ref_name = None
+
+    uuid = serializers.UUIDField(style={"show": False}, read_only=True)
+    name = serializers.CharField(style={"show": False}, read_only=True)
+    slug = serializers.SlugField(style={"show": False}, read_only=True)
+    description = serializers.CharField(style={"show": False}, read_only=True)
+    is_private = serializers.BooleanField(style={"show": False}, read_only=True)
+    total_count = serializers.SerializerMethodField()
+    owner = serializers.SerializerMethodField()
+
+    def get_total_count(self, obj):
+        return obj.total_count
+
+    def get_owner(self, obj):
+        return {"id": obj.owner.pk, "nickname": obj.owner.nickname}

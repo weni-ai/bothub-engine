@@ -6,6 +6,7 @@ import random
 import string
 from django.conf import settings
 from django.utils.text import slugify
+from django.db.models import Subquery, IntegerField
 from botocore.exceptions import ClientError
 from collections import OrderedDict
 
@@ -120,3 +121,11 @@ def get_without_entity(example):
     """Extract entities and synonyms, and convert to plain text."""
     plain_text = re.sub(entity_regex, lambda m: m.groupdict()["entity_text"], example)
     return plain_text
+
+
+class CountSubquery(Subquery):
+    template = "(SELECT COUNT(1) FROM (%(subquery)s) _count_subquery)"
+    output_field = IntegerField()
+
+    def __init__(self, queryset, output_field=None, **extra):
+        super().__init__(queryset, output_field, **extra)

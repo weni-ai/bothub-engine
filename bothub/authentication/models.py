@@ -24,7 +24,14 @@ validate_user_nickname_format = RegexValidator(
 
 
 def validate_user_nickname_value(value):
-    if value in ["api", "docs", "admin", "ping", "static"]:
+    if value in [
+        "api",
+        "docs",
+        "admin",
+        "ping",
+        "static",
+        settings.BOTHUB_BOT_NICKNAME,
+    ]:
         raise ValidationError(_("The user nickname can't be '{}'").format(value))
 
 
@@ -56,32 +63,70 @@ class UserManager(BaseUserManager):
         return self._create_user(email, nickname, password, **extra_fields)
 
 
-class User(AbstractBaseUser, PermissionsMixin):
+class RepositoryOwner(models.Model):
     class Meta:
-        verbose_name = _("user")
-        verbose_name_plural = _("users")
+        verbose_name = _("repository organization")
 
-    USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["nickname"]
 
-    email = models.EmailField(_("email"), unique=True, help_text=_("User's email."))
     name = models.CharField(_("name"), max_length=32, help_text=_("User's name."))
+    locale = models.CharField(
+        _("locale"), max_length=48, help_text=_("User's locale."), blank=True
+    )
     nickname = models.CharField(
         _("nickname"),
         max_length=16,
         validators=[validate_user_nickname_format, validate_user_nickname_value],
         help_text=_(
-            "User's nickname, using letters, numbers, underscores "
+            "User's or Organization nickname, using letters, numbers, underscores "
             + "and hyphens without spaces."
         ),
         unique=True,
     )
-    locale = models.CharField(
-        _("locale"), max_length=48, help_text=_("User's locale."), blank=True
-    )
+    biography = models.TextField(_("biography"), blank=True, null=True)
+    joined_at = models.DateField(_("joined at"), auto_now_add=True)
+
+    def __str__(self):
+        return self.name  # pragma: no cover
+
+    @property
+    def is_anonymous(self):
+        return False if self.is_organization else self.user.is_anonymous
+
+    @property
+    def user(self):
+        return getattr(self, "user_owner", None)
+
+    @property
+    def organization(self):
+        return getattr(self, "organization_owner", None)
+
+    @property
+    def is_organization(self):
+        return True if self.organization else False
+
+    @property
+    def repository_owner(self):
+        return self
+
+
+class User(AbstractBaseUser, RepositoryOwner, PermissionsMixin):
+    class Meta:
+        verbose_name = _("user")
+        verbose_name_plural = _("users")
+
+    USERNAME_FIELD = "email"
+
+    email = models.EmailField(_("email"), unique=True, help_text=_("User's email."))
+
     is_staff = models.BooleanField(_("staff status"), default=False)
     is_active = models.BooleanField(_("active"), default=True)
-    joined_at = models.DateField(_("joined at"), auto_now_add=True)
+    repository_owner = models.OneToOneField(
+        RepositoryOwner,
+        on_delete=models.CASCADE,
+        parent_link=True,
+        related_name="user_owner",
+    )
 
     objects = UserManager()
 

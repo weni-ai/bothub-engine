@@ -27,7 +27,7 @@ class NewGroupTestCase(TestCase):
         self.user, self.token = create_user_and_token()
 
         self.repository = Repository.objects.create(
-            owner=self.owner,
+            owner=self.owner.repository_owner,
             name="Testing",
             slug="test",
             language=languages.LANGUAGE_EN,

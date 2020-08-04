@@ -1,4 +1,5 @@
 import openpyxl
+import re
 from django.db.models import Count, Q
 from django.http import HttpResponse
 from django.utils.decorators import method_decorator
@@ -255,7 +256,7 @@ class RepositoryTranslatedExporterViewSet(
                 find = True
                 continue
             if find:
-                example_id = int(row[1].value)
+                example_id = int(re.sub("[^0-9]", "", row[1].value))
                 repository_version = int(row[2].value)
                 text_translated = row[5].value
 
