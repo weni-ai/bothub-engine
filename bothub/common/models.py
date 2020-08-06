@@ -1993,7 +1993,6 @@ class RepositoryEvaluateResultEntity(models.Model):
 @receiver(models.signals.pre_save, sender=RequestRepositoryAuthorization)
 def set_user_role_on_approved(instance, **kwargs):
     current = None
-    print('foi')
     try:
         current = RequestRepositoryAuthorization.objects.get(pk=instance.pk)
     except RequestRepositoryAuthorization.DoesNotExist:
