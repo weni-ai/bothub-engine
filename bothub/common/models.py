@@ -287,7 +287,7 @@ class Repository(models.Model):
         _("algorithm"),
         max_length=50,
         choices=ALGORITHM_CHOICES,
-        default=ALGORITHM_TRANSFORMER_NETWORK_DIET,
+        default=ALGORITHM_TRANSFORMER_NETWORK_DIET_BERT,
     )
     use_competing_intents = models.BooleanField(
         _("Use competing intents"),
@@ -897,7 +897,7 @@ class RepositoryVersionLanguage(models.Model):
         _("algorithm"),
         max_length=50,
         choices=Repository.ALGORITHM_CHOICES,
-        default=Repository.ALGORITHM_TRANSFORMER_NETWORK_DIET,
+        default=Repository.ALGORITHM_TRANSFORMER_NETWORK_DIET_BERT,
     )
     repository_version = models.ForeignKey(RepositoryVersion, models.CASCADE)
     training_log = models.TextField(_("training log"), blank=True, editable=False)
