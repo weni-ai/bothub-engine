@@ -22,7 +22,8 @@ from bothub.common.models import (
     RepositoryEvaluate,
     RepositoryExampleEntity,
     RepositoryQueueTask,
-    OrganizationAuthorization, Organization,
+    OrganizationAuthorization,
+    Organization,
 )
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryCategory
@@ -570,10 +571,10 @@ class NewRepositorySerializer(serializers.ModelSerializer):
         if authorization.is_owner:
             return False
 
-        organization = get_object_or_404(Organization, repository_owner=obj.repository.owner)
-        org_authorization = organization.get_organization_authorization(
-            request.user
+        organization = get_object_or_404(
+            Organization, repository_owner=obj.repository.owner
         )
+        org_authorization = organization.get_organization_authorization(request.user)
         if not org_authorization.role == OrganizationAuthorization.ROLE_NOT_SETTED:
             return False
 

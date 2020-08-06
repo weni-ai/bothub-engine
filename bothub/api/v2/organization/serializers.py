@@ -113,7 +113,7 @@ class OrganizationAuthorizationRoleSerializer(serializers.ModelSerializer):
         ref_name = None
 
     def validate(self, data):
-        if self.instance.user == self.context.get('request').user.repository_owner:
+        if self.instance.user == self.context.get("request").user.repository_owner:
             raise PermissionDenied(_("You cannot change your own role"))
         if data.get("role") == OrganizationAuthorization.LEVEL_NOTHING:
             raise PermissionDenied(_("You cannot set user role 0"))
