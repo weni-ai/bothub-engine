@@ -4,17 +4,17 @@
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 # 
 # Translators:
-# Daniel Yohan <dyohan9@gmail.com>, 2020
 # Ilhasoft <contato@ilhasoft.com.br>, 2020
+# Daniel Yohan <dyohan9@gmail.com>, 2020
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-08-06 15:18-0300\n"
+"POT-Creation-Date: 2020-08-06 17:29-0300\n"
 "PO-Revision-Date: 2020-04-28 13:01+0000\n"
-"Last-Translator: Ilhasoft <contato@ilhasoft.com.br>, 2020\n"
+"Last-Translator: Daniel Yohan <dyohan9@gmail.com>, 2020\n"
 "Language-Team: Portuguese (Brazil) (https://www.transifex.com/bothub/teams/106489/pt_BR/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -29,13 +29,17 @@ msgstr "Email"
 
 #: bothub/api/v2/account/serializers.py:14
 #: bothub/api/v2/account/serializers.py:24
-#: bothub/api/v2/account/serializers.py:40
 msgid "Password"
 msgstr "Senha"
 
 #: bothub/api/v2/account/serializers.py:38
 msgid "Current Password"
-msgstr "Senha Padrão"
+msgstr "Senha Atual"
+
+#: bothub/api/v2/account/serializers.py:40
+#: bothub/api/v2/account/serializers.py:84
+msgid "New Password"
+msgstr "Nova Senha"
 
 #: bothub/api/v2/account/serializers.py:51
 msgid "Wrong password"
@@ -48,10 +52,6 @@ msgstr "Nenhum usuário registrado com esse email"
 #: bothub/api/v2/account/serializers.py:82
 msgid "Token"
 msgstr "Token"
-
-#: bothub/api/v2/account/serializers.py:84
-msgid "New Password"
-msgstr "Nova Senha"
 
 #: bothub/api/v2/account/serializers.py:95
 msgid "Invalid token for this user"
