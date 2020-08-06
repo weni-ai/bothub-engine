@@ -552,6 +552,21 @@ class RepositoryAuthorizationRequestsViewSet(
         self.queryset = RequestRepositoryAuthorization.objects
         self.filter_class = None
         self.permission_classes = [IsAuthenticated, RepositoryAdminManagerAuthorization]
+
+        update_id = self.kwargs.get("pk")
+        repository = self.request.data.get("repository")
+
+        req_auth = RequestRepositoryAuthorization.objects.filter(pk=update_id)
+        if req_auth:
+            req_auth = req_auth.first()
+            auth = RepositoryAuthorization.objects.filter(
+                user=req_auth.user, repository=repository
+            )
+            if auth:
+                req_auth.approved_by = self.request.user
+                req_auth.save(update_fields=["approved_by"])
+                return Response({"role": auth.first().role})
+
         try:
             return super().update(request, *args, **kwargs)
         except DjangoValidationError as e:

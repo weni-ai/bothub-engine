@@ -18,6 +18,7 @@ class OrganizationSeralizer(serializers.ModelSerializer):
             "verificated",
             "count_repositories",
             "count_members",
+            "authorization",
         ]
         ref_name = None
 
@@ -29,6 +30,7 @@ class OrganizationSeralizer(serializers.ModelSerializer):
     verificated = serializers.BooleanField(style={"show": False}, read_only=True)
     count_repositories = serializers.SerializerMethodField(style={"show": False})
     count_members = serializers.SerializerMethodField(style={"show": False})
+    authorization = serializers.SerializerMethodField(style={"show": False})
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -53,6 +55,15 @@ class OrganizationSeralizer(serializers.ModelSerializer):
             role=OrganizationAuthorization.LEVEL_NOTHING
         )
         return auths.count()
+
+    def get_authorization(self, obj):
+        request = self.context.get("request")
+        if not request or not request.user.is_authenticated:
+            return None
+        data = OrganizationAuthorizationSerializer(
+            obj.get_organization_authorization(request.user)
+        ).data
+        return data
 
 
 class OrganizationAuthorizationSerializer(serializers.ModelSerializer):
@@ -102,6 +113,8 @@ class OrganizationAuthorizationRoleSerializer(serializers.ModelSerializer):
         ref_name = None
 
     def validate(self, data):
+        if self.instance.user == self.context.get("request").user.repository_owner:
+            raise PermissionDenied(_("You cannot change your own role"))
         if data.get("role") == OrganizationAuthorization.LEVEL_NOTHING:
             raise PermissionDenied(_("You cannot set user role 0"))
         return data
