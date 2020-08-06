@@ -236,7 +236,7 @@ class Repository(models.Model):
     ALGORITHM_TRANSFORMER_NETWORK_DIET_WORD_EMBEDDING = (
         "transformer_network_diet_word_embedding"
     )
-    ALGORITHM_TRANSFORMER_NETWORK_DIET_BERT = "transformer_network_diet_bert"
+    # ALGORITHM_TRANSFORMER_NETWORK_DIET_BERT = "transformer_network_diet_bert"
     ALGORITHM_CHOICES = [
         (
             ALGORITHM_NEURAL_NETWORK_INTERNAL,
@@ -254,10 +254,10 @@ class Repository(models.Model):
             ALGORITHM_TRANSFORMER_NETWORK_DIET_WORD_EMBEDDING,
             _("Transformer Neural Network with word embedding external vocabulary"),
         ),
-        (
-            ALGORITHM_TRANSFORMER_NETWORK_DIET_BERT,
-            _("Transformer Neural Network with BERT word embedding"),
-        ),
+        # (
+        #     ALGORITHM_TRANSFORMER_NETWORK_DIET_BERT,
+        #     _("Transformer Neural Network with BERT word embedding"),
+        # ),
     ]
 
     uuid = models.UUIDField(
@@ -1768,16 +1768,17 @@ class RequestRepositoryAuthorization(models.Model):
             "text": self.text,
             "repository_url": self.repository.get_absolute_url(),
         }
-        for admin in self.repository.admins:
-            send_mail(
-                _("New authorization request in {}").format(self.repository.name),
-                render_to_string("common/emails/new_request.txt", context),
-                None,
-                [admin.user.email],
-                html_message=render_to_string(
-                    "common/emails/new_request.html", context
-                ),
-            )
+        if not self.repository.owner.is_organization:
+            for admin in self.repository.admins:
+                send_mail(
+                    _("New authorization request in {}").format(self.repository.name),
+                    render_to_string("common/emails/new_request.txt", context),
+                    None,
+                    [admin.user.email],
+                    html_message=render_to_string(
+                        "common/emails/new_request.html", context
+                    ),
+                )
 
     def send_request_rejected_email(self):
         if not settings.SEND_EMAILS:
@@ -1786,15 +1787,16 @@ class RequestRepositoryAuthorization(models.Model):
             "repository_name": self.repository.name,
             "base_url": settings.BASE_URL,
         }
-        send_mail(
-            _("Access denied to {}").format(self.repository.name),
-            render_to_string("common/emails/request_rejected.txt", context),
-            None,
-            [self.user.email],
-            html_message=render_to_string(
-                "common/emails/request_rejected.html", context
-            ),
-        )
+        if not self.repository.owner.is_organization:
+            send_mail(
+                _("Access denied to {}").format(self.repository.name),
+                render_to_string("common/emails/request_rejected.txt", context),
+                None,
+                [self.user.email],
+                html_message=render_to_string(
+                    "common/emails/request_rejected.html", context
+                ),
+            )
 
     def send_request_approved_email(self):
         if not settings.SEND_EMAILS:
@@ -1804,15 +1806,16 @@ class RequestRepositoryAuthorization(models.Model):
             "admin_name": self.approved_by.name,
             "repository_name": self.repository.name,
         }
-        send_mail(
-            _("Authorization Request Approved to {}").format(self.repository.name),
-            render_to_string("common/emails/request_approved.txt", context),
-            None,
-            [self.user.email],
-            html_message=render_to_string(
-                "common/emails/request_approved.html", context
-            ),
-        )
+        if not self.repository.owner.is_organization:
+            send_mail(
+                _("Authorization Request Approved to {}").format(self.repository.name),
+                render_to_string("common/emails/request_approved.txt", context),
+                None,
+                [self.user.email],
+                html_message=render_to_string(
+                    "common/emails/request_approved.html", context
+                ),
+            )
 
 
 class RepositoryEvaluate(models.Model):

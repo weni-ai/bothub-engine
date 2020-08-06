@@ -9,7 +9,10 @@ from bothub.api.v2.metadata import Metadata
 from bothub.authentication.models import User
 from bothub.common.models import Organization, OrganizationAuthorization
 from .filters import OrganizationAuthorizationFilter
-from .permissions import OrganizationAdminManagerAuthorization
+from .permissions import (
+    OrganizationAdminManagerAuthorization,
+    OrganizationHasPermission,
+)
 from .serializers import (
     OrganizationSeralizer,
     OrganizationAuthorizationSerializer,
@@ -27,7 +30,7 @@ class OrganizationViewSet(
 ):
     queryset = Organization.objects.all()
     serializer_class = OrganizationSeralizer
-    permission_classes = [IsAuthenticated]  # , OrganizationHasPermission]
+    permission_classes = [IsAuthenticated, OrganizationHasPermission]
     lookup_field = "nickname"
     metadata_class = Metadata
 
