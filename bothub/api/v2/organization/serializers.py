@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.utils.translation import ugettext_lazy as _
 from rest_framework.exceptions import PermissionDenied
+from rest_framework.validators import UniqueValidator
 
 from bothub.api.v2.organization.validators import OrganizationNotExistValidator
 from bothub.common.models import Organization, OrganizationAuthorization
@@ -26,7 +27,12 @@ class OrganizationSeralizer(serializers.ModelSerializer):
 
     id = serializers.PrimaryKeyRelatedField(style={"show": False}, read_only=True)
     name = serializers.CharField(max_length=40, required=True)
-    nickname = serializers.SlugField(required=True)
+    nickname = serializers.SlugField(
+        required=True,
+        validators=[
+            UniqueValidator(queryset=Organization.objects.all(), lookup="iexact")
+        ],
+    )
     verificated = serializers.BooleanField(style={"show": False}, read_only=True)
     count_repositories = serializers.SerializerMethodField(style={"show": False})
     count_members = serializers.SerializerMethodField(style={"show": False})
@@ -35,6 +41,9 @@ class OrganizationSeralizer(serializers.ModelSerializer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.validators.append(OrganizationNotExistValidator())
+
+    def validate_nickname(self, value):
+        return value.lower()
 
     def create(self, validated_data):
         instance = super().create(validated_data)
