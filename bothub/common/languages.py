@@ -374,7 +374,6 @@ VERBOSE_LANGUAGES = {
     LANGUAGE_YO: _("Yoruba"),
     LANGUAGE_ZA: _("Zhuang"),
     LANGUAGE_ZU: _("Zulu"),
-
 }
 
 LANGUAGE_CHOICES = [
