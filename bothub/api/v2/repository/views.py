@@ -658,7 +658,7 @@ class RepositoryNLPLogViewSet(
     mixins.DestroyModelMixin,
     GenericViewSet,
 ):
-    queryset = RepositoryNLPLog.objects.order_by('-created_at')
+    queryset = RepositoryNLPLog.objects
     serializer_class = RepositoryNLPLogSerializer
     permission_classes = [permissions.IsAuthenticated, RepositoryPermission]
     filter_class = RepositoryNLPLogFilter
