@@ -658,13 +658,12 @@ class RepositoryNLPLogViewSet(
     mixins.DestroyModelMixin,
     GenericViewSet,
 ):
-    queryset = RepositoryNLPLog.objects
+    queryset = RepositoryNLPLog.objects.order_by('-created_at')
     serializer_class = RepositoryNLPLogSerializer
     permission_classes = [permissions.IsAuthenticated, RepositoryPermission]
     filter_class = RepositoryNLPLogFilter
-    filter_backends = [OrderingFilter, SearchFilter, DjangoFilterBackend]
+    filter_backends = [SearchFilter, DjangoFilterBackend]
     search_fields = ["$text", "^text", "=text"]
-    ordering_fields = ["-created_at"]
 
 
 class RepositoryEntitiesViewSet(
