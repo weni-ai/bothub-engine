@@ -1628,16 +1628,19 @@ class RepositoryAuthorization(models.Model):
             else:
                 role = self.role
         else:
-            org = (
-                RepositoryAuthorization.objects.filter(
-                    repository=self.repository,
-                    user__in=self.user.organization_user_authorization.exclude(
-                        role=OrganizationAuthorization.ROLE_NOT_SETTED
-                    ).values_list("organization", flat=True),
+            try:
+                org = (
+                    RepositoryAuthorization.objects.filter(
+                        repository=self.repository,
+                        user__in=self.user.organization_user_authorization.exclude(
+                            role=OrganizationAuthorization.ROLE_NOT_SETTED
+                        ).values_list("organization", flat=True),
+                    )
+                    .order_by("-role")
+                    .first()
                 )
-                .order_by("-role")
-                .first()
-            )
+            except AttributeError:
+                org = None
             if org:
                 role = org.role
             else:
@@ -1772,7 +1775,7 @@ class RequestRepositoryAuthorization(models.Model):
                     _("New authorization request in {}").format(self.repository.name),
                     render_to_string("common/emails/new_request.txt", context),
                     None,
-                    [admin.user.email],
+                    [admin.user.user.email],
                     html_message=render_to_string(
                         "common/emails/new_request.html", context
                     ),
@@ -1790,7 +1793,7 @@ class RequestRepositoryAuthorization(models.Model):
                 _("Access denied to {}").format(self.repository.name),
                 render_to_string("common/emails/request_rejected.txt", context),
                 None,
-                [self.user.email],
+                [self.user.user.email],
                 html_message=render_to_string(
                     "common/emails/request_rejected.html", context
                 ),
@@ -1809,7 +1812,7 @@ class RequestRepositoryAuthorization(models.Model):
                 _("Authorization Request Approved to {}").format(self.repository.name),
                 render_to_string("common/emails/request_approved.txt", context),
                 None,
-                [self.user.email],
+                [self.user.user.email],
                 html_message=render_to_string(
                     "common/emails/request_approved.html", context
                 ),
