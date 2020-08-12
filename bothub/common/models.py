@@ -1612,20 +1612,13 @@ class RepositoryAuthorization(models.Model):
     @property
     def level(self):
         try:
-            org = self.user.organization_user_authorization.filter(
-                organization=self.repository.owner
-            ).first()
-            if org is None:
-                org = (
-                    RepositoryAuthorization.objects.filter(
-                        repository=self.repository,
-                        user__in=self.user.organization_user_authorization.exclude(
-                            role=OrganizationAuthorization.ROLE_NOT_SETTED
-                        ).values_list("organization", flat=True),
-                    )
-                    .order_by("-role")
-                    .first()
+            org = (
+                self.user.organization_user_authorization.exclude(
+                    role=OrganizationAuthorization.ROLE_NOT_SETTED
                 )
+                .filter(organization=self.repository.owner)
+                .first()
+            )
         except AttributeError:
             org = None
 
@@ -1635,7 +1628,20 @@ class RepositoryAuthorization(models.Model):
             else:
                 role = self.role
         else:
-            role = self.role
+            org = (
+                RepositoryAuthorization.objects.filter(
+                    repository=self.repository,
+                    user__in=self.user.organization_user_authorization.exclude(
+                        role=OrganizationAuthorization.ROLE_NOT_SETTED
+                    ).values_list("organization", flat=True),
+                )
+                .order_by("-role")
+                .first()
+            )
+            if org:
+                role = org.role
+            else:
+                role = self.role
 
         if role == RepositoryAuthorization.ROLE_NOT_SETTED:
             if self.repository.is_private:
@@ -1740,10 +1746,12 @@ class RequestRepositoryAuthorization(models.Model):
     class Meta:
         unique_together = ["user", "repository"]
 
-    user = models.ForeignKey(User, models.CASCADE, related_name="requests")
+    user = models.ForeignKey(RepositoryOwner, models.CASCADE, related_name="requests")
     repository = models.ForeignKey(Repository, models.CASCADE, related_name="requests")
     text = models.CharField(_("text"), max_length=250)
-    approved_by = models.ForeignKey(User, models.CASCADE, blank=True, null=True)
+    approved_by = models.ForeignKey(
+        RepositoryOwner, models.CASCADE, blank=True, null=True
+    )
     created_at = models.DateTimeField(
         _("created at"), auto_now_add=True, editable=False
     )
