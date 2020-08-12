@@ -17,7 +17,6 @@ from rest_framework.exceptions import APIException
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.exceptions import UnsupportedMediaType
 from rest_framework.exceptions import ValidationError
-from rest_framework.filters import OrderingFilter
 from rest_framework.filters import SearchFilter
 from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import IsAuthenticated
@@ -503,10 +502,7 @@ class RepositoryAuthorizationViewSet(
         self.permission_classes = [IsAuthenticated, RepositoryAdminManagerAuthorization]
         response = super().update(*args, **kwargs)
         instance = self.get_object()
-        if (
-            instance.role is not RepositoryAuthorization.ROLE_NOT_SETTED
-            and not instance.user.is_organization
-        ):
+        if instance.role is not RepositoryAuthorization.ROLE_NOT_SETTED:
             if (
                 RequestRepositoryAuthorization.objects.filter(
                     user=instance.user, repository=instance.repository
@@ -514,11 +510,12 @@ class RepositoryAuthorizationViewSet(
                 == 0
             ):
                 RequestRepositoryAuthorization.objects.create(
-                    user=instance.user.user,
+                    user=instance.user,
                     repository=instance.repository,
                     approved_by=self.request.user,
                 )
-            instance.send_new_role_email(self.request.user)
+            if not instance.user.is_organization:
+                instance.send_new_role_email(self.request.user)
         return response
 
     def list(self, request, *args, **kwargs):
@@ -662,9 +659,8 @@ class RepositoryNLPLogViewSet(
     serializer_class = RepositoryNLPLogSerializer
     permission_classes = [permissions.IsAuthenticated, RepositoryPermission]
     filter_class = RepositoryNLPLogFilter
-    filter_backends = [OrderingFilter, SearchFilter, DjangoFilterBackend]
+    filter_backends = [SearchFilter, DjangoFilterBackend]
     search_fields = ["$text", "^text", "=text"]
-    ordering_fields = ["-created_at"]
 
 
 class RepositoryEntitiesViewSet(

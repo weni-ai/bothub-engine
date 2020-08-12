@@ -96,10 +96,10 @@ class RepositoryNLPLogFilter(filters.FilterSet):
         help_text="Filter by language, default is repository base language",
     )
 
-    repository_version_name = filters.CharFilter(
+    repository_version = filters.CharFilter(
         field_name="repository_version_language",
-        method="filter_repository_version_by_name",
-        help_text=_("Filter for examples with version name."),
+        method="filter_repository_version",
+        help_text=_("Filter for examples with version id."),
     )
 
     intent = filters.CharFilter(
@@ -126,10 +126,8 @@ class RepositoryNLPLogFilter(filters.FilterSet):
     def filter_language(self, queryset, name, value):
         return queryset.filter(repository_version_language__language=value)
 
-    def filter_repository_version_by_name(self, queryset, name, value):
-        return queryset.filter(
-            repository_version_language__repository_version__name=value
-        )
+    def filter_repository_version(self, queryset, name, value):
+        return queryset.filter(repository_version_language__repository_version=value)
 
     def filter_intent(self, queryset, name, value):
         return queryset.filter(

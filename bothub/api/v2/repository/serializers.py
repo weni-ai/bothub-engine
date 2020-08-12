@@ -1105,6 +1105,7 @@ class RepositoryNLPLogSerializer(serializers.ModelSerializer):
             "nlp_log",
             "user",
             "log_intent",
+            "created_at",
         ]
         ref_name = None
 

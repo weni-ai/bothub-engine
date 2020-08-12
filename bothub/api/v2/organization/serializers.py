@@ -32,7 +32,7 @@ class OrganizationSeralizer(serializers.ModelSerializer):
         validators=[
             UniqueValidator(queryset=Organization.objects.all(), lookup="iexact")
         ],
-        max_length=16
+        max_length=16,
     )
     verificated = serializers.BooleanField(style={"show": False}, read_only=True)
     count_repositories = serializers.SerializerMethodField(style={"show": False})
