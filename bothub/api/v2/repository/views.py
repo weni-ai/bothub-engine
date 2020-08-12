@@ -17,7 +17,6 @@ from rest_framework.exceptions import APIException
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.exceptions import UnsupportedMediaType
 from rest_framework.exceptions import ValidationError
-from rest_framework.filters import OrderingFilter
 from rest_framework.filters import SearchFilter
 from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import IsAuthenticated
