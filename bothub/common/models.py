@@ -168,55 +168,55 @@ class OrganizationAuthorization(models.Model):
 
     @property
     def level(self):
-        if self.role == RepositoryAuthorization.ROLE_USER:
-            return RepositoryAuthorization.LEVEL_READER
+        if self.role == OrganizationAuthorization.ROLE_USER:
+            return OrganizationAuthorization.LEVEL_READER
 
-        if self.role == RepositoryAuthorization.ROLE_CONTRIBUTOR:
-            return RepositoryAuthorization.LEVEL_CONTRIBUTOR
+        if self.role == OrganizationAuthorization.ROLE_CONTRIBUTOR:
+            return OrganizationAuthorization.LEVEL_CONTRIBUTOR
 
-        if self.role == RepositoryAuthorization.ROLE_ADMIN:
-            return RepositoryAuthorization.LEVEL_ADMIN
+        if self.role == OrganizationAuthorization.ROLE_ADMIN:
+            return OrganizationAuthorization.LEVEL_ADMIN
 
-        if self.role == RepositoryAuthorization.ROLE_TRANSLATE:
-            return RepositoryAuthorization.LEVEL_TRANSLATE
+        if self.role == OrganizationAuthorization.ROLE_TRANSLATE:
+            return OrganizationAuthorization.LEVEL_TRANSLATE
 
-        return RepositoryAuthorization.LEVEL_NOTHING  # pragma: no cover
+        return OrganizationAuthorization.LEVEL_NOTHING  # pragma: no cover
 
     @property
     def can_read(self):
         return self.level in [
-            RepositoryAuthorization.LEVEL_READER,
-            RepositoryAuthorization.LEVEL_CONTRIBUTOR,
-            RepositoryAuthorization.LEVEL_ADMIN,
-            RepositoryAuthorization.LEVEL_TRANSLATE,
+            OrganizationAuthorization.LEVEL_READER,
+            OrganizationAuthorization.LEVEL_CONTRIBUTOR,
+            OrganizationAuthorization.LEVEL_ADMIN,
+            OrganizationAuthorization.LEVEL_TRANSLATE,
         ]
 
     @property
     def can_contribute(self):
         return self.level in [
-            RepositoryAuthorization.LEVEL_CONTRIBUTOR,
-            RepositoryAuthorization.LEVEL_ADMIN,
+            OrganizationAuthorization.LEVEL_CONTRIBUTOR,
+            OrganizationAuthorization.LEVEL_ADMIN,
         ]
 
     @property
     def can_write(self):
-        return self.level in [RepositoryAuthorization.LEVEL_ADMIN]
+        return self.level in [OrganizationAuthorization.LEVEL_ADMIN]
 
     @property
     def can_translate(self):
         return self.level in [
-            RepositoryAuthorization.LEVEL_CONTRIBUTOR,
-            RepositoryAuthorization.LEVEL_ADMIN,
-            RepositoryAuthorization.LEVEL_TRANSLATE,
+            OrganizationAuthorization.LEVEL_CONTRIBUTOR,
+            OrganizationAuthorization.LEVEL_ADMIN,
+            OrganizationAuthorization.LEVEL_TRANSLATE,
         ]
 
     @property
     def is_admin(self):
-        return self.level == RepositoryAuthorization.LEVEL_ADMIN
+        return self.level == OrganizationAuthorization.LEVEL_ADMIN
 
     @property
     def role_verbose(self):
-        return dict(RepositoryAuthorization.ROLE_CHOICES).get(self.role)
+        return dict(OrganizationAuthorization.ROLE_CHOICES).get(self.role)
 
 
 class Repository(models.Model):
@@ -1143,6 +1143,7 @@ class RepositoryNLPLog(models.Model):
                 condition=Q(from_backend=False),
             )
         ]
+        ordering = ["-created_at"]
 
     text = models.TextField(help_text=_("Text"))
     user_agent = models.TextField(help_text=_("User Agent"))
@@ -1611,9 +1612,13 @@ class RepositoryAuthorization(models.Model):
     @property
     def level(self):
         try:
-            org = self.user.organization_user_authorization.filter(
-                organization=self.repository.owner
-            ).first()
+            org = (
+                self.user.organization_user_authorization.exclude(
+                    role=OrganizationAuthorization.ROLE_NOT_SETTED
+                )
+                .filter(organization=self.repository.owner)
+                .first()
+            )
         except AttributeError:
             org = None
 
@@ -1623,7 +1628,23 @@ class RepositoryAuthorization(models.Model):
             else:
                 role = self.role
         else:
-            role = self.role
+            try:
+                org = (
+                    RepositoryAuthorization.objects.filter(
+                        repository=self.repository,
+                        user__in=self.user.organization_user_authorization.exclude(
+                            role=OrganizationAuthorization.ROLE_NOT_SETTED
+                        ).values_list("organization", flat=True),
+                    )
+                    .order_by("-role")
+                    .first()
+                )
+            except AttributeError:
+                org = None
+            if org:
+                role = org.role
+            else:
+                role = self.role
 
         if role == RepositoryAuthorization.ROLE_NOT_SETTED:
             if self.repository.is_private:
@@ -1641,28 +1662,6 @@ class RepositoryAuthorization(models.Model):
 
         if role == RepositoryAuthorization.ROLE_TRANSLATE:
             return RepositoryAuthorization.LEVEL_TRANSLATE
-        #
-        # user = self.user.organization_user_authorization.filter(
-        #     organization=self.repository.owner
-        # ).first()
-        #
-        # if user:
-        #     if user.role == RepositoryAuthorization.ROLE_NOT_SETTED:
-        #         if user.repository.is_private:
-        #             return RepositoryAuthorization.LEVEL_NOTHING
-        #         return RepositoryAuthorization.LEVEL_READER
-        #
-        #     if user.role == RepositoryAuthorization.ROLE_USER:
-        #         return RepositoryAuthorization.LEVEL_READER
-        #
-        #     if user.role == RepositoryAuthorization.ROLE_CONTRIBUTOR:
-        #         return RepositoryAuthorization.LEVEL_CONTRIBUTOR
-        #
-        #     if user.role == RepositoryAuthorization.ROLE_ADMIN:
-        #         return RepositoryAuthorization.LEVEL_ADMIN
-        #
-        #     if user.role == RepositoryAuthorization.ROLE_TRANSLATE:
-        #         return RepositoryAuthorization.LEVEL_TRANSLATE
 
         return RepositoryAuthorization.LEVEL_NOTHING  # pragma: no cover
 
@@ -1750,10 +1749,12 @@ class RequestRepositoryAuthorization(models.Model):
     class Meta:
         unique_together = ["user", "repository"]
 
-    user = models.ForeignKey(User, models.CASCADE, related_name="requests")
+    user = models.ForeignKey(RepositoryOwner, models.CASCADE, related_name="requests")
     repository = models.ForeignKey(Repository, models.CASCADE, related_name="requests")
     text = models.CharField(_("text"), max_length=250)
-    approved_by = models.ForeignKey(User, models.CASCADE, blank=True, null=True)
+    approved_by = models.ForeignKey(
+        RepositoryOwner, models.CASCADE, blank=True, null=True
+    )
     created_at = models.DateTimeField(
         _("created at"), auto_now_add=True, editable=False
     )
@@ -1774,7 +1775,7 @@ class RequestRepositoryAuthorization(models.Model):
                     _("New authorization request in {}").format(self.repository.name),
                     render_to_string("common/emails/new_request.txt", context),
                     None,
-                    [admin.user.email],
+                    [admin.user.user.email],
                     html_message=render_to_string(
                         "common/emails/new_request.html", context
                     ),
@@ -1792,7 +1793,7 @@ class RequestRepositoryAuthorization(models.Model):
                 _("Access denied to {}").format(self.repository.name),
                 render_to_string("common/emails/request_rejected.txt", context),
                 None,
-                [self.user.email],
+                [self.user.user.email],
                 html_message=render_to_string(
                     "common/emails/request_rejected.html", context
                 ),
@@ -1811,7 +1812,7 @@ class RequestRepositoryAuthorization(models.Model):
                 _("Authorization Request Approved to {}").format(self.repository.name),
                 render_to_string("common/emails/request_approved.txt", context),
                 None,
-                [self.user.email],
+                [self.user.user.email],
                 html_message=render_to_string(
                     "common/emails/request_approved.html", context
                 ),
