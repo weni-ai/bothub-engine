@@ -1610,41 +1610,22 @@ class RepositoryAuthorization(models.Model):
         super(RepositoryAuthorization, self).save(*args, **kwargs)
 
     @property
-    def level(self):
-        try:
+    def get_role(self):
+        if self.role < RepositoryAuthorization.ROLE_USER:
             org = (
                 self.user.organization_user_authorization.exclude(
-                    role=OrganizationAuthorization.ROLE_NOT_SETTED
+                    role=RepositoryAuthorization.ROLE_NOT_SETTED
                 )
                 .filter(organization=self.repository.owner)
+                .order_by("-role")
                 .first()
             )
-        except AttributeError:
-            org = None
+            return org.role if org else RepositoryAuthorization.LEVEL_NOTHING
+        return self.role
 
-        if org is not None:
-            if org.role > self.role:
-                role = org.role
-            else:
-                role = self.role
-        else:
-            try:
-                org = (
-                    RepositoryAuthorization.objects.filter(
-                        repository=self.repository,
-                        user__in=self.user.organization_user_authorization.exclude(
-                            role=OrganizationAuthorization.ROLE_NOT_SETTED
-                        ).values_list("organization", flat=True),
-                    )
-                    .order_by("-role")
-                    .first()
-                )
-            except AttributeError:
-                org = None
-            if org:
-                role = org.role
-            else:
-                role = self.role
+    @property
+    def level(self):
+        role = self.get_role
 
         if role == RepositoryAuthorization.ROLE_NOT_SETTED:
             if self.repository.is_private:
@@ -1760,16 +1741,16 @@ class RequestRepositoryAuthorization(models.Model):
     )
 
     def send_new_request_email_to_admins(self):
-        if not settings.SEND_EMAILS:
-            return False  # pragma: no cover
-        context = {
-            "base_url": settings.BASE_URL,
-            "user_name": self.user.name,
-            "repository_name": self.repository.name,
-            "text": self.text,
-            "repository_url": self.repository.get_absolute_url(),
-        }
-        if not self.repository.owner.is_organization:
+        try:
+            if not settings.SEND_EMAILS:
+                return False  # pragma: no cover
+            context = {
+                "base_url": settings.BASE_URL,
+                "user_name": self.user.name,
+                "repository_name": self.repository.name,
+                "text": self.text,
+                "repository_url": self.repository.get_absolute_url(),
+            }
             for admin in self.repository.admins:
                 send_mail(
                     _("New authorization request in {}").format(self.repository.name),
@@ -1780,43 +1761,53 @@ class RequestRepositoryAuthorization(models.Model):
                         "common/emails/new_request.html", context
                     ),
                 )
+        except AttributeError:
+            pass
 
     def send_request_rejected_email(self):
-        if not settings.SEND_EMAILS:
-            return False  # pragma: no cover
-        context = {
-            "repository_name": self.repository.name,
-            "base_url": settings.BASE_URL,
-        }
-        if not self.repository.owner.is_organization:
-            send_mail(
-                _("Access denied to {}").format(self.repository.name),
-                render_to_string("common/emails/request_rejected.txt", context),
-                None,
-                [self.user.user.email],
-                html_message=render_to_string(
-                    "common/emails/request_rejected.html", context
-                ),
-            )
+        try:
+            if not settings.SEND_EMAILS:
+                return False  # pragma: no cover
+            context = {
+                "repository_name": self.repository.name,
+                "base_url": settings.BASE_URL,
+            }
+            if not self.user.is_organization:
+                send_mail(
+                    _("Access denied to {}").format(self.repository.name),
+                    render_to_string("common/emails/request_rejected.txt", context),
+                    None,
+                    [self.user.user.email],
+                    html_message=render_to_string(
+                        "common/emails/request_rejected.html", context
+                    ),
+                )
+        except AttributeError:
+            pass
 
     def send_request_approved_email(self):
-        if not settings.SEND_EMAILS:
-            return False  # pragma: no cover
-        context = {
-            "base_url": settings.BASE_URL,
-            "admin_name": self.approved_by.name,
-            "repository_name": self.repository.name,
-        }
-        if not self.repository.owner.is_organization:
-            send_mail(
-                _("Authorization Request Approved to {}").format(self.repository.name),
-                render_to_string("common/emails/request_approved.txt", context),
-                None,
-                [self.user.user.email],
-                html_message=render_to_string(
-                    "common/emails/request_approved.html", context
-                ),
-            )
+        try:
+            if not settings.SEND_EMAILS:
+                return False  # pragma: no cover
+            context = {
+                "base_url": settings.BASE_URL,
+                "admin_name": self.approved_by.name,
+                "repository_name": self.repository.name,
+            }
+            if not self.user.is_organization:
+                send_mail(
+                    _("Authorization Request Approved to {}").format(
+                        self.repository.name
+                    ),
+                    render_to_string("common/emails/request_approved.txt", context),
+                    None,
+                    [self.user.user.email],
+                    html_message=render_to_string(
+                        "common/emails/request_approved.html", context
+                    ),
+                )
+        except AttributeError:
+            pass
 
 
 class RepositoryEvaluate(models.Model):
