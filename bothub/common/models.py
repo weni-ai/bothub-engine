@@ -1612,13 +1612,9 @@ class RepositoryAuthorization(models.Model):
     @property
     def level(self):
         try:
-            org = (
-                self.user.organization_user_authorization.exclude(
-                    role=OrganizationAuthorization.ROLE_NOT_SETTED
-                )
-                .filter(organization=self.repository.owner)
-                .first()
-            )
+            org = self.user.organization_user_authorization.filter(
+                organization=self.repository.owner
+            ).first()
         except AttributeError:
             org = None
 
@@ -1628,23 +1624,7 @@ class RepositoryAuthorization(models.Model):
             else:
                 role = self.role
         else:
-            try:
-                org = (
-                    RepositoryAuthorization.objects.filter(
-                        repository=self.repository,
-                        user__in=self.user.organization_user_authorization.exclude(
-                            role=OrganizationAuthorization.ROLE_NOT_SETTED
-                        ).values_list("organization", flat=True),
-                    )
-                    .order_by("-role")
-                    .first()
-                )
-            except AttributeError:
-                org = None
-            if org:
-                role = org.role
-            else:
-                role = self.role
+            role = self.role
 
         if role == RepositoryAuthorization.ROLE_NOT_SETTED:
             if self.repository.is_private:
