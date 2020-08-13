@@ -1611,7 +1611,7 @@ class RepositoryAuthorization(models.Model):
 
     @property
     def get_role(self):
-        if self.role < RepositoryAuthorization.ROLE_USER:
+        if self.role < RepositoryAuthorization.ROLE_USER and self.user:
             org = (
                 self.user.organization_user_authorization.exclude(
                     role=RepositoryAuthorization.ROLE_NOT_SETTED
