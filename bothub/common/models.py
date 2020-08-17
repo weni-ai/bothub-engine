@@ -1616,10 +1616,21 @@ class RepositoryAuthorization(models.Model):
                 self.user.organization_user_authorization.exclude(
                     role=RepositoryAuthorization.ROLE_NOT_SETTED
                 )
-                .filter(organization=self.repository.owner)
+                .filter(
+                    Q(organization=self.repository.owner)
+                    | Q(
+                        organization__in=RepositoryAuthorization.objects.filter(
+                            repository=self.repository,
+                            user__in=self.user.organization_user_authorization.exclude(
+                                role=OrganizationAuthorization.ROLE_NOT_SETTED
+                            ).values_list("organization", flat=True),
+                        )
+                        .order_by("-role")
+                        .values_list("user")
+                    )
+                )
                 .order_by("-role")
-                .first()
-            )
+            ).first()
             return org.role if org else RepositoryAuthorization.LEVEL_NOTHING
         return self.role
 
