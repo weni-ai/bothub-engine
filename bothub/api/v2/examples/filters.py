@@ -59,6 +59,16 @@ class ExamplesFilter(filters.FilterSet):
         method="filter_repository_version",
         help_text=_("Filter for examples with version id."),
     )
+    start_created_at = filters.DateTimeFilter(
+        field_name="created_at",
+        lookup_expr="gte",
+        help_text=_("Filter by record creation date, example: 2020-08-15 15:35:12.51"),
+    )
+    end_created_at = filters.DateTimeFilter(
+        field_name="created_at",
+        lookup_expr="lte",
+        help_text=_("Filter by record creation date, example: 2020-08-17 15:35:12.51"),
+    )
 
     def filter_repository_uuid(self, queryset, name, value):
         request = self.request

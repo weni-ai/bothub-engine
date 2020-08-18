@@ -24,7 +24,7 @@ from bothub.api.v2.repository.views import SearchRepositoriesViewSet
 from bothub.api.v2.tests.utils import create_user_and_token
 from bothub.api.v2.versionning.views import RepositoryVersionViewSet
 from bothub.common import languages
-from bothub.common.models import Repository
+from bothub.common.models import Repository, Organization, OrganizationAuthorization
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryCategory
 from bothub.common.models import RepositoryExample
@@ -227,6 +227,9 @@ class RepositoryAuthorizationTestCase(TestCase):
         self.user, self.user_token = create_user_and_token()
         self.owner, self.owner_token = create_user_and_token("owner")
         self.category = RepositoryCategory.objects.create(name="Category 1")
+        self.organization = Organization.objects.create(
+            name="Organization 1", nickname="organization1"
+        )
 
         self.repositories = [
             create_repository_from_mockup(self.owner.repository_owner, **mockup)
@@ -275,6 +278,50 @@ class RepositoryAuthorizationTestCase(TestCase):
             self.assertEqual(
                 authorization.get("uuid"),
                 str(repository.get_user_authorization(user).uuid),
+            )
+
+    def test_authorization_permission_admin_in_organization(self):
+        for repository in self.repositories:
+            perm = OrganizationAuthorization.objects.create(
+                user=self.user,
+                organization=self.organization,
+                role=OrganizationAuthorization.ROLE_ADMIN,
+            )
+
+            repo_auth = RepositoryAuthorization.objects.create(
+                user=self.organization, repository=repository, role=3
+            )
+            user, user_token = (
+                (self.owner, self.owner_token)
+                if repository.is_private
+                else (self.user, self.user_token)
+            )
+            response, content_data = self.request(repository, user_token)
+            authorization = content_data.get("authorization")
+            self.assertIsNotNone(authorization)
+            self.assertEqual(
+                authorization.get("level"), OrganizationAuthorization.ROLE_ADMIN
+            )
+            self.assertTrue(authorization.get("can_read"))
+            self.assertTrue(authorization.get("can_contribute"))
+            self.assertTrue(authorization.get("can_write"))
+            self.assertTrue(authorization.get("can_translate"))
+            self.assertTrue(authorization.get("is_admin"))
+            self.assertEqual(len(authorization.get("organizations")), 1)
+            perm.delete()
+            response, content_data = self.request(repository, user_token)
+            authorization = content_data.get("authorization")
+            self.assertIsNotNone(authorization)
+            self.assertEqual(
+                authorization.get("level"), OrganizationAuthorization.ROLE_USER
+            )
+
+            repo_auth.delete()
+            response, content_data = self.request(repository, user_token)
+            authorization = content_data.get("authorization")
+            self.assertIsNotNone(authorization)
+            self.assertEqual(
+                authorization.get("level"), OrganizationAuthorization.ROLE_USER
             )
 
 

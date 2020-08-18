@@ -24,6 +24,7 @@ from bothub.common.models import (
     RepositoryQueueTask,
     OrganizationAuthorization,
     Organization,
+    RepositoryNLPTrain,
 )
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryCategory
@@ -225,6 +226,7 @@ class NewRepositorySerializer(serializers.ModelSerializer):
             "version_default",
             "is_organization",
             "authorizations",
+            "ready_for_parse",
         ]
         read_only = [
             "uuid",
@@ -240,6 +242,7 @@ class NewRepositorySerializer(serializers.ModelSerializer):
             "authorization",
             "nlp_server",
             "is_organization",
+            "ready_for_parse",
         ]
         ref_name = None
 
@@ -345,6 +348,7 @@ class NewRepositorySerializer(serializers.ModelSerializer):
         source="repository.owner.is_organization"
     )
     authorizations = serializers.SerializerMethodField(style={"show": False})
+    ready_for_parse = serializers.SerializerMethodField(style={"show": False})
 
     def get_authorizations(self, obj):
         auths = RepositoryAuthorization.objects.filter(
@@ -356,6 +360,16 @@ class NewRepositorySerializer(serializers.ModelSerializer):
                 {"nickname": i.user.nickname, "name": i.user.name} for i in auths
             ],
         }
+
+    def get_ready_for_parse(self, obj):
+        q = (
+            RepositoryNLPTrain.objects.filter(
+                repositoryversionlanguage__repository_version=obj
+            )
+            .exclude(bot_data__isnull=True)
+            .exclude(bot_data__exact="")
+        )
+        return True if q.count() > 0 else False
 
     def get_available_languages(self, obj):
         queryset = RepositoryExample.objects.filter(

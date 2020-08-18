@@ -12,8 +12,6 @@ class Command(BaseCommand):
         for auth in RepositoryAuthorization.objects.all():
             if auth.user.is_organization:
                 RequestRepositoryAuthorization.objects.create(
-                    user=auth.user,
-                    repository=auth.repository,
-                    approved_by=auth.user,
+                    user=auth.user, repository=auth.repository, approved_by=auth.user
                 )
         settings.SEND_EMAILS = old_settings
