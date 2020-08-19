@@ -652,7 +652,7 @@ class Repository(models.Model):
             if queryset
             else self.examples(version_default=version_default)
         )
-        return list(set(intents.exclude(intent="").values_list("intent", flat=True)))
+        return list(set(intents.values_list("intent__text", flat=True)))
 
     @property
     def admins(self):
@@ -1185,16 +1185,33 @@ class RepositoryIntent(models.Model):
     class Meta:
         verbose_name = _("repository intent")
         verbose_name_plural = _("repository intents")
-        unique_together = ["repository_version", "intent"]
+        unique_together = ["repository_version", "text"]
 
     repository_version = models.ForeignKey(RepositoryVersion, models.CASCADE)
-    intent = models.CharField(
+    text = models.CharField(
         _("intent"),
         max_length=64,
         default="no_intent",
         help_text=_("Example intent reference"),
         validators=[validate_item_key],
     )
+
+
+class RepositoryExampleManager(models.Manager):
+    def create(
+        self,
+        *args,
+        **kwargs
+    ):
+        intent, created = RepositoryIntent.objects.get_or_create(
+            repository_version=kwargs.get('repository_version_language').repository_version,
+            text=kwargs.get('intent')
+        )
+        kwargs.update({'intent': intent})
+        return super().create(
+            *args,
+            **kwargs
+        )
 
 
 class RepositoryExample(models.Model):
@@ -1215,6 +1232,8 @@ class RepositoryExample(models.Model):
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
     last_update = models.DateTimeField(_("last update"))
     is_corrected = models.BooleanField(default=False)
+
+    objects = RepositoryExampleManager()
 
     def save(self, *args, **kwargs):
         self.last_update = timezone.now()

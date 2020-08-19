@@ -433,7 +433,7 @@ class NewRepositorySerializer(serializers.ModelSerializer):
                     "examples__count": obj.repository.examples(
                         queryset=queryset, version_default=obj.is_default
                     )
-                    .filter(intent=intent)
+                    .filter(intent__text=intent)
                     .count(),
                 },
                 obj.repository.intents(

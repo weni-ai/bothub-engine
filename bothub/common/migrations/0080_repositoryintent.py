@@ -42,7 +42,7 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 (
-                    "intent",
+                    "text",
                     models.CharField(
                         default="no_intent",
                         help_text="Example intent reference",
@@ -84,6 +84,6 @@ class Migration(migrations.Migration):
         migrations.RemoveField(model_name="repositoryexample", name="old_intent"),
         migrations.AlterUniqueTogether(
             name='repositoryintent',
-            unique_together={('repository_version', 'intent')},
+            unique_together={('repository_version', 'text')},
         ),
     ]
