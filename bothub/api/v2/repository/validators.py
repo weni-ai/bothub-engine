@@ -1,3 +1,5 @@
+import re
+
 from django.utils.translation import ugettext_lazy as _
 from django.shortcuts import get_object_or_404
 from rest_framework import status
@@ -80,6 +82,19 @@ class EntityNotEqualGroupValidator(object):
             raise ValidationError(
                 {"group": _("Group name can't be equal to entity name")}
             )
+
+
+class IntentValidator(object):
+    def __call__(self, value):
+        reg = re.compile('^[-a-z0-9_]+\Z')
+        if not reg.match(value):
+            raise ValidationError(_(
+                "Enter a valid value consisting of lowercase letters, numbers, "
+                + "underscores or hyphens."
+            ))
+
+    def set_context(self, serializer):
+        self.request = serializer.context.get("request")
 
 
 class APIExceptionCustom(APIException):

@@ -7,7 +7,7 @@ from bothub.common import languages
 from bothub.common.models import (
     RepositoryExample,
     RepositoryVersion,
-    RepositoryVersionLanguage,
+    RepositoryVersionLanguage, RepositoryIntent,
 )
 from bothub.common.models import Repository
 from bothub.common.models import RepositoryEvaluate
@@ -45,10 +45,15 @@ class ListEvaluateTestCase(TestCase):
             algorithm="neural_network_internal",
         )
 
+        self.example_intent_1 = RepositoryIntent.objects.create(
+            text="greet",
+            repository_version=self.repository_version
+        )
+
         self.example_1 = RepositoryExample.objects.create(
             repository_version_language=self.repository_version_language,
             text="test",
-            intent="greet",
+            intent=self.example_intent_1,
         )
 
         self.repository_evaluate = RepositoryEvaluate.objects.create(
@@ -89,7 +94,7 @@ class ListEvaluateTestCase(TestCase):
         RepositoryExample.objects.create(
             repository_version_language=repository_version_language,
             text="test",
-            intent="greet",
+            intent=self.example_intent_1,
         )
 
         RepositoryEvaluate.objects.create(
@@ -128,7 +133,7 @@ class ListEvaluateTestCase(TestCase):
         RepositoryExample.objects.create(
             repository_version_language=repository_version_language,
             text="test",
-            intent="greet",
+            intent=self.example_intent_1,
         )
 
         RepositoryEvaluate.objects.create(
@@ -171,10 +176,15 @@ class NewEvaluateTestCase(TestCase):
             algorithm="neural_network_internal",
         )
 
+        self.example_intent_1 = RepositoryIntent.objects.create(
+            text="greet",
+            repository_version=self.repository_version
+        )
+
         self.example_1 = RepositoryExample.objects.create(
             repository_version_language=self.repository_version_language,
             text="test",
-            intent="greet",
+            intent=self.example_intent_1,
         )
 
     def request(self, data, token):
@@ -263,7 +273,7 @@ class NewEvaluateTestCase(TestCase):
         RepositoryExample.objects.create(
             repository_version_language=repository_version_language,
             text="test",
-            intent="greet",
+            intent=self.example_intent_1,
         )
 
         RepositoryEvaluate.objects.create(
@@ -311,16 +321,21 @@ class EvaluateDestroyTestCase(TestCase):
             algorithm="neural_network_internal",
         )
 
+        self.example_intent_1 = RepositoryIntent.objects.create(
+            text="greet",
+            repository_version=self.repository_version
+        )
+
         self.example_1 = RepositoryExample.objects.create(
             repository_version_language=self.repository_version_language,
             text="test",
-            intent="greet",
+            intent=self.example_intent_1,
         )
 
         self.repository_evaluate = RepositoryEvaluate.objects.create(
             repository_version_language=self.repository_version_language,
             text="test",
-            intent="greet",
+            intent=self.example_intent_1,
         )
 
     def request(self, token):
@@ -378,10 +393,15 @@ class EvaluateUpdateTestCase(TestCase):
             algorithm="neural_network_internal",
         )
 
+        self.example_intent_1 = RepositoryIntent.objects.create(
+            text="greet",
+            repository_version=self.repository_version
+        )
+
         self.example_1 = RepositoryExample.objects.create(
             repository_version_language=self.repository_version_language,
             text="test",
-            intent="greet",
+            intent=self.example_intent_1,
         )
 
         self.repository_evaluate = RepositoryEvaluate.objects.create(

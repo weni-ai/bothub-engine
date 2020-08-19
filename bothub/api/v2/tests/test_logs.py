@@ -12,7 +12,7 @@ from bothub.common.models import (
     Repository,
     RepositoryAuthorization,
     RepositoryNLPLog,
-    RepositoryNLPLogIntent,
+    RepositoryNLPLogIntent, RepositoryIntent,
 )
 from bothub.common.models import RepositoryExample
 
@@ -29,8 +29,13 @@ class RepositoryNLPLogTestCase(TestCase):
             slug="test",
             language=languages.LANGUAGE_EN,
         )
+
+        self.example_intent_1 = RepositoryIntent.objects.create(
+            text="bias",
+            repository_version=self.repository.current_version().repository_version
+        )
         self.example = RepositoryExample.objects.create(
-            repository_version_language=self.repository.current_version(), text="hi"
+            repository_version_language=self.repository.current_version(), text="hi", intent=self.example_intent_1
         )
 
         self.repository_auth = RepositoryAuthorization.objects.create(
@@ -96,8 +101,12 @@ class ListRepositoryNLPLogTestCase(TestCase):
             slug="test",
             language=languages.LANGUAGE_EN,
         )
+        self.example_intent_1 = RepositoryIntent.objects.create(
+            text="bias",
+            repository_version=self.repository.current_version().repository_version
+        )
         self.example = RepositoryExample.objects.create(
-            repository_version_language=self.repository.current_version(), text="hi"
+            repository_version_language=self.repository.current_version(), text="hi", intent=self.example_intent_1
         )
 
         nlp_log = RepositoryNLPLog.objects.create(

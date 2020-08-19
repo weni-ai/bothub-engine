@@ -928,13 +928,13 @@ class RepositoryVersionLanguage(models.Model):
 
         r = []
 
-        intents = self.examples.values_list("intent", flat=True)
+        intents = self.examples.values_list("intent__text", flat=True)
 
         if "" in intents:
             r.append(_("All examples need have a intent."))
 
         weak_intents = (
-            self.examples.values("intent")
+            self.examples.values("intent__text")
             .annotate(intent_count=models.Count("id"))
             .order_by()
             .exclude(intent_count__gte=self.MIN_EXAMPLES_PER_INTENT)
@@ -943,7 +943,7 @@ class RepositoryVersionLanguage(models.Model):
             for i in weak_intents:
                 r.append(
                     _('Intent "{}" has only {} examples. ' + "Minimum is {}.").format(
-                        i.get("intent"),
+                        i.get("intent__text"),
                         i.get("intent_count"),
                         self.MIN_EXAMPLES_PER_INTENT,
                     )
@@ -1197,23 +1197,6 @@ class RepositoryIntent(models.Model):
     )
 
 
-class RepositoryExampleManager(models.Manager):
-    def create(
-        self,
-        *args,
-        **kwargs
-    ):
-        intent, created = RepositoryIntent.objects.get_or_create(
-            repository_version=kwargs.get('repository_version_language').repository_version,
-            text=kwargs.get('intent')
-        )
-        kwargs.update({'intent': intent})
-        return super().create(
-            *args,
-            **kwargs
-        )
-
-
 class RepositoryExample(models.Model):
     class Meta:
         verbose_name = _("repository example")
@@ -1228,12 +1211,10 @@ class RepositoryExample(models.Model):
         null=True,
     )
     text = models.TextField(_("text"), help_text=_("Example text"))
-    intent = models.ForeignKey(RepositoryIntent, models.CASCADE, null=True, blank=True)
+    intent = models.ForeignKey(RepositoryIntent, models.CASCADE)
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
     last_update = models.DateTimeField(_("last update"))
     is_corrected = models.BooleanField(default=False)
-
-    objects = RepositoryExampleManager()
 
     def save(self, *args, **kwargs):
         self.last_update = timezone.now()

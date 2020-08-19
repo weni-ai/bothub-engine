@@ -6,7 +6,7 @@ from django.test import RequestFactory
 from rest_framework import status
 
 from bothub.common import languages
-from bothub.common.models import Repository, RepositoryExampleEntity
+from bothub.common.models import Repository, RepositoryExampleEntity, RepositoryIntent
 from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryTranslatedExample
 
@@ -27,8 +27,12 @@ class TranslateExampleTestCase(TestCase):
             slug="test",
             language=languages.LANGUAGE_EN,
         )
+        self.example_intent_1 = RepositoryIntent.objects.create(
+            text="bias",
+            repository_version=self.repository.current_version().repository_version
+        )
         self.example = RepositoryExample.objects.create(
-            repository_version_language=self.repository.current_version(), text="hi"
+            repository_version_language=self.repository.current_version(), text="hi", intent=self.example_intent_1
         )
 
     def request(self, data, user_token):
@@ -96,6 +100,7 @@ class TranslateExampleTestCase(TestCase):
         example = RepositoryExample.objects.create(
             repository_version_language=self.repository.current_version(),
             text="my name is user",
+            intent=self.example_intent_1
         )
         RepositoryExampleEntity.objects.create(
             repository_example=example, start=11, end=18, entity="name"
@@ -116,6 +121,7 @@ class TranslateExampleTestCase(TestCase):
         example = RepositoryExample.objects.create(
             repository_version_language=self.repository.current_version(),
             text="my name is user",
+            intent=self.example_intent_1
         )
         RepositoryExampleEntity.objects.create(
             repository_example=self.example, start=11, end=18, entity="name"
@@ -136,6 +142,7 @@ class TranslateExampleTestCase(TestCase):
         example = RepositoryExample.objects.create(
             repository_version_language=self.repository.current_version(),
             text="my name is user",
+            intent=self.example_intent_1
         )
         RepositoryExampleEntity.objects.create(
             repository_example=self.example, start=11, end=18, entity="name"
@@ -181,8 +188,12 @@ class RepositoryTranslatedExampleRetrieveTestCase(TestCase):
             slug="test",
             language=languages.LANGUAGE_EN,
         )
+        self.example_intent_1 = RepositoryIntent.objects.create(
+            text="bias",
+            repository_version=self.repository.current_version().repository_version
+        )
         self.example = RepositoryExample.objects.create(
-            repository_version_language=self.repository.current_version(), text="hi"
+            repository_version_language=self.repository.current_version(), text="hi", intent=self.example_intent_1
         )
         self.translated = RepositoryTranslatedExample.objects.create(
             original_example=self.example, language=languages.LANGUAGE_PT, text="oi"
@@ -195,9 +206,14 @@ class RepositoryTranslatedExampleRetrieveTestCase(TestCase):
             language=languages.LANGUAGE_EN,
             is_private=True,
         )
+        self.example_intent_2 = RepositoryIntent.objects.create(
+            text="bias",
+            repository_version=self.private_repository.current_version().repository_version
+        )
         self.private_example = RepositoryExample.objects.create(
             repository_version_language=self.private_repository.current_version(),
             text="hi",
+            intent=self.example_intent_2
         )
         self.private_translated = RepositoryTranslatedExample.objects.create(
             original_example=self.private_example,
@@ -246,8 +262,12 @@ class RepositoryTranslatedExampleDestroyTestCase(TestCase):
             slug="test",
             language=languages.LANGUAGE_EN,
         )
+        self.example_intent_1 = RepositoryIntent.objects.create(
+            text="bias",
+            repository_version=self.repository.current_version().repository_version
+        )
         self.example = RepositoryExample.objects.create(
-            repository_version_language=self.repository.current_version(), text="hi"
+            repository_version_language=self.repository.current_version(), text="hi", intent=self.example_intent_1
         )
         self.translated = RepositoryTranslatedExample.objects.create(
             original_example=self.example, language=languages.LANGUAGE_PT, text="oi"
@@ -286,8 +306,12 @@ class TranslationsViewTest(TestCase):
             slug="test",
             language=languages.LANGUAGE_EN,
         )
+        self.example_intent_1 = RepositoryIntent.objects.create(
+            text="bias",
+            repository_version=self.repository.current_version().repository_version
+        )
         self.example = RepositoryExample.objects.create(
-            repository_version_language=self.repository.current_version(), text="hi"
+            repository_version_language=self.repository.current_version(), text="hi", intent=self.example_intent_1
         )
         self.translated = RepositoryTranslatedExample.objects.create(
             original_example=self.example, language=languages.LANGUAGE_PT, text="oi"
@@ -350,6 +374,7 @@ class TranslationsViewTest(TestCase):
                 languages.LANGUAGE_ES
             ),
             text="hola",
+            intent=self.example_intent_1
         )
         translated = RepositoryTranslatedExample.objects.create(
             original_example=example, language=languages.LANGUAGE_PT, text="oi"
@@ -383,6 +408,7 @@ class TranslationsViewTest(TestCase):
                 languages.LANGUAGE_ES
             ),
             text="hola",
+            intent=self.example_intent_1
         )
         RepositoryTranslatedExample.objects.create(
             original_example=example, language=languages.LANGUAGE_PT, text="oi"

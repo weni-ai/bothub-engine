@@ -30,7 +30,7 @@ from bothub.common.models import (
     Repository,
     RepositoryNLPLog,
     RepositoryEntity,
-    RepositoryQueueTask,
+    RepositoryQueueTask, RepositoryIntent,
 )
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryCategory
@@ -620,6 +620,13 @@ class RepositoryExampleViewSet(
         except DjangoValidationError:
             raise PermissionDenied()
 
+        try:
+            repository_version = get_object_or_404(
+                RepositoryVersion, pk=request.data.get("repository_version")
+            )
+        except DjangoValidationError:
+            raise PermissionDenied()
+
         user_authorization = repository.get_user_authorization(request.user)
         if not user_authorization.can_write:
             raise PermissionDenied()
@@ -636,7 +643,15 @@ class RepositoryExampleViewSet(
         for data in json_data:
             response_data = data
             response_data["repository"] = request.data.get("repository")
-            response_data["repository_version"] = request.data.get("repository_version")
+            response_data["repository_version"] = repository_version.pk
+
+            intent, created = RepositoryIntent.objects.get_or_create(
+                text=response_data.get('intent'),
+                repository_version=repository_version
+            )
+
+            response_data.update({'intent': intent.pk})
+
             serializer = RepositoryExampleSerializer(
                 data=response_data, context={"request": request}
             )
