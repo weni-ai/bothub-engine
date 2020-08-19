@@ -1181,6 +1181,22 @@ class RepositoryNLPLogIntent(models.Model):
     )
 
 
+class RepositoryIntent(models.Model):
+    class Meta:
+        verbose_name = _("repository intent")
+        verbose_name_plural = _("repository intents")
+        unique_together = ["repository_version", "intent"]
+
+    repository_version = models.ForeignKey(RepositoryVersion, models.CASCADE)
+    intent = models.CharField(
+        _("intent"),
+        max_length=64,
+        default="no_intent",
+        help_text=_("Example intent reference"),
+        validators=[validate_item_key],
+    )
+
+
 class RepositoryExample(models.Model):
     class Meta:
         verbose_name = _("repository example")
@@ -1195,13 +1211,7 @@ class RepositoryExample(models.Model):
         null=True,
     )
     text = models.TextField(_("text"), help_text=_("Example text"))
-    intent = models.CharField(
-        _("intent"),
-        max_length=64,
-        default="no_intent",
-        help_text=_("Example intent reference"),
-        validators=[validate_item_key],
-    )
+    intent = models.ForeignKey(RepositoryIntent, models.CASCADE, null=True, blank=True)
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
     last_update = models.DateTimeField(_("last update"))
     is_corrected = models.BooleanField(default=False)
