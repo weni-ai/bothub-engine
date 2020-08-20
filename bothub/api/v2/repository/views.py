@@ -30,7 +30,7 @@ from bothub.common.models import (
     Repository,
     RepositoryNLPLog,
     RepositoryEntity,
-    RepositoryQueueTask,
+    RepositoryQueueTask, OrganizationAuthorization,
 )
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryCategory
