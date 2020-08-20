@@ -1196,6 +1196,9 @@ class RepositoryIntent(models.Model):
         validators=[validate_item_key],
     )
 
+    def __str__(self):
+        return self.text
+
 
 class RepositoryExample(models.Model):
     class Meta:

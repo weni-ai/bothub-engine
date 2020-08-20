@@ -24,7 +24,7 @@ from bothub.common.models import (
     RepositoryQueueTask,
     OrganizationAuthorization,
     Organization,
-    RepositoryNLPTrain,
+    RepositoryNLPTrain, RepositoryIntent,
 )
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryCategory
@@ -986,6 +986,7 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
         required=True,
         validators=[CanContributeInRepositoryVersionValidator()],
     )
+    intent = serializers.CharField(required=True)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -999,6 +1000,7 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
         entities_data = validated_data.pop("entities")
         repository = validated_data.pop("repository")
         version_id = validated_data.get("repository_version_language")
+        intent_text = validated_data.get("intent")
 
         try:
             language = validated_data.pop("language")
@@ -1013,7 +1015,7 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
 
             if RepositoryExample.objects.filter(
                 text=validated_data.get("text"),
-                intent=validated_data.get("intent"),
+                intent__text=validated_data.get("intent"),
                 repository_version_language__repository_version__repository=repository,
                 repository_version_language__repository_version=version_id,
                 repository_version_language__language=language,
@@ -1026,7 +1028,7 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
 
             if RepositoryExample.objects.filter(
                 text=validated_data.get("text"),
-                intent=validated_data.get("intent"),
+                intent__text=validated_data.get("intent"),
                 repository_version_language=repository_version_language,
                 repository_version_language__repository_version__is_default=True,
                 repository_version_language__language=language,
@@ -1038,6 +1040,11 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
         validated_data.update(
             {"repository_version_language": repository_version_language}
         )
+        intent, created = RepositoryIntent.objects.get_or_create(
+            repository_version=version_id,
+            text=intent_text
+        )
+        validated_data.update({"intent": intent})
         example = self.Meta.model.objects.create(**validated_data)
         for entity_data in entities_data:
             entity_data.update({"repository_example": example.pk})
@@ -1047,10 +1054,19 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
         return example
 
     def update(self, instance, validated_data):
+        print(validated_data)
         entities_data = validated_data.pop("entities")
         validated_data.pop("repository")
         validated_data.pop("repository_version_language")
         validated_data.pop("language", None)
+        intent_text = validated_data.get("intent", None)
+
+        if intent_text:
+            intent, created = RepositoryIntent.objects.get_or_create(
+                repository_version=instance.repository_version_language.repository_version,
+                text=intent_text
+            )
+            validated_data.update({"intent": intent})
 
         instance_update = super().update(instance, validated_data)
 
