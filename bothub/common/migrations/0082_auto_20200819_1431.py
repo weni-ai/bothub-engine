@@ -5,13 +5,13 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('common', '0081_auto_20200819_1405'),
-    ]
+    dependencies = [("common", "0081_auto_20200819_1405")]
 
     operations = [
         migrations.AddConstraint(
-            model_name='repositoryintent',
-            constraint=models.CheckConstraint(check=models.Q(text__regex='^[-a-z0-9_]+\\Z'), name='intent_valid'),
-        ),
+            model_name="repositoryintent",
+            constraint=models.CheckConstraint(
+                check=models.Q(text__regex="^[-a-z0-9_]+\\Z"), name="intent_valid"
+            ),
+        )
     ]

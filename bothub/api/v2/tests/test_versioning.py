@@ -11,7 +11,8 @@ from bothub.common.models import (
     Repository,
     RepositoryExample,
     RepositoryVersionLanguage,
-    RepositoryVersion, RepositoryIntent,
+    RepositoryVersion,
+    RepositoryIntent,
 )
 
 
@@ -139,7 +140,7 @@ class ListRepositoryVersionAPITestCase(TestCase):
 
         self.example_intent_1 = RepositoryIntent.objects.create(
             text="greet",
-            repository_version=self.repository.current_version().repository_version
+            repository_version=self.repository.current_version().repository_version,
         )
 
         self.example_1 = RepositoryExample.objects.create(
@@ -193,7 +194,7 @@ class DefaultRepositoryVersionAPITestCase(TestCase):
 
         self.example_intent_1 = RepositoryIntent.objects.create(
             text="greet",
-            repository_version=self.repository.current_version().repository_version
+            repository_version=self.repository.current_version().repository_version,
         )
 
         self.example_1 = RepositoryExample.objects.create(

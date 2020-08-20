@@ -7,7 +7,8 @@ from bothub.common import languages
 from bothub.common.models import (
     RepositoryExample,
     RepositoryVersion,
-    RepositoryVersionLanguage, RepositoryIntent,
+    RepositoryVersionLanguage,
+    RepositoryIntent,
 )
 from bothub.common.models import Repository
 from bothub.common.models import RepositoryEvaluate
@@ -46,8 +47,7 @@ class ListEvaluateTestCase(TestCase):
         )
 
         self.example_intent_1 = RepositoryIntent.objects.create(
-            text="greet",
-            repository_version=self.repository_version
+            text="greet", repository_version=self.repository_version
         )
 
         self.example_1 = RepositoryExample.objects.create(
@@ -177,8 +177,7 @@ class NewEvaluateTestCase(TestCase):
         )
 
         self.example_intent_1 = RepositoryIntent.objects.create(
-            text="greet",
-            repository_version=self.repository_version
+            text="greet", repository_version=self.repository_version
         )
 
         self.example_1 = RepositoryExample.objects.create(
@@ -322,8 +321,7 @@ class EvaluateDestroyTestCase(TestCase):
         )
 
         self.example_intent_1 = RepositoryIntent.objects.create(
-            text="greet",
-            repository_version=self.repository_version
+            text="greet", repository_version=self.repository_version
         )
 
         self.example_1 = RepositoryExample.objects.create(
@@ -394,8 +392,7 @@ class EvaluateUpdateTestCase(TestCase):
         )
 
         self.example_intent_1 = RepositoryIntent.objects.create(
-            text="greet",
-            repository_version=self.repository_version
+            text="greet", repository_version=self.repository_version
         )
 
         self.example_1 = RepositoryExample.objects.create(

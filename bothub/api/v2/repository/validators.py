@@ -86,12 +86,14 @@ class EntityNotEqualGroupValidator(object):
 
 class IntentValidator(object):
     def __call__(self, value):
-        reg = re.compile('^[-a-z0-9_]+\Z')
+        reg = re.compile("^[-a-z0-9_]+\Z")
         if not reg.match(value):
-            raise ValidationError(_(
-                "Enter a valid value consisting of lowercase letters, numbers, "
-                + "underscores or hyphens."
-            ))
+            raise ValidationError(
+                _(
+                    "Enter a valid value consisting of lowercase letters, numbers, "
+                    + "underscores or hyphens."
+                )
+            )
 
     def set_context(self, serializer):
         self.request = serializer.context.get("request")

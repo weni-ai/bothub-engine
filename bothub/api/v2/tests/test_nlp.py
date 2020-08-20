@@ -10,7 +10,8 @@ from bothub.common import languages
 from bothub.common.models import (
     RepositoryAuthorization,
     RepositoryVersion,
-    RepositoryVersionLanguage, RepositoryIntent,
+    RepositoryVersionLanguage,
+    RepositoryIntent,
 )
 from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryExampleEntity
@@ -163,8 +164,7 @@ class AuthorizationInfoTestCase(TestCase):
         )
 
         self.example_intent_1 = RepositoryIntent.objects.create(
-            text="greet",
-            repository_version=self.repository_version
+            text="greet", repository_version=self.repository_version
         )
 
         self.repository_examples = RepositoryExample.objects.create(

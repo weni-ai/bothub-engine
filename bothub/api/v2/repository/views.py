@@ -30,7 +30,9 @@ from bothub.common.models import (
     Repository,
     RepositoryNLPLog,
     RepositoryEntity,
-    RepositoryQueueTask, RepositoryIntent,
+    RepositoryQueueTask,
+    RepositoryIntent,
+    OrganizationAuthorization,
 )
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryCategory
@@ -440,6 +442,20 @@ class SearchRepositoriesViewSet(mixins.ListModelMixin, GenericViewSet):
     def get_queryset(self, *args, **kwargs):
         try:
             if self.request.query_params.get("nickname", None):
+                owner = get_object_or_404(
+                    RepositoryOwner,
+                    nickname=self.request.query_params.get("nickname", None),
+                )
+                if owner.is_organization:
+                    auth_org = OrganizationAuthorization.objects.filter(
+                        organization=owner, user=self.request.user
+                    ).first()
+                    if auth_org.can_read:
+                        return self.queryset.filter(
+                            owner__nickname=self.request.query_params.get(
+                                "nickname", self.request.user
+                            )
+                        )
                 return self.queryset.filter(
                     owner__nickname=self.request.query_params.get(
                         "nickname", self.request.user
@@ -646,11 +662,10 @@ class RepositoryExampleViewSet(
             response_data["repository_version"] = repository_version.pk
 
             intent, created = RepositoryIntent.objects.get_or_create(
-                text=response_data.get('intent'),
-                repository_version=repository_version
+                text=response_data.get("intent"), repository_version=repository_version
             )
 
-            response_data.update({'intent': intent.pk})
+            response_data.update({"intent": intent.pk})
 
             serializer = RepositoryExampleSerializer(
                 data=response_data, context={"request": request}

@@ -8,7 +8,8 @@ from bothub.common import languages
 from bothub.common.models import (
     Repository,
     RepositoryExampleEntity,
-    RepositoryEntityGroup, RepositoryIntent,
+    RepositoryEntityGroup,
+    RepositoryIntent,
 )
 from bothub.common.models import (
     RepositoryExample,
@@ -44,8 +45,7 @@ class NewGroupTestCase(TestCase):
         )
 
         self.example_intent_1 = RepositoryIntent.objects.create(
-            text="greet",
-            repository_version=self.repository_version
+            text="greet", repository_version=self.repository_version
         )
 
         self.example_1 = RepositoryExample.objects.create(
@@ -133,8 +133,7 @@ class GroupDestroyTestCase(TestCase):
         )
 
         self.example_intent_1 = RepositoryIntent.objects.create(
-            text="greet",
-            repository_version=self.repository_version
+            text="greet", repository_version=self.repository_version
         )
 
         self.example_1 = RepositoryExample.objects.create(

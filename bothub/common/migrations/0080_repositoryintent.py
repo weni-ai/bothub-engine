@@ -15,13 +15,16 @@ def migration(apps, schema_editor):  # pragma: no cover
     RepositoryIntent = apps.get_model("common", "RepositoryIntent")
 
     for example in RepositoryExample.objects.all():
-        if example.repository_version_language is not None and example.old_intent is not None:
+        if (
+            example.repository_version_language is not None
+            and example.old_intent is not None
+        ):
             intent, created = RepositoryIntent.objects.get_or_create(
                 repository_version=example.repository_version_language.repository_version,
-                intent=example.old_intent
+                intent=example.old_intent,
             )
             example.intent = intent
-            example.save(update_fields=['intent'])
+            example.save(update_fields=["intent"])
 
 
 class Migration(migrations.Migration):
@@ -74,16 +77,19 @@ class Migration(migrations.Migration):
             model_name="repositoryexample", old_name="intent", new_name="old_intent"
         ),
         migrations.AddField(
-            model_name='repositoryexample',
-            name='intent',
-            field=models.ForeignKey(null=True, blank=True, on_delete=django.db.models.deletion.CASCADE,
-                                    to='common.RepositoryIntent'),
+            model_name="repositoryexample",
+            name="intent",
+            field=models.ForeignKey(
+                null=True,
+                blank=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                to="common.RepositoryIntent",
+            ),
             preserve_default=False,
         ),
         migrations.RunPython(migration, noop),
         migrations.RemoveField(model_name="repositoryexample", name="old_intent"),
         migrations.AlterUniqueTogether(
-            name='repositoryintent',
-            unique_together={('repository_version', 'text')},
+            name="repositoryintent", unique_together={("repository_version", "text")}
         ),
     ]

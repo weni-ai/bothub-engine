@@ -5,13 +5,8 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('common', '0082_auto_20200819_1431'),
-    ]
+    dependencies = [("common", "0082_auto_20200819_1431")]
 
     operations = [
-        migrations.RemoveConstraint(
-            model_name='repositoryintent',
-            name='intent_valid',
-        ),
+        migrations.RemoveConstraint(model_name="repositoryintent", name="intent_valid")
     ]

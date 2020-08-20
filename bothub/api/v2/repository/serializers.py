@@ -34,7 +34,11 @@ from bothub.common.models import RepositoryTranslatedExample
 from bothub.common.models import RepositoryTranslatedExampleEntity
 from bothub.common.models import RepositoryVote
 from bothub.common.models import RequestRepositoryAuthorization
-from .validators import APIExceptionCustom, CanCreateRepositoryInOrganizationValidator, IntentValidator
+from .validators import (
+    APIExceptionCustom,
+    CanCreateRepositoryInOrganizationValidator,
+    IntentValidator,
+)
 from .validators import CanContributeInRepositoryExampleValidator
 from .validators import CanContributeInRepositoryTranslatedExampleValidator
 from .validators import CanContributeInRepositoryValidator

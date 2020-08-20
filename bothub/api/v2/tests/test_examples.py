@@ -28,11 +28,11 @@ class ListExamplesAPITestCase(TestCase):
         )
         self.example_intent_1 = RepositoryIntent.objects.create(
             text="greet",
-            repository_version=self.repository.current_version().repository_version
+            repository_version=self.repository.current_version().repository_version,
         )
         self.example_intent_2 = RepositoryIntent.objects.create(
             text="farewell",
-            repository_version=self.repository.current_version().repository_version
+            repository_version=self.repository.current_version().repository_version,
         )
         self.example_1 = RepositoryExample.objects.create(
             repository_version_language=self.repository.current_version(),
@@ -68,7 +68,7 @@ class ListExamplesAPITestCase(TestCase):
         )
         self.example2_intent_1 = RepositoryIntent.objects.create(
             text="greet",
-            repository_version=self.repository_2.current_version().repository_version
+            repository_version=self.repository_2.current_version().repository_version,
         )
         self.example_5 = RepositoryExample.objects.create(
             repository_version_language=self.repository_2.current_version(),
