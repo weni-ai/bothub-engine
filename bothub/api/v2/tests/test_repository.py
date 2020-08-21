@@ -1437,7 +1437,7 @@ class RepositoryExampleUpdateTestCase(TestCase):
         text = "teste"
         intent = "teste1234"
 
-        example_intent_1 = RepositoryIntent.objects.create(
+        RepositoryIntent.objects.create(
             text=intent,
             repository_version=self.repository.current_version().repository_version,
         )
@@ -1448,7 +1448,7 @@ class RepositoryExampleUpdateTestCase(TestCase):
             {
                 "repository": str(self.repository.uuid),
                 "text": text,
-                "intent": example_intent_1.pk,
+                "intent": intent,
                 "entities": [],
                 "repository_version": self.repository.current_version().repository_version.pk,
             },
@@ -1456,7 +1456,7 @@ class RepositoryExampleUpdateTestCase(TestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(content_data.get("text"), text)
-        self.assertEqual(content_data.get("intent"), example_intent_1.pk)
+        self.assertEqual(content_data.get("intent"), intent)
 
     def test_private_forbidden(self):
         response, content_data = self.request(
@@ -1498,7 +1498,7 @@ class NewRepositoryExampleTestCase(TestCase):
     def test_okay(self):
         text = "hi"
         intent = "greet"
-        example_intent_1 = RepositoryIntent.objects.create(
+        RepositoryIntent.objects.create(
             text=intent,
             repository_version=self.repository.current_version().repository_version,
         )
@@ -1508,19 +1508,19 @@ class NewRepositoryExampleTestCase(TestCase):
                 "repository": str(self.repository.uuid),
                 "language": languages.LANGUAGE_EN,
                 "text": text,
-                "intent": example_intent_1.pk,
+                "intent": intent,
                 "entities": [],
                 "repository_version": self.repository.current_version().repository_version.pk,
             },
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(content_data.get("text"), text)
-        self.assertEqual(content_data.get("intent"), example_intent_1.pk)
+        self.assertEqual(content_data.get("intent"), intent)
 
     def test_okay_with_language(self):
         text = "hi"
         intent = "greet"
-        example_intent_1 = RepositoryIntent.objects.create(
+        RepositoryIntent.objects.create(
             text=intent,
             repository_version=self.repository.current_version().repository_version,
         )
@@ -1531,14 +1531,14 @@ class NewRepositoryExampleTestCase(TestCase):
                 "repository": str(self.repository.uuid),
                 "text": text,
                 "language": language,
-                "intent": example_intent_1.pk,
+                "intent": intent,
                 "entities": [],
                 "repository_version": self.repository.current_version().repository_version.pk,
             },
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(content_data.get("text"), text)
-        self.assertEqual(content_data.get("intent"), example_intent_1.pk)
+        self.assertEqual(content_data.get("intent"), intent)
         self.assertEqual(content_data.get("language"), language)
 
     def test_forbidden(self):
@@ -1679,6 +1679,7 @@ class NewRepositoryExampleTestCase(TestCase):
                 "text": "my name is user",
                 "intent": "",
                 "entities": [{"start": 11, "end": 18, "entity": "nam&"}],
+                "repository_version": self.repository.current_version().repository_version.pk,
             },
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -1692,6 +1693,7 @@ class NewRepositoryExampleTestCase(TestCase):
                 "text": "my name is user",
                 "intent": "nam$s",
                 "entities": [],
+                "repository_version": self.repository.current_version().repository_version.pk,
             },
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

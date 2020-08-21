@@ -35,7 +35,11 @@ from bothub.common.models import RepositoryTranslatedExample
 from bothub.common.models import RepositoryTranslatedExampleEntity
 from bothub.common.models import RepositoryVote
 from bothub.common.models import RequestRepositoryAuthorization
-from .validators import APIExceptionCustom, CanCreateRepositoryInOrganizationValidator
+from .validators import (
+    APIExceptionCustom,
+    CanCreateRepositoryInOrganizationValidator,
+    IntentValidator,
+)
 from .validators import CanContributeInRepositoryExampleValidator
 from .validators import CanContributeInRepositoryTranslatedExampleValidator
 from .validators import CanContributeInRepositoryValidator
@@ -983,7 +987,7 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
         required=True,
         validators=[CanContributeInRepositoryVersionValidator()],
     )
-    intent = serializers.CharField(required=True)
+    intent = serializers.CharField(required=True, validators=[IntentValidator()])
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
