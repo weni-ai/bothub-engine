@@ -1266,3 +1266,13 @@ class RepositoryNLPLogReportsSerializer(serializers.ModelSerializer):
 
     def get_owner(self, obj):
         return {"id": obj.owner.pk, "nickname": obj.owner.nickname}
+
+
+class RepositoryIntentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RepositoryIntent
+        fields = ["id", "repository_version", "text", "created_at"]
+        read_only_fields = ["repository_version", "created_at"]
+        ref_name = None
+
+    text = serializers.CharField(required=True, validators=[IntentValidator()])

@@ -46,6 +46,7 @@ from .filters import (
     RepositoryEntitiesFilter,
     RepositoryQueueTaskFilter,
     RepositoryNLPLogReportsFilter,
+    RepositoryIntentFilter,
 )
 from .filters import RepositoryAuthorizationFilter
 from .filters import RepositoryAuthorizationRequestsFilter
@@ -69,6 +70,7 @@ from .serializers import (
     RepositoryQueueTaskSerializer,
     RepositoryPermissionSerializer,
     RepositoryNLPLogReportsSerializer,
+    RepositoryIntentSerializer,
 )
 from .serializers import EvaluateSerializer
 from .serializers import RepositoryAuthorizationRoleSerializer
@@ -783,3 +785,16 @@ class RepositoryNLPLogReportsViewSet(mixins.ListModelMixin, GenericViewSet):
             authorizations__user=self.request.user,
         ).order_by("-total_count")
         return x
+
+
+class RepositoryIntentViewSet(
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.DestroyModelMixin,
+    mixins.UpdateModelMixin,
+    GenericViewSet,
+):
+    queryset = RepositoryIntent.objects
+    filter_class = RepositoryIntentFilter
+    serializer_class = RepositoryIntentSerializer
+    permission_classes = [RepositoryExamplePermission]
