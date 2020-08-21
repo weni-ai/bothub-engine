@@ -86,7 +86,7 @@ class EntityNotEqualGroupValidator(object):
 
 class IntentValidator(object):
     def __call__(self, value):
-        reg = re.compile("^[-a-z0-9_]+\Z")
+        reg = re.compile(r"^[-a-z0-9_]+\Z")
         if not reg.match(value):
             raise ValidationError(
                 _(

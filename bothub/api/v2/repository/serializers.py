@@ -24,7 +24,8 @@ from bothub.common.models import (
     RepositoryQueueTask,
     OrganizationAuthorization,
     Organization,
-    RepositoryNLPTrain, RepositoryIntent,
+    RepositoryNLPTrain,
+    RepositoryIntent,
 )
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryCategory
@@ -34,11 +35,7 @@ from bothub.common.models import RepositoryTranslatedExample
 from bothub.common.models import RepositoryTranslatedExampleEntity
 from bothub.common.models import RepositoryVote
 from bothub.common.models import RequestRepositoryAuthorization
-from .validators import (
-    APIExceptionCustom,
-    CanCreateRepositoryInOrganizationValidator,
-    IntentValidator,
-)
+from .validators import APIExceptionCustom, CanCreateRepositoryInOrganizationValidator
 from .validators import CanContributeInRepositoryExampleValidator
 from .validators import CanContributeInRepositoryTranslatedExampleValidator
 from .validators import CanContributeInRepositoryValidator
@@ -1041,8 +1038,7 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
             {"repository_version_language": repository_version_language}
         )
         intent, created = RepositoryIntent.objects.get_or_create(
-            repository_version=version_id,
-            text=intent_text
+            repository_version=version_id, text=intent_text
         )
         validated_data.update({"intent": intent})
         example = self.Meta.model.objects.create(**validated_data)
@@ -1064,7 +1060,7 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
         if intent_text:
             intent, created = RepositoryIntent.objects.get_or_create(
                 repository_version=instance.repository_version_language.repository_version,
-                text=intent_text
+                text=intent_text,
             )
             validated_data.update({"intent": intent})
 

@@ -1207,11 +1207,7 @@ class RepositoryExample(models.Model):
         ordering = ["-created_at"]
 
     repository_version_language = models.ForeignKey(
-        RepositoryVersionLanguage,
-        models.CASCADE,
-        related_name="added",
-        editable=False,
-        null=True,
+        RepositoryVersionLanguage, models.CASCADE, related_name="added", editable=False
     )
     text = models.TextField(_("text"), help_text=_("Example text"))
     intent = models.ForeignKey(RepositoryIntent, models.CASCADE)
