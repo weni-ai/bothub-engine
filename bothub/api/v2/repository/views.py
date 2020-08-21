@@ -30,6 +30,7 @@ from bothub.common.models import (
     Repository,
     RepositoryNLPLog,
     RepositoryEntity,
+    RepositoryQueueTask, OrganizationAuthorization,
     RepositoryQueueTask,
     RepositoryIntent,
     OrganizationAuthorization,
