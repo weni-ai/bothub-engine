@@ -6,6 +6,7 @@ from django.conf import settings
 
 from bothub.authentication.models import User
 from bothub.common.models import RepositoryCategory
+from bothub.common.models import RepositoryIntent
 from bothub.common.models import Repository
 from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryExampleEntity
@@ -83,34 +84,49 @@ class Command(BaseCommand):
 
         # Examples
 
+        intent_greet = RepositoryIntent.objects.create(
+            repository_version=repository_1.current_version().repository_version,
+            text="greet",
+        )
+
+        intent_affirm = RepositoryIntent.objects.create(
+            repository_version=repository_1.current_version().repository_version,
+            text="affirm",
+        )
+
+        intent_restaurant_search = RepositoryIntent.objects.create(
+            repository_version=repository_1.current_version().repository_version,
+            text="restaurant_search",
+        )
+
         example_1 = RepositoryExample.objects.create(
             repository_version_language=repository_1.current_version(),
             text="hi",
-            intent="greet",
+            intent=intent_greet,
         )
 
         example_2 = RepositoryExample.objects.create(
             repository_version_language=repository_1.current_version(),
             text="hello",
-            intent="greet",
+            intent=intent_greet,
         )
 
         example_3 = RepositoryExample.objects.create(
             repository_version_language=repository_1.current_version(),
             text="yes",
-            intent="affirm",
+            intent=intent_affirm,
         )
 
         RepositoryExample.objects.create(
             repository_version_language=repository_1.current_version(),
             text="yep",
-            intent="affirm",
+            intent=intent_affirm,
         )
 
         example_5 = RepositoryExample.objects.create(
             repository_version_language=repository_1.current_version(),
             text="show me chinese restaurants",
-            intent="restaurant_search",
+            intent=intent_restaurant_search,
         )
 
         # Example Entity
