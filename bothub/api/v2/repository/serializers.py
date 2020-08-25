@@ -1054,7 +1054,6 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
         return example
 
     def update(self, instance, validated_data):
-        print(validated_data)
         entities_data = validated_data.pop("entities")
         validated_data.pop("repository")
         validated_data.pop("repository_version_language")

@@ -943,11 +943,11 @@ class RepositoryVersionLanguage(models.Model):
             for i in weak_intents:
                 r.append(
                     _(
-                        'The "{}" intention has only {} sentence\nAdd 1 more sentence to that intention (minimum is {})'.format(
-                            i.get("intent__text"),
-                            i.get("intent_count"),
-                            self.MIN_EXAMPLES_PER_INTENT,
-                        )
+                        'The "{}" intention has only {} sentence\nAdd 1 more sentence to that intention (minimum is {})'
+                    ).format(
+                        i.get("intent__text"),
+                        i.get("intent_count"),
+                        self.MIN_EXAMPLES_PER_INTENT,
                     )
                 )
 
@@ -963,11 +963,11 @@ class RepositoryVersionLanguage(models.Model):
             for e in weak_entities:
                 r.append(
                     _(
-                        'The entity "{}" has only {} sentence\nAdd 1 more sentence to that entity (minimum is {})'.format(
-                            e.get("entities__entity__value"),
-                            e.get("entities_count"),
-                            self.MIN_EXAMPLES_PER_ENTITY,
-                        )
+                        'The entity "{}" has only {} sentence\nAdd 1 more sentence to that entity (minimum is {})'
+                    ).format(
+                        e.get("entities__entity__value"),
+                        e.get("entities_count"),
+                        self.MIN_EXAMPLES_PER_ENTITY,
                     )
                 )
 
@@ -1000,10 +1000,8 @@ class RepositoryVersionLanguage(models.Model):
         if 0 < len(self.intents) < self.RECOMMENDED_INTENTS:
             w.append(
                 _(
-                    "You only added {} intention\nAdd 1 more intention (it is necessary to have at least 2 intentions for the algorithm to identify)".format(
-                        self.RECOMMENDED_INTENTS
-                    )
-                )
+                    "You only added {} intention\nAdd 1 more intention (it is necessary to have at least 2 intentions for the algorithm to identify)"
+                ).format(self.RECOMMENDED_INTENTS)
             )
         return w
 
