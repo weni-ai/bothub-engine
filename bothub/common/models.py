@@ -652,7 +652,7 @@ class Repository(models.Model):
             if queryset
             else self.examples(version_default=version_default)
         )
-        return list(set(intents.exclude(intent="").values_list("intent", flat=True)))
+        return list(set(intents.values_list("intent__text", flat=True)))
 
     @property
     def admins(self):
@@ -928,13 +928,13 @@ class RepositoryVersionLanguage(models.Model):
 
         r = []
 
-        intents = self.examples.values_list("intent", flat=True)
+        intents = self.examples.values_list("intent__text", flat=True)
 
         if "" in intents:
             r.append(_("All examples need have a intent."))
 
         weak_intents = (
-            self.examples.values("intent")
+            self.examples.values("intent__text")
             .annotate(intent_count=models.Count("id"))
             .order_by()
             .exclude(intent_count__gte=self.MIN_EXAMPLES_PER_INTENT)
@@ -942,10 +942,12 @@ class RepositoryVersionLanguage(models.Model):
         if weak_intents.exists():
             for i in weak_intents:
                 r.append(
-                    _('Intent "{}" has only {} examples. ' + "Minimum is {}.").format(
-                        i.get("intent"),
-                        i.get("intent_count"),
-                        self.MIN_EXAMPLES_PER_INTENT,
+                    _(
+                        'The "{}" intention has only {} sentence\nAdd 1 more sentence to that intention (minimum is {})'.format(
+                            i.get("intent__text"),
+                            i.get("intent_count"),
+                            self.MIN_EXAMPLES_PER_INTENT,
+                        )
                     )
                 )
 
@@ -960,10 +962,12 @@ class RepositoryVersionLanguage(models.Model):
         if weak_entities.exists():
             for e in weak_entities:
                 r.append(
-                    _('Entity "{}" has only {} examples. ' + "Minimum is {}.").format(
-                        e.get("entities__entity__value"),
-                        e.get("entities_count"),
-                        self.MIN_EXAMPLES_PER_ENTITY,
+                    _(
+                        'The entity "{}" has only {} sentence\nAdd 1 more sentence to that entity (minimum is {})'.format(
+                            e.get("entities__entity__value"),
+                            e.get("entities_count"),
+                            self.MIN_EXAMPLES_PER_ENTITY,
+                        )
                     )
                 )
 
@@ -996,9 +1000,10 @@ class RepositoryVersionLanguage(models.Model):
         if 0 < len(self.intents) < self.RECOMMENDED_INTENTS:
             w.append(
                 _(
-                    "You need to have at least {} intents for the "
-                    + "algorithm to identify intents."
-                ).format(self.RECOMMENDED_INTENTS)
+                    "You only added {} intention\nAdd 1 more intention (it is necessary to have at least 2 intentions for the algorithm to identify)".format(
+                        self.RECOMMENDED_INTENTS
+                    )
+                )
             )
         return w
 
@@ -1181,6 +1186,26 @@ class RepositoryNLPLogIntent(models.Model):
     )
 
 
+class RepositoryIntent(models.Model):
+    class Meta:
+        verbose_name = _("repository intent")
+        verbose_name_plural = _("repository intents")
+        unique_together = ["repository_version", "text"]
+
+    repository_version = models.ForeignKey(RepositoryVersion, models.CASCADE)
+    text = models.CharField(
+        _("intent"),
+        max_length=64,
+        default="no_intent",
+        help_text=_("Example intent reference"),
+        validators=[validate_item_key],
+    )
+    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
+
+    def __str__(self):
+        return self.text
+
+
 class RepositoryExample(models.Model):
     class Meta:
         verbose_name = _("repository example")
@@ -1188,20 +1213,10 @@ class RepositoryExample(models.Model):
         ordering = ["-created_at"]
 
     repository_version_language = models.ForeignKey(
-        RepositoryVersionLanguage,
-        models.CASCADE,
-        related_name="added",
-        editable=False,
-        null=True,
+        RepositoryVersionLanguage, models.CASCADE, related_name="added", editable=False
     )
     text = models.TextField(_("text"), help_text=_("Example text"))
-    intent = models.CharField(
-        _("intent"),
-        max_length=64,
-        default="no_intent",
-        help_text=_("Example intent reference"),
-        validators=[validate_item_key],
-    )
+    intent = models.ForeignKey(RepositoryIntent, models.CASCADE)
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
     last_update = models.DateTimeField(_("last update"))
     is_corrected = models.BooleanField(default=False)
@@ -1261,7 +1276,7 @@ class RepositoryTranslatedExampleManager(models.Manager):
         original_example=None,
         language=None,
         clone_repository=False,
-        **kwargs
+        **kwargs,
     ):
         repository = (
             original_example.repository_version_language.repository_version.repository
@@ -1275,7 +1290,7 @@ class RepositoryTranslatedExampleManager(models.Manager):
             repository_version_language=repository.current_version(language),
             original_example=original_example,
             language=language,
-            **kwargs
+            **kwargs,
         )
 
 

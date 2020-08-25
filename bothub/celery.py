@@ -11,12 +11,12 @@ app.config_from_object("django.conf:settings", namespace="CELERY")
 
 app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
 
-app.conf.beat_schedule = {
-    "check-training-status": {
-        "task": "bothub.common.tasks.trainings_check_task",
-        "schedule": 5.0,
-    }
-}
+# app.conf.beat_schedule = {
+#     "check-training-status": {
+#         "task": "bothub.common.tasks.trainings_check_task",
+#         "schedule": 5.0,
+#     }
+# }
 
 
 @app.task(bind=True)

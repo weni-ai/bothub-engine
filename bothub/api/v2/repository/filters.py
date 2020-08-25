@@ -9,6 +9,7 @@ from bothub.common.models import (
     RepositoryNLPLog,
     RepositoryEntity,
     RepositoryQueueTask,
+    RepositoryIntent,
 )
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RequestRepositoryAuthorization
@@ -227,3 +228,17 @@ class RepositoryNLPLogReportsFilter(filters.FilterSet):
 
     def filter_end_date(self, queryset, name, value):
         return queryset
+
+
+class RepositoryIntentFilter(filters.FilterSet):
+    class Meta:
+        model = RepositoryIntent
+        fields = ["repository_version", "repository_version__repository"]
+
+    repository_version = filters.CharFilter(
+        required=True, help_text=_("Filter intents with version id.")
+    )
+
+    repository_version__repository = filters.CharFilter(
+        required=True, help_text=_("Repository's UUID")
+    )

@@ -30,7 +30,9 @@ from bothub.common.models import (
     Repository,
     RepositoryNLPLog,
     RepositoryEntity,
-    RepositoryQueueTask, OrganizationAuthorization,
+    RepositoryQueueTask,
+    RepositoryIntent,
+    OrganizationAuthorization,
 )
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryCategory
@@ -44,6 +46,7 @@ from .filters import (
     RepositoryEntitiesFilter,
     RepositoryQueueTaskFilter,
     RepositoryNLPLogReportsFilter,
+    RepositoryIntentFilter,
 )
 from .filters import RepositoryAuthorizationFilter
 from .filters import RepositoryAuthorizationRequestsFilter
@@ -51,6 +54,7 @@ from .permissions import (
     RepositoryAdminManagerAuthorization,
     RepositoryEntityHasPermission,
     RepositoryInfoPermission,
+    RepositoryIntentPermission,
 )
 from .permissions import RepositoryExamplePermission
 from .permissions import RepositoryPermission
@@ -67,6 +71,7 @@ from .serializers import (
     RepositoryQueueTaskSerializer,
     RepositoryPermissionSerializer,
     RepositoryNLPLogReportsSerializer,
+    RepositoryIntentSerializer,
 )
 from .serializers import EvaluateSerializer
 from .serializers import RepositoryAuthorizationRoleSerializer
@@ -634,6 +639,13 @@ class RepositoryExampleViewSet(
         except DjangoValidationError:
             raise PermissionDenied()
 
+        try:
+            repository_version = get_object_or_404(
+                RepositoryVersion, pk=request.data.get("repository_version")
+            )
+        except DjangoValidationError:
+            raise PermissionDenied()
+
         user_authorization = repository.get_user_authorization(request.user)
         if not user_authorization.can_write:
             raise PermissionDenied()
@@ -650,7 +662,14 @@ class RepositoryExampleViewSet(
         for data in json_data:
             response_data = data
             response_data["repository"] = request.data.get("repository")
-            response_data["repository_version"] = request.data.get("repository_version")
+            response_data["repository_version"] = repository_version.pk
+
+            intent, created = RepositoryIntent.objects.get_or_create(
+                text=response_data.get("intent"), repository_version=repository_version
+            )
+
+            response_data.update({"intent": intent.pk})
+
             serializer = RepositoryExampleSerializer(
                 data=response_data, context={"request": request}
             )
@@ -767,3 +786,28 @@ class RepositoryNLPLogReportsViewSet(mixins.ListModelMixin, GenericViewSet):
             authorizations__user=self.request.user,
         ).order_by("-total_count")
         return x
+
+
+class RepositoryIntentViewSet(
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.DestroyModelMixin,
+    mixins.UpdateModelMixin,
+    GenericViewSet,
+):
+    queryset = RepositoryIntent.objects
+    filter_class = RepositoryIntentFilter
+    serializer_class = RepositoryIntentSerializer
+    permission_classes = [RepositoryIntentPermission]
+
+    def retrieve(self, request, *args, **kwargs):
+        self.filter_class = None
+        return super().retrieve(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        self.filter_class = None
+        return super().destroy(request, *args, **kwargs)
+
+    def update(self, request, *args, **kwargs):
+        self.filter_class = None
+        return super().update(request, *args, **kwargs)

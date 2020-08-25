@@ -9,6 +9,7 @@ from bothub.common.models import (
     Repository,
     RepositoryExampleEntity,
     RepositoryEntityGroup,
+    RepositoryIntent,
 )
 from bothub.common.models import (
     RepositoryExample,
@@ -43,10 +44,14 @@ class NewGroupTestCase(TestCase):
             algorithm="neural_network_internal",
         )
 
+        self.example_intent_1 = RepositoryIntent.objects.create(
+            text="greet", repository_version=self.repository_version
+        )
+
         self.example_1 = RepositoryExample.objects.create(
             repository_version_language=self.repository_version_language,
             text="hi",
-            intent="greet",
+            intent=self.example_intent_1,
         )
 
     def request(self, data, token):
@@ -127,10 +132,14 @@ class GroupDestroyTestCase(TestCase):
             repository_version=self.repository_version, value="group_name"
         )
 
+        self.example_intent_1 = RepositoryIntent.objects.create(
+            text="greet", repository_version=self.repository_version
+        )
+
         self.example_1 = RepositoryExample.objects.create(
             repository_version_language=self.repository_version_language,
             text="test",
-            intent="greet",
+            intent=self.example_intent_1,
         )
 
         self.entity_1 = RepositoryExampleEntity.objects.create(
