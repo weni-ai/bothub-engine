@@ -234,3 +234,11 @@ class RepositoryIntentFilter(filters.FilterSet):
     class Meta:
         model = RepositoryIntent
         fields = ["repository_version", "repository_version__repository"]
+
+    repository_version = filters.CharFilter(
+        required=True, help_text=_("Filter intents with version id.")
+    )
+
+    repository_version__repository = filters.CharFilter(
+        required=True, help_text=_("Repository's UUID")
+    )

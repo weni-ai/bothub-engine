@@ -54,6 +54,7 @@ from .permissions import (
     RepositoryAdminManagerAuthorization,
     RepositoryEntityHasPermission,
     RepositoryInfoPermission,
+    RepositoryIntentPermission,
 )
 from .permissions import RepositoryExamplePermission
 from .permissions import RepositoryPermission
@@ -797,4 +798,16 @@ class RepositoryIntentViewSet(
     queryset = RepositoryIntent.objects
     filter_class = RepositoryIntentFilter
     serializer_class = RepositoryIntentSerializer
-    permission_classes = [RepositoryExamplePermission]
+    permission_classes = [RepositoryIntentPermission]
+
+    def retrieve(self, request, *args, **kwargs):
+        self.filter_class = None
+        return super().retrieve(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        self.filter_class = None
+        return super().destroy(request, *args, **kwargs)
+
+    def update(self, request, *args, **kwargs):
+        self.filter_class = None
+        return super().update(request, *args, **kwargs)

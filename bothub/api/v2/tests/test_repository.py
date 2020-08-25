@@ -12,6 +12,7 @@ from bothub.api.v2.repository.views import (
     RepositoriesContributionsViewSet,
     RepositoryEntitiesViewSet,
     NewRepositoryViewSet,
+    RepositoryIntentViewSet,
 )
 from bothub.api.v2.repository.views import RepositoriesViewSet
 from bothub.api.v2.repository.views import RepositoryAuthorizationRequestsViewSet
@@ -2032,3 +2033,62 @@ class RepositoryEntitiesTestCase(TestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(content_data.get("count"), 0)
+
+
+class UpdateRepositoryIntentTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.owner, self.owner_token = create_user_and_token("owner")
+        self.user, self.user_token = create_user_and_token("user")
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name="Testing",
+            slug="test",
+            language=languages.LANGUAGE_EN,
+        )
+        self.repository_version = self.repository.current_version().repository_version
+
+    def request(self, id, data={}, token=None):
+        authorization_header = (
+            {"HTTP_AUTHORIZATION": "Token {}".format(token.key)} if token else {}
+        )
+
+        request = self.factory.patch(
+            "/v2/repository/intent/{}/".format(id),
+            self.factory._encode_data(data, MULTIPART_CONTENT),
+            MULTIPART_CONTENT,
+            **authorization_header,
+        )
+
+        response = RepositoryIntentViewSet.as_view({"patch": "update"})(
+            request, pk=id, partial=True
+        )
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data)
+
+    def test_okay_update_text(self):
+        intent = RepositoryIntent.objects.create(
+            repository_version=self.repository_version, text="positive"
+        )
+        response, content_data = self.request(
+            intent.pk, {"text": "negative"}, self.owner_token
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(content_data.get("text"), "negative")
+        self.assertEqual(
+            content_data.get("repository_version"), self.repository_version.pk
+        )
+
+    def test_unauthorized(self):
+        intent = RepositoryIntent.objects.create(
+            repository_version=self.repository_version, text="positive"
+        )
+        response, content_data = self.request(
+            intent.pk, {"text": "negative"}, self.user_token
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
