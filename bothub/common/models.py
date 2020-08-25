@@ -942,10 +942,12 @@ class RepositoryVersionLanguage(models.Model):
         if weak_intents.exists():
             for i in weak_intents:
                 r.append(
-                    _('Intent "{}" has only {} examples. ' + "Minimum is {}.").format(
-                        i.get("intent__text"),
-                        i.get("intent_count"),
-                        self.MIN_EXAMPLES_PER_INTENT,
+                    _(
+                        'The "{}" intention has only {} sentence\nAdd 1 more sentence to that intention (minimum is {})'.format(
+                            i.get("intent__text"),
+                            i.get("intent_count"),
+                            self.MIN_EXAMPLES_PER_INTENT,
+                        )
                     )
                 )
 
@@ -960,10 +962,12 @@ class RepositoryVersionLanguage(models.Model):
         if weak_entities.exists():
             for e in weak_entities:
                 r.append(
-                    _('Entity "{}" has only {} examples. ' + "Minimum is {}.").format(
-                        e.get("entities__entity__value"),
-                        e.get("entities_count"),
-                        self.MIN_EXAMPLES_PER_ENTITY,
+                    _(
+                        'The entity "{}" has only {} sentence\nAdd 1 more sentence to that entity (minimum is {})'.format(
+                            e.get("entities__entity__value"),
+                            e.get("entities_count"),
+                            self.MIN_EXAMPLES_PER_ENTITY,
+                        )
                     )
                 )
 
@@ -996,9 +1000,10 @@ class RepositoryVersionLanguage(models.Model):
         if 0 < len(self.intents) < self.RECOMMENDED_INTENTS:
             w.append(
                 _(
-                    "You need to have at least {} intents for the "
-                    + "algorithm to identify intents."
-                ).format(self.RECOMMENDED_INTENTS)
+                    "You only added {} intention\nAdd 1 more intention (it is necessary to have at least 2 intentions for the algorithm to identify)".format(
+                        self.RECOMMENDED_INTENTS
+                    )
+                )
             )
         return w
 
@@ -1271,7 +1276,7 @@ class RepositoryTranslatedExampleManager(models.Manager):
         original_example=None,
         language=None,
         clone_repository=False,
-        **kwargs
+        **kwargs,
     ):
         repository = (
             original_example.repository_version_language.repository_version.repository
@@ -1285,7 +1290,7 @@ class RepositoryTranslatedExampleManager(models.Manager):
             repository_version_language=repository.current_version(language),
             original_example=original_example,
             language=language,
-            **kwargs
+            **kwargs,
         )
 
 
