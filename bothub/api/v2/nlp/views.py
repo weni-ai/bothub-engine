@@ -96,7 +96,7 @@ class RepositoryAuthorizationTrainViewSet(
             examples_return.append(
                 {
                     "text": get_text,
-                    "intent": example.intent,
+                    "intent": example.intent.text,
                     "entities": [entit.rasa_nlu_data for entit in get_entities],
                 }
             )
