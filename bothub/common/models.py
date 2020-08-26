@@ -914,7 +914,7 @@ class RepositoryVersionLanguage(models.Model):
         ).filter(
             models.Q(repository_version_language__language=self.language)
             | models.Q(translations__language=self.language)
-        )
+        ).distinct()
         return examples
 
     @property
