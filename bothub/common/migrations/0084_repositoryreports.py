@@ -6,22 +6,38 @@ import django.db.models.deletion
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('common', '0083_repositoryintent_created_at'),
-    ]
+    dependencies = [("common", "0083_repositoryintent_created_at")]
 
     operations = [
         migrations.CreateModel(
-            name='RepositoryReports',
+            name="RepositoryReports",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('count_reports', models.IntegerField()),
-                ('report_date', models.DateTimeField(auto_now_add=True, verbose_name='created at')),
-                ('repository_version_language', models.ForeignKey(editable=False, on_delete=django.db.models.deletion.CASCADE, to='common.RepositoryVersionLanguage')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("count_reports", models.IntegerField()),
+                (
+                    "report_date",
+                    models.DateTimeField(auto_now_add=True, verbose_name="created at"),
+                ),
+                (
+                    "repository_version_language",
+                    models.ForeignKey(
+                        editable=False,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="common.RepositoryVersionLanguage",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'repository report',
-                'verbose_name_plural': 'repository reports',
+                "verbose_name": "repository report",
+                "verbose_name_plural": "repository reports",
             },
-        ),
+        )
     ]

@@ -9,7 +9,7 @@ from bothub.common.models import (
     RepositoryNLPLog,
     RepositoryEntity,
     RepositoryQueueTask,
-    RepositoryIntent, RepositoryReports,
+    RepositoryIntent,
 )
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RequestRepositoryAuthorization
@@ -217,9 +217,7 @@ class RepositoryNLPLogReportsFilter(filters.FilterSet):
         model = Repository
         fields = []
 
-    start_date = filters.DateFilter(
-        field_name="start_date", method="filter_start_date"
-    )
+    start_date = filters.DateFilter(field_name="start_date", method="filter_start_date")
 
     end_date = filters.DateFilter(field_name="end_date", method="filter_end_date")
 

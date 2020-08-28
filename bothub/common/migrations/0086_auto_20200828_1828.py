@@ -5,14 +5,12 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('common', '0085_repositoryreports_user'),
-    ]
+    dependencies = [("common", "0085_repositoryreports_user")]
 
     operations = [
         migrations.AlterField(
-            model_name='repositoryreports',
-            name='report_date',
-            field=models.DateField(verbose_name='report date'),
-        ),
+            model_name="repositoryreports",
+            name="report_date",
+            field=models.DateField(verbose_name="report date"),
+        )
     ]

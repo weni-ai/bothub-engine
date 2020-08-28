@@ -1,28 +1,27 @@
+import datetime
 import uuid
-import requests
-
 from functools import reduce
-from django.db import models
-from django.utils.translation import ugettext_lazy as _
-from django.utils import timezone
+
+import requests
 from django.conf import settings
-from django.core.validators import RegexValidator, _lazy_re_compile
-from django.core.mail import send_mail
-from django.template.loader import render_to_string
-from django.dispatch import receiver
 from django.core.exceptions import ValidationError
+from django.core.mail import send_mail
+from django.core.validators import RegexValidator, _lazy_re_compile
+from django.db import models
+from django.db.models import Sum, Q, IntegerField, Case, When
+from django.dispatch import receiver
+from django.template.loader import render_to_string
+from django.utils import timezone
+from django.utils.translation import ugettext_lazy as _
 from rest_framework import status
 from rest_framework.exceptions import APIException
 
 from bothub.authentication.models import User, RepositoryOwner
-from django.db.models import Sum, Q, OuterRef
-
 from . import languages
+from .exceptions import DoesNotHaveTranslation
 from .exceptions import RepositoryUpdateAlreadyStartedTraining
 from .exceptions import RepositoryUpdateAlreadyTrained
 from .exceptions import TrainingNotAllowed
-from .exceptions import DoesNotHaveTranslation
-from ..utils import CountSubquery
 
 item_key_regex = _lazy_re_compile(r"^[-a-z0-9_]+\Z")
 validate_item_key = RegexValidator(
@@ -82,13 +81,18 @@ class RepositoryQuerySet(models.QuerySet):
 
     def count_logs(self, start_date=None, end_date=None, user=None, *args, **kwargs):
         return self.annotate(
-            total_count=CountSubquery(
-                RepositoryReports.objects.filter(
-                    repository_version_language__repository_version__repository=OuterRef(
-                        "uuid"
+            total_count=Sum(
+                Case(
+                    When(
+                        versions__repositoryversionlanguage__repository_reports__user=user,
+                        versions__repositoryversionlanguage__repository_reports__report_date__range=(
+                            start_date,
+                            end_date,
+                        ),
+                        then="versions__repositoryversionlanguage__repository_reports__count_reports",
                     ),
-                    report_date__range=(start_date, end_date),
-                    user=user,
+                    default=0,
+                    output_field=IntegerField(),
                 )
             )
         ).filter(*args, **kwargs)
@@ -1196,7 +1200,8 @@ class RepositoryReports(models.Model):
     repository_version_language = models.ForeignKey(
         RepositoryVersionLanguage,
         models.CASCADE,
-        editable=False
+        editable=False,
+        related_name="repository_reports",
     )
     user = models.ForeignKey(RepositoryOwner, models.CASCADE)
     count_reports = models.IntegerField()
@@ -2056,3 +2061,15 @@ def send_request_rejected_email(instance, **kwargs):
     user_authorization = instance.repository.get_user_authorization(instance.user)
     user_authorization.delete()
     instance.send_request_rejected_email()
+
+
+@receiver(models.signals.post_save, sender=RepositoryNLPLog)
+def save_log_nlp(instance, created, **kwargs):
+    if created:
+        report, created = RepositoryReports.objects.get_or_create(
+            repository_version_language=instance.repository_version_language,
+            user=instance.user,
+            report_date=datetime.date.today(),
+        )
+        report.count_reports += 1
+        report.save(update_fields=["count_reports"])
