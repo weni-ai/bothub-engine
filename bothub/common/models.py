@@ -80,15 +80,15 @@ class RepositoryQuerySet(models.QuerySet):
             )
         )
 
-    def count_logs(self, start_date=None, end_date=None, *args, **kwargs):
+    def count_logs(self, start_date=None, end_date=None, user=None, *args, **kwargs):
         return self.annotate(
             total_count=CountSubquery(
-                RepositoryNLPLog.objects.filter(
+                RepositoryReports.objects.filter(
                     repository_version_language__repository_version__repository=OuterRef(
                         "uuid"
                     ),
-                    from_backend=False,
-                    created_at__range=(start_date, end_date),
+                    report_date__range=(start_date, end_date),
+                    user=user,
                 )
             )
         ).filter(*args, **kwargs)
@@ -1186,6 +1186,21 @@ class RepositoryNLPLogIntent(models.Model):
         null=True,
         related_name="repository_nlp_log",
     )
+
+
+class RepositoryReports(models.Model):
+    class Meta:
+        verbose_name = _("repository report")
+        verbose_name_plural = _("repository reports")
+
+    repository_version_language = models.ForeignKey(
+        RepositoryVersionLanguage,
+        models.CASCADE,
+        editable=False
+    )
+    user = models.ForeignKey(RepositoryOwner, models.CASCADE)
+    count_reports = models.IntegerField()
+    report_date = models.DateField(_("report date"))
 
 
 class RepositoryIntent(models.Model):

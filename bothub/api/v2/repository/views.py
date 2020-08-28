@@ -2,6 +2,7 @@ import json
 from datetime import datetime
 
 from django.core.exceptions import ValidationError as DjangoValidationError
+from django.db.models import Sum
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django.utils.translation import ugettext_lazy as _
@@ -32,7 +33,7 @@ from bothub.common.models import (
     RepositoryEntity,
     RepositoryQueueTask,
     RepositoryIntent,
-    OrganizationAuthorization,
+    OrganizationAuthorization, RepositoryReports,
 )
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryCategory
@@ -776,16 +777,11 @@ class RepositoryNLPLogReportsViewSet(mixins.ListModelMixin, GenericViewSet):
     filter_backends = [DjangoFilterBackend]
 
     def get_queryset(self, *args, **kwargs):
-        x = self.queryset.count_logs(
-            start_date=datetime.strptime(
-                self.request.query_params.get("start_date", None), "%Y-%m-%d"
-            ).replace(hour=0, minute=0),
-            end_date=datetime.strptime(
-                self.request.query_params.get("end_date", None), "%Y-%m-%d"
-            ).replace(hour=23, minute=59),
-            authorizations__user=self.request.user,
-        ).order_by("-total_count")
-        return x
+        return self.queryset.count_logs(
+            start_date=self.request.query_params.get("start_date", None),
+            end_date=self.request.query_params.get("end_date", None),
+            user=self.request.user
+        ).exclude(total_count=0).order_by("-total_count")
 
 
 class RepositoryIntentViewSet(

@@ -25,7 +25,7 @@ from bothub.common.models import (
     OrganizationAuthorization,
     Organization,
     RepositoryNLPTrain,
-    RepositoryIntent,
+    RepositoryIntent, RepositoryReports,
 )
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryCategory
