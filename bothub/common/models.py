@@ -909,12 +909,16 @@ class RepositoryVersionLanguage(models.Model):
 
     @property
     def examples(self):
-        examples = self.repository_version.repository.examples(
-            version_default=self.repository_version.is_default
-        ).filter(
-            models.Q(repository_version_language__language=self.language)
-            | models.Q(translations__language=self.language)
-        ).distinct()
+        examples = (
+            self.repository_version.repository.examples(
+                version_default=self.repository_version.is_default
+            )
+            .filter(
+                models.Q(repository_version_language__language=self.language)
+                | models.Q(translations__language=self.language)
+            )
+            .distinct()
+        )
         return examples
 
     @property

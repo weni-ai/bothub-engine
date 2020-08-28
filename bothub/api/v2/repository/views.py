@@ -736,7 +736,7 @@ class RasaUploadViewSet(
             if RepositoryExample.objects.filter(
                 repository_version_language__repository_version=kwargs.get("pk"),
                 text=example["text"],
-                intent=example["intent"],
+                intent__text=example["intent"],
                 repository_version_language__language=serializer.data.get("language"),
             ).count():
                 continue
