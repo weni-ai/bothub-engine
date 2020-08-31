@@ -1,4 +1,3 @@
-import datetime
 import uuid
 from functools import reduce
 
@@ -1204,7 +1203,7 @@ class RepositoryReports(models.Model):
         related_name="repository_reports",
     )
     user = models.ForeignKey(RepositoryOwner, models.CASCADE)
-    count_reports = models.IntegerField()
+    count_reports = models.IntegerField(default=0)
     report_date = models.DateField(_("report date"))
 
 
@@ -2069,7 +2068,7 @@ def save_log_nlp(instance, created, **kwargs):
         report, created = RepositoryReports.objects.get_or_create(
             repository_version_language=instance.repository_version_language,
             user=instance.user,
-            report_date=datetime.date.today(),
+            report_date=timezone.now().date(),
         )
         report.count_reports += 1
         report.save(update_fields=["count_reports"])
