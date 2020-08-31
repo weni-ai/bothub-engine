@@ -1,5 +1,4 @@
 import json
-from datetime import datetime
 
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.shortcuts import get_object_or_404
@@ -776,16 +775,15 @@ class RepositoryNLPLogReportsViewSet(mixins.ListModelMixin, GenericViewSet):
     filter_backends = [DjangoFilterBackend]
 
     def get_queryset(self, *args, **kwargs):
-        x = self.queryset.count_logs(
-            start_date=datetime.strptime(
-                self.request.query_params.get("start_date", None), "%Y-%m-%d"
-            ).replace(hour=0, minute=0),
-            end_date=datetime.strptime(
-                self.request.query_params.get("end_date", None), "%Y-%m-%d"
-            ).replace(hour=23, minute=59),
-            authorizations__user=self.request.user,
-        ).order_by("-total_count")
-        return x
+        return (
+            self.queryset.count_logs(
+                start_date=self.request.query_params.get("start_date", None),
+                end_date=self.request.query_params.get("end_date", None),
+                user=self.request.user,
+            )
+            .exclude(total_count=0)
+            .order_by("-total_count")
+        )
 
 
 class RepositoryIntentViewSet(

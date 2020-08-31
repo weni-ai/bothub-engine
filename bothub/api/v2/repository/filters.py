@@ -217,11 +217,9 @@ class RepositoryNLPLogReportsFilter(filters.FilterSet):
         model = Repository
         fields = []
 
-    start_date = filters.DateTimeFilter(
-        field_name="start_date", method="filter_start_date"
-    )
+    start_date = filters.DateFilter(field_name="start_date", method="filter_start_date")
 
-    end_date = filters.DateTimeFilter(field_name="end_date", method="filter_end_date")
+    end_date = filters.DateFilter(field_name="end_date", method="filter_end_date")
 
     def filter_start_date(self, queryset, name, value):
         return queryset
