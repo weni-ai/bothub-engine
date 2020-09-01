@@ -775,11 +775,23 @@ class RepositoryNLPLogReportsViewSet(mixins.ListModelMixin, GenericViewSet):
     filter_backends = [DjangoFilterBackend]
 
     def get_queryset(self, *args, **kwargs):
+        user = self.request.user
+        if self.request.query_params.get("organization_nickname", None):
+            owner = get_object_or_404(
+                RepositoryOwner,
+                nickname=self.request.query_params.get("organization_nickname", None),
+            )
+            if owner.is_organization:
+                auth_org = OrganizationAuthorization.objects.filter(
+                    organization=owner, user=self.request.user
+                ).first()
+                if auth_org.can_read:
+                    user = owner
         return (
             self.queryset.count_logs(
                 start_date=self.request.query_params.get("start_date", None),
                 end_date=self.request.query_params.get("end_date", None),
-                user=self.request.user,
+                user=user,
             )
             .exclude(total_count=0)
             .order_by("-total_count")
