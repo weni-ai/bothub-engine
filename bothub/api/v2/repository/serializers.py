@@ -40,11 +40,13 @@ from .validators import (
     CanCreateRepositoryInOrganizationValidator,
     IntentValidator,
 )
-from .validators import CanContributeInRepositoryExampleValidator
-from .validators import CanContributeInRepositoryTranslatedExampleValidator
 from .validators import CanContributeInRepositoryValidator
 from .validators import CanContributeInRepositoryVersionValidator
 from .validators import ExampleWithIntentOrEntityValidator
+from ..translation.validators import (
+    CanContributeInRepositoryExampleValidator,
+    CanContributeInRepositoryTranslatedExampleValidator,
+)
 
 
 class RequestRepositoryAuthorizationSerializer(serializers.ModelSerializer):
