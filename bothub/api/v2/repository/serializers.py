@@ -234,7 +234,6 @@ class NewRepositorySerializer(serializers.ModelSerializer):
             "is_organization",
             "authorizations",
             "ready_for_parse",
-            "languages_status",
         ]
         read_only = [
             "uuid",
@@ -251,7 +250,6 @@ class NewRepositorySerializer(serializers.ModelSerializer):
             "nlp_server",
             "is_organization",
             "ready_for_parse",
-            "languages_status",
         ]
         ref_name = None
 
@@ -358,7 +356,6 @@ class NewRepositorySerializer(serializers.ModelSerializer):
     )
     authorizations = serializers.SerializerMethodField(style={"show": False})
     ready_for_parse = serializers.SerializerMethodField(style={"show": False})
-    languages_status = serializers.SerializerMethodField(style={"show": False})
 
     def get_authorizations(self, obj):
         auths = RepositoryAuthorization.objects.filter(
@@ -380,9 +377,6 @@ class NewRepositorySerializer(serializers.ModelSerializer):
             .exclude(bot_data__exact="")
         )
         return True if q.count() > 0 else False
-
-    def get_languages_status(self, obj):
-        return obj.languages_status
 
     def get_available_languages(self, obj):
         queryset = RepositoryExample.objects.filter(

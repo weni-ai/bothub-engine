@@ -100,6 +100,22 @@ class NewRepositoryViewSet(
     permission_classes = [IsAuthenticatedOrReadOnly, RepositoryInfoPermission]
     metadata_class = Metadata
 
+    @action(
+        detail=True,
+        methods=["GET"],
+        url_name="repository-languages-status",
+        lookup_fields=["repository__uuid", "pk"],
+    )
+    def languagesstatus(self, request, **kwargs):
+        """
+        Get current language status.
+        """
+        if self.lookup_field not in kwargs:
+            return Response(status=405)
+
+        repository_version = self.get_object()
+        return Response({"languages_status": repository_version.languages_status})
+
 
 class RepositoryViewSet(
     mixins.CreateModelMixin,
