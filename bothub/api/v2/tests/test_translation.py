@@ -441,3 +441,45 @@ class TranslationsViewTest(TestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(content_data.get("count"), 0)
+
+    def test_filter_original_example_id(self):
+        example = RepositoryExample.objects.create(
+            repository_version_language=self.repository.current_version(
+                languages.LANGUAGE_ES
+            ),
+            text="hola",
+            intent=self.example_intent_1,
+        )
+        example2 = RepositoryExample.objects.create(
+            repository_version_language=self.repository.current_version(
+                languages.LANGUAGE_ES
+            ),
+            text="todo bien?",
+            intent=self.example_intent_1,
+        )
+        RepositoryTranslatedExample.objects.create(
+            original_example=example, language=languages.LANGUAGE_PT, text="oi"
+        )
+        RepositoryTranslatedExample.objects.create(
+            original_example=example2, language=languages.LANGUAGE_PT, text="tudo bem?"
+        )
+
+        response, content_data = self.request(
+            {"repository_uuid": self.repository.uuid}, user_token=self.owner_token
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(content_data.get("count"), 3)
+
+        response, content_data = self.request(
+            {
+                "repository_uuid": self.repository.uuid,
+                "original_example_id": self.example.pk,
+            },
+            user_token=self.owner_token,
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(content_data.get("count"), 1)
+        self.assertEqual(
+            content_data.get("results")[0].get("original_example"), self.example.pk
+        )
+        self.assertEqual(content_data.get("results")[0].get("text"), "oi")
