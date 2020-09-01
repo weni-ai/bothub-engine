@@ -723,13 +723,11 @@ class Repository(models.Model):
         is_base_language = self.language == language
         examples = self.examples(language)
         base_examples = self.examples(self.language)
-        base_translations = RepositoryTranslatedExample.objects.filter(
+        base_translations_count = RepositoryTranslatedExample.objects.filter(
             original_example__in=base_examples, language=language
-        )
+        ).count()
 
-        examples_count = examples.count()
         base_examples_count = base_examples.count()
-        base_translations_count = base_translations.count()
         base_translations_percentage = (
             base_translations_count
             / (base_examples_count if base_examples_count > 0 else 1)
@@ -738,7 +736,7 @@ class Repository(models.Model):
         return {
             "is_base_language": is_base_language,
             "examples": {
-                "count": examples_count,
+                "count": examples.count(),
                 "entities": list(
                     set(
                         filter(
@@ -873,6 +871,59 @@ class RepositoryVersion(models.Model):
         return self.current_entities(
             queryset=queryset, version_default=version_default
         ).filter(group__isnull=True)
+
+    @property
+    def languages_status(self):
+        return dict(
+            map(
+                lambda language: (language, self.language_status(language)),
+                settings.SUPPORTED_LANGUAGES.keys(),
+            )
+        )
+
+    def language_status(self, language):
+        is_base_language = self.repository.language == language
+        queryset = RepositoryExample.objects.filter(
+            repository_version_language__repository_version=self
+        )
+        examples = self.repository.examples(
+            language, queryset=queryset, version_default=self.is_default
+        )
+        base_examples = self.repository.examples(
+            self.repository.language, queryset=queryset, version_default=self.is_default
+        )
+        base_translations = RepositoryTranslatedExample.objects.filter(
+            original_example__in=base_examples, language=language
+        )
+
+        examples_count = examples.count()
+        base_examples_count = base_examples.count()
+        base_translations_count = base_translations.count()
+        base_translations_percentage = (
+            base_translations_count
+            / (base_examples_count if base_examples_count > 0 else 1)
+        ) * 100
+
+        return {
+            "is_base_language": is_base_language,
+            "examples": {
+                "count": examples_count,
+                "entities": list(
+                    set(
+                        filter(
+                            lambda x: x,
+                            examples.values_list(
+                                "entities__entity", flat=True
+                            ).distinct(),
+                        )
+                    )
+                ),
+            },
+            "base_translations": {
+                "count": base_translations_count,
+                "percentage": base_translations_percentage,
+            },
+        }
 
 
 class RepositoryVersionLanguage(models.Model):

@@ -118,6 +118,7 @@ class RepositoryViewSet(
     permission_classes = [IsAuthenticatedOrReadOnly, RepositoryPermission]
     metadata_class = Metadata
 
+    @method_decorator(name="list", decorator=swagger_auto_schema(deprecated=True))
     @action(
         detail=True,
         methods=["GET"],
