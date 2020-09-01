@@ -11,7 +11,11 @@ def migration(apps, schema_editor):  # pragma: no cover
     RepositoryNLPLog = apps.get_model("common", "RepositoryNLPLog")
     RepositoryReports = apps.get_model("common", "RepositoryReports")
 
-    for log in RepositoryNLPLog.objects.only("repository_version_language", "user", "created_at").iterator():
+    for log in (
+        RepositoryNLPLog.objects.filter(created_at__gte="2020-09-01")
+        .only("repository_version_language", "user", "created_at")
+        .iterator()
+    ):
         report, created = RepositoryReports.objects.get_or_create(
             repository_version_language=log.repository_version_language,
             user=log.user,
