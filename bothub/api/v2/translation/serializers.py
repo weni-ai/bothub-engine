@@ -106,7 +106,9 @@ class RepositoryTranslatedExampleSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         entities_data = validated_data.pop("entities")
         instance = super().update(instance, validated_data)
-        RepositoryTranslatedExampleEntity.objects.filter(repository_translated_example=instance.pk).delete()
+        RepositoryTranslatedExampleEntity.objects.filter(
+            repository_translated_example=instance.pk
+        ).delete()
 
         for entity_data in entities_data:
             RepositoryTranslatedExampleEntity.objects.create(
