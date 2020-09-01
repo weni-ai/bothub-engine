@@ -1007,7 +1007,7 @@ class RepositoryVersionLanguage(models.Model):
         if 0 < len(self.intents) < self.RECOMMENDED_INTENTS:
             w.append(
                 _(
-                    "You only added {} intention\nAdd 1 more intention (it is necessary to have at least 2 intentions for the algorithm to identify)"
+                    "You only added 1 intention\nAdd 1 more intention (it is necessary to have at least {} intentions for the algorithm to identify)"
                 ).format(self.RECOMMENDED_INTENTS)
             )
         return w
