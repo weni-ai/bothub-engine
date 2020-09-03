@@ -963,17 +963,19 @@ class RepositoryVersionLanguage(models.Model):
 
     @property
     def examples(self):
-        examples = (
-            self.repository_version.repository.examples(
-                version_default=self.repository_version.is_default
+        examples = self.repository_version.repository.examples(
+            version_default=self.repository_version.is_default
+        ).filter(
+            models.Q(
+                repository_version_language__language=self.language,
+                repository_version_language=self,
             )
-            .filter(
-                models.Q(repository_version_language__language=self.language)
-                | models.Q(translations__language=self.language)
+            | models.Q(
+                translations__language=self.language,
+                translations__repository_version_language=self,
             )
-            .distinct()
         )
-        return examples
+        return examples.distinct()
 
     @property
     def requirements_to_train(self):
