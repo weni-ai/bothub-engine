@@ -19,6 +19,7 @@ from bothub.common.models import (
     RepositoryTranslatedExampleEntity,
     RepositoryEvaluate,
     RepositoryEvaluateEntity,
+    RepositoryIntent,
 )
 
 
@@ -89,10 +90,14 @@ def debug_parse_text(instance_id, id_clone, repository, *args, **kwargs):
         examples = RepositoryExample.objects.filter(repository_version_language=version)
 
         for example in examples:
+            intent, created = RepositoryIntent.objects.get_or_create(
+                text=example.intent.text,
+                repository_version=version_language.repository_version,
+            )
             example_id = RepositoryExample.objects.create(
                 repository_version_language=version_language,
                 text=example.text,
-                intent=example.intent,
+                intent=intent,
                 created_at=example.created_at,
                 last_update=example.last_update,
             )

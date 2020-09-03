@@ -13,7 +13,7 @@ from bothub.common.models import RepositoryExample
 class ExamplesFilter(filters.FilterSet):
     class Meta:
         model = RepositoryExample
-        fields = ["text", "language", "intent"]
+        fields = ["text", "language"]
 
     repository_uuid = filters.CharFilter(
         field_name="repository_uuid",
@@ -68,6 +68,11 @@ class ExamplesFilter(filters.FilterSet):
         field_name="created_at",
         lookup_expr="lte",
         help_text=_("Filter by record creation date, example: 2020-08-17 15:35:12.51"),
+    )
+    intent = filters.CharFilter(
+        field_name="intent__text",
+        method="filter_intent",
+        help_text=_("Filter for examples with intent by text."),
     )
 
     def filter_repository_uuid(self, queryset, name, value):
@@ -131,3 +136,6 @@ class ExamplesFilter(filters.FilterSet):
 
     def filter_entity_id(self, queryset, name, value):
         return queryset.filter(entities__entity__pk=value).distinct()
+
+    def filter_intent(self, queryset, name, value):
+        return queryset.filter(intent__text=value)

@@ -1,3 +1,5 @@
+import re
+
 from django.utils.translation import ugettext_lazy as _
 from django.shortcuts import get_object_or_404
 from rest_framework import status
@@ -5,28 +7,6 @@ from rest_framework.exceptions import PermissionDenied, APIException
 from rest_framework.exceptions import ValidationError
 
 from bothub.common.models import Organization
-
-
-class CanContributeInRepositoryExampleValidator(object):
-    def __call__(self, value):
-        repository = value.repository_update.repository
-        user_authorization = repository.get_user_authorization(self.request.user)
-        if not user_authorization.can_contribute:
-            raise PermissionDenied(_("You can't contribute in this repository"))
-
-    def set_context(self, serializer):
-        self.request = serializer.context.get("request")
-
-
-class CanContributeInRepositoryTranslatedExampleValidator(object):
-    def __call__(self, value):
-        repository = value.original_example.repository_update.repository
-        user_authorization = repository.get_user_authorization(self.request.user)
-        if not user_authorization.can_contribute:
-            raise PermissionDenied(_("You can't contribute in this repository"))
-
-    def set_context(self, serializer):
-        self.request = serializer.context.get("request")
 
 
 class CanContributeInRepositoryValidator(object):
@@ -80,6 +60,21 @@ class EntityNotEqualGroupValidator(object):
             raise ValidationError(
                 {"group": _("Group name can't be equal to entity name")}
             )
+
+
+class IntentValidator(object):
+    def __call__(self, value):
+        reg = re.compile(r"^[-a-z0-9_]+\Z")
+        if not reg.match(value):
+            raise ValidationError(
+                _(
+                    "Enter a valid value consisting of lowercase letters, numbers, "
+                    + "underscores or hyphens."
+                )
+            )
+
+    def set_context(self, serializer):
+        self.request = serializer.context.get("request")
 
 
 class APIExceptionCustom(APIException):

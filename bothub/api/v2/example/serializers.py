@@ -74,6 +74,7 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
         required=False,
         validators=[CanContributeInRepositoryVersionValidator()],
     )
+    intent = serializers.CharField(source="intent.text")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

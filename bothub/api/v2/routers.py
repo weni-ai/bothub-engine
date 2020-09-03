@@ -16,6 +16,7 @@ from .repository.views import (
     RepositoryTaskQueueViewSet,
     RepositoriesPermissionsViewSet,
     RepositoryNLPLogReportsViewSet,
+    RepositoryIntentViewSet,
 )
 from .repository.views import RepositoryVotesViewSet
 from .repository.views import RepositoriesViewSet
@@ -137,6 +138,7 @@ router.register(
     "repository/authorization-requests", RepositoryAuthorizationRequestsViewSet
 )
 router.register("repository/example", RepositoryExampleViewSet)
+router.register("repository/intent", RepositoryIntentViewSet)
 router.register("repository/evaluate/results", ResultsListViewSet)
 router.register("repository/evaluate", EvaluateViewSet)
 router.register("repository/translation", RepositoryTranslatedExampleViewSet)

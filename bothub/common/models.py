@@ -1,28 +1,26 @@
 import uuid
-import requests
-
 from functools import reduce
-from django.db import models
-from django.utils.translation import ugettext_lazy as _
-from django.utils import timezone
+
+import requests
 from django.conf import settings
-from django.core.validators import RegexValidator, _lazy_re_compile
-from django.core.mail import send_mail
-from django.template.loader import render_to_string
-from django.dispatch import receiver
 from django.core.exceptions import ValidationError
+from django.core.mail import send_mail
+from django.core.validators import RegexValidator, _lazy_re_compile
+from django.db import models
+from django.db.models import Sum, Q, IntegerField, Case, When
+from django.dispatch import receiver
+from django.template.loader import render_to_string
+from django.utils import timezone
+from django.utils.translation import ugettext_lazy as _
 from rest_framework import status
 from rest_framework.exceptions import APIException
 
 from bothub.authentication.models import User, RepositoryOwner
-from django.db.models import Sum, Q, OuterRef
-
 from . import languages
+from .exceptions import DoesNotHaveTranslation
 from .exceptions import RepositoryUpdateAlreadyStartedTraining
 from .exceptions import RepositoryUpdateAlreadyTrained
 from .exceptions import TrainingNotAllowed
-from .exceptions import DoesNotHaveTranslation
-from ..utils import CountSubquery
 
 item_key_regex = _lazy_re_compile(r"^[-a-z0-9_]+\Z")
 validate_item_key = RegexValidator(
@@ -80,15 +78,20 @@ class RepositoryQuerySet(models.QuerySet):
             )
         )
 
-    def count_logs(self, start_date=None, end_date=None, *args, **kwargs):
+    def count_logs(self, start_date=None, end_date=None, user=None, *args, **kwargs):
         return self.annotate(
-            total_count=CountSubquery(
-                RepositoryNLPLog.objects.filter(
-                    repository_version_language__repository_version__repository=OuterRef(
-                        "uuid"
+            total_count=Sum(
+                Case(
+                    When(
+                        versions__repositoryversionlanguage__repository_reports__user=user,
+                        versions__repositoryversionlanguage__repository_reports__report_date__range=(
+                            start_date,
+                            end_date,
+                        ),
+                        then="versions__repositoryversionlanguage__repository_reports__count_reports",
                     ),
-                    from_backend=False,
-                    created_at__range=(start_date, end_date),
+                    default=0,
+                    output_field=IntegerField(),
                 )
             )
         ).filter(*args, **kwargs)
@@ -652,7 +655,7 @@ class Repository(models.Model):
             if queryset
             else self.examples(version_default=version_default)
         )
-        return list(set(intents.exclude(intent="").values_list("intent", flat=True)))
+        return list(set(intents.values_list("intent__text", flat=True)))
 
     @property
     def admins(self):
@@ -720,13 +723,11 @@ class Repository(models.Model):
         is_base_language = self.language == language
         examples = self.examples(language)
         base_examples = self.examples(self.language)
-        base_translations = RepositoryTranslatedExample.objects.filter(
+        base_translations_count = RepositoryTranslatedExample.objects.filter(
             original_example__in=base_examples, language=language
-        )
+        ).count()
 
-        examples_count = examples.count()
         base_examples_count = base_examples.count()
-        base_translations_count = base_translations.count()
         base_translations_percentage = (
             base_translations_count
             / (base_examples_count if base_examples_count > 0 else 1)
@@ -735,7 +736,7 @@ class Repository(models.Model):
         return {
             "is_base_language": is_base_language,
             "examples": {
-                "count": examples_count,
+                "count": examples.count(),
                 "entities": list(
                     set(
                         filter(
@@ -871,6 +872,59 @@ class RepositoryVersion(models.Model):
             queryset=queryset, version_default=version_default
         ).filter(group__isnull=True)
 
+    @property
+    def languages_status(self):
+        return dict(
+            map(
+                lambda language: (language, self.language_status(language)),
+                settings.SUPPORTED_LANGUAGES.keys(),
+            )
+        )
+
+    def language_status(self, language):
+        is_base_language = self.repository.language == language
+        queryset = RepositoryExample.objects.filter(
+            repository_version_language__repository_version=self
+        )
+        examples = self.repository.examples(
+            language, queryset=queryset, version_default=self.is_default
+        )
+        base_examples = self.repository.examples(
+            self.repository.language, queryset=queryset, version_default=self.is_default
+        )
+        base_translations = RepositoryTranslatedExample.objects.filter(
+            original_example__in=base_examples, language=language
+        )
+
+        examples_count = examples.count()
+        base_examples_count = base_examples.count()
+        base_translations_count = base_translations.count()
+        base_translations_percentage = (
+            base_translations_count
+            / (base_examples_count if base_examples_count > 0 else 1)
+        ) * 100
+
+        return {
+            "is_base_language": is_base_language,
+            "examples": {
+                "count": examples_count,
+                "entities": list(
+                    set(
+                        filter(
+                            lambda x: x,
+                            examples.values_list(
+                                "entities__entity", flat=True
+                            ).distinct(),
+                        )
+                    )
+                ),
+            },
+            "base_translations": {
+                "count": base_translations_count,
+                "percentage": base_translations_percentage,
+            },
+        }
+
 
 class RepositoryVersionLanguage(models.Model):
     class Meta:
@@ -909,11 +963,15 @@ class RepositoryVersionLanguage(models.Model):
 
     @property
     def examples(self):
-        examples = self.repository_version.repository.examples(
-            version_default=self.repository_version.is_default
-        ).filter(
-            models.Q(repository_version_language__language=self.language)
-            | models.Q(translations__language=self.language)
+        examples = (
+            self.repository_version.repository.examples(
+                version_default=self.repository_version.is_default
+            )
+            .filter(
+                models.Q(repository_version_language__language=self.language)
+                | models.Q(translations__language=self.language)
+            )
+            .distinct()
         )
         return examples
 
@@ -928,13 +986,13 @@ class RepositoryVersionLanguage(models.Model):
 
         r = []
 
-        intents = self.examples.values_list("intent", flat=True)
+        intents = self.examples.values_list("intent__text", flat=True)
 
         if "" in intents:
             r.append(_("All examples need have a intent."))
 
         weak_intents = (
-            self.examples.values("intent")
+            self.examples.values("intent__text")
             .annotate(intent_count=models.Count("id"))
             .order_by()
             .exclude(intent_count__gte=self.MIN_EXAMPLES_PER_INTENT)
@@ -942,8 +1000,10 @@ class RepositoryVersionLanguage(models.Model):
         if weak_intents.exists():
             for i in weak_intents:
                 r.append(
-                    _('Intent "{}" has only {} examples. ' + "Minimum is {}.").format(
-                        i.get("intent"),
+                    _(
+                        'The "{}" intention has only {} sentence\nAdd 1 more sentence to that intention (minimum is {})'
+                    ).format(
+                        i.get("intent__text"),
                         i.get("intent_count"),
                         self.MIN_EXAMPLES_PER_INTENT,
                     )
@@ -960,7 +1020,9 @@ class RepositoryVersionLanguage(models.Model):
         if weak_entities.exists():
             for e in weak_entities:
                 r.append(
-                    _('Entity "{}" has only {} examples. ' + "Minimum is {}.").format(
+                    _(
+                        'The entity "{}" has only {} sentence\nAdd 1 more sentence to that entity (minimum is {})'
+                    ).format(
                         e.get("entities__entity__value"),
                         e.get("entities_count"),
                         self.MIN_EXAMPLES_PER_ENTITY,
@@ -996,8 +1058,7 @@ class RepositoryVersionLanguage(models.Model):
         if 0 < len(self.intents) < self.RECOMMENDED_INTENTS:
             w.append(
                 _(
-                    "You need to have at least {} intents for the "
-                    + "algorithm to identify intents."
+                    "You only added 1 intention\nAdd 1 more intention (it is necessary to have at least {} intentions for the algorithm to identify)"
                 ).format(self.RECOMMENDED_INTENTS)
             )
         return w
@@ -1181,6 +1242,42 @@ class RepositoryNLPLogIntent(models.Model):
     )
 
 
+class RepositoryReports(models.Model):
+    class Meta:
+        verbose_name = _("repository report")
+        verbose_name_plural = _("repository reports")
+
+    repository_version_language = models.ForeignKey(
+        RepositoryVersionLanguage,
+        models.CASCADE,
+        editable=False,
+        related_name="repository_reports",
+    )
+    user = models.ForeignKey(RepositoryOwner, models.CASCADE)
+    count_reports = models.IntegerField(default=0)
+    report_date = models.DateField(_("report date"))
+
+
+class RepositoryIntent(models.Model):
+    class Meta:
+        verbose_name = _("repository intent")
+        verbose_name_plural = _("repository intents")
+        unique_together = ["repository_version", "text"]
+
+    repository_version = models.ForeignKey(RepositoryVersion, models.CASCADE)
+    text = models.CharField(
+        _("intent"),
+        max_length=64,
+        default="no_intent",
+        help_text=_("Example intent reference"),
+        validators=[validate_item_key],
+    )
+    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
+
+    def __str__(self):
+        return self.text
+
+
 class RepositoryExample(models.Model):
     class Meta:
         verbose_name = _("repository example")
@@ -1188,20 +1285,10 @@ class RepositoryExample(models.Model):
         ordering = ["-created_at"]
 
     repository_version_language = models.ForeignKey(
-        RepositoryVersionLanguage,
-        models.CASCADE,
-        related_name="added",
-        editable=False,
-        null=True,
+        RepositoryVersionLanguage, models.CASCADE, related_name="added", editable=False
     )
     text = models.TextField(_("text"), help_text=_("Example text"))
-    intent = models.CharField(
-        _("intent"),
-        max_length=64,
-        default="no_intent",
-        help_text=_("Example intent reference"),
-        validators=[validate_item_key],
-    )
+    intent = models.ForeignKey(RepositoryIntent, models.CASCADE)
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
     last_update = models.DateTimeField(_("last update"))
     is_corrected = models.BooleanField(default=False)
@@ -1261,7 +1348,7 @@ class RepositoryTranslatedExampleManager(models.Manager):
         original_example=None,
         language=None,
         clone_repository=False,
-        **kwargs
+        **kwargs,
     ):
         repository = (
             original_example.repository_version_language.repository_version.repository
@@ -1275,7 +1362,7 @@ class RepositoryTranslatedExampleManager(models.Manager):
             repository_version_language=repository.current_version(language),
             original_example=original_example,
             language=language,
-            **kwargs
+            **kwargs,
         )
 
 
@@ -2024,3 +2111,15 @@ def send_request_rejected_email(instance, **kwargs):
     user_authorization = instance.repository.get_user_authorization(instance.user)
     user_authorization.delete()
     instance.send_request_rejected_email()
+
+
+@receiver(models.signals.post_save, sender=RepositoryNLPLog)
+def save_log_nlp(instance, created, **kwargs):
+    if created:
+        report, created = RepositoryReports.objects.get_or_create(
+            repository_version_language=instance.repository_version_language,
+            user=instance.user,
+            report_date=timezone.now().date(),
+        )
+        report.count_reports += 1
+        report.save(update_fields=["count_reports"])

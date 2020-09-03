@@ -25,6 +25,7 @@ from bothub.common.models import (
     OrganizationAuthorization,
     Organization,
     RepositoryNLPTrain,
+    RepositoryIntent,
 )
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryCategory
@@ -34,12 +35,18 @@ from bothub.common.models import RepositoryTranslatedExample
 from bothub.common.models import RepositoryTranslatedExampleEntity
 from bothub.common.models import RepositoryVote
 from bothub.common.models import RequestRepositoryAuthorization
-from .validators import APIExceptionCustom, CanCreateRepositoryInOrganizationValidator
-from .validators import CanContributeInRepositoryExampleValidator
-from .validators import CanContributeInRepositoryTranslatedExampleValidator
+from .validators import (
+    APIExceptionCustom,
+    CanCreateRepositoryInOrganizationValidator,
+    IntentValidator,
+)
 from .validators import CanContributeInRepositoryValidator
 from .validators import CanContributeInRepositoryVersionValidator
 from .validators import ExampleWithIntentOrEntityValidator
+from ..translation.validators import (
+    CanContributeInRepositoryExampleValidator,
+    CanContributeInRepositoryTranslatedExampleValidator,
+)
 
 
 class RequestRepositoryAuthorizationSerializer(serializers.ModelSerializer):
@@ -433,7 +440,7 @@ class NewRepositorySerializer(serializers.ModelSerializer):
                     "examples__count": obj.repository.examples(
                         queryset=queryset, version_default=obj.is_default
                     )
-                    .filter(intent=intent)
+                    .filter(intent__text=intent)
                     .count(),
                 },
                 obj.repository.intents(
@@ -982,6 +989,7 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
         required=True,
         validators=[CanContributeInRepositoryVersionValidator()],
     )
+    intent = serializers.CharField(required=True, validators=[IntentValidator()])
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -995,6 +1003,7 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
         entities_data = validated_data.pop("entities")
         repository = validated_data.pop("repository")
         version_id = validated_data.get("repository_version_language")
+        intent_text = validated_data.get("intent")
 
         try:
             language = validated_data.pop("language")
@@ -1009,7 +1018,7 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
 
             if RepositoryExample.objects.filter(
                 text=validated_data.get("text"),
-                intent=validated_data.get("intent"),
+                intent__text=validated_data.get("intent"),
                 repository_version_language__repository_version__repository=repository,
                 repository_version_language__repository_version=version_id,
                 repository_version_language__language=language,
@@ -1022,7 +1031,7 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
 
             if RepositoryExample.objects.filter(
                 text=validated_data.get("text"),
-                intent=validated_data.get("intent"),
+                intent__text=validated_data.get("intent"),
                 repository_version_language=repository_version_language,
                 repository_version_language__repository_version__is_default=True,
                 repository_version_language__language=language,
@@ -1034,6 +1043,10 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
         validated_data.update(
             {"repository_version_language": repository_version_language}
         )
+        intent, created = RepositoryIntent.objects.get_or_create(
+            repository_version=version_id, text=intent_text
+        )
+        validated_data.update({"intent": intent})
         example = self.Meta.model.objects.create(**validated_data)
         for entity_data in entities_data:
             entity_data.update({"repository_example": example.pk})
@@ -1047,6 +1060,14 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
         validated_data.pop("repository")
         validated_data.pop("repository_version_language")
         validated_data.pop("language", None)
+        intent_text = validated_data.get("intent", None)
+
+        if intent_text:
+            intent, created = RepositoryIntent.objects.get_or_create(
+                repository_version=instance.repository_version_language.repository_version,
+                text=intent_text,
+            )
+            validated_data.update({"intent": intent})
 
         instance_update = super().update(instance, validated_data)
 
@@ -1246,3 +1267,13 @@ class RepositoryNLPLogReportsSerializer(serializers.ModelSerializer):
 
     def get_owner(self, obj):
         return {"id": obj.owner.pk, "nickname": obj.owner.nickname}
+
+
+class RepositoryIntentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RepositoryIntent
+        fields = ["id", "repository_version", "text", "created_at"]
+        read_only_fields = ["repository_version", "created_at"]
+        ref_name = None
+
+    text = serializers.CharField(required=True, validators=[IntentValidator()])
