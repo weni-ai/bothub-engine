@@ -971,7 +971,8 @@ class RepositoryVersionLanguage(models.Model):
                 repository_version_language=self,
             )
             | models.Q(
-                translations__language=self.language, repository_version_language=self
+                translations__language=self.language,
+                translations__repository_version_language=self,
             )
         )
         return examples.distinct()
