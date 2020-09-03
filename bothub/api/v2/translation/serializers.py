@@ -103,6 +103,19 @@ class RepositoryTranslatedExampleSerializer(serializers.ModelSerializer):
             )
         return translated
 
+    def update(self, instance, validated_data):
+        entities_data = validated_data.pop("entities")
+        instance = super().update(instance, validated_data)
+        RepositoryTranslatedExampleEntity.objects.filter(
+            repository_translated_example=instance.pk
+        ).delete()
+
+        for entity_data in entities_data:
+            RepositoryTranslatedExampleEntity.objects.create(
+                repository_translated_example=instance, **entity_data
+            )
+        return instance
+
 
 class RepositoryTranslatedExporterSerializer(serializers.Serializer):
     file = serializers.FileField(required=True)

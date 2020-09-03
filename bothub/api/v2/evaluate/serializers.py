@@ -102,7 +102,7 @@ class RepositoryEvaluateSerializer(serializers.ModelSerializer):
 
         instance.text = validated_data.get("text", instance.text)
         instance.intent = validated_data.get("intent", instance.intent)
-        instance.repository_update = repository.current_version(language)
+        instance.repository_version_language = repository.current_version(language)
         instance.save()
         instance.delete_entities()
 
