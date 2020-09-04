@@ -93,6 +93,7 @@ INSTALLED_APPS = [
     "bothub.api",
     "django_celery_results",
     "django_celery_beat",
+    "debug_toolbar",
 ]
 
 MIDDLEWARE = [
@@ -106,6 +107,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
 ]
 
 ROOT_URLCONF = "bothub.urls"
@@ -357,3 +359,7 @@ CELERY_BROKER_URL = env.str("CELERY_BROKER_URL")
 CELERY_ACCEPT_CONTENT = ["application/json"]
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TASK_SERIALIZER = "json"
+
+# Django DEBUG Toolbar
+
+INTERNAL_IPS = ("127.0.0.1",)

@@ -40,6 +40,10 @@ urlpatterns = [
 
 if settings.DEBUG:
 
+    import debug_toolbar
+
+    urlpatterns = [path("__debug__/", include(debug_toolbar.urls))] + urlpatterns
+
     def render_template(template_name, **kwargs):
         def wrapper(request):
             from django.shortcuts import render
