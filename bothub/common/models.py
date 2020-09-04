@@ -842,6 +842,12 @@ class RepositoryVersion(models.Model):
     def version_languages(self):
         return RepositoryVersionLanguage.objects.filter(repository_version=self)
 
+    def get_version_language(self, language):
+        version_language, created = RepositoryVersionLanguage.objects.get_or_create(
+            repository_version=self, language=language
+        )
+        return version_language
+
     def current_entities(self, queryset=None, version_default=True):
         return self.entities.filter(
             value__in=self.repository.examples(
@@ -1352,16 +1358,16 @@ class RepositoryTranslatedExampleManager(models.Manager):
         clone_repository=False,
         **kwargs,
     ):
-        repository = (
-            original_example.repository_version_language.repository_version.repository
-        )
         if clone_repository:
             return super().create(
                 *args, original_example=original_example, language=language, **kwargs
             )
+
         return super().create(
             *args,
-            repository_version_language=repository.current_version(language),
+            repository_version_language=original_example.repository_version_language.repository_version.get_version_language(
+                language
+            ),
             original_example=original_example,
             language=language,
             **kwargs,
