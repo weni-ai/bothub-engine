@@ -8,9 +8,17 @@ def noop(apps, schema_editor):  # pragma: no cover
 
 
 def migration(apps, schema_editor):  # pragma: no cover
+    RepositoryVersionLanguage = apps.get_model("common", "RepositoryVersionLanguage")
     RepositoryTranslatedExample = apps.get_model(
         "common", "RepositoryTranslatedExample"
     )
+
+    def get_version_language(repository_version, language):
+        version_language, created = RepositoryVersionLanguage.objects.get_or_create(
+            repository_version=repository_version, language=language
+        )
+        return version_language
+
     chunk = []
 
     for i, translated in enumerate(
@@ -19,8 +27,9 @@ def migration(apps, schema_editor):  # pragma: no cover
         ).iterator(chunk_size=10000)
     ):
         if translated.repository_version_language.language != translated.language:
-            repository_version_language = translated.original_example.repository_version_language.repository_version.get_version_language(
-                translated.language
+            repository_version_language = get_version_language(
+                translated.original_example.repository_version_language.repository_version,
+                translated.language,
             )
             translated.repository_version_language = repository_version_language
             chunk.append(translated)
