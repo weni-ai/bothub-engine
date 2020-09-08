@@ -62,7 +62,7 @@ class ExamplesViewSet(mixins.ListModelMixin, GenericViewSet):
         ),
     )
     @action(detail=True, methods=["POST"], url_name="repositories-examples")
-    def repositories_examples(self, request, **kwargs):
+    def search_repositories_examples(self, request, **kwargs):
         serializer = RepositoriesSearchExamplesSerializer(
             data=request.data
         )  # pragma: no cover
