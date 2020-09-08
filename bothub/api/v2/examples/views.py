@@ -9,6 +9,7 @@ from rest_framework import mixins
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter
 from rest_framework.filters import SearchFilter
+from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
@@ -74,7 +75,8 @@ class ExamplesViewSet(mixins.ListModelMixin, GenericViewSet):
 
         for repository in repositories:
             examples = (
-                RepositoryVersion.objects.get(
+                get_object_or_404(
+                    RepositoryVersion,
                     repository=repository.get("uuid"),
                     repository__allow_search_examples=True,
                     is_default=True,
