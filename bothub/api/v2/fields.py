@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
-from bothub.common.models import RepositoryEntity, RepositoryVersionLanguage
-from bothub.common.models import RepositoryEntityLabel
+from bothub.common.models import RepositoryEntity
+from bothub.common.models import RepositoryVersionLanguage
 
 
 class ModelMultipleChoiceField(serializers.ManyRelatedField):
@@ -28,24 +28,6 @@ class EntityValueField(serializers.CharField):
         kwargs.pop("help_text", "")
 
         value_field = RepositoryEntity._meta.get_field("value")
-
-        super().__init__(
-            *args,
-            max_length=value_field.max_length,
-            validators=(validators + value_field.validators),
-            **kwargs
-        )
-
-    def to_representation(self, obj):
-        return obj.value  # pragma: no cover
-
-
-class LabelValueField(serializers.CharField):  # pragma: no cover
-    def __init__(self, *args, validators=[], **kwargs):
-        kwargs.pop("max_length", 0)
-        kwargs.pop("help_text", "")
-
-        value_field = RepositoryEntityLabel._meta.get_field("value")
 
         super().__init__(
             *args,

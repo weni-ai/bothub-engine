@@ -13,7 +13,7 @@ from bothub.common.models import RepositoryExample
 class ExamplesFilter(filters.FilterSet):
     class Meta:
         model = RepositoryExample
-        fields = ["text", "language", "intent"]
+        fields = ["text", "language"]
 
     repository_uuid = filters.CharFilter(
         field_name="repository_uuid",
@@ -39,20 +39,40 @@ class ExamplesFilter(filters.FilterSet):
         method="filter_order_by_translation",
         help_text=_("Order examples with translation by language"),
     )
-    label = filters.CharFilter(
-        field_name="label",
-        method="filter_label",
-        help_text=_("Filter for examples with entities with specific label."),
+    group = filters.CharFilter(
+        field_name="group",
+        method="filter_group",
+        help_text=_("Filter for examples with entities with specific group."),
     )
     entity = filters.CharFilter(
         field_name="entity",
         method="filter_entity",
         help_text=_("Filter for examples with entity."),
     )
+    entity_id = filters.CharFilter(
+        field_name="entity_id",
+        method="filter_entity_id",
+        help_text=_("Filter for examples with entity by id."),
+    )
     repository_version = filters.CharFilter(
         field_name="repository_version_language",
         method="filter_repository_version",
         help_text=_("Filter for examples with version id."),
+    )
+    start_created_at = filters.DateTimeFilter(
+        field_name="created_at",
+        lookup_expr="gte",
+        help_text=_("Filter by record creation date, example: 2020-08-15 15:35:12.51"),
+    )
+    end_created_at = filters.DateTimeFilter(
+        field_name="created_at",
+        lookup_expr="lte",
+        help_text=_("Filter by record creation date, example: 2020-08-17 15:35:12.51"),
+    )
+    intent = filters.CharFilter(
+        field_name="intent__text",
+        method="filter_intent",
+        help_text=_("Filter for examples with intent by text."),
     )
 
     def filter_repository_uuid(self, queryset, name, value):
@@ -106,10 +126,16 @@ class ExamplesFilter(filters.FilterSet):
         )
         return result_queryset
 
-    def filter_label(self, queryset, name, value):
+    def filter_group(self, queryset, name, value):
         if value == "other":
-            return queryset.filter(entities__entity__label__isnull=True)
-        return queryset.filter(entities__entity__label__value=value)
+            return queryset.filter(entities__entity__group__isnull=True)
+        return queryset.filter(entities__entity__group__value=value)
 
     def filter_entity(self, queryset, name, value):
-        return queryset.filter(entities__entity__value=value)
+        return queryset.filter(entities__entity__value=value).distinct()
+
+    def filter_entity_id(self, queryset, name, value):
+        return queryset.filter(entities__entity__pk=value).distinct()
+
+    def filter_intent(self, queryset, name, value):
+        return queryset.filter(intent__text=value)

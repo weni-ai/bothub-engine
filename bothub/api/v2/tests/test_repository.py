@@ -7,11 +7,12 @@ from django.test import TestCase
 from django.test.client import MULTIPART_CONTENT
 from rest_framework import status
 
-from bothub.api.v2.repository.serializers import RepositorySerializer
+from bothub.api.v2.repository.serializers import NewRepositorySerializer
 from bothub.api.v2.repository.views import (
     RepositoriesContributionsViewSet,
     RepositoryEntitiesViewSet,
     NewRepositoryViewSet,
+    RepositoryIntentViewSet,
 )
 from bothub.api.v2.repository.views import RepositoriesViewSet
 from bothub.api.v2.repository.views import RepositoryAuthorizationRequestsViewSet
@@ -24,7 +25,12 @@ from bothub.api.v2.repository.views import SearchRepositoriesViewSet
 from bothub.api.v2.tests.utils import create_user_and_token
 from bothub.api.v2.versionning.views import RepositoryVersionViewSet
 from bothub.common import languages
-from bothub.common.models import Repository
+from bothub.common.models import (
+    Repository,
+    Organization,
+    OrganizationAuthorization,
+    RepositoryIntent,
+)
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryCategory
 from bothub.common.models import RepositoryExample
@@ -227,9 +233,12 @@ class RepositoryAuthorizationTestCase(TestCase):
         self.user, self.user_token = create_user_and_token()
         self.owner, self.owner_token = create_user_and_token("owner")
         self.category = RepositoryCategory.objects.create(name="Category 1")
+        self.organization = Organization.objects.create(
+            name="Organization 1", nickname="organization1"
+        )
 
         self.repositories = [
-            create_repository_from_mockup(self.owner, **mockup)
+            create_repository_from_mockup(self.owner.repository_owner, **mockup)
             for mockup in get_valid_mockups([self.category])
         ]
 
@@ -275,6 +284,50 @@ class RepositoryAuthorizationTestCase(TestCase):
             self.assertEqual(
                 authorization.get("uuid"),
                 str(repository.get_user_authorization(user).uuid),
+            )
+
+    def test_authorization_permission_admin_in_organization(self):
+        for repository in self.repositories:
+            perm = OrganizationAuthorization.objects.create(
+                user=self.user,
+                organization=self.organization,
+                role=OrganizationAuthorization.ROLE_ADMIN,
+            )
+
+            repo_auth = RepositoryAuthorization.objects.create(
+                user=self.organization, repository=repository, role=3
+            )
+            user, user_token = (
+                (self.owner, self.owner_token)
+                if repository.is_private
+                else (self.user, self.user_token)
+            )
+            response, content_data = self.request(repository, user_token)
+            authorization = content_data.get("authorization")
+            self.assertIsNotNone(authorization)
+            self.assertEqual(
+                authorization.get("level"), OrganizationAuthorization.ROLE_ADMIN
+            )
+            self.assertTrue(authorization.get("can_read"))
+            self.assertTrue(authorization.get("can_contribute"))
+            self.assertTrue(authorization.get("can_write"))
+            self.assertTrue(authorization.get("can_translate"))
+            self.assertTrue(authorization.get("is_admin"))
+            self.assertEqual(len(authorization.get("organizations")), 1)
+            perm.delete()
+            response, content_data = self.request(repository, user_token)
+            authorization = content_data.get("authorization")
+            self.assertIsNotNone(authorization)
+            self.assertEqual(
+                authorization.get("level"), OrganizationAuthorization.ROLE_USER
+            )
+
+            repo_auth.delete()
+            response, content_data = self.request(repository, user_token)
+            authorization = content_data.get("authorization")
+            self.assertIsNotNone(authorization)
+            self.assertEqual(
+                authorization.get("level"), OrganizationAuthorization.ROLE_USER
             )
 
 
@@ -348,14 +401,21 @@ class IntentsInRepositorySerializerTestCase(TestCase):
             slug="test",
             language=languages.LANGUAGE_EN,
         )
+
+        self.example_intent_1 = RepositoryIntent.objects.create(
+            text="greet",
+            repository_version=self.repository.current_version().repository_version,
+        )
         RepositoryExample.objects.create(
             repository_version_language=self.repository.current_version(),
             text="hi",
-            intent="greet",
+            intent=self.example_intent_1,
         )
 
     def test_count_1(self):
-        repository_data = RepositorySerializer(self.repository).data
+        repository_data = NewRepositorySerializer(
+            self.repository.current_version().repository_version
+        ).data
         intent = repository_data.get("intents")[0]
         self.assertEqual(intent.get("examples__count"), 1)
 
@@ -363,13 +423,17 @@ class IntentsInRepositorySerializerTestCase(TestCase):
         example = RepositoryExample.objects.create(
             repository_version_language=self.repository.current_version(),
             text="hi",
-            intent="greet",
+            intent=self.example_intent_1,
         )
-        repository_data = RepositorySerializer(self.repository).data
+        repository_data = NewRepositorySerializer(
+            self.repository.current_version().repository_version
+        ).data
         intent = repository_data.get("intents")[0]
         self.assertEqual(intent.get("examples__count"), 2)
         example.delete()
-        repository_data = RepositorySerializer(self.repository).data
+        repository_data = NewRepositorySerializer(
+            self.repository.current_version().repository_version
+        ).data
         intent = repository_data.get("intents")[0]
         self.assertEqual(intent.get("examples__count"), 1)
 
@@ -462,10 +526,16 @@ class RepositoriesLanguageFilterTestCase(TestCase):
 
     def test_example_language(self):
         language = languages.LANGUAGE_ES
+        example_intent_1 = RepositoryIntent.objects.create(
+            text="greet",
+            repository_version=self.repository_en_1.current_version(
+                language
+            ).repository_version,
+        )
         example = RepositoryExample.objects.create(
             repository_version_language=self.repository_en_1.current_version(language),
             text="hi",
-            intent="greet",
+            intent=example_intent_1,
         )
         response, content_data = self.request({"language": language})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -477,10 +547,16 @@ class RepositoriesLanguageFilterTestCase(TestCase):
 
     def test_translated_example(self):
         language = languages.LANGUAGE_ES
+        example_intent_1 = RepositoryIntent.objects.create(
+            text="greet",
+            repository_version=self.repository_en_1.current_version(
+                language
+            ).repository_version,
+        )
         example = RepositoryExample.objects.create(
             repository_version_language=self.repository_en_1.current_version(),
             text="hi",
-            intent="greet",
+            intent=example_intent_1,
         )
         translated = RepositoryTranslatedExample.objects.create(
             original_example=example, language=language, text="hola"
@@ -789,7 +865,7 @@ class ListAuthorizationTestCase(TestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertEqual(content_data.get("count"), 1)
+        self.assertEqual(content_data.get("count"), 2)
 
         self.assertEqual(content_data.get("results")[0].get("user"), self.user.id)
 
@@ -879,7 +955,7 @@ class RepositoryAuthorizationRequestsTestCase(TestCase):
         self.user, self.user_token = create_user_and_token()
 
         self.repository = Repository.objects.create(
-            owner=self.owner,
+            owner=self.owner.repository_owner,
             name="Testing",
             slug="test",
             language=languages.LANGUAGE_EN,
@@ -987,7 +1063,7 @@ class ReviewAuthorizationRequestTestCase(TestCase):
         self.user, self.user_token = create_user_and_token()
 
         repository = Repository.objects.create(
-            owner=self.owner,
+            owner=self.owner.repository_owner,
             name="Testing",
             slug="test",
             language=languages.LANGUAGE_EN,
@@ -1078,9 +1154,15 @@ class RepositoryExampleRetrieveTestCase(TestCase):
             slug="test",
             language=languages.LANGUAGE_EN,
         )
+
+        self.example_intent_1 = RepositoryIntent.objects.create(
+            text="greet",
+            repository_version=self.repository.current_version().repository_version,
+        )
         self.example = RepositoryExample.objects.create(
             repository_version_language=self.repository.current_version(),
             text="my name is user",
+            intent=self.example_intent_1,
         )
         self.example_entity = RepositoryExampleEntity.objects.create(
             repository_example=self.example, start=11, end=18, entity="name"
@@ -1093,9 +1175,14 @@ class RepositoryExampleRetrieveTestCase(TestCase):
             language=languages.LANGUAGE_EN,
             is_private=True,
         )
+        self.example_intent_2 = RepositoryIntent.objects.create(
+            text="greet",
+            repository_version=self.private_repository.current_version().repository_version,
+        )
         self.private_example = RepositoryExample.objects.create(
             repository_version_language=self.private_repository.current_version(),
             text="hi",
+            intent=self.example_intent_2,
         )
 
     def request(self, example, token):
@@ -1133,17 +1220,17 @@ class RepositoryExampleRetrieveTestCase(TestCase):
         response, content_data = self.request(self.example, self.owner_token)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         entity = content_data.get("entities")[0]
-        self.assertIn("label", entity.keys())
+        self.assertIn("group", entity.keys())
 
     def test_entity_has_valid_label(self):
-        label = "subject"
-        self.example_entity.entity.set_label("subject")
-        self.example_entity.entity.save(update_fields=["label"])
+        group = "subject"
+        self.example_entity.entity.set_group("subject")
+        self.example_entity.entity.save(update_fields=["group"])
         response, content_data = self.request(self.example, self.owner_token)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         entity = content_data.get("entities")[0]
-        self.assertIn("label", entity.keys())
-        self.assertEqual(entity.get("label"), label)
+        self.assertIn("group", entity.keys())
+        self.assertEqual(entity.get("group"), group)
 
 
 class RepositoryExampleUploadTestCase(TestCase):
@@ -1154,7 +1241,7 @@ class RepositoryExampleUploadTestCase(TestCase):
         self.user, self.user_token = create_user_and_token()
 
         self.repository = Repository.objects.create(
-            owner=self.owner,
+            owner=self.owner.repository_owner,
             name="Testing",
             slug="test",
             language=languages.LANGUAGE_EN,
@@ -1193,7 +1280,11 @@ class RepositoryExampleUploadTestCase(TestCase):
 
         request = self.factory.post(
             "/v2/repository/example/upload_examples/",
-            {"file": uploaded_file, "repository": str(self.repository.uuid)},
+            {
+                "file": uploaded_file,
+                "repository": str(self.repository.uuid),
+                "repository_version": self.repository.current_version().repository_version.pk,
+            },
             format="multipart",
             **authorization_header,
         )
@@ -1228,8 +1319,14 @@ class RepositoryExampleDestroyTestCase(TestCase):
             slug="test",
             language=languages.LANGUAGE_EN,
         )
+        self.example_intent_1 = RepositoryIntent.objects.create(
+            text="bias",
+            repository_version=self.repository.current_version().repository_version,
+        )
         self.example = RepositoryExample.objects.create(
-            repository_version_language=self.repository.current_version(), text="hi"
+            repository_version_language=self.repository.current_version(),
+            text="hi",
+            intent=self.example_intent_1,
         )
 
         self.private_repository = Repository.objects.create(
@@ -1239,9 +1336,14 @@ class RepositoryExampleDestroyTestCase(TestCase):
             language=languages.LANGUAGE_EN,
             is_private=True,
         )
+        self.example_intent_2 = RepositoryIntent.objects.create(
+            text="bias",
+            repository_version=self.private_repository.current_version().repository_version,
+        )
         self.private_example = RepositoryExample.objects.create(
             repository_version_language=self.private_repository.current_version(),
             text="hi",
+            intent=self.example_intent_2,
         )
 
     def request(self, example, token):
@@ -1290,8 +1392,14 @@ class RepositoryExampleUpdateTestCase(TestCase):
             slug="test",
             language=languages.LANGUAGE_EN,
         )
+        self.example_intent_1 = RepositoryIntent.objects.create(
+            text="bias",
+            repository_version=self.repository.current_version().repository_version,
+        )
         self.example = RepositoryExample.objects.create(
-            repository_version_language=self.repository.current_version(), text="hi"
+            repository_version_language=self.repository.current_version(),
+            text="hi",
+            intent=self.example_intent_1,
         )
 
         self.private_repository = Repository.objects.create(
@@ -1301,9 +1409,14 @@ class RepositoryExampleUpdateTestCase(TestCase):
             language=languages.LANGUAGE_EN,
             is_private=True,
         )
+        self.example_intent_2 = RepositoryIntent.objects.create(
+            text="greet",
+            repository_version=self.private_repository.current_version().repository_version,
+        )
         self.private_example = RepositoryExample.objects.create(
             repository_version_language=self.private_repository.current_version(),
             text="hi",
+            intent=self.example_intent_2,
         )
 
     def request(self, example, token, data):
@@ -1325,10 +1438,21 @@ class RepositoryExampleUpdateTestCase(TestCase):
         text = "teste"
         intent = "teste1234"
 
+        RepositoryIntent.objects.create(
+            text=intent,
+            repository_version=self.repository.current_version().repository_version,
+        )
+
         response, content_data = self.request(
             self.example,
             self.owner_token,
-            {"repository": str(self.repository.uuid), "text": text, "intent": intent},
+            {
+                "repository": str(self.repository.uuid),
+                "text": text,
+                "intent": intent,
+                "entities": [],
+                "repository_version": self.repository.current_version().repository_version.pk,
+            },
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -1375,6 +1499,10 @@ class NewRepositoryExampleTestCase(TestCase):
     def test_okay(self):
         text = "hi"
         intent = "greet"
+        RepositoryIntent.objects.create(
+            text=intent,
+            repository_version=self.repository.current_version().repository_version,
+        )
         response, content_data = self.request(
             self.owner_token,
             {
@@ -1383,6 +1511,7 @@ class NewRepositoryExampleTestCase(TestCase):
                 "text": text,
                 "intent": intent,
                 "entities": [],
+                "repository_version": self.repository.current_version().repository_version.pk,
             },
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -1392,6 +1521,10 @@ class NewRepositoryExampleTestCase(TestCase):
     def test_okay_with_language(self):
         text = "hi"
         intent = "greet"
+        RepositoryIntent.objects.create(
+            text=intent,
+            repository_version=self.repository.current_version().repository_version,
+        )
         language = languages.LANGUAGE_PT
         response, content_data = self.request(
             self.owner_token,
@@ -1401,6 +1534,7 @@ class NewRepositoryExampleTestCase(TestCase):
                 "language": language,
                 "intent": intent,
                 "entities": [],
+                "repository_version": self.repository.current_version().repository_version.pk,
             },
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -1409,30 +1543,43 @@ class NewRepositoryExampleTestCase(TestCase):
         self.assertEqual(content_data.get("language"), language)
 
     def test_forbidden(self):
+        example_intent_1 = RepositoryIntent.objects.create(
+            text="greet",
+            repository_version=self.repository.current_version().repository_version,
+        )
         response, content_data = self.request(
             self.user_token,
             {
                 "repository": str(self.repository.uuid),
                 "text": "hi",
-                "intent": "greet",
+                "intent": example_intent_1.pk,
                 "entities": [],
             },
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_repository_uuid_required(self):
+        example_intent_1 = RepositoryIntent.objects.create(
+            text="greet",
+            repository_version=self.repository.current_version().repository_version,
+        )
         response, content_data = self.request(
-            self.owner_token, {"text": "hi", "intent": "greet", "entities": []}
+            self.owner_token,
+            {"text": "hi", "intent": example_intent_1.pk, "entities": []},
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_repository_does_not_exists(self):
+        example_intent_1 = RepositoryIntent.objects.create(
+            text="greet",
+            repository_version=self.repository.current_version().repository_version,
+        )
         response, content_data = self.request(
             self.owner_token,
             {
                 "repository": str(uuid.uuid4()),
                 "text": "hi",
-                "intent": "greet",
+                "intent": example_intent_1.pk,
                 "entities": [],
             },
         )
@@ -1440,21 +1587,35 @@ class NewRepositoryExampleTestCase(TestCase):
         self.assertIn("repository", content_data.keys())
 
     def test_invalid_repository_uuid(self):
+        example_intent_1 = RepositoryIntent.objects.create(
+            text="greet",
+            repository_version=self.repository.current_version().repository_version,
+        )
         response, content_data = self.request(
             self.owner_token,
-            {"repository": "invalid", "text": "hi", "intent": "greet", "entities": []},
+            {
+                "repository": "invalid",
+                "text": "hi",
+                "intent": example_intent_1.pk,
+                "entities": [],
+            },
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_with_entities(self):
+        example_intent_1 = RepositoryIntent.objects.create(
+            text="greet",
+            repository_version=self.repository.current_version().repository_version,
+        )
         response, content_data = self.request(
             self.owner_token,
             {
                 "repository": str(self.repository.uuid),
                 "language": languages.LANGUAGE_EN,
                 "text": "my name is user",
-                "intent": "greet",
+                "intent": example_intent_1.pk,
                 "entities": [{"start": 11, "end": 18, "entity": "name"}],
+                "repository_version": self.repository.current_version().repository_version.pk,
             },
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -1463,14 +1624,19 @@ class NewRepositoryExampleTestCase(TestCase):
     def test_exists_example(self):
         text = "hi"
         intent = "greet"
+        example_intent_1 = RepositoryIntent.objects.create(
+            text=intent,
+            repository_version=self.repository.current_version().repository_version,
+        )
         response_created, content_data_created = self.request(
             self.owner_token,
             {
                 "repository": str(self.repository.uuid),
                 "text": text,
-                "intent": intent,
+                "intent": example_intent_1.pk,
                 "language": languages.LANGUAGE_EN,
                 "entities": [],
+                "repository_version": self.repository.current_version().repository_version.pk,
             },
         )
 
@@ -1482,8 +1648,9 @@ class NewRepositoryExampleTestCase(TestCase):
                 "repository": str(self.repository.uuid),
                 "language": languages.LANGUAGE_EN,
                 "text": text,
-                "intent": intent,
+                "intent": example_intent_1.pk,
                 "entities": [],
+                "repository_version": self.repository.current_version().repository_version.pk,
             },
         )
 
@@ -1492,60 +1659,6 @@ class NewRepositoryExampleTestCase(TestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-    def test_with_entities_with_label(self):
-        response, content_data = self.request(
-            self.owner_token,
-            {
-                "repository": str(self.repository.uuid),
-                "language": languages.LANGUAGE_EN,
-                "text": "my name is user",
-                "intent": "greet",
-                "entities": [
-                    {"start": 11, "end": 18, "entity": "name", "label": "subject"}
-                ],
-            },
-        )
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(len(content_data.get("entities")), 1)
-        id = content_data.get("id")
-        repository_example = RepositoryExample.objects.get(id=id)
-        example_entity = repository_example.entities.all()[0]
-        self.assertIsNotNone(example_entity.entity.label)
-
-    def test_with_entities_with_invalid_label(self):
-        response, content_data = self.request(
-            self.owner_token,
-            {
-                "repository": str(self.repository.uuid),
-                "text": "my name is user",
-                "intent": "greet",
-                "entities": [
-                    {"start": 11, "end": 18, "entity": "name", "label": "other"}
-                ],
-            },
-        )
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("entities", content_data.keys())
-        entities_errors = content_data.get("entities")
-        self.assertIn("label", entities_errors[0])
-
-    def test_with_entities_with_equal_label(self):
-        response, content_data = self.request(
-            self.owner_token,
-            {
-                "repository": str(self.repository.uuid),
-                "text": "my name is user",
-                "intent": "greet",
-                "entities": [
-                    {"start": 11, "end": 18, "entity": "name", "label": "name"}
-                ],
-            },
-        )
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("entities", content_data.keys())
-        entities_errors = content_data.get("entities")
-        self.assertIn("label", entities_errors[0])
 
     def test_intent_or_entity_required(self):
         response, content_data = self.request(
@@ -1567,6 +1680,7 @@ class NewRepositoryExampleTestCase(TestCase):
                 "text": "my name is user",
                 "intent": "",
                 "entities": [{"start": 11, "end": 18, "entity": "nam&"}],
+                "repository_version": self.repository.current_version().repository_version.pk,
             },
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -1580,6 +1694,7 @@ class NewRepositoryExampleTestCase(TestCase):
                 "text": "my name is user",
                 "intent": "nam$s",
                 "entities": [],
+                "repository_version": self.repository.current_version().repository_version.pk,
             },
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -1797,21 +1912,24 @@ class VersionsTestCase(TestCase):
         self.owner, self.owner_token = create_user_and_token("owner")
 
         self.repository = Repository.objects.create(
-            owner=self.owner,
+            owner=self.owner.repository_owner,
             name="Testing",
             slug="test",
             language=languages.LANGUAGE_EN,
         )
         current_version = self.repository.current_version()
+        self.example_intent_1 = RepositoryIntent.objects.create(
+            text="greet", repository_version=current_version.repository_version
+        )
         RepositoryExample.objects.create(
             repository_version_language=current_version,
             text="my name is Douglas",
-            intent="greet",
+            intent=self.example_intent_1,
         )
         RepositoryExample.objects.create(
             repository_version_language=current_version,
             text="my name is John",
-            intent="greet",
+            intent=self.example_intent_1,
         )
         current_version.start_training(self.owner)
 
@@ -1858,14 +1976,19 @@ class RepositoryEntitiesTestCase(TestCase):
             slug="test",
             language=languages.LANGUAGE_EN,
         )
+        self.repository_version = self.repository.current_version().repository_version
+        self.example_intent_1 = RepositoryIntent.objects.create(
+            text="bias", repository_version=self.repository_version
+        )
         self.example = RepositoryExample.objects.create(
             repository_version_language=self.repository.current_version(),
             text="my name is user",
+            intent=self.example_intent_1,
         )
         self.example_entity = RepositoryExampleEntity.objects.create(
             repository_example=self.example, start=11, end=18, entity=self.entity_value
         )
-        self.example_entity.entity.set_label("name")
+        self.example_entity.entity.set_group("name")
         self.example_entity.entity.save()
 
     def request(self, data, token):
@@ -1880,21 +2003,92 @@ class RepositoryEntitiesTestCase(TestCase):
 
     def test_okay(self):
         response, content_data = self.request(
-            {"repository_uuid": self.repository.uuid}, self.owner_token
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(content_data.get("count"), 1)
-
-        response, content_data = self.request(
-            {"repository_uuid": self.repository.uuid, "value": self.entity_value},
+            {
+                "repository_uuid": self.repository.uuid,
+                "repository_version": self.repository_version.pk,
+            },
             self.owner_token,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(content_data.get("count"), 1)
 
         response, content_data = self.request(
-            {"repository_uuid": self.repository.uuid, "value": "other"},
+            {
+                "repository_uuid": self.repository.uuid,
+                "repository_version": self.repository_version.pk,
+                "value": self.entity_value,
+            },
+            self.owner_token,
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(content_data.get("count"), 1)
+
+        response, content_data = self.request(
+            {
+                "repository_uuid": self.repository.uuid,
+                "repository_version": self.repository_version.pk,
+                "value": "other",
+            },
             self.owner_token,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(content_data.get("count"), 0)
+
+
+class UpdateRepositoryIntentTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.owner, self.owner_token = create_user_and_token("owner")
+        self.user, self.user_token = create_user_and_token("user")
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name="Testing",
+            slug="test",
+            language=languages.LANGUAGE_EN,
+        )
+        self.repository_version = self.repository.current_version().repository_version
+
+    def request(self, id, data={}, token=None):
+        authorization_header = (
+            {"HTTP_AUTHORIZATION": "Token {}".format(token.key)} if token else {}
+        )
+
+        request = self.factory.patch(
+            "/v2/repository/intent/{}/".format(id),
+            self.factory._encode_data(data, MULTIPART_CONTENT),
+            MULTIPART_CONTENT,
+            **authorization_header,
+        )
+
+        response = RepositoryIntentViewSet.as_view({"patch": "update"})(
+            request, pk=id, partial=True
+        )
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data)
+
+    def test_okay_update_text(self):
+        intent = RepositoryIntent.objects.create(
+            repository_version=self.repository_version, text="positive"
+        )
+        response, content_data = self.request(
+            intent.pk, {"text": "negative"}, self.owner_token
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(content_data.get("text"), "negative")
+        self.assertEqual(
+            content_data.get("repository_version"), self.repository_version.pk
+        )
+
+    def test_unauthorized(self):
+        intent = RepositoryIntent.objects.create(
+            repository_version=self.repository_version, text="positive"
+        )
+        response, content_data = self.request(
+            intent.pk, {"text": "negative"}, self.user_token
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

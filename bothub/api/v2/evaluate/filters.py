@@ -15,7 +15,7 @@ from bothub.common.models import RepositoryEvaluateResult
 class EvaluatesFilter(filters.FilterSet):
     class Meta:
         model = RepositoryEvaluate
-        fields = ["text", "language", "intent"]
+        fields = ["language", "intent"]
 
     repository_uuid = filters.CharFilter(
         field_name="repository_uuid",
@@ -30,10 +30,10 @@ class EvaluatesFilter(filters.FilterSet):
         help_text="Filter by language, default is repository base language",
     )
 
-    label = filters.CharFilter(
-        field_name="label",
-        method="filter_label",
-        help_text=_("Filter evaluations with entities with a specific label."),
+    group = filters.CharFilter(
+        field_name="group",
+        method="filter_group",
+        help_text=_("Filter evaluations with entities with a specific group."),
     )
 
     entity = filters.CharFilter(
@@ -59,7 +59,7 @@ class EvaluatesFilter(filters.FilterSet):
                 version = get_object_or_404(
                     RepositoryVersion, pk=request.query_params.get("repository_version")
                 )
-                queryset = RepositoryEvaluate.objects.filter(
+                queryset = queryset.filter(
                     repository_version_language__repository_version=version
                 )
                 return repository.evaluations(
@@ -77,10 +77,10 @@ class EvaluatesFilter(filters.FilterSet):
     def filter_repository_version(self, queryset, name, value):
         return queryset
 
-    def filter_label(self, queryset, name, value):
+    def filter_group(self, queryset, name, value):
         if value == "other":
-            return queryset.filter(entities__entity__label__isnull=True)
-        return queryset.filter(entities__entity__label__value=value)
+            return queryset.filter(entities__entity__group__isnull=True)
+        return queryset.filter(entities__entity__group__value=value)
 
     def filter_entity(self, queryset, name, value):
         return queryset.filter(entities__entity__value=value)

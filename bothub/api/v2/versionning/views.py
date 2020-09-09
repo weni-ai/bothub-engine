@@ -31,6 +31,6 @@ class RepositoryVersionViewSet(
 
         return super().list(request, *args, **kwargs)
 
-    def perform_destroy(self, instance):
+    def perform_destroy(self, instance):  # pragma: no cover
         instance.is_deleted = True
         instance.save(update_fields=["is_deleted"])

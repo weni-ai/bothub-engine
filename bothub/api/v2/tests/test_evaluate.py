@@ -8,6 +8,7 @@ from bothub.common.models import (
     RepositoryExample,
     RepositoryVersion,
     RepositoryVersionLanguage,
+    RepositoryIntent,
 )
 from bothub.common.models import Repository
 from bothub.common.models import RepositoryEvaluate
@@ -45,10 +46,14 @@ class ListEvaluateTestCase(TestCase):
             algorithm="neural_network_internal",
         )
 
+        self.example_intent_1 = RepositoryIntent.objects.create(
+            text="greet", repository_version=self.repository_version
+        )
+
         self.example_1 = RepositoryExample.objects.create(
             repository_version_language=self.repository_version_language,
             text="test",
-            intent="greet",
+            intent=self.example_intent_1,
         )
 
         self.repository_evaluate = RepositoryEvaluate.objects.create(
@@ -89,7 +94,7 @@ class ListEvaluateTestCase(TestCase):
         RepositoryExample.objects.create(
             repository_version_language=repository_version_language,
             text="test",
-            intent="greet",
+            intent=self.example_intent_1,
         )
 
         RepositoryEvaluate.objects.create(
@@ -128,7 +133,7 @@ class ListEvaluateTestCase(TestCase):
         RepositoryExample.objects.create(
             repository_version_language=repository_version_language,
             text="test",
-            intent="greet",
+            intent=self.example_intent_1,
         )
 
         RepositoryEvaluate.objects.create(
@@ -171,10 +176,14 @@ class NewEvaluateTestCase(TestCase):
             algorithm="neural_network_internal",
         )
 
+        self.example_intent_1 = RepositoryIntent.objects.create(
+            text="greet", repository_version=self.repository_version
+        )
+
         self.example_1 = RepositoryExample.objects.create(
             repository_version_language=self.repository_version_language,
             text="test",
-            intent="greet",
+            intent=self.example_intent_1,
         )
 
     def request(self, data, token):
@@ -224,6 +233,7 @@ class NewEvaluateTestCase(TestCase):
         response, content_data = self.request(
             {
                 "repository": str(self.repository.uuid),
+                "repository_version": self.repository_version.pk,
                 "text": "haha",
                 "language": languages.LANGUAGE_EN,
                 "intent": "greet",
@@ -262,7 +272,7 @@ class NewEvaluateTestCase(TestCase):
         RepositoryExample.objects.create(
             repository_version_language=repository_version_language,
             text="test",
-            intent="greet",
+            intent=self.example_intent_1,
         )
 
         RepositoryEvaluate.objects.create(
@@ -310,16 +320,20 @@ class EvaluateDestroyTestCase(TestCase):
             algorithm="neural_network_internal",
         )
 
+        self.example_intent_1 = RepositoryIntent.objects.create(
+            text="greet", repository_version=self.repository_version
+        )
+
         self.example_1 = RepositoryExample.objects.create(
             repository_version_language=self.repository_version_language,
             text="test",
-            intent="greet",
+            intent=self.example_intent_1,
         )
 
         self.repository_evaluate = RepositoryEvaluate.objects.create(
             repository_version_language=self.repository_version_language,
             text="test",
-            intent="greet",
+            intent=self.example_intent_1,
         )
 
     def request(self, token):
@@ -377,10 +391,14 @@ class EvaluateUpdateTestCase(TestCase):
             algorithm="neural_network_internal",
         )
 
+        self.example_intent_1 = RepositoryIntent.objects.create(
+            text="greet", repository_version=self.repository_version
+        )
+
         self.example_1 = RepositoryExample.objects.create(
             repository_version_language=self.repository_version_language,
             text="test",
-            intent="greet",
+            intent=self.example_intent_1,
         )
 
         self.repository_evaluate = RepositoryEvaluate.objects.create(
@@ -719,7 +737,7 @@ class ListEvaluateResultTestFilterCase(TestCase):
         response, content_data = self.request(
             self.owner_token, "?repository_uuid={}".format(self.repository.uuid)
         )
-        self.assertEqual(len(content_data["log"]), 4)
+        self.assertEqual(len(content_data["log"]["results"]), 4)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_okay_intent_filter(self):
@@ -729,7 +747,7 @@ class ListEvaluateResultTestFilterCase(TestCase):
                 self.repository.uuid
             ),
         )
-        self.assertEqual(len(content_data["log"]), 3)
+        self.assertEqual(len(content_data["log"]["results"]), 3)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_okay_without_intent_filter(self):
@@ -737,7 +755,7 @@ class ListEvaluateResultTestFilterCase(TestCase):
             self.owner_token,
             "?repository_uuid={}&min=0&max=100".format(self.repository.uuid),
         )
-        self.assertEqual(len(content_data["log"]), 4)
+        self.assertEqual(len(content_data["log"]["results"]), 4)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_okay_range_without_intent_filter(self):
@@ -745,7 +763,7 @@ class ListEvaluateResultTestFilterCase(TestCase):
             self.owner_token,
             "?repository_uuid={}&min=50&max=80".format(self.repository.uuid),
         )
-        self.assertEqual(len(content_data["log"]), 1)
+        self.assertEqual(len(content_data["log"]["results"]), 1)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_okay_range_with_intent_filter(self):
@@ -755,5 +773,5 @@ class ListEvaluateResultTestFilterCase(TestCase):
                 self.repository.uuid
             ),
         )
-        self.assertEqual(len(content_data["log"]), 1)
+        self.assertEqual(len(content_data["log"]["results"]), 1)
         self.assertEqual(response.status_code, status.HTTP_200_OK)

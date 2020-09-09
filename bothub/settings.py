@@ -44,6 +44,7 @@ env = environ.Env(
     CSRF_COOKIE_SECURE=(bool, False),
     SUPPORTED_LANGUAGES=(cast_supported_languages, "en|pt"),
     CHECK_ACCESSIBLE_API_URL=(str, None),
+    BOTHUB_ENGINE_AWS_ENDPOINT_URL=(str, None),
     BOTHUB_ENGINE_AWS_ACCESS_KEY_ID=(str, ""),
     BOTHUB_ENGINE_AWS_SECRET_ACCESS_KEY=(str, ""),
     BOTHUB_ENGINE_AWS_S3_BUCKET_NAME=(str, ""),
@@ -55,8 +56,8 @@ env = environ.Env(
     BOTHUB_BOT_NICKNAME=(str, "bot_repository"),
     BOTHUB_ENGINE_USE_SENTRY=(bool, False),
     BOTHUB_ENGINE_SENTRY=(str, None),
-    BOTHUB_ENGINE_CELERY_BACKEND_URL=(str, "django-db"),
-    BOTHUB_ENGINE_CELERY_BROKER_URL=(str, "redis://localhost:6379"),
+    BOTHUB_NLP_RASA_VERSION=(str, "1.4.3"),
+    CELERY_BROKER_URL=(str, "redis://localhost:6379/0"),
 )
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -91,6 +92,8 @@ INSTALLED_APPS = [
     "bothub.authentication",
     "bothub.common",
     "bothub.api",
+    "django_celery_results",
+    "django_celery_beat",
 ]
 
 MIDDLEWARE = [
@@ -316,6 +319,7 @@ DRF_YASG_EXCLUDE_VIEWS = (
 
 # AWS
 AWS_SEND = env.bool("BOTHUB_ENGINE_AWS_SEND")
+AWS_ACCESS_ENDPOINT_URL = env.str("BOTHUB_ENGINE_AWS_ENDPOINT_URL")
 AWS_ACCESS_KEY_ID = env.str("BOTHUB_ENGINE_AWS_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY = env.str("BOTHUB_ENGINE_AWS_SECRET_ACCESS_KEY")
 AWS_BUCKET_NAME = env.str("BOTHUB_ENGINE_AWS_S3_BUCKET_NAME")
@@ -342,10 +346,15 @@ if BOTHUB_ENGINE_USE_SENTRY:
         environment=env.str("ENVIRONMENT"),
     )
 
+# Rasa NLP Version
+
+BOTHUB_NLP_RASA_VERSION = env.str("BOTHUB_NLP_RASA_VERSION")
+
+
 # Celery
 
-CELERY_RESULT_BACKEND = env.str("BOTHUB_ENGINE_CELERY_BACKEND_URL")
-CELERY_BROKER_URL = env.str("BOTHUB_ENGINE_CELERY_BROKER_URL")
+CELERY_RESULT_BACKEND = "django-db"
+CELERY_BROKER_URL = env.str("CELERY_BROKER_URL")
 CELERY_ACCEPT_CONTENT = ["application/json"]
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TASK_SERIALIZER = "json"

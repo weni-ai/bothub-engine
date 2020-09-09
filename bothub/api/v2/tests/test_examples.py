@@ -4,7 +4,7 @@ from django.test import TestCase
 from django.test import RequestFactory
 from rest_framework import status
 
-from bothub.common.models import Repository
+from bothub.common.models import Repository, RepositoryIntent
 from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryTranslatedExample
 from bothub.common.models import RepositoryExampleEntity
@@ -26,30 +26,38 @@ class ListExamplesAPITestCase(TestCase):
             slug="repo",
             language=languages.LANGUAGE_EN,
         )
+        self.example_intent_1 = RepositoryIntent.objects.create(
+            text="greet",
+            repository_version=self.repository.current_version().repository_version,
+        )
+        self.example_intent_2 = RepositoryIntent.objects.create(
+            text="farewell",
+            repository_version=self.repository.current_version().repository_version,
+        )
         self.example_1 = RepositoryExample.objects.create(
             repository_version_language=self.repository.current_version(),
             text="hi",
-            intent="greet",
+            intent=self.example_intent_1,
         )
         entity_1 = RepositoryExampleEntity.objects.create(
             repository_example=self.example_1, start=0, end=0, entity="hi"
         )
-        entity_1.entity.set_label("greet")
+        entity_1.entity.set_group("greet")
         entity_1.entity.save()
         self.example_2 = RepositoryExample.objects.create(
             repository_version_language=self.repository.current_version(),
             text="hello",
-            intent="greet",
+            intent=self.example_intent_1,
         )
         self.example_3 = RepositoryExample.objects.create(
             repository_version_language=self.repository.current_version(),
             text="bye",
-            intent="farewell",
+            intent=self.example_intent_2,
         )
         self.example_4 = RepositoryExample.objects.create(
             repository_version_language=self.repository.current_version(),
             text="bye bye",
-            intent="farewell",
+            intent=self.example_intent_2,
         )
 
         self.repository_2 = Repository.objects.create(
@@ -58,17 +66,21 @@ class ListExamplesAPITestCase(TestCase):
             slug="repo2",
             language=languages.LANGUAGE_EN,
         )
+        self.example2_intent_1 = RepositoryIntent.objects.create(
+            text="greet",
+            repository_version=self.repository_2.current_version().repository_version,
+        )
         self.example_5 = RepositoryExample.objects.create(
             repository_version_language=self.repository_2.current_version(),
             text="hi",
-            intent="greet",
+            intent=self.example2_intent_1,
         )
         self.example_6 = RepositoryExample.objects.create(
             repository_version_language=self.repository_2.current_version(
                 languages.LANGUAGE_PT
             ),
             text="oi",
-            intent="greet",
+            intent=self.example2_intent_1,
         )
         self.translation_6 = RepositoryTranslatedExample.objects.create(
             original_example=self.example_6, language=languages.LANGUAGE_EN, text="hi"
@@ -210,7 +222,7 @@ class ListExamplesAPITestCase(TestCase):
 
     def test_filter_label(self):
         response, content_data = self.request(
-            {"repository_uuid": self.repository.uuid, "label": "greet"},
+            {"repository_uuid": self.repository.uuid, "group": "greet"},
             self.owner_token,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)

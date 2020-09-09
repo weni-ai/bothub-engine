@@ -34,6 +34,11 @@ class TranslationsFilter(filters.FilterSet):
         method="filter_repository_version",
         help_text=_("Filter for examples with version id."),
     )
+    original_example_id = filters.CharFilter(
+        field_name="original_example",
+        method="filter_original_example_id",
+        help_text="Filter by original example id",
+    )
 
     def filter_repository_uuid(self, queryset, name, value):
         request = self.request
@@ -67,3 +72,6 @@ class TranslationsFilter(filters.FilterSet):
         return queryset.filter(
             repository_version_language__repository_version__pk=value
         )
+
+    def filter_original_example_id(self, queryset, name, value):
+        return queryset.filter(original_example__pk=value)

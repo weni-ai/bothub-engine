@@ -1,12 +1,22 @@
 from rest_framework import routers
 
 from bothub.api.v2.versionning.views import RepositoryVersionViewSet
+from .groups.views import RepositoryEntityGroupViewSet
+from .organization.views import (
+    OrganizationViewSet,
+    OrganizationProfileViewSet,
+    OrganizationAuthorizationViewSet,
+)
 from .repository.views import (
     RepositoryViewSet,
     RepositoryNLPLogViewSet,
     RepositoryEntitiesViewSet,
     NewRepositoryViewSet,
     RasaUploadViewSet,
+    RepositoryTaskQueueViewSet,
+    RepositoriesPermissionsViewSet,
+    RepositoryNLPLogReportsViewSet,
+    RepositoryIntentViewSet,
 )
 from .repository.views import RepositoryVotesViewSet
 from .repository.views import RepositoryMigrateViewSet
@@ -35,6 +45,7 @@ from .account.views import MyUserProfileViewSet
 from .account.views import SearchUserViewSet
 from .account.views import ResetPasswordViewSet
 from .translation.views import RepositoryTranslatedExampleViewSet
+from .translation.views import RepositoryTranslatedExporterViewSet
 
 
 class Router(routers.SimpleRouter):
@@ -118,21 +129,27 @@ router.register("repository/repositories", RepositoriesViewSet)
 router.register(
     "repository/repositories-contributions", RepositoriesContributionsViewSet
 )
+router.register("repository/repository-reports", RepositoryNLPLogReportsViewSet)
 router.register("repository/categories", RepositoryCategoriesView)
 router.register("repository/examples", ExamplesViewSet)
 router.register("repository/search-repositories", SearchRepositoriesViewSet)
+router.register("repository/repositories-permissions", RepositoriesPermissionsViewSet)
 router.register("repository/authorizations", RepositoryAuthorizationViewSet)
 router.register(
     "repository/authorization-requests", RepositoryAuthorizationRequestsViewSet
 )
 router.register("repository/example", RepositoryExampleViewSet)
+router.register("repository/intent", RepositoryIntentViewSet)
 router.register("repository/evaluate/results", ResultsListViewSet)
 router.register("repository/evaluate", EvaluateViewSet)
 router.register("repository/translation", RepositoryTranslatedExampleViewSet)
+router.register("repository/translation-export", RepositoryTranslatedExporterViewSet)
 router.register("repository/version", RepositoryVersionViewSet)
 router.register("repository/log", RepositoryNLPLogViewSet)
 router.register("repository/entities", RepositoryEntitiesViewSet)
+router.register("repository/task-queue", RepositoryTaskQueueViewSet)
 router.register("repository/upload-rasa-file", RasaUploadViewSet)
+router.register("repository/entity/group", RepositoryEntityGroupViewSet)
 router.register(
     "repository/nlp/authorization/train", RepositoryAuthorizationTrainViewSet
 )
@@ -157,3 +174,6 @@ router.register("account/my-profile", MyUserProfileViewSet)
 router.register("account/search-user", SearchUserViewSet)
 router.register("account/reset-password", ResetPasswordViewSet)
 router.register("repository-migrate", RepositoryMigrateViewSet)
+router.register("org/organization", OrganizationViewSet)
+router.register("org/profile", OrganizationProfileViewSet)
+router.register("org/authorizations", OrganizationAuthorizationViewSet)

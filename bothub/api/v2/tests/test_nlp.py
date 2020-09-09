@@ -11,6 +11,7 @@ from bothub.common.models import (
     RepositoryAuthorization,
     RepositoryVersion,
     RepositoryVersionLanguage,
+    RepositoryIntent,
 )
 from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryExampleEntity
@@ -55,6 +56,7 @@ class TrainStartTrainingTestCase(TestCase):
                 {
                     "repository_version": self.repository_version_language.pk,
                     "by_user": self.user.pk,
+                    "from_queue": "celery",
                 }
             ),
             content_type="application/json",
@@ -161,10 +163,14 @@ class AuthorizationInfoTestCase(TestCase):
             algorithm="neural_network_internal",
         )
 
+        self.example_intent_1 = RepositoryIntent.objects.create(
+            text="greet", repository_version=self.repository_version
+        )
+
         self.repository_examples = RepositoryExample.objects.create(
             repository_version_language=self.repository_version_language,
             text="hello",
-            intent="greet",
+            intent=self.example_intent_1,
         )
 
         self.repository_entity = RepositoryExampleEntity.objects.create(

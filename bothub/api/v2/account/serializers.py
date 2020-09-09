@@ -5,8 +5,8 @@ from rest_framework.authtoken.serializers import AuthTokenSerializer
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from bothub.authentication.models import User
-from ..fields import PasswordField
+from bothub.authentication.models import User, RepositoryOwner
+from ..fields import PasswordField, TextField
 
 
 class LoginSerializer(AuthTokenSerializer, serializers.ModelSerializer):
@@ -37,7 +37,7 @@ class RegisterUserSerializer(serializers.ModelSerializer):
 class ChangePasswordSerializer(serializers.ModelSerializer):
     current_password = PasswordField(required=True, label=_("Current Password"))
     password = PasswordField(
-        required=True, validators=[validate_password], label=_("Password")
+        required=True, validators=[validate_password], label=_("New Password")
     )
 
     class Meta:
@@ -70,9 +70,12 @@ class RequestResetPasswordSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
-        model = User
-        fields = ["nickname", "name", "locale"]
+        model = RepositoryOwner
+        fields = ["nickname", "name", "locale", "is_organization", "biography"]
         ref_name = None
+
+    is_organization = serializers.BooleanField(style={"show": False}, read_only=True)
+    biography = TextField(min_length=0, max_length=350, required=False)
 
 
 class ResetPasswordSerializer(serializers.ModelSerializer):

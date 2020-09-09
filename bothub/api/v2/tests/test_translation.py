@@ -6,7 +6,7 @@ from django.test import RequestFactory
 from rest_framework import status
 
 from bothub.common import languages
-from bothub.common.models import Repository, RepositoryExampleEntity
+from bothub.common.models import Repository, RepositoryExampleEntity, RepositoryIntent
 from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryTranslatedExample
 
@@ -22,13 +22,19 @@ class TranslateExampleTestCase(TestCase):
         self.owner, self.owner_token = create_user_and_token("owner")
 
         self.repository = Repository.objects.create(
-            owner=self.owner,
+            owner=self.owner.repository_owner,
             name="Testing",
             slug="test",
             language=languages.LANGUAGE_EN,
         )
+        self.example_intent_1 = RepositoryIntent.objects.create(
+            text="bias",
+            repository_version=self.repository.current_version().repository_version,
+        )
         self.example = RepositoryExample.objects.create(
-            repository_version_language=self.repository.current_version(), text="hi"
+            repository_version_language=self.repository.current_version(),
+            text="hi",
+            intent=self.example_intent_1,
         )
 
     def request(self, data, user_token):
@@ -96,6 +102,7 @@ class TranslateExampleTestCase(TestCase):
         example = RepositoryExample.objects.create(
             repository_version_language=self.repository.current_version(),
             text="my name is user",
+            intent=self.example_intent_1,
         )
         RepositoryExampleEntity.objects.create(
             repository_example=example, start=11, end=18, entity="name"
@@ -116,6 +123,7 @@ class TranslateExampleTestCase(TestCase):
         example = RepositoryExample.objects.create(
             repository_version_language=self.repository.current_version(),
             text="my name is user",
+            intent=self.example_intent_1,
         )
         RepositoryExampleEntity.objects.create(
             repository_example=self.example, start=11, end=18, entity="name"
@@ -136,6 +144,7 @@ class TranslateExampleTestCase(TestCase):
         example = RepositoryExample.objects.create(
             repository_version_language=self.repository.current_version(),
             text="my name is user",
+            intent=self.example_intent_1,
         )
         RepositoryExampleEntity.objects.create(
             repository_example=self.example, start=11, end=18, entity="name"
@@ -181,8 +190,14 @@ class RepositoryTranslatedExampleRetrieveTestCase(TestCase):
             slug="test",
             language=languages.LANGUAGE_EN,
         )
+        self.example_intent_1 = RepositoryIntent.objects.create(
+            text="bias",
+            repository_version=self.repository.current_version().repository_version,
+        )
         self.example = RepositoryExample.objects.create(
-            repository_version_language=self.repository.current_version(), text="hi"
+            repository_version_language=self.repository.current_version(),
+            text="hi",
+            intent=self.example_intent_1,
         )
         self.translated = RepositoryTranslatedExample.objects.create(
             original_example=self.example, language=languages.LANGUAGE_PT, text="oi"
@@ -195,9 +210,14 @@ class RepositoryTranslatedExampleRetrieveTestCase(TestCase):
             language=languages.LANGUAGE_EN,
             is_private=True,
         )
+        self.example_intent_2 = RepositoryIntent.objects.create(
+            text="bias",
+            repository_version=self.private_repository.current_version().repository_version,
+        )
         self.private_example = RepositoryExample.objects.create(
             repository_version_language=self.private_repository.current_version(),
             text="hi",
+            intent=self.example_intent_2,
         )
         self.private_translated = RepositoryTranslatedExample.objects.create(
             original_example=self.private_example,
@@ -241,13 +261,19 @@ class RepositoryTranslatedExampleDestroyTestCase(TestCase):
         self.owner, self.owner_token = create_user_and_token("owner")
 
         self.repository = Repository.objects.create(
-            owner=self.owner,
+            owner=self.owner.repository_owner,
             name="Testing",
             slug="test",
             language=languages.LANGUAGE_EN,
         )
+        self.example_intent_1 = RepositoryIntent.objects.create(
+            text="bias",
+            repository_version=self.repository.current_version().repository_version,
+        )
         self.example = RepositoryExample.objects.create(
-            repository_version_language=self.repository.current_version(), text="hi"
+            repository_version_language=self.repository.current_version(),
+            text="hi",
+            intent=self.example_intent_1,
         )
         self.translated = RepositoryTranslatedExample.objects.create(
             original_example=self.example, language=languages.LANGUAGE_PT, text="oi"
@@ -281,13 +307,19 @@ class TranslationsViewTest(TestCase):
         self.owner, self.owner_token = create_user_and_token("owner")
 
         self.repository = Repository.objects.create(
-            owner=self.owner,
+            owner=self.owner.repository_owner,
             name="Testing",
             slug="test",
             language=languages.LANGUAGE_EN,
         )
+        self.example_intent_1 = RepositoryIntent.objects.create(
+            text="bias",
+            repository_version=self.repository.current_version().repository_version,
+        )
         self.example = RepositoryExample.objects.create(
-            repository_version_language=self.repository.current_version(), text="hi"
+            repository_version_language=self.repository.current_version(),
+            text="hi",
+            intent=self.example_intent_1,
         )
         self.translated = RepositoryTranslatedExample.objects.create(
             original_example=self.example, language=languages.LANGUAGE_PT, text="oi"
@@ -306,21 +338,27 @@ class TranslationsViewTest(TestCase):
         return (response, content_data)
 
     def test_okay(self):
-        response, content_data = self.request({"repository_uuid": self.repository.uuid})
+        response, content_data = self.request(
+            {"repository_uuid": self.repository.uuid}, user_token=self.owner_token
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(content_data.get("count"), 1)
 
     def test_repository_not_found(self):
-        response, content_data = self.request({"repository_uuid": uuid.uuid4()})
+        response, content_data = self.request(
+            {"repository_uuid": uuid.uuid4()}, self.owner_token
+        )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_repository_uuid_invalid(self):
-        response, content_data = self.request({"repository_uuid": "invalid"})
+        response, content_data = self.request(
+            {"repository_uuid": "invalid"}, self.owner_token
+        )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_forbidden(self):
         private_repository = Repository.objects.create(
-            owner=self.owner,
+            owner=self.owner.repository_owner,
             name="Testing",
             slug="private",
             language=languages.LANGUAGE_EN,
@@ -344,6 +382,7 @@ class TranslationsViewTest(TestCase):
                 languages.LANGUAGE_ES
             ),
             text="hola",
+            intent=self.example_intent_1,
         )
         translated = RepositoryTranslatedExample.objects.create(
             original_example=example, language=languages.LANGUAGE_PT, text="oi"
@@ -353,7 +392,8 @@ class TranslationsViewTest(TestCase):
             {
                 "repository_uuid": self.repository.uuid,
                 "from_language": self.example.repository_version_language.language,
-            }
+            },
+            user_token=self.owner_token,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(content_data.get("count"), 1)
@@ -363,7 +403,8 @@ class TranslationsViewTest(TestCase):
             {
                 "repository_uuid": self.repository.uuid,
                 "from_language": example.repository_version_language.language,
-            }
+            },
+            user_token=self.owner_token,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(content_data.get("count"), 1)
@@ -375,6 +416,7 @@ class TranslationsViewTest(TestCase):
                 languages.LANGUAGE_ES
             ),
             text="hola",
+            intent=self.example_intent_1,
         )
         RepositoryTranslatedExample.objects.create(
             original_example=example, language=languages.LANGUAGE_PT, text="oi"
@@ -384,7 +426,8 @@ class TranslationsViewTest(TestCase):
             {
                 "repository_uuid": self.repository.uuid,
                 "to_language": self.translated.language,
-            }
+            },
+            user_token=self.owner_token,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(content_data.get("count"), 2)
@@ -393,7 +436,50 @@ class TranslationsViewTest(TestCase):
             {
                 "repository_uuid": self.repository.uuid,
                 "to_language": languages.LANGUAGE_DE,
-            }
+            },
+            user_token=self.owner_token,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(content_data.get("count"), 0)
+
+    def test_filter_original_example_id(self):
+        example = RepositoryExample.objects.create(
+            repository_version_language=self.repository.current_version(
+                languages.LANGUAGE_ES
+            ),
+            text="hola",
+            intent=self.example_intent_1,
+        )
+        example2 = RepositoryExample.objects.create(
+            repository_version_language=self.repository.current_version(
+                languages.LANGUAGE_ES
+            ),
+            text="todo bien?",
+            intent=self.example_intent_1,
+        )
+        RepositoryTranslatedExample.objects.create(
+            original_example=example, language=languages.LANGUAGE_PT, text="oi"
+        )
+        RepositoryTranslatedExample.objects.create(
+            original_example=example2, language=languages.LANGUAGE_PT, text="tudo bem?"
+        )
+
+        response, content_data = self.request(
+            {"repository_uuid": self.repository.uuid}, user_token=self.owner_token
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(content_data.get("count"), 3)
+
+        response, content_data = self.request(
+            {
+                "repository_uuid": self.repository.uuid,
+                "original_example_id": self.example.pk,
+            },
+            user_token=self.owner_token,
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(content_data.get("count"), 1)
+        self.assertEqual(
+            content_data.get("results")[0].get("original_example"), self.example.pk
+        )
+        self.assertEqual(content_data.get("results")[0].get("text"), "oi")

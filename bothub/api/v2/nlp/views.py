@@ -1,33 +1,31 @@
 import base64
 
 from django.conf import settings
-from django.db import models
-from django.utils.translation import gettext_lazy as _
-from django.shortcuts import get_object_or_404
-from django.core.validators import URLValidator
 from django.core.exceptions import ValidationError
-
-from rest_framework import mixins, pagination
+from django.core.validators import URLValidator
+from django.shortcuts import get_object_or_404
+from django.utils.translation import gettext_lazy as _
 from rest_framework import exceptions
+from rest_framework import mixins, pagination
 from rest_framework.decorators import action
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
-from rest_framework.permissions import AllowAny
-from bothub.api.v2.repository.serializers import RepositorySerializer
+
 from bothub.api.v2.nlp.serializers import NLPSerializer, RepositoryNLPLogSerializer
 from bothub.authentication.models import User
+from bothub.common import languages
 from bothub.common.models import (
     RepositoryAuthorization,
     RepositoryVersionLanguage,
     RepositoryNLPLog,
+    RepositoryExample,
 )
 from bothub.common.models import RepositoryEntity
 from bothub.common.models import RepositoryEvaluateResult
-from bothub.common.models import RepositoryEvaluateResultScore
-from bothub.common.models import RepositoryEvaluateResultIntent
 from bothub.common.models import RepositoryEvaluateResultEntity
-from bothub.common.models import Repository
-from bothub.common import languages
+from bothub.common.models import RepositoryEvaluateResultIntent
+from bothub.common.models import RepositoryEvaluateResultScore
 from bothub.utils import send_bot_data_file_aws
 
 
@@ -72,6 +70,10 @@ class RepositoryAuthorizationTrainViewSet(
                 "current_version_id": current_version.id,
                 "repository_authorization_user_id": repository_authorization.user.id,
                 "language": current_version.language,
+                "algorithm": current_version.repository_version.repository.algorithm,
+                "use_name_entities": current_version.repository_version.repository.use_name_entities,
+                "use_competing_intents": current_version.repository_version.repository.use_competing_intents,
+                "use_analyze_char": current_version.repository_version.repository.use_analyze_char,
             }
         )
 
@@ -84,32 +86,34 @@ class RepositoryAuthorizationTrainViewSet(
 
         page = self.paginate_queryset(queryset.examples)
 
-        examples = [
-            {"example_id": example.id, "example_intent": example.intent}
-            for example in page
-        ]
-        return self.get_paginated_response(examples)
+        examples_return = []
 
-    @action(
-        detail=True, methods=["GET"], url_name="get_examples_labels", lookup_field=[]
-    )
-    def get_examples_labels(self, request, **kwargs):
+        for example in page:
+            get_entities = example.get_entities(queryset.language)
+
+            get_text = example.get_text(queryset.language)
+
+            examples_return.append(
+                {
+                    "text": get_text,
+                    "intent": example.intent.text,
+                    "entities": [entit.rasa_nlu_data for entit in get_entities],
+                }
+            )
+
+        return self.get_paginated_response(examples_return)
+
+    @action(detail=True, methods=["POST"], url_name="save_queue_id", lookup_field=[])
+    def save_queue_id(self, request, **kwargs):
         check_auth(request)
-        queryset = get_object_or_404(
-            RepositoryVersionLanguage, pk=request.query_params.get("repository_version")
+        repository = get_object_or_404(
+            RepositoryVersionLanguage, pk=request.data.get("repository_version")
         )
 
-        page = self.paginate_queryset(
-            queryset.examples.filter(entities__entity__label__isnull=False)
-            .annotate(entities_count=models.Count("entities"))
-            .filter(entities_count__gt=0)
-        )
-
-        label_examples_query = []
-
-        for label_examples in page:
-            label_examples_query.append({"example_id": label_examples.id})
-        return self.get_paginated_response(label_examples_query)
+        id_queue = request.data.get("task_id")
+        from_queue = request.data.get("from_queue")
+        repository.create_task(id_queue=id_queue, from_queue=from_queue)
+        return Response({})
 
     @action(detail=True, methods=["POST"], url_name="start_training", lookup_field=[])
     def start_training(self, request, **kwargs):
@@ -133,83 +137,9 @@ class RepositoryAuthorizationTrainViewSet(
                 "use_name_entities": repository.use_name_entities,
                 "use_competing_intents": repository.use_competing_intents,
                 "use_analyze_char": repository.use_analyze_char,
-                "ALGORITHM_NEURAL_NETWORK_EXTERNAL": Repository.ALGORITHM_NEURAL_NETWORK_EXTERNAL,
                 "total_training_end": repository.total_training_end,
             }
         )
-
-    @action(
-        detail=True,
-        methods=["GET"],
-        url_name="get_entities_and_labels",
-        lookup_field=[],
-    )
-    def get_entities_and_labels(self, request, **kwargs):
-        check_auth(request)
-
-        try:
-            examples = request.data.get("examples")
-            label_examples_query = request.data.get("label_examples_query")
-            update_id = request.data.get("repository_version")
-        except ValueError:
-            raise exceptions.NotFound()
-
-        repository_update = RepositoryVersionLanguage.objects.get(pk=update_id)
-
-        examples_return = []
-        label_examples = []
-
-        for example in examples:
-            try:
-                repository = repository_update.examples.get(
-                    pk=example.get("example_id")
-                )
-
-                get_entities = repository.get_entities(
-                    request.query_params.get("language")
-                )
-
-                get_text = repository.get_text(request.query_params.get("language"))
-
-                examples_return.append(
-                    {
-                        "text": get_text,
-                        "intent": example.get("example_intent"),
-                        "entities": [entit.rasa_nlu_data for entit in get_entities],
-                    }
-                )
-
-            except Exception:
-                pass
-
-        for example in label_examples_query:
-            try:
-                repository_examples = repository_update.examples.get(
-                    pk=example.get("example_id")
-                )
-
-                entities = [
-                    example_entity.get_rasa_nlu_data(label_as_entity=True)
-                    for example_entity in filter(
-                        lambda ee: ee.entity.label,
-                        repository_examples.get_entities(
-                            request.query_params.get("language")
-                        ),
-                    )
-                ]
-
-                label_examples.append(
-                    {
-                        "entities": entities,
-                        "text": repository_examples.get_text(
-                            request.query_params.get("language")
-                        ),
-                    }
-                )
-            except Exception:
-                pass
-
-        return Response({"examples": examples_return, "label_examples": label_examples})
 
     @action(detail=True, methods=["POST"], url_name="train_fail", lookup_field=[])
     def train_fail(self, request, **kwargs):
@@ -259,6 +189,10 @@ class RepositoryAuthorizationParseViewSet(mixins.RetrieveModelMixin, GenericView
                     "repository_version": update.id,
                     "total_training_end": update.total_training_end,
                     "language": update.language,
+                    "algorithm": update.algorithm,
+                    "use_name_entities": update.use_name_entities,
+                    "use_competing_intents": update.use_competing_intents,
+                    "use_analyze_char": update.use_analyze_char,
                 }
             )
         except Exception:
@@ -272,15 +206,15 @@ class RepositoryAuthorizationParseViewSet(mixins.RetrieveModelMixin, GenericView
         )
         repository_entity = get_object_or_404(
             RepositoryEntity,
-            repository=repository_update.repository_version.repository,
+            repository_version=repository_update.repository_version,
             value=request.query_params.get("entity"),
         )
 
         return Response(
             {
-                "label": True if repository_entity.label else False,
-                "label_value": repository_entity.label.value
-                if repository_entity.label
+                "label": True if repository_entity.group else False,
+                "label_value": repository_entity.group.value
+                if repository_entity.group
                 else None,
             }
         )
@@ -295,8 +229,14 @@ class RepositoryAuthorizationInfoViewSet(mixins.RetrieveModelMixin, GenericViewS
         check_auth(request)
         repository_authorization = self.get_object()
         repository = repository_authorization.repository
-        serializer = RepositorySerializer(repository)
-        return Response(serializer.data)
+
+        queryset = RepositoryExample.objects.filter(
+            repository_version_language__repository_version__repository=repository,
+            repository_version_language__repository_version__is_default=True,
+        )
+        serializer = repository.intents(queryset=queryset, version_default=True)
+
+        return Response({"intents": serializer})
 
 
 class RepositoryAuthorizationEvaluateViewSet(mixins.RetrieveModelMixin, GenericViewSet):
@@ -326,6 +266,10 @@ class RepositoryAuthorizationEvaluateViewSet(mixins.RetrieveModelMixin, GenericV
                 "repository_version": update.pk,
                 "language": update.language,
                 "user_id": repository_authorization.user.pk,
+                "algorithm": update.algorithm,
+                "use_name_entities": update.use_name_entities,
+                "use_competing_intents": update.use_competing_intents,
+                "use_analyze_char": update.use_analyze_char,
             }
         )
 
@@ -454,7 +398,7 @@ class RepositoryAuthorizationEvaluateViewSet(mixins.RetrieveModelMixin, GenericV
 
         RepositoryEvaluateResultEntity.objects.create(
             entity=RepositoryEntity.objects.get(
-                repository=repository_update.repository_version.repository,
+                repository_version=repository_update.repository_version,
                 value=request.data.get("entity_key"),
                 create_entity=False,
             ),
@@ -492,17 +436,20 @@ class RepositoryUpdateInterpretersViewSet(
     def retrieve(self, request, *args, **kwargs):
         check_auth(request)
         update = self.get_object()
+        rasa_version = request.query_params.get(
+            "rasa_version", settings.BOTHUB_NLP_RASA_VERSION
+        )
 
         validator = URLValidator()
 
         aws = False
 
         try:
-            validator(str(update.bot_data))
-            bot_data = update.bot_data
+            validator(str(update.get_trainer(rasa_version).bot_data))
+            bot_data = update.get_trainer(rasa_version).bot_data
             aws = True
         except ValidationError:
-            bot_data = update.bot_data
+            bot_data = update.get_trainer(rasa_version).bot_data
         except Exception:
             bot_data = b""
 
@@ -520,12 +467,15 @@ class RepositoryUpdateInterpretersViewSet(
     def create(self, request, *args, **kwargs):
         check_auth(request)
         id = request.data.get("id")
+        rasa_version = request.data.get(
+            "rasa_version", settings.BOTHUB_NLP_RASA_VERSION
+        )
         repository = get_object_or_404(RepositoryVersionLanguage, pk=id)
         if settings.AWS_SEND:
             bot_data = base64.b64decode(request.data.get("bot_data"))
-            repository.save_training(send_bot_data_file_aws(id, bot_data))
+            repository.save_training(send_bot_data_file_aws(id, bot_data), rasa_version)
         else:
-            repository.save_training(request.data.get("bot_data"))
+            repository.save_training(request.data.get("bot_data"), rasa_version)
         return Response({})
 
 

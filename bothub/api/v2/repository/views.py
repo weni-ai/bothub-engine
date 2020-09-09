@@ -15,7 +15,6 @@ from rest_framework.exceptions import APIException
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.exceptions import UnsupportedMediaType
 from rest_framework.exceptions import ValidationError
-from rest_framework.filters import OrderingFilter
 from rest_framework.filters import SearchFilter
 from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import IsAuthenticated
@@ -24,8 +23,15 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from bothub.api.v2.mixins import MultipleFieldLookupMixin
-from bothub.authentication.models import User
-from bothub.common.models import Repository, RepositoryNLPLog, RepositoryEntity
+from bothub.authentication.models import RepositoryOwner
+from bothub.common.models import (
+    Repository,
+    RepositoryNLPLog,
+    RepositoryEntity,
+    RepositoryQueueTask,
+    RepositoryIntent,
+    OrganizationAuthorization,
+)
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryCategory
 from bothub.common.models import RepositoryExample
@@ -37,6 +43,9 @@ from .filters import (
     RepositoriesFilter,
     RepositoryNLPLogFilter,
     RepositoryEntitiesFilter,
+    RepositoryQueueTaskFilter,
+    RepositoryNLPLogReportsFilter,
+    RepositoryIntentFilter,
 )
 from .filters import RepositoryAuthorizationFilter
 from .filters import RepositoryAuthorizationRequestsFilter
@@ -44,6 +53,7 @@ from .permissions import (
     RepositoryAdminManagerAuthorization,
     RepositoryEntityHasPermission,
     RepositoryInfoPermission,
+    RepositoryIntentPermission,
 )
 from .permissions import RepositoryExamplePermission
 from .permissions import RepositoryPermission
@@ -57,6 +67,10 @@ from .serializers import (
     NewRepositorySerializer,
     RasaUploadSerializer,
     RasaSerializer,
+    RepositoryQueueTaskSerializer,
+    RepositoryPermissionSerializer,
+    RepositoryNLPLogReportsSerializer,
+    RepositoryIntentSerializer,
 )
 from .serializers import EvaluateSerializer
 from .serializers import RepositoryAuthorizationRoleSerializer
@@ -87,6 +101,22 @@ class NewRepositoryViewSet(
     permission_classes = [IsAuthenticatedOrReadOnly, RepositoryInfoPermission]
     metadata_class = Metadata
 
+    @action(
+        detail=True,
+        methods=["GET"],
+        url_name="repository-languages-status",
+        lookup_fields=["repository__uuid", "pk"],
+    )
+    def languagesstatus(self, request, **kwargs):
+        """
+        Get current language status.
+        """
+        if self.lookup_field not in kwargs:
+            return Response(status=405)
+
+        repository_version = self.get_object()
+        return Response({"languages_status": repository_version.languages_status})
+
 
 class RepositoryViewSet(
     mixins.CreateModelMixin,
@@ -105,6 +135,7 @@ class RepositoryViewSet(
     permission_classes = [IsAuthenticatedOrReadOnly, RepositoryPermission]
     metadata_class = Metadata
 
+    @method_decorator(name="list", decorator=swagger_auto_schema(deprecated=True))
     @action(
         detail=True,
         methods=["GET"],
@@ -444,6 +475,20 @@ class SearchRepositoriesViewSet(mixins.ListModelMixin, GenericViewSet):
     def get_queryset(self, *args, **kwargs):
         try:
             if self.request.query_params.get("nickname", None):
+                owner = get_object_or_404(
+                    RepositoryOwner,
+                    nickname=self.request.query_params.get("nickname", None),
+                )
+                if owner.is_organization:
+                    auth_org = OrganizationAuthorization.objects.filter(
+                        organization=owner, user=self.request.user
+                    ).first()
+                    if auth_org.can_read:
+                        return self.queryset.filter(
+                            owner__nickname=self.request.query_params.get(
+                                "nickname", self.request.user
+                            )
+                        )
                 return self.queryset.filter(
                     owner__nickname=self.request.query_params.get(
                         "nickname", self.request.user
@@ -454,6 +499,23 @@ class SearchRepositoriesViewSet(mixins.ListModelMixin, GenericViewSet):
                 return self.queryset.filter(owner=self.request.user)
         except TypeError:
             return self.queryset.none()
+
+
+class RepositoriesPermissionsViewSet(mixins.ListModelMixin, GenericViewSet):
+    """
+    List all user's repositories permissions
+    """
+
+    queryset = RepositoryAuthorization.objects
+    serializer_class = RepositoryPermissionSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self, *args, **kwargs):
+        return (
+            self.queryset.exclude(repository__owner=self.request.user)
+            .exclude(role=RepositoryAuthorization.ROLE_NOT_SETTED)
+            .filter(user=self.request.user)
+        )
 
 
 class RepositoryAuthorizationViewSet(
@@ -475,8 +537,7 @@ class RepositoryAuthorizationViewSet(
         user_nickname = self.kwargs.get("user__nickname")
 
         repository = get_object_or_404(Repository, uuid=repository_uuid)
-        user = get_object_or_404(User, nickname=user_nickname)
-
+        user = get_object_or_404(RepositoryOwner, nickname=user_nickname)
         obj = repository.get_user_authorization(user)
 
         self.check_object_permissions(self.request, obj)
@@ -502,7 +563,8 @@ class RepositoryAuthorizationViewSet(
                     repository=instance.repository,
                     approved_by=self.request.user,
                 )
-            instance.send_new_role_email(self.request.user)
+            if not instance.user.is_organization:
+                instance.send_new_role_email(self.request.user)
         return response
 
     def list(self, request, *args, **kwargs):
@@ -536,6 +598,21 @@ class RepositoryAuthorizationRequestsViewSet(
         self.queryset = RequestRepositoryAuthorization.objects
         self.filter_class = None
         self.permission_classes = [IsAuthenticated, RepositoryAdminManagerAuthorization]
+
+        update_id = self.kwargs.get("pk")
+        repository = self.request.data.get("repository")
+
+        req_auth = RequestRepositoryAuthorization.objects.filter(pk=update_id)
+        if req_auth:
+            req_auth = req_auth.first()
+            auth = RepositoryAuthorization.objects.filter(
+                user=req_auth.user, repository=repository
+            )
+            if auth:
+                req_auth.approved_by = self.request.user
+                req_auth.save(update_fields=["approved_by"])
+                return Response({"role": auth.first().role})
+
         try:
             return super().update(request, *args, **kwargs)
         except DjangoValidationError as e:
@@ -592,6 +669,13 @@ class RepositoryExampleViewSet(
         except DjangoValidationError:
             raise PermissionDenied()
 
+        try:
+            repository_version = get_object_or_404(
+                RepositoryVersion, pk=request.data.get("repository_version")
+            )
+        except DjangoValidationError:
+            raise PermissionDenied()
+
         user_authorization = repository.get_user_authorization(request.user)
         if not user_authorization.can_write:
             raise PermissionDenied()
@@ -608,6 +692,14 @@ class RepositoryExampleViewSet(
         for data in json_data:
             response_data = data
             response_data["repository"] = request.data.get("repository")
+            response_data["repository_version"] = repository_version.pk
+
+            intent, created = RepositoryIntent.objects.get_or_create(
+                text=response_data.get("intent"), repository_version=repository_version
+            )
+
+            response_data.update({"intent": intent.pk})
+
             serializer = RepositoryExampleSerializer(
                 data=response_data, context={"request": request}
             )
@@ -630,16 +722,24 @@ class RepositoryNLPLogViewSet(
     serializer_class = RepositoryNLPLogSerializer
     permission_classes = [permissions.IsAuthenticated, RepositoryPermission]
     filter_class = RepositoryNLPLogFilter
-    filter_backends = [OrderingFilter, SearchFilter, DjangoFilterBackend]
+    filter_backends = [SearchFilter, DjangoFilterBackend]
     search_fields = ["$text", "^text", "=text"]
-    ordering_fields = ["-created_at"]
 
 
-class RepositoryEntitiesViewSet(mixins.ListModelMixin, GenericViewSet):
-    queryset = RepositoryEntity.objects.all()
+class RepositoryEntitiesViewSet(
+    mixins.ListModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    GenericViewSet,
+):
+    queryset = RepositoryEntity.objects
     serializer_class = RepositoryEntitySerializer
-    filter_class = RepositoryEntitiesFilter
     permission_classes = [IsAuthenticated, RepositoryEntityHasPermission]
+
+    def list(self, request, *args, **kwargs):
+        self.queryset = RepositoryEntity.objects.all()
+        self.filter_class = RepositoryEntitiesFilter
+        return super().list(request, *args, **kwargs)
 
 
 class RasaUploadViewSet(
@@ -666,7 +766,7 @@ class RasaUploadViewSet(
             if RepositoryExample.objects.filter(
                 repository_version_language__repository_version=kwargs.get("pk"),
                 text=example["text"],
-                intent=example["intent"],
+                intent__text=example["intent"],
                 repository_version_language__language=serializer.data.get("language"),
             ).count():
                 continue
@@ -682,3 +782,73 @@ class RasaUploadViewSet(
                 serializer_example.save()
 
         return Response(202)
+
+
+class RepositoryTaskQueueViewSet(mixins.ListModelMixin, GenericViewSet):
+    queryset = RepositoryQueueTask.objects
+    serializer_class = RepositoryQueueTaskSerializer
+    filter_class = RepositoryQueueTaskFilter
+    permission_classes = [IsAuthenticated]
+
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
+
+class RepositoryNLPLogReportsViewSet(mixins.ListModelMixin, GenericViewSet):
+    """
+    List all public repositories.
+    """
+
+    serializer_class = RepositoryNLPLogReportsSerializer
+    queryset = Repository.objects.all()
+    filter_class = RepositoryNLPLogReportsFilter
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend]
+
+    def get_queryset(self, *args, **kwargs):
+        user = self.request.user
+        if self.request.query_params.get("organization_nickname", None):
+            owner = get_object_or_404(
+                RepositoryOwner,
+                nickname=self.request.query_params.get("organization_nickname", None),
+            )
+            if owner.is_organization:
+                auth_org = OrganizationAuthorization.objects.filter(
+                    organization=owner, user=self.request.user
+                ).first()
+                if auth_org.can_read:
+                    user = owner
+        return (
+            self.queryset.count_logs(
+                start_date=self.request.query_params.get("start_date", None),
+                end_date=self.request.query_params.get("end_date", None),
+                user=user,
+            )
+            .exclude(total_count=0)
+            .order_by("-total_count")
+        )
+
+
+class RepositoryIntentViewSet(
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.DestroyModelMixin,
+    mixins.UpdateModelMixin,
+    GenericViewSet,
+):
+    queryset = RepositoryIntent.objects
+    filter_class = RepositoryIntentFilter
+    serializer_class = RepositoryIntentSerializer
+    permission_classes = [RepositoryIntentPermission]
+
+    def retrieve(self, request, *args, **kwargs):
+        self.filter_class = None
+        return super().retrieve(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        self.filter_class = None
+        return super().destroy(request, *args, **kwargs)
+
+    def update(self, request, *args, **kwargs):
+        self.filter_class = None
+        return super().update(request, *args, **kwargs)

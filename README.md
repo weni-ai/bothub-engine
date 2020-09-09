@@ -1,6 +1,21 @@
 <p align="center">
+  <img src="https://i.imgur.com/PKrSNGY.png" alt="BLACK LIVES MATTER" />
+
+  <h3 align="center">BLACK LIVES MATTER</h3>
+
+  <p align="center">
+    <a href="https://blacklivesmatter.com/" target="_blank">Black Lives Matter</a>
+    ·
+    <a href="https://act.unicefusa.org/blm" target="_blank">Supporting the cause</a>
+    ·
+  </p>
+</p>
+    
+<br />
+<p align="center">
     <img src="https://user-images.githubusercontent.com/5360835/65427083-1af35900-de01-11e9-86ef-59f1eee79a68.png" width="230" height="70" alt="Bothub" />
 </p>
+
 
 # Bothub
 
@@ -23,6 +38,7 @@ Use ```make``` commands to ```check_environment```, ```install_requirements```, 
 | make test | Run unit tests and show coverage report
 | make migrate | Update DB shema, apply migrations
 | make start | Start development web server
+| make start_celery | Start celery service
 | make migrations | Create DB migrations files
 | make collectstatic | Collects the static files into ```STATIC_ROOT```
 
@@ -35,6 +51,16 @@ Run ```pipenv run python ./manage.py fill_db_using_fake_data``` to fill database
 ### Migrate all training for aws
 
 Run ```pipenv run python ./manage.py transfer_train_aws``` Migrate all trainings to an aws bucket defined in project settings.
+
+
+### Enable all repository to train
+
+Run ```pipenv run python ./manage.py enable_all_train```
+
+
+### Start Train in all repositories
+
+Run ```pipenv run python ./manage.py start_all_repository_train```
 
 
 #### Fake users infos:
@@ -94,10 +120,33 @@ You can set environment variables in your OS, write on ```.env``` file or pass v
 | BOTHUB_ENGINE_AWS_ACCESS_KEY_ID | ```string``` | ```None``` | 
 | BOTHUB_ENGINE_AWS_SECRET_ACCESS_KEY | ```string``` | ```None``` | 
 | BOTHUB_ENGINE_AWS_REGION_NAME | ```string``` | ```None``` | 
+| BOTHUB_ENGINE_AWS_ENDPOINT_URL | ```string``` | ```None``` | 
 | BOTHUB_ENGINE_AWS_SEND |  ```bool``` | ```False``` | 
 | BOTHUB_BOT_EMAIL |  ```string``` | ```bot_repository@bothub.it``` | Email that the system will automatically create for existing repositories that the owner deleted the account
 | BOTHUB_BOT_NAME |  ```string``` | ```Bot Repository``` | Name that the system will use to create the account
 | BOTHUB_BOT_NICKNAME |  ```string``` | ```bot_repository``` | Nickname that the system will use to create the account
 | BOTHUB_ENGINE_USE_SENTRY |  ```bool``` | ```False``` | Enable Support Sentry
 | BOTHUB_ENGINE_SENTRY |  ```string``` | ```None``` | URL Sentry
+| BOTHUB_NLP_RASA_VERSION |  ```string``` | ```1.4.3``` | Specify the version of rasa used in the nlp worker
 | ENVIRONMENT |  ```string``` | ```production``` | 
+
+## Roadmap
+
+See the [open issues](https://trello.com/b/ab5IvrLe/bothub-roadmap-2020) for a list of proposed features (and known issues).
+
+
+## License
+
+Distributed under the GPL-3.0 License. See `LICENSE` for more information.
+
+
+## Contributing
+
+Contributions are what make the open source community such an amazing place to be learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+

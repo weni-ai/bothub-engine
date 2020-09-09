@@ -1,8 +1,10 @@
 import json
 from decimal import Decimal, ROUND_DOWN
 
+from django.core.paginator import Paginator
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
+from rest_framework.exceptions import APIException
 
 from bothub.api.v2.repository.validators import (
     CanContributeInRepositoryVersionValidator,
@@ -59,7 +61,7 @@ class RepositoryEvaluateSerializer(serializers.ModelSerializer):
         source="repository_version_language",
         queryset=RepositoryVersion.objects,
         style={"show": False},
-        required=False,
+        required=True,
         validators=[CanContributeInRepositoryVersionValidator()],
     )
 
@@ -100,7 +102,7 @@ class RepositoryEvaluateSerializer(serializers.ModelSerializer):
 
         instance.text = validated_data.get("text", instance.text)
         instance.intent = validated_data.get("intent", instance.intent)
-        instance.repository_update = repository.current_version(language)
+        instance.repository_version_language = repository.current_version(language)
         instance.save()
         instance.delete_entities()
 
@@ -215,6 +217,15 @@ class RepositoryEvaluateResultSerializer(serializers.ModelSerializer):
         }
 
     def get_log(self, obj):
+        paginate_by = 10
+
+        try:
+            page = int(self.context.get("request").query_params.get("page_intent", 1))
+        except ValueError:
+            raise APIException(
+                {"non_field_errors": ["page_intent requires the value to be integer"]},
+                code=400,
+            )
         intent = self.context.get("request").query_params.get("intent")
         min_confidence = self.context.get("request").query_params.get("min")
         max_confidence = self.context.get("request").query_params.get("max")
@@ -245,16 +256,26 @@ class RepositoryEvaluateResultSerializer(serializers.ModelSerializer):
             if has_intent:
                 return log
 
-        results = filter(
-            None,
-            list(
-                map(
-                    lambda log: filter_intent(
-                        log, intent, min_confidence, max_confidence
-                    ),
-                    json.loads(obj.log),
-                )
-            ),
-        )
+        if len(obj.log) > 0:
+            result_log = json.loads(obj.log)
+            pagination = Paginator(tuple(result_log), paginate_by)
 
-        return results
+            results = filter(
+                None,
+                list(
+                    map(
+                        lambda log: filter_intent(
+                            log, intent, min_confidence, max_confidence
+                        ),
+                        pagination.page(page).object_list,
+                    )
+                ),
+            )
+
+            return {
+                "total_pages": pagination.num_pages,
+                "current_page": page,
+                "results": results,
+            }
+
+        return {"total_pages": 0, "current_page": 1, "results": []}
