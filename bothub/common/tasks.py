@@ -1,4 +1,9 @@
 import requests
+import json
+import io
+import re
+import zipfile
+from celery import shared_task
 from datetime import timedelta
 from django.utils import timezone
 from urllib.parse import urlencode
@@ -213,13 +218,6 @@ def debug_parse_text(instance_id, id_clone, repository, *args, **kwargs):
     instance.is_deleted = False
     instance.save(update_fields=["is_deleted"])
     return True
-
-import json
-import requests
-import io
-import re
-import zipfile
-from celery import shared_task
 
 
 @shared_task
