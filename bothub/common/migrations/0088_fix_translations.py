@@ -22,7 +22,9 @@ def fix_translations_rv_language_fields(apps, schema_editor):  # pragma: no cove
         )
         return version_language
 
-    translations = RepositoryTranslatedExample.objects.exclude(Q(repository_version_language__language=F('language')))
+    translations = RepositoryTranslatedExample.objects.exclude(
+        Q(repository_version_language__language=F("language"))
+    )
 
     num_updated = 0
     max_id = -1

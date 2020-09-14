@@ -11,4 +11,4 @@ class Command(BaseCommand):
                     language=translated.language
                 )
                 translated.repository_version_language = language_version
-                translated.save(update_fields=['repository_version_language'])
+                translated.save(update_fields=["repository_version_language"])
