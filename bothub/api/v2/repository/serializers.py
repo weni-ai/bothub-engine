@@ -671,7 +671,7 @@ class RepositorySerializer(serializers.ModelSerializer):
     algorithm = serializers.ChoiceField(
         style={"show": False, "only_settings": True},
         choices=Repository.ALGORITHM_CHOICES,
-        default=Repository.ALGORITHM_TRANSFORMER_NETWORK_DIET,
+        default=Repository.ALGORITHM_TRANSFORMER_NETWORK_DIET_BERT,
         label=_("Algorithm"),
     )
     use_competing_intents = serializers.BooleanField(

@@ -6,6 +6,7 @@ from bothub.api.v2.repository.validators import (
     EntityNotEqualGroupValidator,
     CanContributeInRepositoryVersionValidator,
 )
+from bothub.common.languages import LANGUAGE_CHOICES
 from bothub.common.models import RepositoryExample, RepositoryVersion
 from bothub.common.models import RepositoryExampleEntity
 
@@ -82,3 +83,17 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
             self.fields["entities"] = RepositoryExampleEntitySerializer(
                 many=True, read_only=True, data="GET"
             )
+
+
+class RepositoriesSearchSerializer(serializers.Serializer):
+    uuid = serializers.UUIDField(required=True)
+    language = serializers.ChoiceField(LANGUAGE_CHOICES, required=True)
+
+
+class RepositoriesSearchExamplesSerializer(serializers.Serializer):
+    repositories = RepositoriesSearchSerializer(many=True)
+    text = serializers.CharField(required=True)
+
+
+class RepositoriesSearchExamplesResponseSerializer(serializers.Serializer):
+    result = serializers.ListField(required=True)
