@@ -41,9 +41,16 @@ class RepositoryVersionInline(admin.TabularInline):
 
 @admin.register(Repository)
 class RepositoryAdmin(admin.ModelAdmin):
-    list_display = ["__str__", "uuid", "language", "is_private", "created_at"]
+    list_display = [
+        "__str__",
+        "uuid",
+        "language",
+        "is_private",
+        "allow_search_examples",
+        "created_at",
+    ]
     search_fields = ["name", "uuid", "language", "owner__nickname", "slug"]
-    list_filter = ["is_private", "language", "categories"]
+    list_filter = ["is_private", "language", "categories", "allow_search_examples"]
     inlines = [RepositoryVersionInline]
 
 
