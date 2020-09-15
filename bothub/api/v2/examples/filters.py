@@ -74,6 +74,11 @@ class ExamplesFilter(filters.FilterSet):
         method="filter_intent",
         help_text=_("Filter for examples with intent by text."),
     )
+    intent_id = filters.CharFilter(
+        field_name="intent__pk",
+        method="filter_intent_id",
+        help_text=_("Filter for examples with intent by id."),
+    )
 
     def filter_repository_uuid(self, queryset, name, value):
         request = self.request
@@ -139,3 +144,6 @@ class ExamplesFilter(filters.FilterSet):
 
     def filter_intent(self, queryset, name, value):
         return queryset.filter(intent__text=value)
+
+    def filter_intent_id(self, queryset, name, value):
+        return queryset.filter(intent__pk=value)
