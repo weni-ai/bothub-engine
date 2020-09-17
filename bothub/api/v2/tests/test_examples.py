@@ -220,6 +220,19 @@ class ListExamplesAPITestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(content_data.get("count"), 2)
 
+    def test_filter_intent_id(self):
+        response, content_data = self.request(
+            {
+                "repository_uuid": self.repository.uuid,
+                "intent_id": self.example_intent_2.pk,
+            },
+            self.owner_token,
+        )
+        for result in content_data.get("results"):
+            self.assertEqual(result.get("intent"), self.example_intent_2.text)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(content_data.get("count"), 2)
+
     def test_filter_label(self):
         response, content_data = self.request(
             {"repository_uuid": self.repository.uuid, "group": "greet"},
