@@ -20,6 +20,7 @@ from bothub.common.models import (
     RepositoryVersionLanguage,
     RepositoryNLPLog,
     RepositoryExample,
+    RepositoryEvaluate,
 )
 from bothub.common.models import RepositoryEntity
 from bothub.common.models import RepositoryEvaluateResult
@@ -280,7 +281,11 @@ class RepositoryAuthorizationEvaluateViewSet(mixins.RetrieveModelMixin, GenericV
             RepositoryVersionLanguage, pk=request.query_params.get("repository_version")
         )
         evaluations = repository_update.repository_version.repository.evaluations(
-            language=repository_update.language
+            language=repository_update.language,
+            queryset=RepositoryEvaluate.objects.filter(
+                repository_version_language=repository_update
+            ),
+            version_default=repository_update.repository_version.is_default,
         )
 
         data = []
