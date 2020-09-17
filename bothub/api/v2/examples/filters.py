@@ -37,6 +37,9 @@ class ExamplesFilter(filters.FilterSet):
     has_translation_to = filters.CharFilter(
         field_name="has_translation_to", method="filter_has_translation_to"
     )
+    is_available_language = filters.CharFilter(
+        field_name="is_available_language", method="filter_is_available_language"
+    )
     order_by_translation = filters.CharFilter(
         field_name="order_by_translation",
         method="filter_order_by_translation",
@@ -120,9 +123,19 @@ class ExamplesFilter(filters.FilterSet):
         annotated_queryset = queryset.annotate(
             translation_count=Count(
                 "translations", filter=Q(translations__language=value)
-            ),
+            )
         )
         return annotated_queryset.filter(~Q(translation_count=0))
+
+    def filter_is_available_language(self, queryset, name, value):
+        annotated_queryset = queryset.annotate(
+            translation_count=Count(
+                "translations", filter=Q(translations__language=value)
+            )
+        )
+        return annotated_queryset.filter(
+            ~Q(translation_count=0) | Q(repository_version_language__language=value)
+        )
 
     def filter_order_by_translation(self, queryset, name, value):
         inverted = value[0] == "-"
