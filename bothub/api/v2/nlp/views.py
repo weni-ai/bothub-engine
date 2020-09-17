@@ -285,6 +285,7 @@ class RepositoryAuthorizationEvaluateViewSet(mixins.RetrieveModelMixin, GenericV
             queryset=RepositoryEvaluate.objects.filter(
                 repository_version_language=repository_update
             ),
+            version_default=repository_update.repository_version.is_default,
         )
 
         data = []
