@@ -337,10 +337,6 @@ class Repository(models.Model):
 
     nlp_server = models.URLField(_("Base URL NLP"), null=True, blank=True)
 
-    allow_search_examples = models.BooleanField(
-        _("Authorizes third-party phrase search"), default=False
-    )
-
     objects = RepositoryManager()
 
     __algorithm = None
