@@ -70,11 +70,16 @@ class ExamplesViewSet(mixins.ListModelMixin, GenericViewSet):
         language = self.request.data.get("language")
         text = self.request.data.get("text")
 
-        examples = RepositoryExample.objects.filter(
-            repository_version_language__language=language,
-            repository_version_language__repository_version__is_default=True,
-            repository_version_language__repository_version__repository__in=repositories,
-        ).filter(Q(text__icontains=text) | Q(translations__text__icontains=text))[:5]
+        examples = (
+            RepositoryExample.objects.filter(
+                Q(repository_version_language__language=language)
+                | Q(translations__repository_version_language__language=language),
+                repository_version_language__repository_version__is_default=True,
+                repository_version_language__repository_version__repository__in=repositories,
+            )
+            .filter(Q(text__icontains=text) | Q(translations__text__icontains=text))
+            .distinct()[:5]
+        )
 
         return Response(
             {"result": [example.get_text(language=language) for example in examples]}
