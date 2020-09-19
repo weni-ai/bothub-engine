@@ -6,7 +6,8 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.exceptions import NotFound
 from django_filters import rest_framework as filters
 
-from bothub.common.models import Repository
+from bothub.common import exceptions
+from bothub.common.models import Repository, RepositoryTranslatedExample
 from bothub.common.models import RepositoryExample
 
 
@@ -84,6 +85,10 @@ class ExamplesFilter(filters.FilterSet):
         field_name="intent__pk",
         method="filter_intent_id",
         help_text=_("Filter for examples with intent by id."),
+    )
+    has_valid_entities = filters.CharFilter(
+        field_name="has_valid_entities",
+        method="filter_has_valid_entities"
     )
 
     def filter_repository_uuid(self, queryset, name, value):
@@ -171,3 +176,13 @@ class ExamplesFilter(filters.FilterSet):
 
     def filter_intent_id(self, queryset, name, value):
         return queryset.filter(intent__pk=value)
+
+    def filter_has_valid_entities(self, queryset, name, value):
+        print(value)
+        for example in queryset:
+            try:
+                example.has_valid_entities(value)
+            except exceptions.DoesNotHaveTranslation:
+                continue
+        print(RepositoryTranslatedExample.objects.get(pk=968414).has_valid_entities)
+        return queryset
