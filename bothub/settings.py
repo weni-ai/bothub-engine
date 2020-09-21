@@ -1,3 +1,4 @@
+import logging
 import os
 
 import environ
@@ -6,6 +7,9 @@ import sentry_sdk
 from django.utils.log import DEFAULT_LOGGING
 from django.utils.translation import ugettext_lazy as _
 from sentry_sdk.integrations.django import DjangoIntegration
+
+import ldap
+from django_auth_ldap.config import PosixGroupType, LDAPSearch
 
 from .utils import cast_supported_languages
 from .utils import cast_empty_str_to_none
@@ -190,7 +194,7 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework.authentication.TokenAuthentication"
+        "rest_framework.authentication.SessionAuthentication"
     ],
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination." + "LimitOffsetPagination",
     "PAGE_SIZE": 20,
@@ -280,6 +284,10 @@ LOGGING["loggers"]["sentry.errors"] = {
 }
 
 
+logger = logging.getLogger('django_auth_ldap')
+logger.addHandler(logging.StreamHandler())
+logger.setLevel(logging.DEBUG)
+
 # Supported Languages
 
 SUPPORTED_LANGUAGES = env.get_value(
@@ -362,3 +370,28 @@ CELERY_TASK_SERIALIZER = "json"
 
 # Search Example Repositories
 TOKEN_SEARCH_REPOSITORIES = env.str("TOKEN_SEARCH_REPOSITORIES")
+
+AUTHENTICATION_BACKENDS = (
+    'django_auth_ldap.backend.LDAPBackend',
+    'django.contrib.auth.backends.ModelBackend',
+)
+
+AUTH_LDAP_SERVER_URI = 'ldap://127.0.0.1:10389'
+# AUTH_LDAP_START_TLS = True
+AUTH_LDAP_BIND_DN = 'uid=admin,ou=system'
+AUTH_LDAP_BIND_PASSWORD = 'secret'
+
+AUTH_LDAP_USER_DN_TEMPLATE = "mail=%(user)s,ou=users,dc=wimpi,dc=net"
+
+AUTH_LDAP_GROUP_SEARCH = LDAPSearch('ou=users,dc=admin,dc=wimpi,dc=net',
+    ldap.SCOPE_SUBTREE, '(objectClass=posixGroup)'
+)
+
+AUTH_LDAP_GROUP_TYPE = PosixGroupType()
+AUTH_LDAP_MIRROR_GROUPS = True
+
+AUTH_LDAP_USER_ATTR_MAP = {
+    'name': 'cn',
+    'nickname': 'uid',
+    'email': 'mail'
+}

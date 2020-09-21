@@ -29,6 +29,7 @@ pillow = "~=7.1.2"
 kombu = "~=4.6.7"
 importlib-metadata = "~=1.6.1"
 psycopg2-binary = "~=2.7.7"
+django-auth-ldap = "==1.2.16"
 
 [dev-packages]
 "flake8" = "*"
