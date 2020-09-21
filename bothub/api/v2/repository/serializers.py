@@ -560,14 +560,20 @@ class NewRepositorySerializer(serializers.ModelSerializer):
             obj.repository.get_user_authorization(request.user)
         ).data
 
-        auth_organizations = (
-            OrganizationAuthorization.objects.exclude(
-                role=OrganizationAuthorization.ROLE_NOT_SETTED
-            )
-            .filter(user=request.user)
-            .values("uuid", "organization__name", "role")
+        data.update(
+            {
+                "organizations": list(
+                    map(
+                        lambda auth: RepositoryAuthorizationSerializer(
+                            obj.repository.get_user_authorization(auth.organization)
+                        ).data,
+                        OrganizationAuthorization.objects.exclude(
+                            role=OrganizationAuthorization.ROLE_NOT_SETTED
+                        ).filter(user=request.user),
+                    )
+                )
+            }
         )
-        data.update({"organizations": auth_organizations})
         return data
 
     def get_request_authorization(self, obj):
