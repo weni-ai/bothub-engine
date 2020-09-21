@@ -1,10 +1,10 @@
-from django.utils.translation import ugettext_lazy as _
 from django.core.exceptions import ValidationError as DjangoValidationError
-from django.db.models import Q
 from django.db.models import Count
-from rest_framework.exceptions import PermissionDenied
-from rest_framework.exceptions import NotFound
+from django.db.models import Q, F
+from django.utils.translation import ugettext_lazy as _
 from django_filters import rest_framework as filters
+from rest_framework.exceptions import NotFound
+from rest_framework.exceptions import PermissionDenied
 
 from bothub.common.models import Repository
 from bothub.common.models import RepositoryExample
@@ -84,6 +84,20 @@ class ExamplesFilter(filters.FilterSet):
         field_name="intent__pk",
         method="filter_intent_id",
         help_text=_("Filter for examples with intent by id."),
+    )
+    has_valid_entities = filters.CharFilter(
+        field_name="has_valid_entities",
+        method="filter_has_valid_entities",
+        help_text=_(
+            "Filter all translations whose entities are valid, that is, the entities of the translations that match the entities of the original sentence"
+        ),
+    )
+    has_invalid_entities = filters.CharFilter(
+        field_name="has_invalid_entities",
+        method="filter_has_invalid_entities",
+        help_text=_(
+            "Filter all translations whose entities are invalid, that is, the translation entities do not match the entities in the original sentence"
+        ),
     )
 
     def filter_repository_uuid(self, queryset, name, value):
@@ -171,3 +185,63 @@ class ExamplesFilter(filters.FilterSet):
 
     def filter_intent_id(self, queryset, name, value):
         return queryset.filter(intent__pk=value)
+
+    def filter_has_valid_entities(self, queryset, name, value):
+        result_queryset = queryset.annotate(
+            original_entities_count=Count(
+                "entities",
+                filter=Q(
+                    translations__original_example__entities__repository_example=F("pk")
+                ),
+                distinct=True,
+            )
+        ).annotate(
+            entities_count=Count(
+                "translations__entities",
+                filter=Q(
+                    Q(
+                        translations__entities__repository_translated_example__language=value
+                    )
+                    | Q(
+                        translations__entities__repository_translated_example__language=F(
+                            "repository_version_language__repository_version__repository__language"
+                        )
+                    ),
+                    translations__entities__entity__in=F(
+                        "translations__original_example__entities__entity"
+                    ),
+                ),
+                distinct=True,
+            )
+        )
+        return result_queryset.filter(original_entities_count=F("entities_count"))
+
+    def filter_has_invalid_entities(self, queryset, name, value):
+        result_queryset = queryset.annotate(
+            original_entities_count=Count(
+                "entities",
+                filter=Q(
+                    translations__original_example__entities__repository_example=F("pk")
+                ),
+                distinct=True,
+            )
+        ).annotate(
+            entities_count=Count(
+                "translations__entities",
+                filter=Q(
+                    Q(
+                        translations__entities__repository_translated_example__language=value
+                    )
+                    | Q(
+                        translations__entities__repository_translated_example__language=F(
+                            "repository_version_language__repository_version__repository__language"
+                        )
+                    ),
+                    translations__entities__entity__in=F(
+                        "translations__original_example__entities__entity"
+                    ),
+                ),
+                distinct=True,
+            )
+        )
+        return result_queryset.exclude(original_entities_count=F("entities_count"))
