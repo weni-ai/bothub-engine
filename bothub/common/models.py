@@ -1430,8 +1430,6 @@ class RepositoryTranslatedExample(models.Model):
             return False
         a_sorted = sorted(a, key=cls.entities_list_lambda_sort)
         b_sorted = sorted(b, key=cls.entities_list_lambda_sort)
-        # print(a_sorted)
-        # print(b_sorted)
         for i in range(a_len):
             if a_sorted[i].get("entity") != b_sorted[i].get("entity"):
                 return False
@@ -1454,8 +1452,6 @@ class RepositoryTranslatedExample(models.Model):
     def has_valid_entities(self):
         original_entities = self.original_example.entities.all()
         my_entities = self.entities.all()
-        # print(list(map(lambda x: x.to_dict, original_entities)),)
-        # print(list(map(lambda x: x.to_dict, my_entities)),)
         return RepositoryTranslatedExample.same_entities_validator(
             list(map(lambda x: x.to_dict, original_entities)),
             list(map(lambda x: x.to_dict, my_entities)),
