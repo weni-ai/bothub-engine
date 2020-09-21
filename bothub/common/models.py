@@ -1272,7 +1272,9 @@ class RepositoryIntent(models.Model):
         verbose_name_plural = _("repository intents")
         unique_together = ["repository_version", "text"]
 
-    repository_version = models.ForeignKey(RepositoryVersion, models.CASCADE)
+    repository_version = models.ForeignKey(
+        RepositoryVersion, models.CASCADE, related_name="version_intents"
+    )
     text = models.CharField(
         _("intent"),
         max_length=64,
