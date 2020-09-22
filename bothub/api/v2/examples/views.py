@@ -77,7 +77,8 @@ class ExamplesViewSet(mixins.ListModelMixin, GenericViewSet):
         exclude_intents = self.request.data.get("exclude_intents", [])
 
         examples = (
-            RepositoryExample.objects.exclude(intent__text__in=exclude_intents).filter(
+            RepositoryExample.objects.exclude(intent__text__in=exclude_intents)
+            .filter(
                 Q(repository_version_language__language=language)
                 | Q(translations__repository_version_language__language=language),
                 repository_version_language__repository_version__is_default=True,
