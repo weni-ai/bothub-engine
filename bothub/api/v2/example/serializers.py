@@ -89,6 +89,7 @@ class RepositoriesSearchExamplesSerializer(serializers.Serializer):
     repositories = serializers.ListField(required=True)
     text = serializers.CharField(required=True)
     language = serializers.ChoiceField(LANGUAGE_CHOICES, required=True)
+    exclude_intents = serializers.ListField(required=False)
 
 
 class RepositoriesSearchExamplesResponseSerializer(serializers.Serializer):

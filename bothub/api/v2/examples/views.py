@@ -46,6 +46,11 @@ class ExamplesViewSet(mixins.ListModelMixin, GenericViewSet):
                     "language": openapi.Schema(
                         type=openapi.TYPE_STRING, description="Language abbreviation"
                     ),
+                    "exclude_intents": openapi.Schema(
+                        description="Specify the intentions you want to remove from the search",
+                        type=openapi.TYPE_ARRAY,
+                        items=openapi.Schema(type=openapi.TYPE_STRING),
+                    ),
                 },
             ),
             responses={200: RepositoriesSearchExamplesResponseSerializer(many=True)},
@@ -69,18 +74,23 @@ class ExamplesViewSet(mixins.ListModelMixin, GenericViewSet):
         repositories = self.request.data.get("repositories")
         language = self.request.data.get("language")
         text = self.request.data.get("text")
+        exclude_intents = self.request.data.get("exclude_intents", [])
 
         examples = (
-            RepositoryExample.objects.filter(
+            RepositoryExample.objects.exclude(intent__text__in=exclude_intents).filter(
                 Q(repository_version_language__language=language)
                 | Q(translations__repository_version_language__language=language),
                 repository_version_language__repository_version__is_default=True,
                 repository_version_language__repository_version__repository__in=repositories,
             )
             .filter(Q(text__icontains=text) | Q(translations__text__icontains=text))
-            .distinct()[:5]
+            .distinct()
         )
 
         return Response(
-            {"result": [example.get_text(language=language) for example in examples]}
+            {
+                "result": [
+                    example.get_text(language=language) for example in examples[:5]
+                ]
+            }
         )
