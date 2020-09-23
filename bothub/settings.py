@@ -58,6 +58,7 @@ env = environ.Env(
     BOTHUB_ENGINE_SENTRY=(str, None),
     BOTHUB_NLP_RASA_VERSION=(str, "1.4.3"),
     CELERY_BROKER_URL=(str, "redis://localhost:6379/0"),
+    TOKEN_SEARCH_REPOSITORIES=(str, None),
 )
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -357,3 +358,7 @@ CELERY_BROKER_URL = env.str("CELERY_BROKER_URL")
 CELERY_ACCEPT_CONTENT = ["application/json"]
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TASK_SERIALIZER = "json"
+
+
+# Search Example Repositories
+TOKEN_SEARCH_REPOSITORIES = env.str("TOKEN_SEARCH_REPOSITORIES")

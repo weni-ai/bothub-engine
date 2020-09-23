@@ -337,10 +337,6 @@ class Repository(models.Model):
 
     nlp_server = models.URLField(_("Base URL NLP"), null=True, blank=True)
 
-    allow_search_examples = models.BooleanField(
-        _("Authorizes third-party phrase search"), default=False
-    )
-
     objects = RepositoryManager()
 
     __algorithm = None
@@ -1276,7 +1272,9 @@ class RepositoryIntent(models.Model):
         verbose_name_plural = _("repository intents")
         unique_together = ["repository_version", "text"]
 
-    repository_version = models.ForeignKey(RepositoryVersion, models.CASCADE)
+    repository_version = models.ForeignKey(
+        RepositoryVersion, models.CASCADE, related_name="version_intents"
+    )
     text = models.CharField(
         _("intent"),
         max_length=64,
@@ -1716,8 +1714,7 @@ class RepositoryAuthorization(models.Model):
                     role=RepositoryAuthorization.ROLE_NOT_SETTED
                 )
                 .filter(
-                    Q(organization=self.repository.owner)
-                    | Q(
+                    Q(
                         organization__in=RepositoryAuthorization.objects.filter(
                             repository=self.repository,
                             user__in=self.user.organization_user_authorization.exclude(

@@ -85,14 +85,11 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
             )
 
 
-class RepositoriesSearchSerializer(serializers.Serializer):
-    uuid = serializers.UUIDField(required=True)
-    language = serializers.ChoiceField(LANGUAGE_CHOICES, required=True)
-
-
 class RepositoriesSearchExamplesSerializer(serializers.Serializer):
-    repositories = RepositoriesSearchSerializer(many=True)
+    repositories = serializers.ListField(required=True)
     text = serializers.CharField(required=True)
+    language = serializers.ChoiceField(LANGUAGE_CHOICES, required=True)
+    exclude_intents = serializers.ListField(required=False)
 
 
 class RepositoriesSearchExamplesResponseSerializer(serializers.Serializer):

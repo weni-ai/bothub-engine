@@ -150,6 +150,7 @@ class RepositoryEntityGroupSerializer(serializers.ModelSerializer):
 
 class IntentSerializer(serializers.Serializer):
     value = serializers.CharField()
+    id = serializers.IntegerField()
     examples__count = serializers.IntegerField()
 
 
@@ -433,19 +434,19 @@ class NewRepositorySerializer(serializers.ModelSerializer):
         queryset = RepositoryExample.objects.filter(
             repository_version_language__repository_version=obj
         )
+
         return IntentSerializer(
             map(
                 lambda intent: {
-                    "value": intent,
+                    "value": intent.text,
+                    "id": intent.pk,
                     "examples__count": obj.repository.examples(
                         queryset=queryset, version_default=obj.is_default
                     )
-                    .filter(intent__text=intent)
+                    .filter(intent=intent)
                     .count(),
                 },
-                obj.repository.intents(
-                    queryset=queryset, version_default=obj.is_default
-                ),
+                obj.version_intents.all(),
             ),
             many=True,
         ).data
@@ -560,14 +561,20 @@ class NewRepositorySerializer(serializers.ModelSerializer):
             obj.repository.get_user_authorization(request.user)
         ).data
 
-        auth_organizations = (
-            OrganizationAuthorization.objects.exclude(
-                role=OrganizationAuthorization.ROLE_NOT_SETTED
-            )
-            .filter(user=request.user)
-            .values("uuid", "organization__name", "role")
+        data.update(
+            {
+                "organizations": list(
+                    map(
+                        lambda auth: RepositoryAuthorizationSerializer(
+                            obj.repository.get_user_authorization(auth.organization)
+                        ).data,
+                        OrganizationAuthorization.objects.exclude(
+                            role=OrganizationAuthorization.ROLE_NOT_SETTED
+                        ).filter(user=request.user),
+                    )
+                )
+            }
         )
-        data.update({"organizations": auth_organizations})
         return data
 
     def get_request_authorization(self, obj):
