@@ -1714,8 +1714,7 @@ class RepositoryAuthorization(models.Model):
                     role=RepositoryAuthorization.ROLE_NOT_SETTED
                 )
                 .filter(
-                    Q(organization=self.repository.owner)
-                    & Q(
+                    Q(
                         organization__in=RepositoryAuthorization.objects.filter(
                             repository=self.repository,
                             user__in=self.user.organization_user_authorization.exclude(
