@@ -223,7 +223,8 @@ def debug_parse_text(instance_id, id_clone, repository, *args, **kwargs):
 def delete_nlp_logs():
     BATCH_SIZE = 5000
     logs = RepositoryNLPLog.objects.filter(
-        created_at__lt=timezone.now() - timezone.timedelta(days=90)
+        created_at__lt=timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        - timezone.timedelta(days=90)
     )
 
     num_updated = 0
