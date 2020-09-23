@@ -1,6 +1,6 @@
 from __future__ import absolute_import, unicode_literals
 import os
-from celery import Celery
+from celery import Celery, schedules
 
 from bothub import settings
 
@@ -15,7 +15,11 @@ app.conf.beat_schedule = {
     "check-training-status": {
         "task": "bothub.common.tasks.trainings_check_task",
         "schedule": 5.0,
-    }
+    },
+    "delete-nlp-logs": {
+        "task": "bothub.common.tasks.delete_nlp_logs",
+        "schedule": schedules.crontab(hour="22", minute=0),
+    },
 }
 
 
