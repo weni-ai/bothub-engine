@@ -592,7 +592,11 @@ class Repository(models.Model):
                 lambda lang: self.get_specific_version_id(
                     repository_version=repository_version, language=lang
                 ),
-                self.available_languages(language=language, queryset=queryset),
+                self.available_languages(
+                    language=language,
+                    queryset=queryset,
+                    version_default=version_default,
+                ),
             )
         return map(
             lambda lang: self.current_version(lang, is_default=version_default),

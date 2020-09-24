@@ -418,7 +418,9 @@ class NewRepositorySerializer(serializers.ModelSerializer):
                 map(
                     lambda u: (u.language, u.requirements_to_train),
                     obj.repository.current_versions(
-                        queryset=queryset, repository_version=obj.pk
+                        queryset=queryset,
+                        repository_version=obj.pk,
+                        version_default=obj.is_default,
                     ),
                 ),
             )
