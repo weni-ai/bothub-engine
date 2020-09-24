@@ -489,9 +489,7 @@ class RepositoryUpdateInterpretersViewSet(
     permission_classes = [AllowAny]
 
     def retrieve(self, request, *args, **kwargs):
-        authorization = check_auth(request)
-
-        repository_authorization = RepositoryAuthorization.objects.get(pk=authorization)
+        repository_authorization = check_auth(request)
 
         if not repository_authorization.can_contribute:
             raise PermissionDenied()
