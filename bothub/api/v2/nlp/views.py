@@ -195,9 +195,6 @@ class RepositoryAuthorizationParseViewSet(mixins.RetrieveModelMixin, GenericView
         check_auth(request)
         repository_authorization = self.get_object()
 
-        if not repository_authorization.can_contribute:
-            raise PermissionDenied()
-
         repository = repository_authorization.repository
 
         language = request.query_params.get("language")
@@ -489,10 +486,7 @@ class RepositoryUpdateInterpretersViewSet(
     permission_classes = [AllowAny]
 
     def retrieve(self, request, *args, **kwargs):
-        repository_authorization = check_auth(request)
-
-        if not repository_authorization.can_contribute:
-            raise PermissionDenied()
+        check_auth(request)
 
         update = self.get_object()
         rasa_version = request.query_params.get(
