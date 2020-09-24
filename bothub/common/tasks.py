@@ -245,6 +245,8 @@ def delete_nlp_logs():
         num_updated += len(batch)
         print(f" > deleted {num_updated} nlp logs")
 
+
+@app.task()
 def repositories_count_authorizations():
     for repository in Repository.objects.all():
         count = repository.authorizations.filter(
