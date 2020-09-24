@@ -19,7 +19,9 @@ from bothub.common.models import (
     RepositoryTranslatedExampleEntity,
     RepositoryEvaluate,
     RepositoryEvaluateEntity,
-    RepositoryIntent, Repository, RepositoryNLPLog,
+    RepositoryIntent,
+    Repository,
+    RepositoryNLPLog,
 )
 
 
@@ -221,10 +223,10 @@ def repositories_count_authorizations():
         count = repository.authorizations.filter(
             user__in=RepositoryNLPLog.objects.filter(
                 repository_version_language__repository_version__repository=repository,
-                from_backend=False
-            ).distinct().values('user')
+                from_backend=False,
+            )
+            .distinct()
+            .values("user")
         ).count()
         repository.count_authorizations = count
-        repository.save(update_fields=['count_authorizations'])
-
-
+        repository.save(update_fields=["count_authorizations"])

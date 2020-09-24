@@ -12,13 +12,13 @@ app.config_from_object("django.conf:settings", namespace="CELERY")
 app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
 
 app.conf.beat_schedule = {
-    # "check-training-status": {
-    #     "task": "bothub.common.tasks.trainings_check_task",
-    #     "schedule": 5.0,
-    # },
+    "check-training-status": {
+        "task": "bothub.common.tasks.trainings_check_task",
+        "schedule": 5.0,
+    },
     "repositories-count-authorizations": {
         "task": "bothub.common.tasks.repositories_count_authorizations",
-        "schedule": schedules.crontab(hour="14", minute=22),
+        "schedule": schedules.crontab(hour="8", minute=0),
     },
 }
 

@@ -5,14 +5,14 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('common', '0090_auto_20200921_1751'),
-    ]
+    dependencies = [("common", "0090_auto_20200921_1751")]
 
     operations = [
         migrations.AddField(
-            model_name='repository',
-            name='count_authorizations',
-            field=models.IntegerField(default=0, verbose_name='Authorization count calculated by celery'),
-        ),
+            model_name="repository",
+            name="count_authorizations",
+            field=models.IntegerField(
+                default=0, verbose_name="Authorization count calculated by celery"
+            ),
+        )
     ]
