@@ -19,7 +19,7 @@ from bothub.common.models import (
     RepositoryTranslatedExampleEntity,
     RepositoryEvaluate,
     RepositoryEvaluateEntity,
-    RepositoryIntent,
+    RepositoryIntent, Repository, RepositoryNLPLog,
 )
 
 
@@ -213,3 +213,18 @@ def debug_parse_text(instance_id, id_clone, repository, *args, **kwargs):
     instance.is_deleted = False
     instance.save(update_fields=["is_deleted"])
     return True
+
+
+@app.task()
+def repositories_count_authorizations():
+    for repository in Repository.objects.all():
+        count = repository.authorizations.filter(
+            user__in=RepositoryNLPLog.objects.filter(
+                repository_version_language__repository_version__repository=repository,
+                from_backend=False
+            ).distinct().values('user')
+        ).count()
+        repository.count_authorizations = count
+        repository.save(update_fields=['count_authorizations'])
+
+
