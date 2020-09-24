@@ -19,6 +19,7 @@ app.conf.beat_schedule = {
     "delete-nlp-logs": {
         "task": "bothub.common.tasks.delete_nlp_logs",
         "schedule": schedules.crontab(hour="22", minute=0),
+    },
     "repositories-count-authorizations": {
         "task": "bothub.common.tasks.repositories_count_authorizations",
         "schedule": schedules.crontab(hour="8", minute=0),

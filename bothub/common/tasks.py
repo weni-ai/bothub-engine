@@ -1,12 +1,10 @@
 import requests
 from datetime import timedelta
-
-from django.db import transaction
-from django.utils import timezone
 from urllib.parse import urlencode
-
 from django.conf import settings
-from django.db.models import Q, Count
+from django.db import transaction
+from django.db.models import Q
+from django.utils import timezone
 
 from bothub.celery import app
 from bothub.common.models import (
@@ -22,8 +20,6 @@ from bothub.common.models import (
     RepositoryEvaluate,
     RepositoryEvaluateEntity,
     RepositoryIntent,
-    RepositoryNLPLog,
-    RepositoryReports,
     Repository,
     RepositoryNLPLog,
 )
