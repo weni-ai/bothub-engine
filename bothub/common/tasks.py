@@ -24,6 +24,8 @@ from bothub.common.models import (
     RepositoryIntent,
     RepositoryNLPLog,
     RepositoryReports,
+    Repository,
+    RepositoryNLPLog,
 )
 
 
@@ -242,3 +244,16 @@ def delete_nlp_logs():
 
         num_updated += len(batch)
         print(f" > deleted {num_updated} nlp logs")
+
+def repositories_count_authorizations():
+    for repository in Repository.objects.all():
+        count = repository.authorizations.filter(
+            user__in=RepositoryNLPLog.objects.filter(
+                repository_version_language__repository_version__repository=repository,
+                from_backend=False,
+            )
+            .distinct()
+            .values("user")
+        ).count()
+        repository.count_authorizations = count
+        repository.save(update_fields=["count_authorizations"])

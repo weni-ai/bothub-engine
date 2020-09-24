@@ -337,6 +337,10 @@ class Repository(models.Model):
 
     nlp_server = models.URLField(_("Base URL NLP"), null=True, blank=True)
 
+    count_authorizations = models.IntegerField(
+        _("Authorization count calculated by celery"), default=0
+    )
+
     objects = RepositoryManager()
 
     __algorithm = None
