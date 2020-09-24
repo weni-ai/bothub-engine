@@ -1,10 +1,10 @@
 import requests
 from datetime import timedelta
-from django.utils import timezone
 from urllib.parse import urlencode
-
 from django.conf import settings
+from django.db import transaction
 from django.db.models import Q
+from django.utils import timezone
 
 from bothub.celery import app
 from bothub.common.models import (
@@ -215,6 +215,31 @@ def debug_parse_text(instance_id, id_clone, repository, *args, **kwargs):
     instance.is_deleted = False
     instance.save(update_fields=["is_deleted"])
     return True
+
+
+@app.task()
+def delete_nlp_logs():
+    BATCH_SIZE = 5000
+    logs = RepositoryNLPLog.objects.filter(
+        created_at__lt=timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        - timezone.timedelta(days=90)
+    )
+
+    num_updated = 0
+    max_id = -1
+    while True:
+        batch = list(logs.filter(id__gt=max_id).order_by("id")[:BATCH_SIZE])
+
+        if not batch:
+            break
+
+        max_id = batch[-1].id
+        with transaction.atomic():
+            for log in batch:
+                log.delete()
+
+        num_updated += len(batch)
+        print(f" > deleted {num_updated} nlp logs")
 
 
 @app.task()
