@@ -235,6 +235,7 @@ class NewRepositorySerializer(serializers.ModelSerializer):
             "is_organization",
             "authorizations",
             "ready_for_parse",
+            "count_authorizations",
         ]
         read_only = [
             "uuid",
@@ -251,6 +252,7 @@ class NewRepositorySerializer(serializers.ModelSerializer):
             "nlp_server",
             "is_organization",
             "ready_for_parse",
+            "count_authorizations",
         ]
         ref_name = None
 
@@ -357,6 +359,9 @@ class NewRepositorySerializer(serializers.ModelSerializer):
     )
     authorizations = serializers.SerializerMethodField(style={"show": False})
     ready_for_parse = serializers.SerializerMethodField(style={"show": False})
+    count_authorizations = serializers.IntegerField(
+        style={"show": False}, read_only=True, source="repository.count_authorizations"
+    )
 
     def get_authorizations(self, obj):
         auths = RepositoryAuthorization.objects.filter(
@@ -418,7 +423,9 @@ class NewRepositorySerializer(serializers.ModelSerializer):
                 map(
                     lambda u: (u.language, u.requirements_to_train),
                     obj.repository.current_versions(
-                        queryset=queryset, repository_version=obj.pk
+                        queryset=queryset,
+                        repository_version=obj.pk,
+                        version_default=obj.is_default,
                     ),
                 ),
             )

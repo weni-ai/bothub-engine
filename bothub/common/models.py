@@ -337,6 +337,10 @@ class Repository(models.Model):
 
     nlp_server = models.URLField(_("Base URL NLP"), null=True, blank=True)
 
+    count_authorizations = models.IntegerField(
+        _("Authorization count calculated by celery"), default=0
+    )
+
     objects = RepositoryManager()
 
     __algorithm = None
@@ -592,31 +596,17 @@ class Repository(models.Model):
                 lambda lang: self.get_specific_version_id(
                     repository_version=repository_version, language=lang
                 ),
-                self.available_languages(language=language, queryset=queryset),
+                self.available_languages(
+                    language=language,
+                    queryset=queryset,
+                    version_default=version_default,
+                ),
             )
         return map(
             lambda lang: self.current_version(lang, is_default=version_default),
             self.available_languages(
                 language=language, queryset=queryset, version_default=version_default
             ),
-        )
-
-    @property
-    def requirements_to_train(self):  # pragma: no cover
-        return dict(
-            filter(
-                lambda l: l[1],
-                map(
-                    lambda u: (u.language, u.requirements_to_train),
-                    self.current_versions(),
-                ),
-            )
-        )
-
-    @property
-    def languages_ready_for_train(self):  # pragma: no cover
-        return dict(
-            map(lambda u: (u.language, u.ready_for_train), self.current_versions())
         )
 
     def ready_for_train(
