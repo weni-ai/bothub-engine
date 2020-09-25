@@ -68,8 +68,8 @@ def debug_parse_text(instance_id, id_clone, repository, *args, **kwargs):
     instance = RepositoryVersion.objects.get(pk=instance_id)
 
     for version in clone.version_languages:
-
-        version_language = RepositoryVersionLanguage.objects.create(
+        # Prepare languages for versioning before creating phrases
+        RepositoryVersionLanguage.objects.create(
             language=version.language,
             training_started_at=version.training_started_at,
             training_end_at=version.training_end_at,
@@ -83,6 +83,10 @@ def debug_parse_text(instance_id, id_clone, repository, *args, **kwargs):
             last_update=version.last_update,
             total_training_end=version.total_training_end,
         )
+
+    for version in clone.version_languages:
+        version_language = instance.get_version_language(version.language)
+
         version_language.update_trainer(
             version.get_bot_data.bot_data, version.get_bot_data.rasa_version
         )
@@ -142,7 +146,9 @@ def debug_parse_text(instance_id, id_clone, repository, *args, **kwargs):
 
             for translated_example in translated_examples:
                 translated = RepositoryTranslatedExample.objects.create(
-                    repository_version_language=version_language,
+                    repository_version_language=instance.get_version_language(
+                        translated_example.language
+                    ),
                     original_example=example_id,
                     language=translated_example.language,
                     text=translated_example.text,
