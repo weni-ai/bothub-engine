@@ -129,6 +129,7 @@ You can set environment variables in your OS, write on ```.env``` file or pass v
 | BOTHUB_ENGINE_SENTRY |  ```string``` | ```None``` | URL Sentry
 | BOTHUB_NLP_RASA_VERSION |  ```string``` | ```1.4.3``` | Specify the version of rasa used in the nlp worker
 | TOKEN_SEARCH_REPOSITORIES |  ```string``` | ```None``` | Specify the token to be used in the search_repositories_examples route, if not specified, the route is available without authentication
+| GOOGLE_API_TRANSLATION_KEY |  ```string``` | ```None``` | Specify the Google Translation API passkey, used in machine translation
 | ENVIRONMENT |  ```string``` | ```production``` | Specify the environment you are going to run, it is also used for sentry
 
 ## Roadmap

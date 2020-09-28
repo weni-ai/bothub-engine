@@ -1121,6 +1121,10 @@ class EvaluateSerializer(serializers.Serializer):
     repository_version = serializers.IntegerField(required=False)
 
 
+class RepositoryAutoTranslationSerializer(serializers.Serializer):
+    target_language = serializers.ChoiceField(LANGUAGE_CHOICES, required=True)
+
+
 class RepositoryUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = RepositoryVersion
