@@ -3,9 +3,10 @@ from datetime import timedelta
 from urllib.parse import urlencode
 from django.conf import settings
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.utils import timezone
 
+from bothub import translate
 from bothub.celery import app
 from bothub.common.models import (
     RepositoryQueueTask,
@@ -261,3 +262,59 @@ def repositories_count_authorizations():
         ).count()
         repository.count_authorizations = count
         repository.save(update_fields=["count_authorizations"])
+
+
+@app.task(name="auto_translation")
+def auto_translation(
+    repository_version, source_language, target_language, *args, **kwargs
+):
+    repository_version = RepositoryVersion.objects.get(pk=repository_version)
+
+    examples = (
+        RepositoryExample.objects.filter(
+            repository_version_language__repository_version=repository_version,
+            repository_version_language__language=source_language,
+        )
+        .annotate(
+            translation_count=Count(
+                "translations", filter=Q(translations__language=target_language)
+            )
+        )
+        .filter(translation_count=0)
+    )
+
+    for example in examples:
+        if example.translations.filter(language=target_language).count() > 0:
+            # Checks if there is already a translation for this example, it occurs if it is running and the user
+            # purposely adds a translation
+            continue
+
+        example_translated = translate.translate(
+            text=example.get_text(language=source_language),
+            source_lang=source_language,
+            target_language=target_language,
+        )
+
+        translated = RepositoryTranslatedExample.objects.create(
+            original_example=example, language=target_language, text=example_translated
+        )
+        entities = example.get_entities(language=source_language)
+
+        for entity in entities:
+            entity_text = example.get_text(language=source_language)[
+                entity.start : entity.end
+            ]
+            entity_translated = translate.translate(
+                text=entity_text,
+                source_lang=source_language,
+                target_language=target_language,
+            )
+            if entity_translated in example_translated:
+                start = example_translated.find(entity_translated)
+                end = start + len(entity_translated)
+                RepositoryTranslatedExampleEntity.objects.create(
+                    repository_translated_example=translated,
+                    start=start,
+                    end=end,
+                    entity=entity.entity,
+                )
