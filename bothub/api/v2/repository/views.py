@@ -25,6 +25,7 @@ from rest_framework.viewsets import GenericViewSet
 
 from bothub.api.v2.mixins import MultipleFieldLookupMixin
 from bothub.authentication.models import RepositoryOwner
+from bothub.common import languages
 from bothub.common.models import (
     Repository,
     RepositoryNLPLog,
@@ -39,6 +40,7 @@ from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryVersion
 from bothub.common.models import RepositoryVote
 from bothub.common.models import RequestRepositoryAuthorization
+from bothub.celery import app as celery_app
 from .filters import (
     RepositoriesFilter,
     RepositoryNLPLogFilter,
@@ -71,6 +73,7 @@ from .serializers import (
     RepositoryPermissionSerializer,
     RepositoryNLPLogReportsSerializer,
     RepositoryIntentSerializer,
+    RepositoryAutoTranslationSerializer,
 )
 from .serializers import EvaluateSerializer
 from .serializers import RepositoryAuthorizationRoleSerializer
@@ -115,6 +118,56 @@ class NewRepositoryViewSet(
 
         repository_version = self.get_object()
         return Response({"languages_status": repository_version.languages_status})
+
+    @action(
+        detail=True,
+        methods=["POST"],
+        url_name="repository-auto-translation",
+        permission_classes=[],
+        lookup_fields=["repository__uuid", "pk"],
+        serializer_class=RepositoryAutoTranslationSerializer,
+    )
+    def auto_translation(self, request, **kwargs):
+        repository_version = self.get_object()
+        user_authorization = repository_version.repository.get_user_authorization(
+            request.user
+        )
+
+        if not user_authorization.can_translate:
+            raise PermissionDenied()
+
+        serializer = RepositoryAutoTranslationSerializer(
+            data=request.data
+        )  # pragma: no cover
+        serializer.is_valid(raise_exception=True)  # pragma: no cover
+
+        target_language = serializer.data.get("target_language")
+
+        # Validates if the language is available
+        languages.validate_language(value=target_language)
+
+        if target_language not in languages.GOOGLE_API_TRANSLATION_LANGUAGES_SUPPORTED:
+            raise APIException(  # pragma: no cover
+                detail=_("This language is not available in machine translation")
+            )
+
+        if repository_version.repository.language == target_language:
+            raise APIException(  # pragma: no cover
+                detail=_(
+                    "It is not possible to translate the base language into your own language"
+                )
+            )
+
+        celery_app.send_task(
+            "auto_translation",
+            args=[
+                repository_version.pk,
+                repository_version.repository.language,
+                target_language,
+            ],
+        )
+
+        return Response({"queue": "created"})
 
 
 class RepositoryViewSet(
