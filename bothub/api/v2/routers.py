@@ -32,7 +32,7 @@ from .nlp.views import RepositoryAuthorizationInfoViewSet
 from .nlp.views import RepositoryAuthorizationEvaluateViewSet
 from .nlp.views import NLPLangsViewSet
 from .nlp.views import RepositoryUpdateInterpretersViewSet
-from .examples.views import ExamplesViewSet
+from .examples.views import ExamplesViewSet, TranslatorExamplesViewSet
 from .evaluate.views import EvaluateViewSet
 from .evaluate.views import ResultsListViewSet
 from .account.views import LoginViewSet
@@ -131,6 +131,7 @@ router.register(
 router.register("repository/repository-reports", RepositoryNLPLogReportsViewSet)
 router.register("repository/categories", RepositoryCategoriesView)
 router.register("repository/examples", ExamplesViewSet)
+router.register("repository/translator-examples", TranslatorExamplesViewSet)
 router.register("repository/search-repositories", SearchRepositoriesViewSet)
 router.register("repository/repositories-permissions", RepositoriesPermissionsViewSet)
 router.register("repository/authorizations", RepositoryAuthorizationViewSet)

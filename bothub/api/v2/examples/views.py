@@ -12,8 +12,9 @@ from rest_framework.filters import SearchFilter
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
+from bothub.authentication.authorization import TranslatorAuthentication
 from bothub.common.models import RepositoryExample
-from .filters import ExamplesFilter
+from .filters import ExamplesFilter, TranslatorExamplesFilter
 from ..example.serializers import (
     RepositoryExampleSerializer,
     RepositoriesSearchExamplesSerializer,
@@ -95,3 +96,19 @@ class ExamplesViewSet(mixins.ListModelMixin, GenericViewSet):
                 ]
             }
         )
+
+
+class TranslatorExamplesViewSet(mixins.ListModelMixin, GenericViewSet):
+    queryset = RepositoryExample.objects
+    serializer_class = RepositoryExampleSerializer
+    filter_class = TranslatorExamplesFilter
+    filter_backends = [OrderingFilter, SearchFilter, DjangoFilterBackend]
+    search_fields = ["$text", "^text", "=text"]
+    ordering_fields = ["created_at"]
+    authentication_classes = [TranslatorAuthentication]
+
+    def get_queryset(self, *args, **kwargs):
+        queryset = RepositoryExample.objects.filter(
+            repository_version_language=self.request.auth.repository_version_language
+        )
+        return queryset
