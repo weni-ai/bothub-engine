@@ -43,7 +43,10 @@ from .account.views import UserProfileViewSet
 from .account.views import MyUserProfileViewSet
 from .account.views import SearchUserViewSet
 from .account.views import ResetPasswordViewSet
-from .translation.views import RepositoryTranslatedExampleViewSet
+from .translation.views import (
+    RepositoryTranslatedExampleViewSet,
+    RepositoryTranslationTranslatorExampleViewSet,
+)
 from .translation.views import RepositoryTranslatedExporterViewSet
 
 
@@ -143,6 +146,9 @@ router.register("repository/intent", RepositoryIntentViewSet)
 router.register("repository/evaluate/results", ResultsListViewSet)
 router.register("repository/evaluate", EvaluateViewSet)
 router.register("repository/translation", RepositoryTranslatedExampleViewSet)
+router.register(
+    "repository/translation-translator", RepositoryTranslationTranslatorExampleViewSet
+)
 router.register("repository/translation-export", RepositoryTranslatedExporterViewSet)
 router.register("repository/version", RepositoryVersionViewSet)
 router.register("repository/log", RepositoryNLPLogViewSet)

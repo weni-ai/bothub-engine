@@ -20,7 +20,10 @@ from ..example.serializers import (
     RepositoriesSearchExamplesSerializer,
     RepositoriesSearchExamplesResponseSerializer,
 )
-from ..repository.permissions import RepositoryExamplePermission
+from ..repository.permissions import (
+    RepositoryExamplePermission,
+    RepositoryExampleTranslatorPermission,
+)
 
 
 class ExamplesViewSet(mixins.ListModelMixin, GenericViewSet):
@@ -106,9 +109,11 @@ class TranslatorExamplesViewSet(mixins.ListModelMixin, GenericViewSet):
     search_fields = ["$text", "^text", "=text"]
     ordering_fields = ["created_at"]
     authentication_classes = [TranslatorAuthentication]
+    permission_classes = [RepositoryExampleTranslatorPermission]
 
     def get_queryset(self, *args, **kwargs):
         queryset = RepositoryExample.objects.filter(
-            repository_version_language=self.request.auth.repository_version_language
+            repository_version_language__repository_version=self.request.auth.repository_version_language.repository_version,
+            repository_version_language__language=self.request.auth.repository_version_language.repository_version.repository.language,
         )
         return queryset

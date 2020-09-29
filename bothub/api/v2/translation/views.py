@@ -25,7 +25,9 @@ from bothub.api.v2.translation.serializers import (
     RepositoryTranslatedExampleSerializer,
     RepositoryTranslatedExporterSerializer,
     RepositoryTranslatedImportSerializer,
+    RepositoryTranslatedExampleTranslatorSerializer,
 )
+from bothub.authentication.authorization import TranslatorAuthentication
 from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryExampleEntity
 from bothub.common.models import (
@@ -343,3 +345,17 @@ class RepositoryTranslatedExporterViewSet(
         )
         response["Content-Disposition"] = "attachment; filename=bothub.xlsx"
         return response
+
+
+class RepositoryTranslationTranslatorExampleViewSet(
+    mixins.CreateModelMixin, GenericViewSet
+):
+    queryset = RepositoryTranslatedExample.objects
+    serializer_class = RepositoryTranslatedExampleTranslatorSerializer
+    authentication_classes = [TranslatorAuthentication]
+
+    def get_queryset(self, *args, **kwargs):
+        queryset = RepositoryTranslatedExample.objects.filter(
+            repository_version_language=self.request.auth.repository_version_language
+        )
+        return queryset
