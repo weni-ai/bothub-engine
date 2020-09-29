@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.utils.decorators import method_decorator
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg import openapi
@@ -112,8 +112,19 @@ class TranslatorExamplesViewSet(mixins.ListModelMixin, GenericViewSet):
     permission_classes = [RepositoryExampleTranslatorPermission]
 
     def get_queryset(self, *args, **kwargs):
-        queryset = RepositoryExample.objects.filter(
-            repository_version_language__repository_version=self.request.auth.repository_version_language.repository_version,
-            repository_version_language__language=self.request.auth.repository_version_language.repository_version.repository.language,
+        queryset = (
+            RepositoryExample.objects.filter(
+                repository_version_language__repository_version=self.request.auth.repository_version_language.repository_version,
+                repository_version_language__language=self.request.auth.repository_version_language.repository_version.repository.language,
+            )
+            .annotate(
+                translation_count=Count(
+                    "translations",
+                    filter=Q(
+                        translations__language=self.request.auth.repository_version_language.language
+                    ),
+                )
+            )
+            .filter(translation_count=0)
         )
         return queryset
