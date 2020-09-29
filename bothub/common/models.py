@@ -2079,6 +2079,24 @@ class RepositoryEvaluateResultEntity(models.Model):
     objects = EntityBaseManager()
 
 
+class RepositoryTranslator(models.Model):
+    class Meta:
+        verbose_name = _("repository translator")
+        verbose_name_plural = _("repository translators")
+
+    uuid = models.UUIDField(
+        _("UUID"), primary_key=True, default=uuid.uuid4, editable=False
+    )
+    repository_version_language = models.ForeignKey(
+        RepositoryVersionLanguage,
+        models.CASCADE,
+        related_name="translator",
+        editable=False,
+    )
+    created_by = models.ForeignKey(RepositoryOwner, models.CASCADE)
+    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
+
+
 @receiver(models.signals.pre_save, sender=RequestRepositoryAuthorization)
 def set_user_role_on_approved(instance, **kwargs):
     current = None
