@@ -1711,6 +1711,7 @@ class RepositoryAuthorization(models.Model):
                                 role=OrganizationAuthorization.ROLE_NOT_SETTED
                             ).values_list("organization", flat=True),
                         )
+                        .exclude(role=OrganizationAuthorization.ROLE_NOT_SETTED)
                         .order_by("-role")
                         .values_list("user")
                     )
@@ -2091,6 +2092,12 @@ class RepositoryTranslator(models.Model):
         RepositoryVersionLanguage,
         models.CASCADE,
         related_name="translator",
+        editable=False,
+    )
+    language = models.CharField(
+        _("language"),
+        max_length=5,
+        validators=[languages.validate_language],
         editable=False,
     )
     created_by = models.ForeignKey(RepositoryOwner, models.CASCADE)

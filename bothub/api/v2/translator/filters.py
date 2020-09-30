@@ -2,8 +2,38 @@ from django.db.models import Count
 from django.db.models import Q
 from django.utils.translation import ugettext_lazy as _
 from django_filters import rest_framework as filters
+from rest_framework.exceptions import PermissionDenied, NotFound
+from django.core.exceptions import ValidationError as DjangoValidationError
 
-from bothub.common.models import RepositoryExample
+from bothub.common.models import RepositoryExample, RepositoryTranslator, Repository
+
+
+class RepositoryTranslatorFilter(filters.FilterSet):
+    class Meta:
+        model = RepositoryTranslator
+        fields = ["repository"]
+
+    repository = filters.CharFilter(
+        field_name="repository",
+        method="filter_repository_uuid",
+        help_text=_("Repository's UUID"),
+        required=True,
+    )
+
+    def filter_repository_uuid(self, queryset, name, value):
+        request = self.request
+        try:
+            repository = Repository.objects.get(uuid=value)
+            authorization = repository.get_user_authorization(request.user)
+            if not authorization.is_admin:
+                raise PermissionDenied()
+            return queryset.filter(
+                repository_version_language__repository_version__repository=repository
+            )
+        except Repository.DoesNotExist:
+            raise NotFound(_("Repository {} does not exist").format(value))
+        except DjangoValidationError:
+            raise NotFound(_("Invalid repository UUID"))
 
 
 class TranslatorExamplesFilter(filters.FilterSet):

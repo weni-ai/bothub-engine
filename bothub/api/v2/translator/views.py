@@ -2,16 +2,47 @@ from django.db.models import Count, Q
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins
 from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
 
 from bothub.api.v2.example.serializers import RepositoryExampleSerializer
-from bothub.api.v2.translator.filters import TranslatorExamplesFilter
-from bothub.api.v2.translator.permissions import RepositoryExampleTranslatorPermission
+from bothub.api.v2.translator.filters import (
+    TranslatorExamplesFilter,
+    RepositoryTranslatorFilter,
+)
+from bothub.api.v2.translator.permissions import (
+    RepositoryExampleTranslatorPermission,
+    RepositoryTranslatorPermission,
+)
 from bothub.api.v2.translator.serializers import (
     RepositoryTranslatedExampleTranslatorSerializer,
+    RepositoryTranslatorSerializer,
 )
 from bothub.authentication.authorization import TranslatorAuthentication
-from bothub.common.models import RepositoryExample, RepositoryTranslatedExample
+from bothub.common.models import (
+    RepositoryExample,
+    RepositoryTranslatedExample,
+    RepositoryTranslator,
+)
+
+
+class RepositoryTranslatorViewSet(
+    mixins.ListModelMixin,
+    mixins.DestroyModelMixin,
+    mixins.CreateModelMixin,
+    GenericViewSet,
+):
+    """
+    Manage all external translators
+    """
+
+    queryset = RepositoryTranslator.objects
+    serializer_class = RepositoryTranslatorSerializer
+    permission_classes = [IsAuthenticated, RepositoryTranslatorPermission]
+
+    def list(self, request, *args, **kwargs):
+        self.filter_class = RepositoryTranslatorFilter
+        return super().list(request, *args, **kwargs)
 
 
 class TranslatorExamplesViewSet(mixins.ListModelMixin, GenericViewSet):
