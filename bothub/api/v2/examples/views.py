@@ -84,7 +84,10 @@ class ExamplesViewSet(mixins.ListModelMixin, GenericViewSet):
                 repository_version_language__repository_version__is_default=True,
                 repository_version_language__repository_version__repository__in=repositories,
             )
-            .filter(Q(text__icontains=text) | Q(translations__text__icontains=text))
+            .filter(
+                Q(text__unaccent__trigram_similar=text)
+                | Q(translations__text__unaccent__trigram_similar=text)
+            )
             .distinct()
         )
 
