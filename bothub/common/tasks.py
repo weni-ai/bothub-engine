@@ -31,7 +31,7 @@ def trainings_check_task():
     trainers = RepositoryQueueTask.objects.filter(
         Q(status=RepositoryQueueTask.STATUS_PENDING)
         | Q(status=RepositoryQueueTask.STATUS_TRAINING)
-    )
+    ).filter(Q(type_processing=RepositoryQueueTask.TYPE_PROCESSING_TRAINING))
     for train in trainers:
         services = {
             RepositoryQueueTask.QUEUE_AIPLATFORM: "ai-platform",
