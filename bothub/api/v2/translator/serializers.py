@@ -13,7 +13,6 @@ from bothub.common import languages
 from bothub.common.languages import LANGUAGE_CHOICES
 from bothub.common.models import (
     RepositoryExample,
-    RepositoryTranslatedExampleEntity,
     RepositoryTranslator,
     RepositoryVersion,
 )
@@ -39,15 +38,17 @@ class RepositoryTranslatedExampleTranslatorSerializer(
                 ).auth.repository_version_language.language
             }
         )
-        entities_data = validated_data.pop("entities")
+        return super().create(validated_data)
 
-        translated = self.Meta.model.objects.create(**validated_data)
-
-        for entity_data in entities_data:
-            RepositoryTranslatedExampleEntity.objects.create(
-                repository_translated_example=translated, **entity_data
-            )
-        return translated
+    def update(self, instance, validated_data):
+        validated_data.update(
+            {
+                "language": self.context.get(
+                    "request"
+                ).auth.repository_version_language.language
+            }
+        )
+        return super().update(instance, validated_data)
 
 
 class RepositoryTranslatorSerializer(serializers.ModelSerializer):

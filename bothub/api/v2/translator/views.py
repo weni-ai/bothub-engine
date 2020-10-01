@@ -1,4 +1,3 @@
-from django.db.models import Count, Q
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins
 from rest_framework.filters import OrderingFilter, SearchFilter
@@ -56,32 +55,31 @@ class TranslatorExamplesViewSet(mixins.ListModelMixin, GenericViewSet):
     permission_classes = [RepositoryExampleTranslatorPermission]
 
     def get_queryset(self, *args, **kwargs):
-        queryset = (
-            RepositoryExample.objects.filter(
-                repository_version_language__repository_version=self.request.auth.repository_version_language.repository_version,
-                repository_version_language__language=self.request.auth.repository_version_language.repository_version.repository.language,
-            )
-            .annotate(
-                translation_count=Count(
-                    "translations",
-                    filter=Q(
-                        translations__language=self.request.auth.repository_version_language.language
-                    ),
-                )
-            )
-            .filter(translation_count=0)
+        if getattr(self, "swagger_fake_view", False):
+            # queryset just for schema generation metadata
+            return RepositoryExample.objects.none()
+        queryset = RepositoryExample.objects.filter(
+            repository_version_language__repository_version=self.request.auth.repository_version_language.repository_version,
+            repository_version_language__language=self.request.auth.repository_version_language.repository_version.repository.language,
         )
         return queryset
 
 
 class RepositoryTranslationTranslatorExampleViewSet(
-    mixins.CreateModelMixin, GenericViewSet
+    mixins.CreateModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    GenericViewSet,
 ):
     queryset = RepositoryTranslatedExample.objects
     serializer_class = RepositoryTranslatedExampleTranslatorSerializer
     authentication_classes = [TranslatorAuthentication]
 
     def get_queryset(self, *args, **kwargs):
+        if getattr(self, "swagger_fake_view", False):
+            # queryset just for schema generation metadata
+            return RepositoryTranslatedExample.objects.none()
         queryset = RepositoryTranslatedExample.objects.filter(
             repository_version_language=self.request.auth.repository_version_language
         )

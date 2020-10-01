@@ -1,4 +1,4 @@
-from django.db.models import Count
+from django.db.models import Count, F
 from django.db.models import Q
 from django.utils.translation import ugettext_lazy as _
 from django_filters import rest_framework as filters
@@ -41,6 +41,17 @@ class TranslatorExamplesFilter(filters.FilterSet):
         model = RepositoryExample
         fields = ["text"]
 
+    has_translation = filters.BooleanFilter(
+        field_name="has_translation",
+        method="filter_has_translation",
+        help_text=_("Filter for examples with or without translation"),
+    )
+    has_not_translation_to = filters.CharFilter(
+        field_name="has_not_translation_to", method="filter_has_not_translation_to"
+    )
+    has_translation_to = filters.CharFilter(
+        field_name="has_translation_to", method="filter_has_translation_to"
+    )
     order_by_translation = filters.CharFilter(
         field_name="order_by_translation",
         method="filter_order_by_translation",
@@ -71,6 +82,20 @@ class TranslatorExamplesFilter(filters.FilterSet):
         method="filter_intent_id",
         help_text=_("Filter for examples with intent by id."),
     )
+    has_valid_entities = filters.CharFilter(
+        field_name="has_valid_entities",
+        method="filter_has_valid_entities",
+        help_text=_(
+            "Filter all translations whose entities are valid, that is, the entities of the translations that match the entities of the original sentence"
+        ),
+    )
+    has_invalid_entities = filters.CharFilter(
+        field_name="has_invalid_entities",
+        method="filter_has_invalid_entities",
+        help_text=_(
+            "Filter all translations whose entities are invalid, that is, the translation entities do not match the entities in the original sentence"
+        ),
+    )
 
     def filter_order_by_translation(self, queryset, name, value):
         inverted = value[0] == "-"
@@ -84,6 +109,29 @@ class TranslatorExamplesFilter(filters.FilterSet):
             "-translation_count" if inverted else "translation_count"
         )
         return result_queryset
+
+    def filter_has_translation(self, queryset, name, value):
+        annotated_queryset = queryset.annotate(translation_count=Count("translations"))
+        if value:
+            return annotated_queryset.filter(translation_count__gt=0)
+        else:
+            return annotated_queryset.filter(translation_count=0)
+
+    def filter_has_not_translation_to(self, queryset, name, value):
+        annotated_queryset = queryset.annotate(
+            translation_count=Count(
+                "translations", filter=Q(translations__language=value)
+            )
+        )
+        return annotated_queryset.filter(translation_count=0)
+
+    def filter_has_translation_to(self, queryset, name, value):
+        annotated_queryset = queryset.annotate(
+            translation_count=Count(
+                "translations", filter=Q(translations__language=value)
+            )
+        )
+        return annotated_queryset.filter(~Q(translation_count=0))
 
     def filter_group(self, queryset, name, value):
         if value == "other":
@@ -101,3 +149,63 @@ class TranslatorExamplesFilter(filters.FilterSet):
 
     def filter_intent_id(self, queryset, name, value):
         return queryset.filter(intent__pk=value)
+
+    def filter_has_valid_entities(self, queryset, name, value):
+        result_queryset = queryset.annotate(
+            original_entities_count=Count(
+                "entities",
+                filter=Q(
+                    translations__original_example__entities__repository_example=F("pk")
+                ),
+                distinct=True,
+            )
+        ).annotate(
+            entities_count=Count(
+                "translations__entities",
+                filter=Q(
+                    Q(
+                        translations__entities__repository_translated_example__language=value
+                    )
+                    | Q(
+                        translations__entities__repository_translated_example__language=F(
+                            "repository_version_language__repository_version__repository__language"
+                        )
+                    ),
+                    translations__entities__entity__in=F(
+                        "translations__original_example__entities__entity"
+                    ),
+                ),
+                distinct=True,
+            )
+        )
+        return result_queryset.filter(original_entities_count=F("entities_count"))
+
+    def filter_has_invalid_entities(self, queryset, name, value):
+        result_queryset = queryset.annotate(
+            original_entities_count=Count(
+                "entities",
+                filter=Q(
+                    translations__original_example__entities__repository_example=F("pk")
+                ),
+                distinct=True,
+            )
+        ).annotate(
+            entities_count=Count(
+                "translations__entities",
+                filter=Q(
+                    Q(
+                        translations__entities__repository_translated_example__language=value
+                    )
+                    | Q(
+                        translations__entities__repository_translated_example__language=F(
+                            "repository_version_language__repository_version__repository__language"
+                        )
+                    ),
+                    translations__entities__entity__in=F(
+                        "translations__original_example__entities__entity"
+                    ),
+                ),
+                distinct=True,
+            )
+        )
+        return result_queryset.exclude(original_entities_count=F("entities_count"))
