@@ -1,6 +1,6 @@
 from django.db.models import Q
-from django_filters.rest_framework import DjangoFilterBackend
 from django.utils.translation import ugettext_lazy as _
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied, APIException
@@ -10,7 +10,6 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from bothub.api.v2.example.serializers import RepositoryExampleSerializer
-from bothub.api.v2.repository.serializers import RepositoryAutoTranslationSerializer
 from bothub.api.v2.translator.filters import (
     TranslatorExamplesFilter,
     RepositoryTranslatorFilter,
@@ -24,8 +23,8 @@ from bothub.api.v2.translator.serializers import (
     RepositoryTranslatorSerializer,
 )
 from bothub.authentication.authorization import TranslatorAuthentication
-from bothub.common import languages
 from bothub.celery import app as celery_app
+from bothub.common import languages
 from bothub.common.models import (
     RepositoryExample,
     RepositoryTranslatedExample,
