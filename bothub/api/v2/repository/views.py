@@ -550,6 +550,9 @@ class RepositoriesPermissionsViewSet(mixins.ListModelMixin, GenericViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self, *args, **kwargs):
+        if getattr(self, "swagger_fake_view", False):
+            # queryset just for schema generation metadata
+            return RepositoryAuthorization.objects.none()
         return (
             self.queryset.exclude(repository__owner=self.request.user)
             .exclude(role=RepositoryAuthorization.ROLE_NOT_SETTED)
@@ -845,6 +848,9 @@ class RepositoryNLPLogReportsViewSet(mixins.ListModelMixin, GenericViewSet):
     filter_backends = [DjangoFilterBackend]
 
     def get_queryset(self, *args, **kwargs):
+        if getattr(self, "swagger_fake_view", False):
+            # queryset just for schema generation metadata
+            return Repository.objects.none()
         user = self.request.user
         if self.request.query_params.get("organization_nickname", None):
             owner = get_object_or_404(

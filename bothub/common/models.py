@@ -1711,6 +1711,7 @@ class RepositoryAuthorization(models.Model):
                                 role=OrganizationAuthorization.ROLE_NOT_SETTED
                             ).values_list("organization", flat=True),
                         )
+                        .exclude(role=OrganizationAuthorization.ROLE_NOT_SETTED)
                         .order_by("-role")
                         .values_list("user")
                     )
@@ -2077,6 +2078,30 @@ class RepositoryEvaluateResultEntity(models.Model):
     )
 
     objects = EntityBaseManager()
+
+
+class RepositoryTranslator(models.Model):
+    class Meta:
+        verbose_name = _("repository translator")
+        verbose_name_plural = _("repository translators")
+
+    uuid = models.UUIDField(
+        _("UUID"), primary_key=True, default=uuid.uuid4, editable=False
+    )
+    repository_version_language = models.ForeignKey(
+        RepositoryVersionLanguage,
+        models.CASCADE,
+        related_name="translator",
+        editable=False,
+    )
+    language = models.CharField(
+        _("language"),
+        max_length=5,
+        validators=[languages.validate_language],
+        editable=False,
+    )
+    created_by = models.ForeignKey(RepositoryOwner, models.CASCADE)
+    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
 
 
 @receiver(models.signals.pre_save, sender=RequestRepositoryAuthorization)
