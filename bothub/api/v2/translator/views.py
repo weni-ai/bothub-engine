@@ -1,10 +1,16 @@
+from django.db.models import Q
 from django_filters.rest_framework import DjangoFilterBackend
+from django.utils.translation import ugettext_lazy as _
 from rest_framework import mixins
+from rest_framework.decorators import action
+from rest_framework.exceptions import PermissionDenied, APIException
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from bothub.api.v2.example.serializers import RepositoryExampleSerializer
+from bothub.api.v2.repository.serializers import RepositoryAutoTranslationSerializer
 from bothub.api.v2.translator.filters import (
     TranslatorExamplesFilter,
     RepositoryTranslatorFilter,
@@ -18,10 +24,13 @@ from bothub.api.v2.translator.serializers import (
     RepositoryTranslatorSerializer,
 )
 from bothub.authentication.authorization import TranslatorAuthentication
+from bothub.common import languages
+from bothub.celery import app as celery_app
 from bothub.common.models import (
     RepositoryExample,
     RepositoryTranslatedExample,
     RepositoryTranslator,
+    RepositoryQueueTask,
 )
 
 
@@ -84,3 +93,73 @@ class RepositoryTranslationTranslatorExampleViewSet(
             repository_version_language=self.request.auth.repository_version_language
         )
         return queryset
+
+    @action(
+        detail=True,
+        methods=["POST"],
+        url_name="repository-auto-translation",
+        permission_classes=[],
+        authentication_classes=[TranslatorAuthentication],
+    )
+    def auto_translation(self, request, **kwargs):
+        repository_version = request.auth.repository_version_language.repository_version
+        user_authorization = repository_version.repository.get_user_authorization(
+            request.user
+        )
+
+        if not user_authorization.can_translate:
+            raise PermissionDenied()
+
+        # Validates if the language is available
+        languages.validate_language(
+            value=request.auth.repository_version_language.language
+        )
+
+        if (
+            request.auth.repository_version_language.language
+            not in languages.GOOGLE_API_TRANSLATION_LANGUAGES_SUPPORTED
+        ):
+            raise APIException(  # pragma: no cover
+                detail=_("This language is not available in machine translation")
+            )
+
+        if (
+            repository_version.repository.language
+            == request.auth.repository_version_language.language
+        ):
+            raise APIException(  # pragma: no cover
+                detail=_(
+                    "It is not possible to translate the base language into your own language"
+                )
+            )
+
+        queue_running = (
+            repository_version.get_version_language(
+                language=request.auth.repository_version_language.language
+            )
+            .queues.filter(
+                Q(status=RepositoryQueueTask.STATUS_PENDING)
+                | Q(status=RepositoryQueueTask.STATUS_PROCESSING)
+            )
+            .filter(
+                Q(type_processing=RepositoryQueueTask.TYPE_PROCESSING_AUTO_TRANSLATE)
+            )
+        )
+
+        if queue_running:
+            raise APIException(  # pragma: no cover
+                detail=_(
+                    "It is only possible to perform an automatic translation per language, a translation is already running"
+                )
+            )
+
+        task = celery_app.send_task(
+            "auto_translation",
+            args=[
+                repository_version.pk,
+                repository_version.repository.language,
+                request.auth.repository_version_language.language,
+            ],
+        )
+
+        return Response({"id_queue": task.task_id})
