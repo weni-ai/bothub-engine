@@ -197,6 +197,11 @@ class RepositoryQueueTaskFilter(filters.FilterSet):
         choices=RepositoryQueueTask.TYPE_PROCESSING_CHOICES,
         help_text=_("Choose the type of processing"),
     )
+    id_queue = filters.CharFilter(
+        field_name="id_queue",
+        method="filter_id_queue",
+        help_text=_("Filter by Queue ID"),
+    )
 
     def filter_repository_uuid(self, queryset, name, value):
         request = self.request
@@ -220,6 +225,9 @@ class RepositoryQueueTaskFilter(filters.FilterSet):
 
     def filter_type_processing(self, queryset, name, value):
         return queryset.filter(type_processing=value)
+
+    def filter_id_queue(self, queryset, name, value):
+        return queryset.filter(id_queue=value)
 
 
 class RepositoryNLPLogReportsFilter(filters.FilterSet):
