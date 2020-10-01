@@ -1072,8 +1072,8 @@ class RepositoryVersionLanguage(models.Model):
         if (
             self.queues.filter(
                 Q(status=RepositoryQueueTask.STATUS_PENDING)
-                | Q(status=RepositoryQueueTask.STATUS_TRAINING)
-            )
+                | Q(status=RepositoryQueueTask.STATUS_PROCESSING)
+            ).filter(Q(type_processing=RepositoryQueueTask.TYPE_PROCESSING_TRAINING))
             and not from_nlp
         ):
             raise RepositoryUpdateAlreadyStartedTraining()
@@ -1104,9 +1104,12 @@ class RepositoryVersionLanguage(models.Model):
         )
         self.repository_version.save(update_fields=["created_by"])
 
-    def create_task(self, id_queue, from_queue):
-        RepositoryQueueTask.objects.create(
-            repositoryversionlanguage=self, id_queue=id_queue, from_queue=from_queue
+    def create_task(self, id_queue, from_queue, type_processing):
+        return RepositoryQueueTask.objects.create(
+            repositoryversionlanguage=self,
+            id_queue=id_queue,
+            from_queue=from_queue,
+            type_processing=type_processing,
         )
 
     def get_trainer(self, rasa_version):
@@ -1161,20 +1164,23 @@ class RepositoryQueueTask(models.Model):
 
     QUEUE_AIPLATFORM = 0
     QUEUE_CELERY = 1
-    QUEUE_CHOICES = [
-        (QUEUE_AIPLATFORM, _("Ai Platform")),
-        (QUEUE_CELERY, _("Celery NLU Worker")),
-    ]
+    QUEUE_CHOICES = [(QUEUE_AIPLATFORM, _("Ai Platform")), (QUEUE_CELERY, _("Celery"))]
 
     STATUS_PENDING = 0
-    STATUS_TRAINING = 1
+    STATUS_PROCESSING = 1
     STATUS_SUCCESS = 2
     STATUS_FAILED = 3
     STATUS_CHOICES = [
         (STATUS_PENDING, _("Pending")),
         (STATUS_SUCCESS, _("Success")),
-        (STATUS_TRAINING, _("Training")),
+        (STATUS_PROCESSING, _("Processing")),
         (STATUS_FAILED, _("Failed")),
+    ]
+    TYPE_PROCESSING_TRAINING = 0
+    TYPE_PROCESSING_AUTO_TRANSLATE = 1
+    TYPE_PROCESSING_CHOICES = [
+        (TYPE_PROCESSING_TRAINING, _("NLP Tranining")),
+        (TYPE_PROCESSING_AUTO_TRANSLATE, _("Repository Auto Translation")),
     ]
 
     repositoryversionlanguage = models.ForeignKey(
@@ -1190,6 +1196,9 @@ class RepositoryQueueTask(models.Model):
     ml_units = models.FloatField(_("Machine Learning Units AiPlatform"), default=0)
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
     end_training = models.DateTimeField(_("end training"), null=True)
+    type_processing = models.PositiveIntegerField(
+        _("Type Processing"), choices=TYPE_PROCESSING_CHOICES
+    )
 
 
 class RepositoryNLPLog(models.Model):
