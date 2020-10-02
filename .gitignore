@@ -117,4 +117,4 @@ staticfiles/
 .idea/
 
 #ASDF
-.tool_versions
+.tool-versions
