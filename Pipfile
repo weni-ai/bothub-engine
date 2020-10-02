@@ -29,6 +29,7 @@ pillow = "~=7.1.2"
 kombu = "~=4.6.7"
 importlib-metadata = "~=1.6.1"
 psycopg2-binary = "~=2.7.7"
+matplot = "==0.1.9"
 
 [dev-packages]
 "flake8" = "*"
