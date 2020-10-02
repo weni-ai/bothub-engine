@@ -156,7 +156,8 @@ class TranslatorExamplesFilter(filters.FilterSet):
                 "entities",
                 filter=Q(
                     translations__original_example__entities__repository_example=F("pk")
-                ),
+                )
+                & Q(translations__language=value),
                 distinct=True,
             )
         ).annotate(
@@ -186,7 +187,8 @@ class TranslatorExamplesFilter(filters.FilterSet):
                 "entities",
                 filter=Q(
                     translations__original_example__entities__repository_example=F("pk")
-                ),
+                )
+                & Q(translations__language=value),
                 distinct=True,
             )
         ).annotate(
