@@ -6,6 +6,11 @@ from django.db import transaction
 from django.db.models import Q, Count
 from django.utils import timezone
 
+from bothub.utils import (
+    intentions_balance_score,
+    intentions_size_score,
+    evaluate_size_score
+)
 from bothub import translate
 from bothub.celery import app
 from bothub.common.models import (
@@ -318,3 +323,18 @@ def auto_translation(
                     end=end,
                     entity=entity.entity,
                 )
+
+
+@app.task(name="intents_balance_score")
+def intents_balance_score():
+    return intentions_balance_score()
+
+
+@app.task(name="intents_size_score")
+def intents_size_score():
+    return intentions_balance_score()
+
+
+@app.task(name="eval_size_score")
+def eval_size_score(repository, *args, **kwargs):
+    return evaluate_size_score()

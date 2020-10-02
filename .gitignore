@@ -115,3 +115,6 @@ staticfiles/
 
 #Pycharm
 .idea/
+
+#ASDF
+.tool_versions

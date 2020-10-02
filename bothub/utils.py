@@ -1,14 +1,18 @@
-import io
-import re
-import uuid
 import boto3
+import io
+import math
+import matplotlib.pyplot as plt
+import numpy as np
 import random
+import re
 import string
-from django.conf import settings
-from django.utils.text import slugify
-from django.db.models import Subquery, IntegerField
+import uuid
+
 from botocore.exceptions import ClientError
 from collections import OrderedDict
+from django.conf import settings
+from django.db.models import IntegerField, Subquery
+from django.utils.text import slugify
 
 
 entity_regex = re.compile(
@@ -122,6 +126,158 @@ def get_without_entity(example):
     """Extract entities and synonyms, and convert to plain text."""
     plain_text = re.sub(entity_regex, lambda m: m.groupdict()["entity_text"], example)
     return plain_text
+
+
+def score_normal(x, optimal):
+    """
+        Based on normal distribution,
+        score will decay if current value is below or above target
+    """
+
+    try:
+        slim_const = 2
+        result = math.exp(-((x - optimal) ** 2) / (2 * (optimal / slim_const) ** 2))
+    except ZeroDivisionError:
+        return 100
+
+    return result * 100
+
+
+def score_cumulated(x, optimal):
+    """
+        Based on cumulated distribution,
+        score will increase as close current value is to the target
+    """
+
+    try:
+        factor = 10 / optimal
+        sigma_func = 1 / (1 + np.exp(-(-5 + x * factor)))
+    except ZeroDivisionError:
+        return 100
+
+    return sigma_func * 100
+
+
+def intentions_balance_score(dataset):
+    intentions = dataset["intentions"]
+    sentences = dataset["train"]
+
+    intentions_count = len(intentions)
+    if intentions_count < 2:
+        return 0
+
+    train_count = dataset["train_count"]
+
+    scores = []
+    for intention in sentences.keys():
+        this_size = sentences[intention]
+        excl_size = train_count - this_size
+
+        # Mean of sentences/intention excluding this intention
+        # It is the optimal target
+        excl_mean = excl_size / (intentions_count - 1)
+        # print(this_size, excl_mean)
+        scores.append(score_normal(this_size, excl_mean))
+
+    score = sum(scores) / len(scores)
+
+    return {
+        "score": score,
+        "recommended": f"The avarage sentences per intention is {int(train_count/intentions_count)}"
+    }
+
+
+def intentions_size_score(dataset):
+    intentions = dataset["intentions"]
+    sentences = dataset["train"]
+
+    intentions_count = len(intentions)
+    if intentions_count < 2:
+        return 0
+
+    optimal = int(106.6556 + (19.75708 - 106.6556) / (1 + (intentions_count / 8.791823)**1.898546))
+
+    scores = []
+    for intention in sentences.keys():
+        this_size = sentences[intention]
+        if this_size >= optimal:
+            scores.append(1.0)
+        else:
+            scores.append(score_cumulated(this_size, optimal))
+
+    score = sum(scores) / len(scores)
+
+    return {
+        "score": score,
+        "recommended": f"{optimal} sentences per intention"
+    }
+
+
+def evaluate_size_score(dataset):
+    intentions = dataset["intentions"]
+
+    intentions_size = len(intentions)
+    if intentions_size < 2:
+        return 0
+
+    train_count = dataset["train_count"]
+    evaluate_count = dataset["evaluate_count"]
+
+    optimal = int(692.4702 + (-1.396326 - 692.4702) / (1 + (train_count / 5646.078) ** 0.7374176))
+
+    if evaluate_count >= optimal:
+        score = 1.0
+    else:
+        score = score_cumulated(evaluate_count, optimal)
+
+    return {
+        "score": score,
+        "recommended": f"{optimal} evaluation sentences"
+    }
+
+
+def arrange_data(train_data, eval_data):
+    """
+        :param train_data: list of sentences {"intent";"text"}
+        :param eval_data:  list of sentences {"intent";"text"}
+        :return: formatted dataset
+    """
+    dataset = {
+        "intentions": [],
+        "train_count": len(train_data),
+        "train": {},
+        "evaluate_count": len(eval_data),
+        "evaluate": {}
+    }
+
+    for data in train_data:
+        if data["intent"] not in dataset["intentions"]:
+            dataset["intentions"].append(data["intent"])
+            dataset["train"][data["intent"]] = 0
+
+        dataset["train"][data["intent"]] += 1
+
+    for data in eval_data:
+        if data["intent"] not in dataset["intentions"]:
+            continue
+        if data["intent"] not in dataset["evaluate"]:
+            dataset["evaluate"][data["intent"]] = 0
+
+        dataset["evaluate"][data["intent"]] += 1
+
+    return dataset
+
+
+def plot_func(func, optimal):
+
+    x = np.linspace(0, 2 * optimal, 100)
+    y = [func(n, optimal=optimal) for n in x]
+
+    plt.plot(x, y)
+    plt.plot([optimal, optimal], [0, 100])
+    plt.ylabel("score")
+    plt.xlabel("distance")
+    plt.show()
 
 
 class CountSubquery(Subquery):
