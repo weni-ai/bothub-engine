@@ -30,32 +30,33 @@ from bothub.common.models import (
 def trainings_check_task():
     trainers = RepositoryQueueTask.objects.filter(
         Q(status=RepositoryQueueTask.STATUS_PENDING)
-        | Q(status=RepositoryQueueTask.STATUS_TRAINING)
+        | Q(status=RepositoryQueueTask.STATUS_PROCESSING)
     )
     for train in trainers:
-        services = {
-            RepositoryQueueTask.QUEUE_AIPLATFORM: "ai-platform",
-            RepositoryQueueTask.QUEUE_CELERY: "celery",
-        }
-        result = requests.get(
-            url=f"{settings.BOTHUB_NLP_BASE_URL}v2/task-queue/",
-            params=urlencode(
-                {
-                    "id_task": train.id_queue,
-                    "from_queue": services.get(train.from_queue),
-                }
-            ),
-        ).json()
+        if train.type_processing == RepositoryQueueTask.TYPE_PROCESSING_TRAINING:
+            services = {
+                RepositoryQueueTask.QUEUE_AIPLATFORM: "ai-platform",
+                RepositoryQueueTask.QUEUE_CELERY: "celery",
+            }
+            result = requests.get(
+                url=f"{settings.BOTHUB_NLP_BASE_URL}v2/task-queue/",
+                params=urlencode(
+                    {
+                        "id_task": train.id_queue,
+                        "from_queue": services.get(train.from_queue),
+                    }
+                ),
+            ).json()
 
-        if int(result.get("status")) != train.status:
-            fields = ["status", "ml_units"]
-            train.status = result.get("status")
-            if train.status == RepositoryQueueTask.STATUS_SUCCESS:
-                train.end_training = timezone.now()
-                fields.append("end_training")
-            train.ml_units = result.get("ml_units")
-            train.save(update_fields=fields)
-            continue
+            if int(result.get("status")) != train.status:
+                fields = ["status", "ml_units"]
+                train.status = result.get("status")
+                if train.status == RepositoryQueueTask.STATUS_SUCCESS:
+                    train.end_training = timezone.now()
+                    fields.append("end_training")
+                train.ml_units = result.get("ml_units")
+                train.save(update_fields=fields)
+                continue
 
         # Verifica o treinamento que esta em execução, caso o tempo de criação seja maior que 2 horas
         # ele torna a task como falha
@@ -268,7 +269,16 @@ def repositories_count_authorizations():
 def auto_translation(
     repository_version, source_language, target_language, *args, **kwargs
 ):
+
     repository_version = RepositoryVersion.objects.get(pk=repository_version)
+
+    task_queue = repository_version.get_version_language(
+        language=target_language
+    ).create_task(
+        id_queue=app.current_task.request.id,
+        from_queue=RepositoryQueueTask.QUEUE_CELERY,
+        type_processing=RepositoryQueueTask.TYPE_PROCESSING_AUTO_TRANSLATE,
+    )
 
     examples = (
         RepositoryExample.objects.filter(
@@ -318,3 +328,7 @@ def auto_translation(
                     end=end,
                     entity=entity.entity,
                 )
+
+    task_queue.status = RepositoryQueueTask.STATUS_SUCCESS
+    task_queue.end_training = timezone.now()
+    task_queue.save(update_fields=["status", "end_training"])

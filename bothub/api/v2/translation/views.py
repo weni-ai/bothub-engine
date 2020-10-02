@@ -1,5 +1,6 @@
-import openpyxl
 import re
+
+import openpyxl
 from django.db.models import Count, Q
 from django.http import HttpResponse
 from django.utils.decorators import method_decorator

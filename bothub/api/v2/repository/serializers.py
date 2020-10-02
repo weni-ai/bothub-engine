@@ -1244,18 +1244,27 @@ class RepositoryQueueTaskSerializer(serializers.ModelSerializer):
             "end_training",
             "status_codes",
             "from_queue_codes",
+            "from_queue_codes",
+            "type_processing",
+            "processing_codes",
         ]
         ref_name = None
 
     id = serializers.PrimaryKeyRelatedField(read_only=True)
     status_codes = serializers.SerializerMethodField()
     from_queue_codes = serializers.SerializerMethodField()
+    processing_codes = serializers.SerializerMethodField()
 
     def get_status_codes(self, obj):
         return {key: value for key, value in RepositoryQueueTask.STATUS_CHOICES}
 
     def get_from_queue_codes(self, obj):
         return {key: value for key, value in RepositoryQueueTask.QUEUE_CHOICES}
+
+    def get_processing_codes(self, obj):
+        return {
+            key: value for key, value in RepositoryQueueTask.TYPE_PROCESSING_CHOICES
+        }
 
 
 class RepositoryNLPLogReportsSerializer(serializers.ModelSerializer):
