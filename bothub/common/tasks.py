@@ -1,4 +1,5 @@
 import requests
+from collections import Counter
 from datetime import timedelta
 from urllib.parse import urlencode
 from django.conf import settings
@@ -29,6 +30,36 @@ from bothub.common.models import (
     Repository,
     RepositoryNLPLog,
 )
+
+
+def dataset_scores():
+    dataset = {}
+    intents = []
+    train = {}
+    train_total = 0
+    evaluate_intents = []
+    evaluate_total = 0
+    for version in RepositoryVersion.objects.all():
+        if version.is_default:
+            for intent in RepositoryIntent.objects.get(repository_version=version.pk):
+                intents.append(intent.text)
+            dataset["intents"] = intents
+            for training in RepositoryVersionLanguage.objects.get(repository_version=version.pk):      
+                if training.intents:
+                    for intent in training.intents:
+                        train[RepositoryIntent.objects.get(pk=intent).text] = len(training.intents)
+                if training.total_training_end:
+                    train_total += training.total_training_end
+                for evaluate in RepositoryEvaluate.objects.filter(repository_version_language=training.pk):
+                    evaluate_total += 1
+                    evaluate_intents.append(evaluate.intent)
+            tempdataset = Counter(evaluate_intents)
+            dataset["train_count"] = train_total
+            dataset["train"] = train
+            dataset["evaluate_count"] = evaluate_total
+            dataset["evaluate"] = {k: tempdataset[k] for k in tempdataset if tempdataset[k]}
+
+    return dataset
 
 
 @app.task()
@@ -327,36 +358,14 @@ def auto_translation(
 
 @app.task(name="intents_balance_score")
 def intents_balance_score():
-    return intentions_balance_score()
+    return intentions_balance_score(dataset_scores())
 
 
 @app.task(name="intents_size_score")
 def intents_size_score():
-    return intentions_size_score()
+    return intentions_size_score(dataset_scores())
 
 
 @app.task(name="eval_size_score")
 def eval_size_score():
-    dataset = {}
-    intents = []
-    train = {}
-    train_total = 0
-    evaluate_total = 0
-    for version in RepositoryVersion.objects.all():
-        if version.is_default:
-            for intent in RepositoryIntent.objects.get(repository_version=version.pk):
-                intents.append(intent.text)
-            dataset["intents"] = intents
-            for training in RepositoryVersionLanguage.objects.get(repository_version=version.pk):      
-                if training.intents:
-                    for intent in training.intents:
-                        train[RepositoryIntent.objects.get(pk=intent).text] = len(training.intents)
-                if training.total_training_end:
-                    train_total += training.total_training_end
-                for evaluate in RepositoryEvaluate.objects.filter(repository_version_language=training.pk):
-                    evaluate_total += 1
-            dataset["train_count"] = train_total
-            dataset["train"] = train
-            dataset["evaluate_count"] = evaluate_total
-
-    return evaluate_size_score(dataset)
+    return evaluate_size_score(dataset_scores())
