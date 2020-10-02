@@ -336,7 +336,5 @@ def intents_size_score():
 
 
 @app.task(name="eval_size_score")
-def eval_size_score(instance_id, repository, *args, **kwargs):
-    instance = RepositoryVersion.objects.get(pk=instance_id)
-    
+def eval_size_score():
     return evaluate_size_score()
