@@ -337,4 +337,26 @@ def intents_size_score():
 
 @app.task(name="eval_size_score")
 def eval_size_score():
-    return evaluate_size_score()
+    dataset = {}
+    intents = []
+    train = {}
+    train_total = 0
+    evaluate_total = 0
+    for version in RepositoryVersion.objects.all():
+        if version.is_default:
+            for intent in RepositoryIntent.objects.get(repository_version=version.pk):
+                intents.append(intent.text)
+            dataset["intents"] = intents
+            for training in RepositoryVersionLanguage.objects.get(repository_version=version.pk):      
+                if training.intents:
+                    for intent in training.intents:
+                        train[RepositoryIntent.objects.get(pk=intent).text] = len(training.intents)
+                if training.total_training_end:
+                    train_total += training.total_training_end
+                for evaluate in RepositoryEvaluate.objects.filter(repository_version_language=training.pk):
+                    evaluate_total += 1
+            dataset["train_count"] = train_total
+            dataset["train"] = train
+            dataset["evaluate_count"] = evaluate_total
+
+    return evaluate_size_score(dataset)
