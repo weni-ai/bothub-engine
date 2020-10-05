@@ -25,15 +25,7 @@ app.conf.beat_schedule = {
         "schedule": schedules.crontab(hour="8", minute=0),
     },
     "intentions-balance-scores": {
-        "task": "bothub.common.tasks.intents_balance_score",
-        "schedule": schedules.crontab(hour="24", minute=0),
-    },
-    "intentions-size-score": {
-        "task": "bothub.common.tasks.intents_size_score",
-        "schedule": schedules.crontab(hour="24", minute=0),
-    },
-    "evalaluation-size-score": {
-        "task": "bothub.common.tasks.eval_size_score",
+        "task": "bothub.common.tasks.intents_score",
         "schedule": schedules.crontab(hour="24", minute=0),
     },
 }
