@@ -35,6 +35,9 @@ class OrganizationViewSet(
     metadata_class = Metadata
 
     def get_queryset(self, *args, **kwargs):
+        if getattr(self, "swagger_fake_view", False):
+            # queryset just for schema generation metadata
+            return Organization.objects.none()
         auth = (
             OrganizationAuthorization.objects.exclude(role=0)
             .filter(user=self.request.user)

@@ -45,6 +45,11 @@ from .account.views import SearchUserViewSet
 from .account.views import ResetPasswordViewSet
 from .translation.views import RepositoryTranslatedExampleViewSet
 from .translation.views import RepositoryTranslatedExporterViewSet
+from .translator.views import (
+    TranslatorExamplesViewSet,
+    RepositoryTranslationTranslatorExampleViewSet,
+    RepositoryTranslatorViewSet,
+)
 
 
 class Router(routers.SimpleRouter):
@@ -131,6 +136,11 @@ router.register(
 router.register("repository/repository-reports", RepositoryNLPLogReportsViewSet)
 router.register("repository/categories", RepositoryCategoriesView)
 router.register("repository/examples", ExamplesViewSet)
+router.register("repository/translator/control", RepositoryTranslatorViewSet)
+router.register("repository/translator/examples", TranslatorExamplesViewSet)
+router.register(
+    "repository/translator/translation", RepositoryTranslationTranslatorExampleViewSet
+)
 router.register("repository/search-repositories", SearchRepositoriesViewSet)
 router.register("repository/repositories-permissions", RepositoriesPermissionsViewSet)
 router.register("repository/authorizations", RepositoryAuthorizationViewSet)

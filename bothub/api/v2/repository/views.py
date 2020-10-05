@@ -1,6 +1,7 @@
 import json
 
 from django.core.exceptions import ValidationError as DjangoValidationError
+from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django.utils.translation import ugettext_lazy as _
@@ -158,7 +159,25 @@ class NewRepositoryViewSet(
                 )
             )
 
-        celery_app.send_task(
+        queue_running = (
+            repository_version.get_version_language(language=target_language)
+            .queues.filter(
+                Q(status=RepositoryQueueTask.STATUS_PENDING)
+                | Q(status=RepositoryQueueTask.STATUS_PROCESSING)
+            )
+            .filter(
+                Q(type_processing=RepositoryQueueTask.TYPE_PROCESSING_AUTO_TRANSLATE)
+            )
+        )
+
+        if queue_running:
+            raise APIException(  # pragma: no cover
+                detail=_(
+                    "It is only possible to perform an automatic translation per language, a translation is already running"
+                )
+            )
+
+        task = celery_app.send_task(
             "auto_translation",
             args=[
                 repository_version.pk,
@@ -167,7 +186,7 @@ class NewRepositoryViewSet(
             ],
         )
 
-        return Response({"queue": "created"})
+        return Response({"id_queue": task.task_id})
 
 
 class RepositoryViewSet(
@@ -550,6 +569,9 @@ class RepositoriesPermissionsViewSet(mixins.ListModelMixin, GenericViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self, *args, **kwargs):
+        if getattr(self, "swagger_fake_view", False):
+            # queryset just for schema generation metadata
+            return RepositoryAuthorization.objects.none()
         return (
             self.queryset.exclude(repository__owner=self.request.user)
             .exclude(role=RepositoryAuthorization.ROLE_NOT_SETTED)
@@ -845,6 +867,9 @@ class RepositoryNLPLogReportsViewSet(mixins.ListModelMixin, GenericViewSet):
     filter_backends = [DjangoFilterBackend]
 
     def get_queryset(self, *args, **kwargs):
+        if getattr(self, "swagger_fake_view", False):
+            # queryset just for schema generation metadata
+            return Repository.objects.none()
         user = self.request.user
         if self.request.query_params.get("organization_nickname", None):
             owner = get_object_or_404(
