@@ -340,6 +340,7 @@ def auto_translation(
     task_queue.save(update_fields=["status", "end_training"])
 
 
+@app.task(name="intents_score")
 def intents_score():
     dataset = {}
     intents = []
@@ -349,10 +350,13 @@ def intents_score():
     evaluate_total = 0
     for version in RepositoryVersion.objects.all():
         if version.is_default:
-            for intent in RepositoryIntent.objects.get(repository_version=version.pk):
+            for intent in version.version_intents.filter(repository_version=version.pk):
                 intents.append(intent.text)
             dataset["intents"] = intents
-            for training in RepositoryVersionLanguage.objects.get(repository_version=version.pk):      
+            # for intent in version.get_version_language(version.repository.language).intents:
+            #    train[RepositoryIntent.objects.get(pk=intent).text] = len(version.get_version_language(version.repository.language).intents
+            #    train_total += for training in RepositoryVersionLanguage.objects.filter(repository_version=version.pk):
+            for training in RepositoryVersionLanguage.objects.filter(repository_version=version.pk):
                 if training.intents:
                     for intent in training.intents:
                         train[RepositoryIntent.objects.get(pk=intent).text] = len(training.intents)
