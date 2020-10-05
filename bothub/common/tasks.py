@@ -323,7 +323,7 @@ def auto_translation(
             entity_translated = translate.translate(
                 text=entity_text,
                 source_lang=source_language,
-                target_language=target_language,
+                target_language="pt" if target_language == "pt_br" else target_language,
             )
             if entity_translated in example_translated:
                 start = example_translated.find(entity_translated)
