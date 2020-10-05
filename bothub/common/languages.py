@@ -454,6 +454,7 @@ GOOGLE_API_TRANSLATION_LANGUAGES_SUPPORTED = [
     "fa",
     "pl",
     "pt",
+    "pt_br",
     "pa",
     "ro",
     "ru",
