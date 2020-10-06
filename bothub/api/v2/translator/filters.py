@@ -5,7 +5,12 @@ from django_filters import rest_framework as filters
 from rest_framework.exceptions import PermissionDenied, NotFound
 from django.core.exceptions import ValidationError as DjangoValidationError
 
-from bothub.common.models import RepositoryExample, RepositoryTranslator, Repository
+from bothub.common.models import (
+    RepositoryExample,
+    RepositoryTranslator,
+    Repository,
+    RepositoryTranslatedExample,
+)
 
 
 class RepositoryTranslatorFilter(filters.FilterSet):
@@ -211,3 +216,18 @@ class TranslatorExamplesFilter(filters.FilterSet):
             )
         )
         return result_queryset.exclude(original_entities_count=F("entities_count"))
+
+
+class TranslationsTranslatorFilter(filters.FilterSet):
+    class Meta:
+        model = RepositoryTranslatedExample
+        fields = []
+
+    original_example_id = filters.CharFilter(
+        field_name="original_example",
+        method="filter_original_example_id",
+        help_text="Filter by original example id",
+    )
+
+    def filter_original_example_id(self, queryset, name, value):
+        return queryset.filter(original_example__pk=value)

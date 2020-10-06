@@ -17,6 +17,7 @@ from .repository.views import (
     RepositoriesPermissionsViewSet,
     RepositoryNLPLogReportsViewSet,
     RepositoryIntentViewSet,
+    RepositoryTranslatorInfoViewSet,
 )
 from .repository.views import RepositoryVotesViewSet
 from .repository.views import RepositoriesViewSet
@@ -137,6 +138,7 @@ router.register("repository/repository-reports", RepositoryNLPLogReportsViewSet)
 router.register("repository/categories", RepositoryCategoriesView)
 router.register("repository/examples", ExamplesViewSet)
 router.register("repository/translator/control", RepositoryTranslatorViewSet)
+router.register("repository/translator/info", RepositoryTranslatorInfoViewSet)
 router.register("repository/translator/examples", TranslatorExamplesViewSet)
 router.register(
     "repository/translator/translation", RepositoryTranslationTranslatorExampleViewSet
