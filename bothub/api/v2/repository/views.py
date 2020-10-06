@@ -25,6 +25,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from bothub.api.v2.mixins import MultipleFieldLookupMixin
+from bothub.authentication.authorization import TranslatorAuthentication
 from bothub.authentication.models import RepositoryOwner
 from bothub.common import languages
 from bothub.common.models import (
@@ -34,6 +35,7 @@ from bothub.common.models import (
     RepositoryQueueTask,
     RepositoryIntent,
     OrganizationAuthorization,
+    RepositoryTranslator,
 )
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryCategory
@@ -75,6 +77,7 @@ from .serializers import (
     RepositoryNLPLogReportsSerializer,
     RepositoryIntentSerializer,
     RepositoryAutoTranslationSerializer,
+    RepositoryTranslatorInfoSerializer,
 )
 from .serializers import EvaluateSerializer
 from .serializers import RepositoryAuthorizationRoleSerializer
@@ -187,6 +190,14 @@ class NewRepositoryViewSet(
         )
 
         return Response({"id_queue": task.task_id})
+
+
+class RepositoryTranslatorInfoViewSet(mixins.RetrieveModelMixin, GenericViewSet):
+    queryset = RepositoryTranslator.objects
+    lookup_field = "uuid"
+    serializer_class = RepositoryTranslatorInfoSerializer
+    authentication_classes = [TranslatorAuthentication]
+    metadata_class = Metadata
 
 
 class RepositoryViewSet(
@@ -849,7 +860,7 @@ class RepositoryTaskQueueViewSet(mixins.ListModelMixin, GenericViewSet):
     queryset = RepositoryQueueTask.objects
     serializer_class = RepositoryQueueTaskSerializer
     filter_class = RepositoryQueueTaskFilter
-    permission_classes = [IsAuthenticated]
+    permission_classes = []
 
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
