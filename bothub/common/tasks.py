@@ -10,7 +10,7 @@ from django.utils import timezone
 from bothub.utils import (
     intentions_balance_score,
     intentions_size_score,
-    evaluate_size_score
+    evaluate_size_score,
 )
 from bothub import translate
 from bothub.celery import app
@@ -340,38 +340,34 @@ def auto_translation(
     task_queue.save(update_fields=["status", "end_training"])
 
 
-@app.task(name="intents_score")
+@app.task()
 def intents_score():
     dataset = {}
-    intents = []
     train = {}
     train_total = 0
     evaluate_intents = []
     evaluate_total = 0
     for version in RepositoryVersion.objects.all():
         if version.is_default:
-            for intent in version.version_intents.filter(repository_version=version.pk):
-                intents.append(intent.text)
-            dataset["intents"] = intents
-            for intent in version.get_version_language(
-                version.repository.language
-            ).intents:
+            version_language = version.get_version_language(version.repository.language)
+
+            for intent in version_language.intents:
                 train[RepositoryIntent.objects.get(pk=intent).text] = len(
-                    version.get_version_language(version.repository.language).intents
+                    version_language.intents
                 )
-                train_total += version.get_version_language(
-                    version.repository.language
-                ).total_training_end
-                if version.get_version_language(
-                    version.repository.language
-                ).added_evaluate.filter(pk=intent):
+                train_total += version_language.total_training_end
+                if version_language.added_evaluate.filter(pk=intent):
                     evaluate_intents.append(
-                        version.get_version_language(version.repository.language)
-                        .added_evaluate.filter(pk=intent)[0]
-                        .text
+                        version_language.added_evaluate.filter(pk=intent).first().text
                     )
                     evaluate_total += 1
+
             tempdataset = Counter(evaluate_intents)
+
+            dataset["intents"] = list(
+                version.version_intents.all().values_list("text", flat=True)
+            )
+
             dataset["train_count"] = train_total
             dataset["train"] = train
             dataset["evaluate_count"] = evaluate_total
@@ -379,6 +375,10 @@ def intents_score():
                 k: tempdataset[k] for k in tempdataset if tempdataset[k]
             }
 
-    intentions_balance_score(dataset)
-    intentions_size_score(dataset)
-    evaluate_size_score(dataset)
+    intentions_balance = intentions_balance_score(dataset)
+    intentions_size = intentions_size_score(dataset)
+    evaluate_size = evaluate_size_score(dataset)
+
+    print(intentions_balance)
+    print(intentions_size)
+    print(evaluate_size)
