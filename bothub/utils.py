@@ -183,7 +183,7 @@ def intentions_balance_score(dataset):
 
     return {
         "score": score,
-        "recommended": f"The avarage sentences per intention is {int(train_count/intentions_count)}"
+        "recommended": f"The avarage sentences per intention is {int(train_count/intentions_count)}",
     }
 
 
@@ -195,7 +195,10 @@ def intentions_size_score(dataset):
     if intentions_count < 2:
         return 0
 
-    optimal = int(106.6556 + (19.75708 - 106.6556) / (1 + (intentions_count / 8.791823)**1.898546))
+    optimal = int(
+        106.6556
+        + (19.75708 - 106.6556) / (1 + (intentions_count / 8.791823) ** 1.898546)
+    )
 
     scores = []
     for intention in sentences.keys():
@@ -207,10 +210,7 @@ def intentions_size_score(dataset):
 
     score = sum(scores) / len(scores)
 
-    return {
-        "score": score,
-        "recommended": f"{optimal} sentences per intention"
-    }
+    return {"score": score, "recommended": f"{optimal} sentences per intention"}
 
 
 def evaluate_size_score(dataset):
@@ -223,17 +223,16 @@ def evaluate_size_score(dataset):
     train_count = dataset["train_count"]
     evaluate_count = dataset["evaluate_count"]
 
-    optimal = int(692.4702 + (-1.396326 - 692.4702) / (1 + (train_count / 5646.078) ** 0.7374176))
+    optimal = int(
+        692.4702 + (-1.396326 - 692.4702) / (1 + (train_count / 5646.078) ** 0.7374176)
+    )
 
     if evaluate_count >= optimal:
         score = 1.0
     else:
         score = score_cumulated(evaluate_count, optimal)
 
-    return {
-        "score": score,
-        "recommended": f"{optimal} evaluation sentences"
-    }
+    return {"score": score, "recommended": f"{optimal} evaluation sentences"}
 
 
 def arrange_data(train_data, eval_data):
@@ -247,7 +246,7 @@ def arrange_data(train_data, eval_data):
         "train_count": len(train_data),
         "train": {},
         "evaluate_count": len(eval_data),
-        "evaluate": {}
+        "evaluate": {},
     }
 
     for data in train_data:
