@@ -363,7 +363,7 @@ def intents_score():
 
         tempdataset = Counter(evaluate_intents)
 
-        dataset["intents"] = list(
+        dataset["intentions"] = list(
             version.version_intents.all().values_list("text", flat=True)
         )
 
