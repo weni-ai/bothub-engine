@@ -353,23 +353,31 @@ def intents_score():
             for intent in version.version_intents.filter(repository_version=version.pk):
                 intents.append(intent.text)
             dataset["intents"] = intents
-            # for intent in version.get_version_language(version.repository.language).intents:
-            #    train[RepositoryIntent.objects.get(pk=intent).text] = len(version.get_version_language(version.repository.language).intents
-            #    train_total += for training in RepositoryVersionLanguage.objects.filter(repository_version=version.pk):
-            for training in RepositoryVersionLanguage.objects.filter(repository_version=version.pk):
-                if training.intents:
-                    for intent in training.intents:
-                        train[RepositoryIntent.objects.get(pk=intent).text] = len(training.intents)
-                if training.total_training_end:
-                    train_total += training.total_training_end
-                for evaluate in RepositoryEvaluate.objects.filter(repository_version_language=training.pk):
+            for intent in version.get_version_language(
+                version.repository.language
+            ).intents:
+                train[RepositoryIntent.objects.get(pk=intent).text] = len(
+                    version.get_version_language(version.repository.language).intents
+                )
+                train_total += version.get_version_language(
+                    version.repository.language
+                ).total_training_end
+                if version.get_version_language(
+                    version.repository.language
+                ).added_evaluate.filter(pk=intent):
+                    evaluate_intents.append(
+                        version.get_version_language(version.repository.language)
+                        .added_evaluate.filter(pk=intent)[0]
+                        .text
+                    )
                     evaluate_total += 1
-                    evaluate_intents.append(evaluate.intent)
             tempdataset = Counter(evaluate_intents)
             dataset["train_count"] = train_total
             dataset["train"] = train
             dataset["evaluate_count"] = evaluate_total
-            dataset["evaluate"] = {k: tempdataset[k] for k in tempdataset if tempdataset[k]}
+            dataset["evaluate"] = {
+                k: tempdataset[k] for k in tempdataset if tempdataset[k]
+            }
 
     intentions_balance_score(dataset)
     intentions_size_score(dataset)
