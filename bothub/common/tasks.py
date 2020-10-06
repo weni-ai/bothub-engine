@@ -347,33 +347,32 @@ def intents_score():
     train_total = 0
     evaluate_intents = []
     evaluate_total = 0
-    for version in RepositoryVersion.objects.all():
-        if version.is_default:
-            version_language = version.get_version_language(version.repository.language)
+    for version in RepositoryVersion.objects.filter(is_default=True):
+        version_language = version.get_version_language(version.repository.language)
 
-            for intent in version_language.intents:
-                train[RepositoryIntent.objects.get(pk=intent).text] = len(
-                    version_language.intents
-                )
-                train_total += version_language.total_training_end
-                if version_language.added_evaluate.filter(pk=intent):
-                    evaluate_intents.append(
-                        version_language.added_evaluate.filter(pk=intent).first().text
-                    )
-                    evaluate_total += 1
-
-            tempdataset = Counter(evaluate_intents)
-
-            dataset["intents"] = list(
-                version.version_intents.all().values_list("text", flat=True)
+        for intent in version_language.intents:
+            train[RepositoryIntent.objects.get(pk=intent).text] = len(
+                version_language.intents
             )
+            train_total += version_language.total_training_end
+            if version_language.added_evaluate.filter(pk=intent):
+                evaluate_intents.append(
+                    version_language.added_evaluate.filter(pk=intent).first().text
+                )
+                evaluate_total += 1
 
-            dataset["train_count"] = train_total
-            dataset["train"] = train
-            dataset["evaluate_count"] = evaluate_total
-            dataset["evaluate"] = {
-                k: tempdataset[k] for k in tempdataset if tempdataset[k]
-            }
+        tempdataset = Counter(evaluate_intents)
+
+        dataset["intents"] = list(
+            version.version_intents.all().values_list("text", flat=True)
+        )
+
+        dataset["train_count"] = train_total
+        dataset["train"] = train
+        dataset["evaluate_count"] = evaluate_total
+        dataset["evaluate"] = {
+            k: tempdataset[k] for k in tempdataset if tempdataset[k]
+        }
 
     intentions_balance = intentions_balance_score(dataset)
     intentions_size = intentions_size_score(dataset)
