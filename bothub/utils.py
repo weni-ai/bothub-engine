@@ -196,7 +196,7 @@ def intentions_size_score(dataset):
 
     intentions_count = len(intentions)
     if intentions_count < 2:
-        return 0
+        return {"score": 0, "recommended": ""}
 
     optimal = int(
         106.6556
@@ -224,7 +224,7 @@ def evaluate_size_score(dataset):
 
     intentions_size = len(intentions)
     if intentions_size < 2:
-        return 0
+        return {"score": 0, "recommended": ""}
 
     train_count = dataset["train_count"]
     evaluate_count = dataset["evaluate_count"]
