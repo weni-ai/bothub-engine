@@ -59,6 +59,7 @@ from .permissions import (
     RepositoryEntityHasPermission,
     RepositoryInfoPermission,
     RepositoryIntentPermission,
+    RepositoryMigratePermission,
 )
 from .permissions import RepositoryExamplePermission
 from .permissions import RepositoryPermission
@@ -486,11 +487,9 @@ class RepositoryMigrateViewSet(mixins.CreateModelMixin, GenericViewSet):
     Repository migrate all senteces wit.
     """
 
-    queryset = RepositoryMigrate.objects.all()
-    lookup_field = "repository"
-    lookup_fields = ["user", "repository"]
+    queryset = RepositoryMigrate.objects
     serializer_class = RepositoryMigrateSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, RepositoryMigratePermission]
     metadata_class = Metadata
 
 
