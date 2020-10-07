@@ -29,6 +29,7 @@ from bothub.common.models import (
     RepositoryIntent,
     Repository,
     RepositoryNLPLog,
+    RepositoryScore,
 )
 
 
@@ -378,6 +379,14 @@ def intents_score():
     intentions_size = intentions_size_score(dataset)
     evaluate_size = evaluate_size_score(dataset)
 
-    print(intentions_balance)
-    print(intentions_size)
-    print(evaluate_size)
+    score = RepositoryScore.objects.create(
+        repository_score=version.repository,
+        intents_balance_score=intentions_balance.get("score"),
+        intents_balance_recommended=intentions_balance.get("recommended"),
+        intents_size_score=intentions_size.get("score"),
+        intents_size_recommended=intentions_size.get("recommended"),
+        evaluate_size_score=evaluate_size.get("score"),
+        evaluate_size_recommended=evaluate_size.get("recommended"),
+    )
+
+    score.save()

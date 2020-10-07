@@ -2113,6 +2113,25 @@ class RepositoryTranslator(models.Model):
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
 
 
+class RepositoryScore(models.Model):
+    class Meta:
+        verbose_name = _("repository score")
+        verbose_name_plural = _("repository scores")
+
+    repository_score = models.ForeignKey(
+        Repository,
+        models.CASCADE,
+        related_name="repository_score",
+        editable=False,
+    )
+    intents_balance_score = models.FloatField()
+    intents_balance_recommended = models.TextField()
+    intents_size_score = models.FloatField()
+    intents_size_recommended = models.TextField()
+    evaluate_size_score = models.FloatField()
+    evaluate_size_recommended = models.TextField()
+
+
 @receiver(models.signals.pre_save, sender=RequestRepositoryAuthorization)
 def set_user_role_on_approved(instance, **kwargs):
     current = None

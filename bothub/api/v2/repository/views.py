@@ -34,6 +34,7 @@ from bothub.common.models import (
     RepositoryQueueTask,
     RepositoryIntent,
     OrganizationAuthorization,
+    RepositoryScore,
 )
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryCategory
@@ -75,6 +76,7 @@ from .serializers import (
     RepositoryNLPLogReportsSerializer,
     RepositoryIntentSerializer,
     RepositoryAutoTranslationSerializer,
+    RepositoryScoreSerializer,
 )
 from .serializers import EvaluateSerializer
 from .serializers import RepositoryAuthorizationRoleSerializer
@@ -916,3 +918,19 @@ class RepositoryIntentViewSet(
     def update(self, request, *args, **kwargs):
         self.filter_class = None
         return super().update(request, *args, **kwargs)
+
+
+class RepositoryScoreViewSet(
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.DestroyModelMixin,
+    mixins.UpdateModelMixin,
+    GenericViewSet
+):
+    """
+    API endpoint that allows Repository scores to be viewed.
+    """
+
+    queryset = RepositoryScore.objects
+    serializer_class = RepositoryScoreSerializer
+    permission_classes = [permissions.IsAuthenticated]
