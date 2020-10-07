@@ -343,12 +343,13 @@ def auto_translation(
 
 @app.task()
 def intents_score():
-    dataset = {}
-    train = {}
-    train_total = 0
-    evaluate_intents = []
-    evaluate_total = 0
     for version in RepositoryVersion.objects.filter(is_default=True):
+        dataset = {}
+        train = {}
+        train_total = 0
+        evaluate_intents = []
+        evaluate_total = 0
+
         version_language = version.get_version_language(version.repository.language)
 
         for intent in version_language.intents:
@@ -371,13 +372,11 @@ def intents_score():
         dataset["train_count"] = train_total
         dataset["train"] = train
         dataset["evaluate_count"] = evaluate_total
-        dataset["evaluate"] = {
-            k: tempdataset[k] for k in tempdataset if tempdataset[k]
-        }
+        dataset["evaluate"] = {k: tempdataset[k] for k in tempdataset if tempdataset[k]}
 
-    intentions_balance = intentions_balance_score(dataset)
-    intentions_size = intentions_size_score(dataset)
-    evaluate_size = evaluate_size_score(dataset)
+        intentions_balance = intentions_balance_score(dataset)
+        intentions_size = intentions_size_score(dataset)
+        evaluate_size = evaluate_size_score(dataset)
 
     score = RepositoryScore.objects.create(
         repository_score=version.repository,

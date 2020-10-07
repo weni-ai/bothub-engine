@@ -164,7 +164,7 @@ def intentions_balance_score(dataset):
 
     intentions_count = len(intentions)
     if intentions_count < 2:
-        return 0
+        return {"score": 0, "recommended": ""}
 
     train_count = dataset["train_count"]
 
@@ -179,7 +179,10 @@ def intentions_balance_score(dataset):
         # print(this_size, excl_mean)
         scores.append(score_normal(this_size, excl_mean))
 
-    score = sum(scores) / len(scores)
+    try:
+        score = sum(scores) / len(scores)
+    except ZeroDivisionError:
+        return {"score": 0, "recommended": ""}
 
     return {
         "score": score,
@@ -193,7 +196,7 @@ def intentions_size_score(dataset):
 
     intentions_count = len(intentions)
     if intentions_count < 2:
-        return 0
+        return {"score": 0, "recommended": ""}
 
     optimal = int(
         106.6556
@@ -208,7 +211,10 @@ def intentions_size_score(dataset):
         else:
             scores.append(score_cumulated(this_size, optimal))
 
-    score = sum(scores) / len(scores)
+    try:
+        score = sum(scores) / len(scores)
+    except ZeroDivisionError:
+        return {"score": 0, "recommended": ""}
 
     return {"score": score, "recommended": f"{optimal} sentences per intention"}
 
@@ -218,7 +224,7 @@ def evaluate_size_score(dataset):
 
     intentions_size = len(intentions)
     if intentions_size < 2:
-        return 0
+        return {"score": 0, "recommended": ""}
 
     train_count = dataset["train_count"]
     evaluate_count = dataset["evaluate_count"]
