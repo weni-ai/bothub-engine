@@ -13,6 +13,7 @@ from bothub.api.v2.repository.views import (
     RepositoryEntitiesViewSet,
     NewRepositoryViewSet,
     RepositoryIntentViewSet,
+    RepositoryTrainInfoViewSet,
 )
 from bothub.api.v2.repository.views import RepositoriesViewSet
 from bothub.api.v2.repository.views import RepositoryAuthorizationRequestsViewSet
@@ -149,6 +150,55 @@ class RetriveRepositoryTestCase(TestCase):
         )
 
         response = NewRepositoryViewSet.as_view({"get": "retrieve"})(
+            request,
+            repository__uuid=repository.uuid,
+            pk=repository.current_version().repository_version.pk,
+        )
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data)
+
+    def test_okay(self):
+        for repository in self.repositories:
+            response, content_data = self.request(repository, self.owner_token)
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_private_repository(self):
+        for repository in self.repositories:
+            response, content_data = self.request(repository)
+            self.assertEqual(
+                response.status_code,
+                status.HTTP_401_UNAUTHORIZED
+                if repository.is_private
+                else status.HTTP_200_OK,
+            )
+
+
+class RetriveRepositoryTrainInfoTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.owner, self.owner_token = create_user_and_token("owner")
+        self.category = RepositoryCategory.objects.create(name="Category 1")
+
+        self.repositories = [
+            create_repository_from_mockup(self.owner, **mockup)
+            for mockup in get_valid_mockups([self.category])
+        ]
+
+    def request(self, repository, token=None):
+        authorization_header = (
+            {"HTTP_AUTHORIZATION": "Token {}".format(token.key)} if token else {}
+        )
+
+        request = self.factory.get(
+            "/v2/repository/train/info/{}/{}/".format(
+                repository.uuid, repository.current_version().repository_version.pk
+            ),
+            **authorization_header,
+        )
+
+        response = RepositoryTrainInfoViewSet.as_view({"get": "retrieve"})(
             request,
             repository__uuid=repository.uuid,
             pk=repository.current_version().repository_version.pk,
@@ -1808,6 +1858,92 @@ class RetrieveRepositoryTestCase(TestCase):
         request_authorization = content_data.get("request_authorization")
         self.assertEqual(request_authorization.get("id"), request.id)
         self.assertEqual(request_authorization.get("text"), text)
+
+
+class RetrieveRepositoryTrainInfoTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.owner, self.owner_token = create_user_and_token("owner")
+        self.user, self.user_token = create_user_and_token()
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name="Testing",
+            slug="test",
+            language=languages.LANGUAGE_EN,
+        )
+
+        self.private_repository = Repository.objects.create(
+            owner=self.owner,
+            name="Testing Private",
+            slug="private",
+            language=languages.LANGUAGE_EN,
+            is_private=True,
+        )
+
+    def request(self, repository, token):
+        authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
+        request = self.factory.get(
+            "/v2/repository/train/info/{}/{}/".format(
+                str(repository.uuid), repository.current_version().repository_version.pk
+            ),
+            **authorization_header,
+        )
+        response = RepositoryTrainInfoViewSet.as_view({"get": "retrieve"})(
+            request,
+            repository__uuid=repository.uuid,
+            pk=repository.current_version().repository_version.pk,
+        )
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data)
+
+    def test_allowed_in_public(self):
+        # owner
+        response, content_data = self.request(self.repository, self.owner_token)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # secondary user
+        response, content_data = self.request(self.repository, self.user_token)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_allowed_in_private(self):
+        # owner
+        response, content_data = self.request(self.private_repository, self.owner_token)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_forbidden_in_private(self):
+        # secondary user
+        response, content_data = self.request(self.private_repository, self.user_token)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_ready_for_train(self):
+        current_version = self.repository.current_version()
+        self.example_intent_1 = RepositoryIntent.objects.create(
+            text="greet", repository_version=current_version.repository_version
+        )
+        RepositoryExample.objects.create(
+            repository_version_language=current_version,
+            text="my name is Douglas",
+            intent=self.example_intent_1,
+        )
+        RepositoryExample.objects.create(
+            repository_version_language=current_version,
+            text="my name is John",
+            intent=self.example_intent_1,
+        )
+        response, content_data = self.request(self.repository, self.user_token)
+        self.assertTrue(content_data.get("ready_for_train"))
+        self.assertEqual(
+            len(content_data.get("languages_warnings").get(languages.LANGUAGE_EN)), 1
+        )
+
+    def test_not_ready_for_train(self):
+        response, content_data = self.request(self.repository, self.user_token)
+        self.assertFalse(content_data.get("ready_for_train"))
+        self.assertEqual(
+            len(content_data.get("languages_warnings").get(languages.LANGUAGE_EN)), 0
+        )
 
 
 class TrainRepositoryTestCase(TestCase):
