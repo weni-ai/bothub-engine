@@ -7,6 +7,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied
 
 from bothub import utils
+from bothub.celery import app as celery_app
 from bothub.api.v2.example.serializers import RepositoryExampleEntitySerializer
 from bothub.api.v2.fields import EntityText, RepositoryVersionRelatedField
 from bothub.api.v2.fields import ModelMultipleChoiceField
@@ -1405,23 +1406,30 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
 class RepositoryMigrateSerializer(serializers.ModelSerializer):
     class Meta:
         model = RepositoryMigrate
-        fields = ["user", "repository", "auth_token", "language", "created"]
+        fields = ["user", "repository_version", "auth_token", "language", "created"]
 
         read_only_fields = ["user", "created_at"]
 
-    def create(self, validated_data):
-        user = self.context.get("request").user
-        repository = validated_data.pop("repository")
-        auth_token = validated_data.pop("auth_token")
-        language = validated_data.pop("language")
-        migrate = RepositoryMigrate.objects.create(
-            repository=repository, user=user, auth_token=auth_token, language=language
-        )
-        migrate_repository_wit.delay(
-            repository=repository.uuid, auth_token=auth_token, language=language
-        )
+    repository_version = serializers.PrimaryKeyRelatedField(
+        queryset=RepositoryVersion.objects,
+        style={"show": False},
+        required=True,
+        validators=[CanContributeInRepositoryVersionValidator()],
+    )
+    language = serializers.ChoiceField(LANGUAGE_CHOICES, label=_("Language"))
 
-        return migrate
+    def create(self, validated_data):
+        validated_data.update({"user": self.context.get("request").user})
+        repository_version = validated_data.get("repository_version")
+        auth_token = validated_data.get("auth_token")
+        language = validated_data.get("language")
+
+        instance = super().create(validated_data)
+
+        celery_app.send_task(
+            "migrate_repository_wit", args=[repository_version.pk, auth_token, language]
+        )
+        return instance
 
 
 class AnalyzeTextSerializer(serializers.Serializer):

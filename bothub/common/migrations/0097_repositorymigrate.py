@@ -8,24 +8,52 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('authentication', '0006_auto_20200729_1220'),
-        ('common', '0096_auto_20201001_2005'),
+        ("authentication", "0006_auto_20200729_1220"),
+        ("common", "0096_auto_20201001_2005"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='RepositoryMigrate',
+            name="RepositoryMigrate",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('language', models.CharField(max_length=5, validators=[bothub.common.languages.validate_language], verbose_name='language')),
-                ('auth_token', models.TextField()),
-                ('created', models.DateTimeField(auto_now_add=True)),
-                ('repository_version', models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, related_name='repository_migrate', to='common.RepositoryVersion')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='authentication.RepositoryOwner')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "language",
+                    models.CharField(
+                        max_length=5,
+                        validators=[bothub.common.languages.validate_language],
+                        verbose_name="language",
+                    ),
+                ),
+                ("auth_token", models.TextField()),
+                ("created", models.DateTimeField(auto_now_add=True)),
+                (
+                    "repository_version",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        related_name="repository_migrate",
+                        to="common.RepositoryVersion",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="authentication.RepositoryOwner",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'repository migrate',
-                'verbose_name_plural': 'repository migrates',
+                "verbose_name": "repository migrate",
+                "verbose_name_plural": "repository migrates",
             },
-        ),
+        )
     ]
