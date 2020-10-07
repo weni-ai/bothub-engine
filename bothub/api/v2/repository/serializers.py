@@ -27,7 +27,6 @@ from bothub.common.models import (
     RepositoryNLPTrain,
     RepositoryIntent,
     RepositoryTranslator,
-    RepositoryScore,
 )
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryCategory
@@ -894,14 +893,25 @@ class NewRepositorySerializer(serializers.ModelSerializer):
         }
 
     def get_repository_score(self, obj):
+        if obj.repository.repository_score.first():
+            repo = obj.repository.repository_score.first()
+            return {
+                "repository_score": repo.repository,
+                "intents_balance_score": repo.intents_balance_score,
+                "intents_balance_recommended": repo.intents_balance_recommended,
+                "intents_size_score": repo.intents_size_score,
+                "intents_size_recommended": repo.intents_size_recommended,
+                "evaluate_size_score": repo.evaluate_size_score,
+                "evaluate_size_recommended": repo.evaluate_size_recommended,
+            }
         return {
-            "repository_score": obj.repository.repository_score,
-            "intents_balance_score": obj.repository.repository_score.intents_balance_score,
-            "intents_balance_recommended": obj.repository.repository_score.intents_balance_recommended,
-            "intents_size_score": obj.repository.repository_score.intents_size_score,
-            "intents_size_recommended": obj.repository.repository_score.intents_size_recommended,
-            "evaluate_size_score": obj.repository.repository_score.evaluate_size_score,
-            "evaluate_size_recommended": obj.repository.repository_score.evaluate_size_recommended,
+            "repository_score": 0.0,
+            "intents_balance_score": "",
+            "intents_balance_recommended": 0.0,
+            "intents_size_score": "",
+            "intents_size_recommended": 0.0,
+            "evaluate_size_score": 0.0,
+            "evaluate_size_recommended": "",
         }
 
 

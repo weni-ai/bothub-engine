@@ -378,14 +378,22 @@ def intents_score():
         intentions_size = intentions_size_score(dataset)
         evaluate_size = evaluate_size_score(dataset)
 
-    score = RepositoryScore.objects.create(
-        repository_score=version.repository,
-        intents_balance_score=intentions_balance.get("score"),
-        intents_balance_recommended=intentions_balance.get("recommended"),
-        intents_size_score=intentions_size.get("score"),
-        intents_size_recommended=intentions_size.get("recommended"),
-        evaluate_size_score=evaluate_size.get("score"),
-        evaluate_size_recommended=evaluate_size.get("recommended"),
+    score, created = RepositoryScore.objects.get_or_create(
+        repository=version.repository
     )
 
-    score.save()
+    score.intents_balance_score = intentions_balance.get("score")
+    score.intents_balance_recommended = intentions_balance.get("recommended")
+    score.intents_size_score = intentions_size.get("score")
+    score.intents_size_recommended = intentions_size.get("recommended")
+    score.evaluate_size_score = evaluate_size.get("score")
+    score.evaluate_size_recommended = evaluate_size.get("recommended")
+
+    score.save(update_fields=[
+        "intents_balance_score",
+        "intents_balance_recommended",
+        "intents_size_score",
+        "intents_size_recommended",
+        "evaluate_size_score",
+        "evaluate_size_recommended",
+    ])

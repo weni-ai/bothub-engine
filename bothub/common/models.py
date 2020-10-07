@@ -2115,21 +2115,22 @@ class RepositoryTranslator(models.Model):
 
 class RepositoryScore(models.Model):
     class Meta:
+        unique_together = ["repository"]
         verbose_name = _("repository score")
         verbose_name_plural = _("repository scores")
 
-    repository_score = models.ForeignKey(
+    repository = models.ForeignKey(
         Repository,
         models.CASCADE,
         related_name="repository_score",
         editable=False,
     )
-    intents_balance_score = models.FloatField()
-    intents_balance_recommended = models.TextField()
-    intents_size_score = models.FloatField()
-    intents_size_recommended = models.TextField()
-    evaluate_size_score = models.FloatField()
-    evaluate_size_recommended = models.TextField()
+    intents_balance_score = models.FloatField(default=0.0)
+    intents_balance_recommended = models.TextField(null=True)
+    intents_size_score = models.FloatField(default=0.0)
+    intents_size_recommended = models.TextField(null=True)
+    evaluate_size_score = models.FloatField(default=0.0)
+    evaluate_size_recommended = models.TextField(null=True)
 
 
 @receiver(models.signals.pre_save, sender=RequestRepositoryAuthorization)
