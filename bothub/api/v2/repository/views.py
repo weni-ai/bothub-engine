@@ -78,6 +78,7 @@ from .serializers import (
     RepositoryIntentSerializer,
     RepositoryAutoTranslationSerializer,
     RepositoryTranslatorInfoSerializer,
+    RepositoryTrainInfoSerializer,
 )
 from .serializers import EvaluateSerializer
 from .serializers import RepositoryAuthorizationRoleSerializer
@@ -190,6 +191,21 @@ class NewRepositoryViewSet(
         )
 
         return Response({"id_queue": task.task_id})
+
+
+class RepositoryTrainInfoViewSet(
+    MultipleFieldLookupMixin, mixins.RetrieveModelMixin, GenericViewSet
+):
+    """
+    Manager repository (bot).
+    """
+
+    queryset = RepositoryVersion.objects
+    lookup_field = "repository__uuid"
+    lookup_fields = ["repository__uuid", "pk"]
+    serializer_class = RepositoryTrainInfoSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly, RepositoryInfoPermission]
+    metadata_class = Metadata
 
 
 class RepositoryTranslatorInfoViewSet(mixins.RetrieveModelMixin, GenericViewSet):
