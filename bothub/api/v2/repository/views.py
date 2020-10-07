@@ -570,6 +570,9 @@ class SearchRepositoriesViewSet(mixins.ListModelMixin, GenericViewSet):
     queryset = Repository.objects
     serializer_class = RepositorySerializer
     lookup_field = "nickname"
+    filter_class = RepositoriesFilter
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    search_fields = ["$name", "^name", "=name"]
 
     def get_queryset(self, *args, **kwargs):
         try:
@@ -587,15 +590,15 @@ class SearchRepositoriesViewSet(mixins.ListModelMixin, GenericViewSet):
                             owner__nickname=self.request.query_params.get(
                                 "nickname", self.request.user
                             )
-                        )
+                        ).distinct()
                 return self.queryset.filter(
                     owner__nickname=self.request.query_params.get(
                         "nickname", self.request.user
                     ),
                     is_private=False,
-                )
+                ).distinct()
             else:
-                return self.queryset.filter(owner=self.request.user)
+                return self.queryset.filter(owner=self.request.user).distinct()
         except TypeError:
             return self.queryset.none()
 
