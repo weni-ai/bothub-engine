@@ -1941,9 +1941,7 @@ class RetrieveRepositoryTrainInfoTestCase(TestCase):
     def test_not_ready_for_train(self):
         response, content_data = self.request(self.repository, self.user_token)
         self.assertFalse(content_data.get("ready_for_train"))
-        self.assertEqual(
-            len(content_data.get("languages_warnings").get(languages.LANGUAGE_EN)), 0
-        )
+        self.assertEqual(len(content_data.get("languages_warnings")), 0)
 
 
 class TrainRepositoryTestCase(TestCase):
