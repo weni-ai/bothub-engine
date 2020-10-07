@@ -339,8 +339,12 @@ def auto_translation(
     task_queue.save(update_fields=["status", "end_training"])
 
 
-@shared_task
-def migrate_repository_wit(repository, auth_token, language):
+# @shared_task
+@app.task()
+def migrate_repository_wit():#repository, auth_token, language):
+    repository_version = 923
+    auth_token = 'QDSIFNMKCRGD7QLDAMWQP2WHICWCBDY4'
+    language = 'en'
     try:
         request_api = requests.get(
             url="https://api.wit.ai/export",
@@ -352,55 +356,44 @@ def migrate_repository_wit(repository, auth_token, language):
         with zipfile.ZipFile(io.BytesIO(response.content)) as thezip:
             for zipinfo in thezip.infolist():
                 with thezip.open(zipinfo) as thefile:
-                    if re.search("expressions.*", thefile.name):
+                    if re.search("utterances.*", thefile.name):
                         for line in thefile.readlines():
                             expressions += line.decode("utf-8", "replace").replace(
                                 '\\"', ""
                             )
 
-        for data in json.loads(expressions)["data"]:
-            # text = data["text"]
+        # print(expressions)
 
-            count = 0
-            intent_position = None
-            while count < len(data["entities"]):
-                if data["entities"][count]["entity"] == "intent":
-                    intent_position = count
-                    break
-                count += 1
+        for data in json.loads(expressions)["utterances"]:
+            text = data["text"]
+            intent_text = data["intent"]
 
-            if intent_position is None:
-                print("Não encontrou a chave entity com o valor intent.")
-                continue
+            instance = RepositoryVersion.objects.get(pk=repository_version)
 
-            # repository_ = Repository.objects.get(uuid=repository)
-
-            # repository_update = repository_.current_update(language)
-            # example = RepositoryExample.objects.create(
-            #     text=str(text.encode("utf-8", "replace").decode("utf-8")),
-            #     intent=data["entities"][intent_position]["value"],
-            #     repository_update=repository_update,
-            # )
+            intent, created = RepositoryIntent.objects.get_or_create(
+                text=intent_text,
+                repository_version=instance,
+            )
+            example_id = RepositoryExample.objects.create(
+                repository_version_language=instance.get_version_language(language=language),
+                text=str(text.encode("utf-8", "replace").decode("utf-8")),
+                intent=intent,
+            )
 
             for entities in data["entities"]:
-                entity = entities["entity"]
-                # value = entities["value"]
-                if not entity == "intent":
-                    pass
-                    # start = entities["start"]
-                    # end = entities["end"]
+                entity_text = entities["entity"].split(':')[0].replace(' ', '_').lower()
+                start = entities["start"]
+                end = entities["end"]
 
-                    # entity_serializer = NewRepositoryExampleEntitySerializer(
-                    #     data={
-                    #         'repository_example': example.pk,
-                    #         "label": value.replace(' ', '_').lower(),
-                    #         "entity": entity.replace(' ', '_').lower(),
-                    #         "start": start,
-                    #         "end": end,
-                    #     }
-                    # )
-                    # entity_serializer.is_valid(raise_exception=True)
-                    # entity_serializer.save()
+                entity, created = RepositoryEntity.objects.get_or_create(
+                    repository_version=instance, value=entity_text
+                )
+                RepositoryExampleEntity.objects.create(
+                    repository_example=example_id,
+                    start=start,
+                    end=end,
+                    entity=entity,
+                )
 
         return True
     except requests.ConnectionError:

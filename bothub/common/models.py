@@ -1838,9 +1838,9 @@ class RepositoryMigrate(models.Model):
         verbose_name = _("repository migrate")
         verbose_name_plural = _("repository migrates")
 
-    user = models.ForeignKey(User, models.CASCADE, related_name="repository_migrate")
-    repository = models.ForeignKey(
-        Repository, models.DO_NOTHING, related_name="migrate"
+    user = models.ForeignKey(RepositoryOwner, models.CASCADE)
+    repository_version = models.ForeignKey(
+        RepositoryVersion, models.DO_NOTHING, related_name="repository_migrate"
     )
     language = models.CharField(
         _("language"), max_length=5, validators=[languages.validate_language]
