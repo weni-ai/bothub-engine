@@ -18,6 +18,7 @@ from .repository.views import (
     RepositoryNLPLogReportsViewSet,
     RepositoryIntentViewSet,
     RepositoryTranslatorInfoViewSet,
+    RepositoryTrainInfoViewSet,
 )
 from .repository.views import RepositoryVotesViewSet
 from .repository.views import RepositoriesViewSet
@@ -129,6 +130,7 @@ class Router(routers.SimpleRouter):
 router = Router()
 router.register("repository/repository-details", RepositoryViewSet)
 router.register("repository/info", NewRepositoryViewSet)
+router.register("repository/train/info", RepositoryTrainInfoViewSet)
 router.register("repository/repository-votes", RepositoryVotesViewSet)
 router.register("repository/repositories", RepositoriesViewSet)
 router.register(
