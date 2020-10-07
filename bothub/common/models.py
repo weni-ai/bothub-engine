@@ -337,8 +337,8 @@ class Repository(models.Model):
 
     nlp_server = models.URLField(_("Base URL NLP"), null=True, blank=True)
 
-    allow_search_examples = models.BooleanField(
-        _("Authorizes third-party phrase search"), default=False
+    count_authorizations = models.IntegerField(
+        _("Authorization count calculated by celery"), default=0
     )
 
     objects = RepositoryManager()
@@ -596,31 +596,17 @@ class Repository(models.Model):
                 lambda lang: self.get_specific_version_id(
                     repository_version=repository_version, language=lang
                 ),
-                self.available_languages(language=language, queryset=queryset),
+                self.available_languages(
+                    language=language,
+                    queryset=queryset,
+                    version_default=version_default,
+                ),
             )
         return map(
             lambda lang: self.current_version(lang, is_default=version_default),
             self.available_languages(
                 language=language, queryset=queryset, version_default=version_default
             ),
-        )
-
-    @property
-    def requirements_to_train(self):  # pragma: no cover
-        return dict(
-            filter(
-                lambda l: l[1],
-                map(
-                    lambda u: (u.language, u.requirements_to_train),
-                    self.current_versions(),
-                ),
-            )
-        )
-
-    @property
-    def languages_ready_for_train(self):  # pragma: no cover
-        return dict(
-            map(lambda u: (u.language, u.ready_for_train), self.current_versions())
         )
 
     def ready_for_train(
@@ -1086,8 +1072,8 @@ class RepositoryVersionLanguage(models.Model):
         if (
             self.queues.filter(
                 Q(status=RepositoryQueueTask.STATUS_PENDING)
-                | Q(status=RepositoryQueueTask.STATUS_TRAINING)
-            )
+                | Q(status=RepositoryQueueTask.STATUS_PROCESSING)
+            ).filter(Q(type_processing=RepositoryQueueTask.TYPE_PROCESSING_TRAINING))
             and not from_nlp
         ):
             raise RepositoryUpdateAlreadyStartedTraining()
@@ -1118,9 +1104,12 @@ class RepositoryVersionLanguage(models.Model):
         )
         self.repository_version.save(update_fields=["created_by"])
 
-    def create_task(self, id_queue, from_queue):
-        RepositoryQueueTask.objects.create(
-            repositoryversionlanguage=self, id_queue=id_queue, from_queue=from_queue
+    def create_task(self, id_queue, from_queue, type_processing):
+        return RepositoryQueueTask.objects.create(
+            repositoryversionlanguage=self,
+            id_queue=id_queue,
+            from_queue=from_queue,
+            type_processing=type_processing,
         )
 
     def get_trainer(self, rasa_version):
@@ -1175,20 +1164,23 @@ class RepositoryQueueTask(models.Model):
 
     QUEUE_AIPLATFORM = 0
     QUEUE_CELERY = 1
-    QUEUE_CHOICES = [
-        (QUEUE_AIPLATFORM, _("Ai Platform")),
-        (QUEUE_CELERY, _("Celery NLU Worker")),
-    ]
+    QUEUE_CHOICES = [(QUEUE_AIPLATFORM, _("Ai Platform")), (QUEUE_CELERY, _("Celery"))]
 
     STATUS_PENDING = 0
-    STATUS_TRAINING = 1
+    STATUS_PROCESSING = 1
     STATUS_SUCCESS = 2
     STATUS_FAILED = 3
     STATUS_CHOICES = [
         (STATUS_PENDING, _("Pending")),
         (STATUS_SUCCESS, _("Success")),
-        (STATUS_TRAINING, _("Training")),
+        (STATUS_PROCESSING, _("Processing")),
         (STATUS_FAILED, _("Failed")),
+    ]
+    TYPE_PROCESSING_TRAINING = 0
+    TYPE_PROCESSING_AUTO_TRANSLATE = 1
+    TYPE_PROCESSING_CHOICES = [
+        (TYPE_PROCESSING_TRAINING, _("NLP Tranining")),
+        (TYPE_PROCESSING_AUTO_TRANSLATE, _("Repository Auto Translation")),
     ]
 
     repositoryversionlanguage = models.ForeignKey(
@@ -1204,6 +1196,9 @@ class RepositoryQueueTask(models.Model):
     ml_units = models.FloatField(_("Machine Learning Units AiPlatform"), default=0)
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
     end_training = models.DateTimeField(_("end training"), null=True)
+    type_processing = models.PositiveIntegerField(
+        _("Type Processing"), choices=TYPE_PROCESSING_CHOICES
+    )
 
 
 class RepositoryNLPLog(models.Model):
@@ -1276,7 +1271,9 @@ class RepositoryIntent(models.Model):
         verbose_name_plural = _("repository intents")
         unique_together = ["repository_version", "text"]
 
-    repository_version = models.ForeignKey(RepositoryVersion, models.CASCADE)
+    repository_version = models.ForeignKey(
+        RepositoryVersion, models.CASCADE, related_name="version_intents"
+    )
     text = models.CharField(
         _("intent"),
         max_length=64,
@@ -1716,14 +1713,14 @@ class RepositoryAuthorization(models.Model):
                     role=RepositoryAuthorization.ROLE_NOT_SETTED
                 )
                 .filter(
-                    Q(organization=self.repository.owner)
-                    | Q(
+                    Q(
                         organization__in=RepositoryAuthorization.objects.filter(
                             repository=self.repository,
                             user__in=self.user.organization_user_authorization.exclude(
                                 role=OrganizationAuthorization.ROLE_NOT_SETTED
                             ).values_list("organization", flat=True),
                         )
+                        .exclude(role=OrganizationAuthorization.ROLE_NOT_SETTED)
                         .order_by("-role")
                         .values_list("user")
                     )
@@ -2106,6 +2103,30 @@ class RepositoryEvaluateResultEntity(models.Model):
     )
 
     objects = EntityBaseManager()
+
+
+class RepositoryTranslator(models.Model):
+    class Meta:
+        verbose_name = _("repository translator")
+        verbose_name_plural = _("repository translators")
+
+    uuid = models.UUIDField(
+        _("UUID"), primary_key=True, default=uuid.uuid4, editable=False
+    )
+    repository_version_language = models.ForeignKey(
+        RepositoryVersionLanguage,
+        models.CASCADE,
+        related_name="translator",
+        editable=False,
+    )
+    language = models.CharField(
+        _("language"),
+        max_length=5,
+        validators=[languages.validate_language],
+        editable=False,
+    )
+    created_by = models.ForeignKey(RepositoryOwner, models.CASCADE)
+    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
 
 
 @receiver(models.signals.pre_save, sender=RequestRepositoryAuthorization)

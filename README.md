@@ -116,19 +116,21 @@ You can set environment variables in your OS, write on ```.env``` file or pass v
 | BOTHUB_NLP_BASE_URL | ```string``` | ```http://localhost:2657/``` | The bothub-blp production application URL. Used to proxy requests.
 | CHECK_ACCESSIBLE_API_URL | ```string``` | ```http://localhost/api/repositories/``` | URL used by ```bothub.health.check.check_accessible_api``` to make a HTTP request. The response status code must be 200.
 | SEND_EMAILS | ```boolean``` | ```True``` | Send emails flag.
-| BOTHUB_ENGINE_AWS_S3_BUCKET_NAME | ```string``` | ```None``` | 
-| BOTHUB_ENGINE_AWS_ACCESS_KEY_ID | ```string``` | ```None``` | 
-| BOTHUB_ENGINE_AWS_SECRET_ACCESS_KEY | ```string``` | ```None``` | 
-| BOTHUB_ENGINE_AWS_REGION_NAME | ```string``` | ```None``` | 
-| BOTHUB_ENGINE_AWS_ENDPOINT_URL | ```string``` | ```None``` | 
-| BOTHUB_ENGINE_AWS_SEND |  ```bool``` | ```False``` | 
+| BOTHUB_ENGINE_AWS_S3_BUCKET_NAME | ```string``` | ```None``` | Specify the bucket name to send to s3
+| BOTHUB_ENGINE_AWS_ACCESS_KEY_ID | ```string``` | ```None``` | Specify the access key to send to s3
+| BOTHUB_ENGINE_AWS_SECRET_ACCESS_KEY | ```string``` | ```None``` | Specify the secret access key to send to s3
+| BOTHUB_ENGINE_AWS_REGION_NAME | ```string``` | ```None``` | Specify the region to send to s3
+| BOTHUB_ENGINE_AWS_ENDPOINT_URL | ```string``` | ```None``` | Specify the endpoint to send to s3, if sending to amazon s3, there is no need to specify a value
+| BOTHUB_ENGINE_AWS_SEND |  ```bool``` | ```False``` | Authorize sending to s3
 | BOTHUB_BOT_EMAIL |  ```string``` | ```bot_repository@bothub.it``` | Email that the system will automatically create for existing repositories that the owner deleted the account
 | BOTHUB_BOT_NAME |  ```string``` | ```Bot Repository``` | Name that the system will use to create the account
 | BOTHUB_BOT_NICKNAME |  ```string``` | ```bot_repository``` | Nickname that the system will use to create the account
 | BOTHUB_ENGINE_USE_SENTRY |  ```bool``` | ```False``` | Enable Support Sentry
 | BOTHUB_ENGINE_SENTRY |  ```string``` | ```None``` | URL Sentry
 | BOTHUB_NLP_RASA_VERSION |  ```string``` | ```1.4.3``` | Specify the version of rasa used in the nlp worker
-| ENVIRONMENT |  ```string``` | ```production``` | 
+| TOKEN_SEARCH_REPOSITORIES |  ```string``` | ```None``` | Specify the token to be used in the search_repositories_examples route, if not specified, the route is available without authentication
+| GOOGLE_API_TRANSLATION_KEY |  ```string``` | ```None``` | Specify the Google Translation API passkey, used in machine translation
+| ENVIRONMENT |  ```string``` | ```production``` | Specify the environment you are going to run, it is also used for sentry
 
 ## Roadmap
 

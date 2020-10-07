@@ -8,6 +8,7 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework import exceptions
 from rest_framework import mixins, pagination
 from rest_framework.decorators import action
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
@@ -20,6 +21,8 @@ from bothub.common.models import (
     RepositoryVersionLanguage,
     RepositoryNLPLog,
     RepositoryExample,
+    RepositoryEvaluate,
+    RepositoryQueueTask,
 )
 from bothub.common.models import RepositoryEntity
 from bothub.common.models import RepositoryEvaluateResult
@@ -33,7 +36,7 @@ def check_auth(request):
     try:
         auth = request.META.get("HTTP_AUTHORIZATION").split()
         auth = auth[1]
-        RepositoryAuthorization.objects.get(uuid=auth)
+        return RepositoryAuthorization.objects.get(uuid=auth)
     except Exception:
         msg = _("Invalid token header.")
         raise exceptions.AuthenticationFailed(msg)
@@ -54,6 +57,10 @@ class RepositoryAuthorizationTrainViewSet(
     def retrieve(self, request, *args, **kwargs):
         check_auth(request)
         repository_authorization = self.get_object()
+
+        if not repository_authorization.can_contribute:
+            raise PermissionDenied()
+
         repository_version = request.query_params.get("repository_version")
         if repository_version:
             current_version = repository_authorization.repository.get_specific_version_id(
@@ -79,7 +86,11 @@ class RepositoryAuthorizationTrainViewSet(
 
     @action(detail=True, methods=["GET"], url_name="get_examples", lookup_field=[])
     def get_examples(self, request, **kwargs):
-        check_auth(request)
+        repository_authorization = check_auth(request)
+
+        if not repository_authorization.can_contribute:
+            raise PermissionDenied()
+
         queryset = get_object_or_404(
             RepositoryVersionLanguage, pk=request.query_params.get("repository_version")
         )
@@ -105,19 +116,30 @@ class RepositoryAuthorizationTrainViewSet(
 
     @action(detail=True, methods=["POST"], url_name="save_queue_id", lookup_field=[])
     def save_queue_id(self, request, **kwargs):
-        check_auth(request)
+        repository_authorization = check_auth(request)
+
+        if not repository_authorization.can_contribute:
+            raise PermissionDenied()
+
         repository = get_object_or_404(
             RepositoryVersionLanguage, pk=request.data.get("repository_version")
         )
 
         id_queue = request.data.get("task_id")
         from_queue = request.data.get("from_queue")
-        repository.create_task(id_queue=id_queue, from_queue=from_queue)
+        repository.create_task(
+            id_queue=id_queue,
+            from_queue=from_queue,
+            type_processing=RepositoryQueueTask.TYPE_PROCESSING_TRAINING,
+        )
         return Response({})
 
     @action(detail=True, methods=["POST"], url_name="start_training", lookup_field=[])
     def start_training(self, request, **kwargs):
-        check_auth(request)
+        repository_authorization = check_auth(request)
+
+        if not repository_authorization.can_contribute:
+            raise PermissionDenied()
 
         repository = get_object_or_404(
             RepositoryVersionLanguage, pk=request.data.get("repository_version")
@@ -143,7 +165,11 @@ class RepositoryAuthorizationTrainViewSet(
 
     @action(detail=True, methods=["POST"], url_name="train_fail", lookup_field=[])
     def train_fail(self, request, **kwargs):
-        check_auth(request)
+        repository_authorization = check_auth(request)
+
+        if not repository_authorization.can_contribute:
+            raise PermissionDenied()
+
         repository = get_object_or_404(
             RepositoryVersionLanguage, pk=request.data.get("repository_version")
         )
@@ -152,7 +178,11 @@ class RepositoryAuthorizationTrainViewSet(
 
     @action(detail=True, methods=["POST"], url_name="training_log", lookup_field=[])
     def training_log(self, request, **kwargs):
-        check_auth(request)
+        repository_authorization = check_auth(request)
+
+        if not repository_authorization.can_contribute:
+            raise PermissionDenied()
+
         repository = get_object_or_404(
             RepositoryVersionLanguage, pk=request.data.get("repository_version")
         )
@@ -169,6 +199,7 @@ class RepositoryAuthorizationParseViewSet(mixins.RetrieveModelMixin, GenericView
     def retrieve(self, request, *args, **kwargs):
         check_auth(request)
         repository_authorization = self.get_object()
+
         repository = repository_authorization.repository
 
         language = request.query_params.get("language")
@@ -200,7 +231,11 @@ class RepositoryAuthorizationParseViewSet(mixins.RetrieveModelMixin, GenericView
 
     @action(detail=True, methods=["GET"], url_name="repository_entity", lookup_field=[])
     def repository_entity(self, request, **kwargs):
-        check_auth(request)
+        repository_authorization = check_auth(request)
+
+        if not repository_authorization.can_contribute:
+            raise PermissionDenied()
+
         repository_update = get_object_or_404(
             RepositoryVersionLanguage, pk=request.query_params.get("repository_version")
         )
@@ -247,6 +282,10 @@ class RepositoryAuthorizationEvaluateViewSet(mixins.RetrieveModelMixin, GenericV
     def retrieve(self, request, *args, **kwargs):
         check_auth(request)
         repository_authorization = self.get_object()
+
+        if not repository_authorization.can_contribute:
+            raise PermissionDenied()
+
         repository = repository_authorization.repository
 
         repository_version = request.query_params.get("repository_version")
@@ -275,12 +314,20 @@ class RepositoryAuthorizationEvaluateViewSet(mixins.RetrieveModelMixin, GenericV
 
     @action(detail=True, methods=["GET"], url_name="evaluations", lookup_field=[])
     def evaluations(self, request, **kwargs):
-        check_auth(request)
+        repository_authorization = check_auth(request)
+
+        if not repository_authorization.can_contribute:
+            raise PermissionDenied()
+
         repository_update = get_object_or_404(
             RepositoryVersionLanguage, pk=request.query_params.get("repository_version")
         )
         evaluations = repository_update.repository_version.repository.evaluations(
-            language=repository_update.language
+            language=repository_update.language,
+            queryset=RepositoryEvaluate.objects.filter(
+                repository_version_language=repository_update
+            ),
+            version_default=repository_update.repository_version.is_default,
         )
 
         data = []
@@ -311,7 +358,11 @@ class RepositoryAuthorizationEvaluateViewSet(mixins.RetrieveModelMixin, GenericV
 
     @action(detail=True, methods=["POST"], url_name="evaluate_results", lookup_field=[])
     def evaluate_results(self, request, **kwargs):
-        check_auth(request)
+        repository_authorization = check_auth(request)
+
+        if not repository_authorization.can_contribute:
+            raise PermissionDenied()
+
         repository_update = get_object_or_404(
             RepositoryVersionLanguage, pk=request.data.get("repository_version")
         )
@@ -351,7 +402,10 @@ class RepositoryAuthorizationEvaluateViewSet(mixins.RetrieveModelMixin, GenericV
         lookup_field=[],
     )
     def evaluate_results_intent(self, request, **kwargs):
-        check_auth(request)
+        repository_authorization = check_auth(request)
+
+        if not repository_authorization.can_contribute:
+            raise PermissionDenied()
 
         evaluate_result = get_object_or_404(
             RepositoryEvaluateResult, pk=request.data.get("evaluate_id")
@@ -379,7 +433,10 @@ class RepositoryAuthorizationEvaluateViewSet(mixins.RetrieveModelMixin, GenericV
         lookup_field=[],
     )
     def evaluate_results_score(self, request, **kwargs):
-        check_auth(request)
+        repository_authorization = check_auth(request)
+
+        if not repository_authorization.can_contribute:
+            raise PermissionDenied()
 
         evaluate_result = get_object_or_404(
             RepositoryEvaluateResult, pk=request.data.get("evaluate_id")
@@ -435,6 +492,7 @@ class RepositoryUpdateInterpretersViewSet(
 
     def retrieve(self, request, *args, **kwargs):
         check_auth(request)
+
         update = self.get_object()
         rasa_version = request.query_params.get(
             "rasa_version", settings.BOTHUB_NLP_RASA_VERSION
@@ -465,7 +523,11 @@ class RepositoryUpdateInterpretersViewSet(
         )
 
     def create(self, request, *args, **kwargs):
-        check_auth(request)
+        repository_authorization = check_auth(request)
+
+        if not repository_authorization.can_contribute:
+            raise PermissionDenied()
+
         id = request.data.get("id")
         rasa_version = request.data.get(
             "rasa_version", settings.BOTHUB_NLP_RASA_VERSION

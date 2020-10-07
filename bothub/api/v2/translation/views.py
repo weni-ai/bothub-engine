@@ -1,5 +1,6 @@
-import openpyxl
 import re
+
+import openpyxl
 from django.db.models import Count, Q
 from django.http import HttpResponse
 from django.utils.decorators import method_decorator
@@ -310,9 +311,8 @@ class RepositoryTranslatedExporterViewSet(
                     if translated_examples.count() > 0:
                         translated_examples.delete()
 
-                    version_language = example.repository_version_language.repository_version.repository.current_version(
-                        language=for_language,
-                        is_default=example.repository_version_language.repository_version.is_default,
+                    version_language = example.repository_version_language.repository_version.get_version_language(
+                        language=for_language
                     )
 
                     translated = RepositoryTranslatedExample.objects.create(
