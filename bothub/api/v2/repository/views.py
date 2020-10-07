@@ -949,10 +949,7 @@ class RepositoryIntentViewSet(
 
 class RepositoryScoreViewSet(
     mixins.ListModelMixin,
-    mixins.RetrieveModelMixin,
-    mixins.DestroyModelMixin,
-    mixins.UpdateModelMixin,
-    GenericViewSet
+    GenericViewSet,
 ):
     """
     API endpoint that allows Repository scores to be viewed.
