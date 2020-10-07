@@ -78,7 +78,6 @@ from .serializers import (
     RepositoryNLPLogReportsSerializer,
     RepositoryIntentSerializer,
     RepositoryAutoTranslationSerializer,
-    RepositoryScoreSerializer,
     RepositoryTranslatorInfoSerializer,
     RepositoryTrainInfoSerializer,
 )
@@ -945,16 +944,3 @@ class RepositoryIntentViewSet(
     def update(self, request, *args, **kwargs):
         self.filter_class = None
         return super().update(request, *args, **kwargs)
-
-
-class RepositoryScoreViewSet(
-    mixins.ListModelMixin,
-    GenericViewSet,
-):
-    """
-    API endpoint that allows Repository scores to be viewed.
-    """
-
-    queryset = RepositoryScore.objects
-    serializer_class = RepositoryScoreSerializer
-    permission_classes = [permissions.IsAuthenticated]

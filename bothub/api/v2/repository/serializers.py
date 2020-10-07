@@ -26,7 +26,6 @@ from bothub.common.models import (
     Organization,
     RepositoryNLPTrain,
     RepositoryIntent,
-    RepositoryScore,
     RepositoryTranslator,
 )
 from bothub.common.models import RepositoryAuthorization
@@ -1610,17 +1609,3 @@ class RepositoryIntentSerializer(serializers.ModelSerializer):
         ref_name = None
 
     text = serializers.CharField(required=True, validators=[IntentValidator()])
-
-
-class RepositoryScoreSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = RepositoryScore
-        fields = ["id"
-                  "repository_score",
-                  "intents_balance_score",
-                  "intents_balance_recommended",
-                  "intents_size_score",
-                  "intents_size_recommended",
-                  "evaluate_size_score",
-                  "evaluate_size_recommended"]
