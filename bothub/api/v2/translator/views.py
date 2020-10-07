@@ -13,6 +13,7 @@ from bothub.api.v2.example.serializers import RepositoryExampleSerializer
 from bothub.api.v2.translator.filters import (
     TranslatorExamplesFilter,
     RepositoryTranslatorFilter,
+    TranslationsTranslatorFilter,
 )
 from bothub.api.v2.translator.permissions import (
     RepositoryExampleTranslatorPermission,
@@ -75,6 +76,7 @@ class TranslatorExamplesViewSet(mixins.ListModelMixin, GenericViewSet):
 
 class RepositoryTranslationTranslatorExampleViewSet(
     mixins.CreateModelMixin,
+    mixins.ListModelMixin,
     mixins.RetrieveModelMixin,
     mixins.UpdateModelMixin,
     mixins.DestroyModelMixin,
@@ -92,6 +94,10 @@ class RepositoryTranslationTranslatorExampleViewSet(
             repository_version_language=self.request.auth.repository_version_language
         )
         return queryset
+
+    def list(self, request, *args, **kwargs):
+        self.filter_class = TranslationsTranslatorFilter
+        return super().list(request, *args, **kwargs)
 
     @action(
         detail=True,
