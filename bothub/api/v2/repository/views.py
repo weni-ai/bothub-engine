@@ -35,7 +35,6 @@ from bothub.common.models import (
     RepositoryQueueTask,
     RepositoryIntent,
     OrganizationAuthorization,
-    RepositoryScore,
     RepositoryTranslator,
 )
 from bothub.common.models import RepositoryAuthorization
