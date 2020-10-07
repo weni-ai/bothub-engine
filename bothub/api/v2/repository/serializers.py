@@ -894,7 +894,15 @@ class NewRepositorySerializer(serializers.ModelSerializer):
         }
 
     def get_repository_score(self, obj):
-        return RepositoryScoreSerializer(obj.reposity_score, many=True).data
+        return {
+            "repository_score": obj.repository.repository_score,
+            "intents_balance_score": obj.repository.repository_score.intents_balance_score,
+            "intents_balance_recommended": obj.repository.repository_score.intents_balance_recommended,
+            "intents_size_score": obj.repository.repository_score.intents_size_score,
+            "intents_size_recommended": obj.repository.repository_score.intents_size_recommended,
+            "evaluate_size_score": obj.repository.repository_score.evaluate_size_score,
+            "evaluate_size_recommended": obj.repository.repository_score.evaluate_size_recommended,
+        }
 
 
 class RepositoryTrainInfoSerializer(serializers.ModelSerializer):
@@ -1615,17 +1623,3 @@ class RepositoryIntentSerializer(serializers.ModelSerializer):
         ref_name = None
 
     text = serializers.CharField(required=True, validators=[IntentValidator()])
-
-
-class RepositoryScoreSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = RepositoryScore
-        fields = [
-            "intents_balance_score",
-            "intents_balance_recommended",
-            "intents_size_score",
-            "intents_size_recommended",
-            "evaluate_size_score",
-            "evaluate_size_recommended",
-        ]
-        ref_name = None
