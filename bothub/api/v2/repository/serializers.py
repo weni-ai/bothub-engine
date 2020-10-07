@@ -7,12 +7,12 @@ from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied
 
 from bothub import utils
-from bothub.celery import app as celery_app
 from bothub.api.v2.example.serializers import RepositoryExampleEntitySerializer
 from bothub.api.v2.fields import EntityText, RepositoryVersionRelatedField
 from bothub.api.v2.fields import ModelMultipleChoiceField
 from bothub.api.v2.fields import TextField
 from bothub.authentication.models import RepositoryOwner
+from bothub.celery import app as celery_app
 from bothub.common import languages
 from bothub.common.languages import LANGUAGE_CHOICES
 from bothub.common.models import (
@@ -38,7 +38,6 @@ from bothub.common.models import RepositoryTranslatedExample
 from bothub.common.models import RepositoryTranslatedExampleEntity
 from bothub.common.models import RepositoryVote
 from bothub.common.models import RequestRepositoryAuthorization
-from bothub.common.tasks import migrate_repository_wit
 from .validators import (
     APIExceptionCustom,
     CanCreateRepositoryInOrganizationValidator,
