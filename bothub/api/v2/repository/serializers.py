@@ -896,26 +896,8 @@ class NewRepositorySerializer(serializers.ModelSerializer):
         }
 
     def get_repository_score(self, obj):
-        queryset = RepositoryScore.objects.filter(repository=obj.repository.uuid).first()
-        score = RepositoryScoreSerializer(queryset).data
-        if score:
-            return {
-                "intents_balance_score": score.get("intents_balance_score"),
-                "intents_balance_recommended": score.get("intents_balance_recommended"),
-                "intents_size_score": score.get("intents_size_score"),
-                "intents_size_recommended": score.get("intents_size_recommended"),
-                "evaluate_size_score": score.get("evaluate_size_score"),
-                "evaluate_size_recommended": score.get("evaluate_size_recommended"),
-            }
-        return {
-            "repository_score": 0.0,
-            "intents_balance_score": "",
-            "intents_balance_recommended": 0.0,
-            "intents_size_score": "",
-            "intents_size_recommended": 0.0,
-            "evaluate_size_score": 0.0,
-            "evaluate_size_recommended": "",
-        }
+        score, created = obj.repository.repository_score.get_or_create()
+        return RepositoryScoreSerializer(score).data
 
 
 class RepositoryTrainInfoSerializer(serializers.ModelSerializer):

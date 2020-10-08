@@ -1,16 +1,12 @@
-<<<<<<< HEAD
 import requests
-from collections import Counter
-=======
 import io
 import json
 import re
 import zipfile
->>>>>>> develop
+from collections import Counter
 from datetime import timedelta
 from urllib.parse import urlencode
 
-import requests
 from django.conf import settings
 from django.db import transaction
 from django.db.models import Q, Count
@@ -387,25 +383,25 @@ def intents_score():
         intentions_size = intentions_size_score(dataset)
         evaluate_size = evaluate_size_score(dataset)
 
-    score, created = RepositoryScore.objects.get_or_create(
-        repository=version.repository
-    )
+        score, created = RepositoryScore.objects.get_or_create(
+            repository=version.repository
+        )
 
-    score.intents_balance_score = float(intentions_balance.get("score"))
-    score.intents_balance_recommended = intentions_balance.get("recommended")
-    score.intents_size_score = float(intentions_size.get("score"))
-    score.intents_size_recommended = intentions_size.get("recommended")
-    score.evaluate_size_score = float(evaluate_size.get("score"))
-    score.evaluate_size_recommended = evaluate_size.get("recommended")
+        score.intents_balance_score = float(intentions_balance.get("score"))
+        score.intents_balance_recommended = intentions_balance.get("recommended")
+        score.intents_size_score = float(intentions_size.get("score"))
+        score.intents_size_recommended = intentions_size.get("recommended")
+        score.evaluate_size_score = float(evaluate_size.get("score"))
+        score.evaluate_size_recommended = evaluate_size.get("recommended")
 
-    score.save(update_fields=[
-        "intents_balance_score",
-        "intents_balance_recommended",
-        "intents_size_score",
-        "intents_size_recommended",
-        "evaluate_size_score",
-        "evaluate_size_recommended",
-    ])
+        score.save(update_fields=[
+            "intents_balance_score",
+            "intents_balance_recommended",
+            "intents_size_score",
+            "intents_size_recommended",
+            "evaluate_size_score",
+            "evaluate_size_recommended",
+        ])
 
 
 @app.task(name="migrate_repository_wit")
