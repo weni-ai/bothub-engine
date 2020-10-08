@@ -57,5 +57,5 @@ The bothub's developers is monitoring for pull requests. We will review your pul
 
 ## License
 
-- **[AGLP 3.0](https://github.com/bothub-it/bothub-engine/blob/master/LICENSE)**
+- **[GPL-3.0 License](https://github.com/bothub-it/bothub-engine/blob/master/LICENSE)**
 - Copyright 2020 ©  **<a href="https://github.com/bothub-it">Bothub</a>**
