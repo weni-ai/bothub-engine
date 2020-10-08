@@ -28,6 +28,7 @@ from bothub.common.models import (
     RepositoryNLPTrain,
     RepositoryIntent,
     RepositoryTranslator,
+    RepositoryScore,
 )
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryCategory
@@ -895,16 +896,16 @@ class NewRepositorySerializer(serializers.ModelSerializer):
         }
 
     def get_repository_score(self, obj):
-        if obj.repository.repository_score.first():
-            repo = obj.repository.repository_score.first()
+        queryset = RepositoryScore.objects.filter(repository=obj.repository.uuid).first()
+        score = RepositoryScoreSerializer(queryset).data
+        if score:
             return {
-                "repository_score": repo.repository,
-                "intents_balance_score": repo.intents_balance_score,
-                "intents_balance_recommended": repo.intents_balance_recommended,
-                "intents_size_score": repo.intents_size_score,
-                "intents_size_recommended": repo.intents_size_recommended,
-                "evaluate_size_score": repo.evaluate_size_score,
-                "evaluate_size_recommended": repo.evaluate_size_recommended,
+                "intents_balance_score": score.get("intents_balance_score"),
+                "intents_balance_recommended": score.get("intents_balance_recommended"),
+                "intents_size_score": score.get("intents_size_score"),
+                "intents_size_recommended": score.get("intents_size_recommended"),
+                "evaluate_size_score": score.get("evaluate_size_score"),
+                "evaluate_size_recommended": score.get("evaluate_size_recommended"),
             }
         return {
             "repository_score": 0.0,
@@ -1664,3 +1665,16 @@ class RepositoryIntentSerializer(serializers.ModelSerializer):
         ref_name = None
 
     text = serializers.CharField(required=True, validators=[IntentValidator()])
+
+
+class RepositoryScoreSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RepositoryScore
+        fields = [
+            "intents_balance_score",
+            "intents_balance_recommended",
+            "intents_size_score",
+            "intents_size_recommended",
+            "evaluate_size_score",
+            "evaluate_size_recommended",
+        ]
