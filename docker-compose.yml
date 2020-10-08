@@ -55,7 +55,50 @@ services:
       - BOTHUB_ENGINE_AWS_SECRET_ACCESS_KEY=${BOTHUB_ENGINE_AWS_SECRET_ACCESS_KEY}
       - BOTHUB_ENGINE_AWS_S3_BUCKET_NAME=${BOTHUB_ENGINE_AWS_S3_BUCKET_NAME}
       - BOTHUB_ENGINE_AWS_REGION_NAME=${BOTHUB_ENGINE_AWS_REGION_NAME}
+      - BOTHUB_ENGINE_CELERY_BROKER_URL=${BOTHUB_ENGINE_CELERY_BROKER_URL:-redis://bothub-engine-celery-redis:6379/0}
+      - BOTHUB_ENGINE_CELERY_BACKEND_URL=${BOTHUB_ENGINE_CELERY_BACKEND_URL:-redis://bothub-engine-celery-redis:6379/0}
+  celery:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - bothub
+      - bothub-engine-celery-redis
+      - database
+    networks:
+      - default
+      - bothub
+    command: "celery -A bothub worker -l info"
+    environment:
+      - SECRET_KEY=${SECRET_KEY:-SK}
+      - DEBUG=${DEBUG:-true}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS:-*}
+      - DEFAULT_DATABASE=${DEFAULT_DATABASE:-postgres://bothub:bothub@database:5432/bothub}
+      - LANGUAGE_CODE=${LANGUAGE_CODE:-en-us}
+      - TIME_ZONE=${TIME_ZONE:-UTC}
+      - EMAIL_HOST=${EMAIL_HOST}
+      - EMAIL_PORT=${EMAIL_PORT:-25}
+      - DEFAULT_FROM_EMAIL=${DEFAULT_FROM_EMAIL:-webmaster@localhost}
+      - SERVER_EMAIL=${SERVER_EMAIL:-root@localhost}
+      - EMAIL_HOST_USER=${EMAIL_HOST_USER}
+      - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD}
+      - EMAIL_USE_SSL=${EMAIL_USE_SSL:-false}
+      - EMAIL_USE_TLS=${EMAIL_USE_TLS:-false}
+      - ADMINS=${ADMINS}
+      - CSRF_COOKIE_DOMAIN=${CSRF_COOKIE_DOMAIN}
+      - CSRF_COOKIE_SECURE=${CSRF_COOKIE_SECURE:-false}
+      - BOTHUB_WEBAPP_BASE_URL=${BOTHUB_WEBAPP_BASE_URL:-http://localhost/}
+      - BOTHUB_NLP_BASE_URL=${BOTHUB_NLP_BASE_URL:-http://bothub-nlp-api:2657/}
+      - CHECK_ACCESSIBLE_API_URL=${CHECK_ACCESSIBLE_API_URL}
+      - SEND_EMAILS=${SEND_EMAILS:-true}
+      - SUPPORTED_LANGUAGES=${SUPPORTED_LANGUAGES:-en|pt}
+      - BOTHUB_ENGINE_CELERY_BROKER_URL=${BOTHUB_ENGINE_CELERY_BROKER_URL:-redis://bothub-engine-celery-redis:6379/0}
+      - BOTHUB_ENGINE_CELERY_BACKEND_URL=${BOTHUB_ENGINE_CELERY_BACKEND_URL:-redis://bothub-engine-celery-redis:6379/0}
 
+  bothub-engine-celery-redis:
+    image: redis
+    ports:
+      - 6379:6379
 
 networks:
   bothub:

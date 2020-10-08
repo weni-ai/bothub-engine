@@ -59,6 +59,7 @@ env = environ.Env(
     BOTHUB_NLP_RASA_VERSION=(str, "1.4.3"),
     CELERY_BROKER_URL=(str, "redis://localhost:6379/0"),
     TOKEN_SEARCH_REPOSITORIES=(str, None),
+    GOOGLE_API_TRANSLATION_KEY=(str, None),
 )
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -363,3 +364,7 @@ CELERY_TASK_SERIALIZER = "json"
 
 # Search Example Repositories
 TOKEN_SEARCH_REPOSITORIES = env.str("TOKEN_SEARCH_REPOSITORIES")
+
+
+# Google API Translation KEY
+GOOGLE_API_TRANSLATION_KEY = env.str("GOOGLE_API_TRANSLATION_KEY")

@@ -1,16 +1,16 @@
 import json
 
 from django.core.exceptions import ValidationError as DjangoValidationError
+from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django.utils.translation import ugettext_lazy as _
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import mixins
+from rest_framework import mixins, status
 from rest_framework import parsers
 from rest_framework import permissions
-from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.exceptions import APIException
 from rest_framework.exceptions import PermissionDenied
@@ -24,7 +24,9 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from bothub.api.v2.mixins import MultipleFieldLookupMixin
+from bothub.authentication.authorization import TranslatorAuthentication
 from bothub.authentication.models import RepositoryOwner
+from bothub.common import languages
 from bothub.common.models import (
     Repository,
     RepositoryNLPLog,
@@ -32,13 +34,16 @@ from bothub.common.models import (
     RepositoryQueueTask,
     RepositoryIntent,
     OrganizationAuthorization,
+    RepositoryTranslator,
 )
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryCategory
 from bothub.common.models import RepositoryExample
+from bothub.common.models import RepositoryMigrate
 from bothub.common.models import RepositoryVersion
 from bothub.common.models import RepositoryVote
 from bothub.common.models import RequestRepositoryAuthorization
+from bothub.celery import app as celery_app
 from .filters import (
     RepositoriesFilter,
     RepositoryNLPLogFilter,
@@ -54,6 +59,7 @@ from .permissions import (
     RepositoryEntityHasPermission,
     RepositoryInfoPermission,
     RepositoryIntentPermission,
+    RepositoryMigratePermission,
 )
 from .permissions import RepositoryExamplePermission
 from .permissions import RepositoryPermission
@@ -71,6 +77,9 @@ from .serializers import (
     RepositoryPermissionSerializer,
     RepositoryNLPLogReportsSerializer,
     RepositoryIntentSerializer,
+    RepositoryAutoTranslationSerializer,
+    RepositoryTranslatorInfoSerializer,
+    RepositoryTrainInfoSerializer,
 )
 from .serializers import EvaluateSerializer
 from .serializers import RepositoryAuthorizationRoleSerializer
@@ -78,6 +87,7 @@ from .serializers import RepositoryAuthorizationSerializer
 from .serializers import RepositoryCategorySerializer
 from .serializers import RepositoryContributionsSerializer
 from .serializers import RepositoryExampleSerializer
+from .serializers import RepositoryMigrateSerializer
 from .serializers import RepositorySerializer
 from .serializers import RepositoryUpload
 from .serializers import RepositoryVotesSerializer
@@ -115,6 +125,97 @@ class NewRepositoryViewSet(
 
         repository_version = self.get_object()
         return Response({"languages_status": repository_version.languages_status})
+
+    @action(
+        detail=True,
+        methods=["POST"],
+        url_name="repository-auto-translation",
+        permission_classes=[],
+        lookup_fields=["repository__uuid", "pk"],
+        serializer_class=RepositoryAutoTranslationSerializer,
+    )
+    def auto_translation(self, request, **kwargs):
+        repository_version = self.get_object()
+        user_authorization = repository_version.repository.get_user_authorization(
+            request.user
+        )
+
+        if not user_authorization.can_translate:
+            raise PermissionDenied()
+
+        serializer = RepositoryAutoTranslationSerializer(
+            data=request.data
+        )  # pragma: no cover
+        serializer.is_valid(raise_exception=True)  # pragma: no cover
+
+        target_language = serializer.data.get("target_language")
+
+        # Validates if the language is available
+        languages.validate_language(value=target_language)
+
+        if target_language not in languages.GOOGLE_API_TRANSLATION_LANGUAGES_SUPPORTED:
+            raise APIException(  # pragma: no cover
+                detail=_("This language is not available in machine translation")
+            )
+
+        if repository_version.repository.language == target_language:
+            raise APIException(  # pragma: no cover
+                detail=_(
+                    "It is not possible to translate the base language into your own language"
+                )
+            )
+
+        queue_running = (
+            repository_version.get_version_language(language=target_language)
+            .queues.filter(
+                Q(status=RepositoryQueueTask.STATUS_PENDING)
+                | Q(status=RepositoryQueueTask.STATUS_PROCESSING)
+            )
+            .filter(
+                Q(type_processing=RepositoryQueueTask.TYPE_PROCESSING_AUTO_TRANSLATE)
+            )
+        )
+
+        if queue_running:
+            raise APIException(  # pragma: no cover
+                detail=_(
+                    "It is only possible to perform an automatic translation per language, a translation is already running"
+                )
+            )
+
+        task = celery_app.send_task(
+            "auto_translation",
+            args=[
+                repository_version.pk,
+                repository_version.repository.language,
+                target_language,
+            ],
+        )
+
+        return Response({"id_queue": task.task_id})
+
+
+class RepositoryTrainInfoViewSet(
+    MultipleFieldLookupMixin, mixins.RetrieveModelMixin, GenericViewSet
+):
+    """
+    Manager repository (bot).
+    """
+
+    queryset = RepositoryVersion.objects
+    lookup_field = "repository__uuid"
+    lookup_fields = ["repository__uuid", "pk"]
+    serializer_class = RepositoryTrainInfoSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly, RepositoryInfoPermission]
+    metadata_class = Metadata
+
+
+class RepositoryTranslatorInfoViewSet(mixins.RetrieveModelMixin, GenericViewSet):
+    queryset = RepositoryTranslator.objects
+    lookup_field = "uuid"
+    serializer_class = RepositoryTranslatorInfoSerializer
+    authentication_classes = [TranslatorAuthentication]
+    metadata_class = Metadata
 
 
 class RepositoryViewSet(
@@ -381,6 +482,17 @@ class RepositoryVotesViewSet(
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+class RepositoryMigrateViewSet(mixins.CreateModelMixin, GenericViewSet):
+    """
+    Repository migrate all senteces wit.
+    """
+
+    queryset = RepositoryMigrate.objects
+    serializer_class = RepositoryMigrateSerializer
+    permission_classes = [IsAuthenticated, RepositoryMigratePermission]
+    metadata_class = Metadata
+
+
 class RepositoriesViewSet(mixins.ListModelMixin, GenericViewSet):
     """
     List all public repositories.
@@ -457,6 +569,9 @@ class SearchRepositoriesViewSet(mixins.ListModelMixin, GenericViewSet):
     queryset = Repository.objects
     serializer_class = RepositorySerializer
     lookup_field = "nickname"
+    filter_class = RepositoriesFilter
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    search_fields = ["$name", "^name", "=name"]
 
     def get_queryset(self, *args, **kwargs):
         try:
@@ -474,15 +589,15 @@ class SearchRepositoriesViewSet(mixins.ListModelMixin, GenericViewSet):
                             owner__nickname=self.request.query_params.get(
                                 "nickname", self.request.user
                             )
-                        )
+                        ).distinct()
                 return self.queryset.filter(
                     owner__nickname=self.request.query_params.get(
                         "nickname", self.request.user
                     ),
                     is_private=False,
-                )
+                ).distinct()
             else:
-                return self.queryset.filter(owner=self.request.user)
+                return self.queryset.filter(owner=self.request.user).distinct()
         except TypeError:
             return self.queryset.none()
 
@@ -497,6 +612,9 @@ class RepositoriesPermissionsViewSet(mixins.ListModelMixin, GenericViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self, *args, **kwargs):
+        if getattr(self, "swagger_fake_view", False):
+            # queryset just for schema generation metadata
+            return RepositoryAuthorization.objects.none()
         return (
             self.queryset.exclude(repository__owner=self.request.user)
             .exclude(role=RepositoryAuthorization.ROLE_NOT_SETTED)
@@ -774,7 +892,7 @@ class RepositoryTaskQueueViewSet(mixins.ListModelMixin, GenericViewSet):
     queryset = RepositoryQueueTask.objects
     serializer_class = RepositoryQueueTaskSerializer
     filter_class = RepositoryQueueTaskFilter
-    permission_classes = [IsAuthenticated]
+    permission_classes = []
 
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
@@ -792,6 +910,9 @@ class RepositoryNLPLogReportsViewSet(mixins.ListModelMixin, GenericViewSet):
     filter_backends = [DjangoFilterBackend]
 
     def get_queryset(self, *args, **kwargs):
+        if getattr(self, "swagger_fake_view", False):
+            # queryset just for schema generation metadata
+            return Repository.objects.none()
         user = self.request.user
         if self.request.query_params.get("organization_nickname", None):
             owner = get_object_or_404(

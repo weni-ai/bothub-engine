@@ -22,6 +22,7 @@ from bothub.common.models import (
     RepositoryNLPLog,
     RepositoryExample,
     RepositoryEvaluate,
+    RepositoryQueueTask,
 )
 from bothub.common.models import RepositoryEntity
 from bothub.common.models import RepositoryEvaluateResult
@@ -126,7 +127,11 @@ class RepositoryAuthorizationTrainViewSet(
 
         id_queue = request.data.get("task_id")
         from_queue = request.data.get("from_queue")
-        repository.create_task(id_queue=id_queue, from_queue=from_queue)
+        repository.create_task(
+            id_queue=id_queue,
+            from_queue=from_queue,
+            type_processing=RepositoryQueueTask.TYPE_PROCESSING_TRAINING,
+        )
         return Response({})
 
     @action(detail=True, methods=["POST"], url_name="start_training", lookup_field=[])

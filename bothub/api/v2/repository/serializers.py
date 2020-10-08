@@ -12,6 +12,7 @@ from bothub.api.v2.fields import EntityText, RepositoryVersionRelatedField
 from bothub.api.v2.fields import ModelMultipleChoiceField
 from bothub.api.v2.fields import TextField
 from bothub.authentication.models import RepositoryOwner
+from bothub.celery import app as celery_app
 from bothub.common import languages
 from bothub.common.languages import LANGUAGE_CHOICES
 from bothub.common.models import (
@@ -26,11 +27,13 @@ from bothub.common.models import (
     Organization,
     RepositoryNLPTrain,
     RepositoryIntent,
+    RepositoryTranslator,
 )
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryCategory
 from bothub.common.models import RepositoryEntityGroup
 from bothub.common.models import RepositoryExample
+from bothub.common.models import RepositoryMigrate
 from bothub.common.models import RepositoryTranslatedExample
 from bothub.common.models import RepositoryTranslatedExampleEntity
 from bothub.common.models import RepositoryVote
@@ -194,6 +197,240 @@ class RepositoryAuthorizationSerializer(serializers.ModelSerializer):
         return None
 
 
+class RepositoryTranslatorInfoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RepositoryTranslator
+        fields = [
+            "repository_version_id",
+            "uuid",
+            "name",
+            "slug",
+            "description",
+            "is_private",
+            "entities",
+            "groups_list",
+            "created_at",
+            "language",
+            "owner",
+            "categories",
+            "categories_list",
+            "intents",
+            "intents_list",
+            "groups",
+            "other_group",
+            "examples__count",
+            "absolute_url",
+            "target_language",
+        ]
+        read_only = fields
+        ref_name = None
+
+    repository_version_id = serializers.PrimaryKeyRelatedField(
+        read_only=True,
+        style={"show": False},
+        source="repository_version_language.repository_version.pk",
+    )
+    uuid = serializers.UUIDField(
+        style={"show": False},
+        read_only=True,
+        source="repository_version_language.repository_version.repository.uuid",
+    )
+    name = serializers.CharField(
+        style={"show": False},
+        read_only=True,
+        source="repository_version_language.repository_version.repository.name",
+    )
+    slug = serializers.SlugField(
+        style={"show": False},
+        read_only=True,
+        source="repository_version_language.repository_version.repository.slug",
+    )
+    description = serializers.CharField(
+        style={"show": False},
+        read_only=True,
+        source="repository_version_language.repository_version.repository.description",
+    )
+    is_private = serializers.BooleanField(
+        style={"show": False},
+        read_only=True,
+        source="repository_version_language.repository_version.repository.is_private",
+    )
+    entities = serializers.SerializerMethodField(style={"show": False})
+    groups_list = serializers.SerializerMethodField(style={"show": False})
+    language = serializers.ChoiceField(
+        LANGUAGE_CHOICES,
+        label=_("Language"),
+        source="repository_version_language.repository_version.repository.language",
+    )
+    owner = serializers.SerializerMethodField(style={"show": False})
+    intents = serializers.SerializerMethodField(style={"show": False})
+    intents_list = serializers.SerializerMethodField(style={"show": False})
+    categories = ModelMultipleChoiceField(
+        child_relation=serializers.PrimaryKeyRelatedField(
+            queryset=RepositoryCategory.objects.all()
+        ),
+        allow_empty=False,
+        help_text=Repository.CATEGORIES_HELP_TEXT,
+        label=_("Categories"),
+        source="repository_version_language.repository_version.repository.categories",
+    )
+    categories_list = serializers.SerializerMethodField(style={"show": False})
+    groups = serializers.SerializerMethodField(style={"show": False})
+    other_group = serializers.SerializerMethodField(style={"show": False})
+    examples__count = serializers.SerializerMethodField(style={"show": False})
+    absolute_url = serializers.SerializerMethodField(style={"show": False})
+    target_language = serializers.ChoiceField(
+        LANGUAGE_CHOICES, label=_("Language"), source="language"
+    )
+
+    def get_entities(self, obj):
+        queryset = RepositoryExample.objects.filter(
+            repository_version_language__repository_version=obj.repository_version_language.repository_version
+        )
+        return (
+            obj.repository_version_language.repository_version.current_entities(
+                queryset=queryset,
+                version_default=obj.repository_version_language.repository_version.is_default,
+            )
+            .values("value", "id")
+            .distinct()
+        )
+
+    def get_groups_list(self, obj):
+        return (
+            obj.repository_version_language.repository_version.groups.distinct()
+            .values_list("value", flat=True)
+            .distinct()
+        )
+
+    def get_owner(self, obj):
+        return {
+            "id": obj.repository_version_language.repository_version.repository.owner.pk,
+            "nickname": obj.repository_version_language.repository_version.repository.owner.nickname,
+        }
+
+    def get_intents(self, obj):
+        queryset = RepositoryExample.objects.filter(
+            repository_version_language__repository_version=obj.repository_version_language.repository_version
+        )
+
+        return IntentSerializer(
+            map(
+                lambda intent: {
+                    "value": intent.text,
+                    "id": intent.pk,
+                    "examples__count": obj.repository_version_language.repository_version.repository.examples(
+                        queryset=queryset,
+                        version_default=obj.repository_version_language.repository_version.is_default,
+                    )
+                    .filter(intent=intent)
+                    .count(),
+                },
+                obj.repository_version_language.repository_version.version_intents.all(),
+            ),
+            many=True,
+        ).data
+
+    def get_intents_list(self, obj):
+        queryset = RepositoryExample.objects.filter(
+            repository_version_language__repository_version=obj.repository_version_language.repository_version
+        )
+        return obj.repository_version_language.repository_version.repository.intents(
+            queryset=queryset,
+            version_default=obj.repository_version_language.repository_version.is_default,
+        )
+
+    def get_categories_list(self, obj):
+        return RepositoryCategorySerializer(
+            obj.repository_version_language.repository_version.repository.categories,
+            many=True,
+        ).data
+
+    def get_groups(self, obj):
+        queryset = RepositoryExample.objects.filter(
+            repository_version_language__repository_version=obj.repository_version_language.repository_version
+        )
+
+        current_groups = (
+            obj.repository_version_language.repository_version.groups.distinct()
+        )
+
+        return list(
+            map(
+                lambda group: {
+                    "repository": group.repository_version.repository.pk,
+                    "value": group.value,
+                    "group_id": group.pk,
+                    "entities": list(
+                        map(
+                            lambda e: {"entity_id": e.pk, "value": e.value},
+                            group.other_entities(
+                                queryset=queryset,
+                                version_default=obj.repository_version_language.repository_version.is_default,
+                            )
+                            if group.value == "other"
+                            else group.entities.all(),
+                        )
+                    ),
+                    "examples__count": (
+                        group.repository.examples(
+                            queryset=queryset,
+                            version_default=obj.repository_version_language.repository_version.is_default,
+                        )
+                        .filter(entities__entity__in=group.other_entities())
+                        .count()
+                    )
+                    if group.value == "other"
+                    else group.examples(
+                        queryset=queryset,
+                        version_default=obj.repository_version_language.repository_version.is_default,
+                    ).count(),
+                },
+                current_groups,
+            )
+        )
+
+    def get_other_group(self, obj):
+        queryset = RepositoryExample.objects.filter(
+            repository_version_language__repository_version=obj.repository_version_language.repository_version
+        )
+
+        group = obj.repository_version_language.repository_version.other_entities(
+            queryset=queryset,
+            version_default=obj.repository_version_language.repository_version.is_default,
+        )
+
+        return {
+            "repository": obj.repository_version_language.repository_version.repository.pk,
+            "value": "other",
+            "entities": list(
+                map(lambda e: {"entity_id": e.pk, "value": e.value}, group)
+            ),
+            "examples__count": (
+                obj.repository_version_language.repository_version.repository.examples(
+                    queryset=queryset,
+                    version_default=obj.repository_version_language.repository_version.is_default,
+                )
+                .filter(entities__entity__in=group)
+                .count()
+            ),
+        }
+
+    def get_examples__count(self, obj):
+        queryset = RepositoryExample.objects.filter(
+            repository_version_language__repository_version=obj.repository_version_language.repository_version
+        )
+        return obj.repository_version_language.repository_version.repository.examples(
+            queryset=queryset,
+            version_default=obj.repository_version_language.repository_version.is_default,
+        ).count()
+
+    def get_absolute_url(self, obj):
+        return (
+            obj.repository_version_language.repository_version.repository.get_absolute_url()
+        )
+
+
 class NewRepositorySerializer(serializers.ModelSerializer):
     class Meta:
         model = RepositoryVersion
@@ -235,6 +472,7 @@ class NewRepositorySerializer(serializers.ModelSerializer):
             "is_organization",
             "authorizations",
             "ready_for_parse",
+            "count_authorizations",
         ]
         read_only = [
             "uuid",
@@ -251,6 +489,7 @@ class NewRepositorySerializer(serializers.ModelSerializer):
             "nlp_server",
             "is_organization",
             "ready_for_parse",
+            "count_authorizations",
         ]
         ref_name = None
 
@@ -357,6 +596,9 @@ class NewRepositorySerializer(serializers.ModelSerializer):
     )
     authorizations = serializers.SerializerMethodField(style={"show": False})
     ready_for_parse = serializers.SerializerMethodField(style={"show": False})
+    count_authorizations = serializers.IntegerField(
+        style={"show": False}, read_only=True, source="repository.count_authorizations"
+    )
 
     def get_authorizations(self, obj):
         auths = RepositoryAuthorization.objects.filter(
@@ -649,6 +891,76 @@ class NewRepositorySerializer(serializers.ModelSerializer):
             "id": obj.repository.current_version().repository_version.pk,
             "name": obj.repository.current_version().repository_version.name,
         }
+
+
+class RepositoryTrainInfoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RepositoryVersion
+        fields = [
+            "repository_version_id",
+            "uuid",
+            "ready_for_train",
+            "requirements_to_train",
+            "languages_warnings",
+        ]
+        read_only = fields
+        ref_name = None
+
+    repository_version_id = serializers.PrimaryKeyRelatedField(
+        read_only=True, style={"show": False}, source="pk"
+    )
+
+    uuid = serializers.UUIDField(
+        style={"show": False}, read_only=True, source="repository.uuid"
+    )
+    ready_for_train = serializers.SerializerMethodField(style={"show": False})
+    requirements_to_train = serializers.SerializerMethodField(style={"show": False})
+    languages_warnings = serializers.SerializerMethodField(style={"show": False})
+
+    def get_ready_for_train(self, obj):
+        queryset = RepositoryExample.objects.filter(
+            repository_version_language__repository_version=obj
+        )
+        return obj.repository.ready_for_train(
+            queryset=queryset, repository_version=obj.pk
+        )
+
+    def get_requirements_to_train(self, obj):
+        queryset = RepositoryExample.objects.filter(
+            repository_version_language__repository_version=obj
+        )
+        return dict(
+            filter(
+                lambda l: l[1],
+                map(
+                    lambda u: (u.language, u.requirements_to_train),
+                    obj.repository.current_versions(
+                        queryset=queryset,
+                        repository_version=obj.pk,
+                        version_default=obj.is_default,
+                    ),
+                ),
+            )
+        )
+
+    def get_languages_warnings(self, obj):
+        queryset = RepositoryExample.objects.filter(
+            repository_version_language__repository_version=obj
+        )
+
+        return dict(
+            filter(
+                lambda w: len(w[1]) > 0,
+                map(
+                    lambda u: (u.language, u.warnings),
+                    obj.repository.current_versions(
+                        queryset=queryset,
+                        version_default=obj.is_default,
+                        repository_version=obj.pk,
+                    ),
+                ),
+            )
+        )
 
 
 class RepositorySerializer(serializers.ModelSerializer):
@@ -1090,6 +1402,35 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
         return instance_update
 
 
+class RepositoryMigrateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RepositoryMigrate
+        fields = ["user", "repository_version", "auth_token", "language", "created"]
+
+        read_only_fields = ["user", "created_at"]
+
+    repository_version = serializers.PrimaryKeyRelatedField(
+        queryset=RepositoryVersion.objects,
+        style={"show": False},
+        required=True,
+        validators=[CanContributeInRepositoryVersionValidator()],
+    )
+    language = serializers.ChoiceField(LANGUAGE_CHOICES, label=_("Language"))
+
+    def create(self, validated_data):
+        validated_data.update({"user": self.context.get("request").user})
+        repository_version = validated_data.get("repository_version")
+        auth_token = validated_data.get("auth_token")
+        language = validated_data.get("language")
+
+        instance = super().create(validated_data)
+
+        celery_app.send_task(
+            "migrate_repository_wit", args=[repository_version.pk, auth_token, language]
+        )
+        return instance
+
+
 class AnalyzeTextSerializer(serializers.Serializer):
     language = serializers.ChoiceField(LANGUAGE_CHOICES, required=True)
     text = serializers.CharField(allow_blank=False)
@@ -1114,6 +1455,10 @@ class TrainSerializer(serializers.Serializer):
 class EvaluateSerializer(serializers.Serializer):
     language = serializers.ChoiceField(LANGUAGE_CHOICES, required=True)
     repository_version = serializers.IntegerField(required=False)
+
+
+class RepositoryAutoTranslationSerializer(serializers.Serializer):
+    target_language = serializers.ChoiceField(LANGUAGE_CHOICES, required=True)
 
 
 class RepositoryUpdateSerializer(serializers.ModelSerializer):
@@ -1235,18 +1580,27 @@ class RepositoryQueueTaskSerializer(serializers.ModelSerializer):
             "end_training",
             "status_codes",
             "from_queue_codes",
+            "from_queue_codes",
+            "type_processing",
+            "processing_codes",
         ]
         ref_name = None
 
     id = serializers.PrimaryKeyRelatedField(read_only=True)
     status_codes = serializers.SerializerMethodField()
     from_queue_codes = serializers.SerializerMethodField()
+    processing_codes = serializers.SerializerMethodField()
 
     def get_status_codes(self, obj):
         return {key: value for key, value in RepositoryQueueTask.STATUS_CHOICES}
 
     def get_from_queue_codes(self, obj):
         return {key: value for key, value in RepositoryQueueTask.QUEUE_CHOICES}
+
+    def get_processing_codes(self, obj):
+        return {
+            key: value for key, value in RepositoryQueueTask.TYPE_PROCESSING_CHOICES
+        }
 
 
 class RepositoryNLPLogReportsSerializer(serializers.ModelSerializer):
