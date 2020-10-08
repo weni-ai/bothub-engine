@@ -21,6 +21,7 @@ from .repository.views import (
     RepositoryTrainInfoViewSet,
 )
 from .repository.views import RepositoryVotesViewSet
+from .repository.views import RepositoryMigrateViewSet
 from .repository.views import RepositoriesViewSet
 from .repository.views import RepositoriesContributionsViewSet
 from .repository.views import RepositoryCategoriesView
@@ -163,6 +164,7 @@ router.register("repository/entities", RepositoryEntitiesViewSet)
 router.register("repository/task-queue", RepositoryTaskQueueViewSet)
 router.register("repository/upload-rasa-file", RasaUploadViewSet)
 router.register("repository/entity/group", RepositoryEntityGroupViewSet)
+router.register("repository/repository-migrate", RepositoryMigrateViewSet)
 router.register(
     "repository/nlp/authorization/train", RepositoryAuthorizationTrainViewSet
 )

@@ -65,3 +65,14 @@ class TranslatedExampleLanguageValidator(object):
             raise ValidationError(
                 {"language": _("Can't translate to the same language")}
             )
+
+        if (
+            original_example.repository_version_language.language
+            != original_example.repository_version_language.repository_version.repository.language
+        ):
+            raise ValidationError(
+                {
+                    "language": "It is not allowed to translate a trained sentence into a "
+                    "language other than the base language"
+                }
+            )

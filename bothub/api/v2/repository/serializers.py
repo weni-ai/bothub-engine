@@ -12,6 +12,7 @@ from bothub.api.v2.fields import EntityText, RepositoryVersionRelatedField
 from bothub.api.v2.fields import ModelMultipleChoiceField
 from bothub.api.v2.fields import TextField
 from bothub.authentication.models import RepositoryOwner
+from bothub.celery import app as celery_app
 from bothub.common import languages
 from bothub.common.languages import LANGUAGE_CHOICES
 from bothub.common.models import (
@@ -32,6 +33,7 @@ from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryCategory
 from bothub.common.models import RepositoryEntityGroup
 from bothub.common.models import RepositoryExample
+from bothub.common.models import RepositoryMigrate
 from bothub.common.models import RepositoryTranslatedExample
 from bothub.common.models import RepositoryTranslatedExampleEntity
 from bothub.common.models import RepositoryVote
@@ -1398,6 +1400,35 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
             entity_serializer.is_valid(raise_exception=True)
             entity_serializer.save()
         return instance_update
+
+
+class RepositoryMigrateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RepositoryMigrate
+        fields = ["user", "repository_version", "auth_token", "language", "created"]
+
+        read_only_fields = ["user", "created_at"]
+
+    repository_version = serializers.PrimaryKeyRelatedField(
+        queryset=RepositoryVersion.objects,
+        style={"show": False},
+        required=True,
+        validators=[CanContributeInRepositoryVersionValidator()],
+    )
+    language = serializers.ChoiceField(LANGUAGE_CHOICES, label=_("Language"))
+
+    def create(self, validated_data):
+        validated_data.update({"user": self.context.get("request").user})
+        repository_version = validated_data.get("repository_version")
+        auth_token = validated_data.get("auth_token")
+        language = validated_data.get("language")
+
+        instance = super().create(validated_data)
+
+        celery_app.send_task(
+            "migrate_repository_wit", args=[repository_version.pk, auth_token, language]
+        )
+        return instance
 
 
 class AnalyzeTextSerializer(serializers.Serializer):

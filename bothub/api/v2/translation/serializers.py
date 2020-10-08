@@ -8,7 +8,6 @@ from bothub.api.v2.translation.validators import (
 from bothub.api.v2.translation.validators import (
     CanContributeInRepositoryTranslatedExampleValidator,
 )
-from bothub.api.v2.translation.validators import TranslatedExampleEntitiesValidator
 from bothub.api.v2.translation.validators import TranslatedExampleLanguageValidator
 from bothub.common.languages import LANGUAGE_CHOICES
 from bothub.common.models import RepositoryExample
@@ -72,7 +71,6 @@ class RepositoryTranslatedExampleSerializer(serializers.ModelSerializer):
             self.fields["entities"] = RepositoryTranslatedExampleEntitySeralizer(
                 many=True, style={"text_field": "text"}, data="POST"
             )
-        self.validators.append(TranslatedExampleEntitiesValidator())
         self.validators.append(TranslatedExampleLanguageValidator())
 
     original_example = serializers.PrimaryKeyRelatedField(
