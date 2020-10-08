@@ -7,9 +7,11 @@ import string
 from django.conf import settings
 from django.utils.text import slugify
 from django.db.models import Subquery, IntegerField
+from django.utils.translation import ugettext_lazy as _
 from botocore.exceptions import ClientError
 from collections import OrderedDict
 
+from rest_framework.exceptions import ValidationError
 
 entity_regex = re.compile(
     r"\[(?P<entity_text>[^\]]+)" r"\]\((?P<entity>[^:)]*?)" r"(?:\:(?P<value>[^)]+))?\)"
@@ -122,6 +124,23 @@ def get_without_entity(example):
     """Extract entities and synonyms, and convert to plain text."""
     plain_text = re.sub(entity_regex, lambda m: m.groupdict()["entity_text"], example)
     return plain_text
+
+
+def is_valid_classifier(value):  # pragma: no cover
+    from bothub.common.migrate_classifiers import TYPES
+
+    return value in TYPES.keys()
+
+
+def validate_classifier(value):  # pragma: no cover
+    if not is_valid_classifier(value):
+        raise ValidationError(_("{} is not a supported classifier.").format(value))
+
+
+def classifier_choice():
+    from bothub.common.migrate_classifiers import TYPES
+
+    return list(TYPES.keys())
 
 
 class CountSubquery(Subquery):

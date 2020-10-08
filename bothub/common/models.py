@@ -21,6 +21,7 @@ from .exceptions import DoesNotHaveTranslation
 from .exceptions import RepositoryUpdateAlreadyStartedTraining
 from .exceptions import RepositoryUpdateAlreadyTrained
 from .exceptions import TrainingNotAllowed
+from .. import utils
 
 item_key_regex = _lazy_re_compile(r"^[-a-z0-9_]+\Z")
 validate_item_key = RegexValidator(
@@ -837,6 +838,16 @@ class RepositoryVersion(models.Model):
             repository_version=self, language=language
         )
         return version_language
+
+    @classmethod
+    def get_migration_types(cls):
+        """
+        Returns the possible types available for classifiers
+        :return:
+        """
+        from bothub.common.migrate_classifiers import TYPES
+
+        return TYPES
 
     def current_entities(self, queryset=None, version_default=True):
         return self.entities.filter(
@@ -1846,6 +1857,12 @@ class RepositoryMigrate(models.Model):
         _("language"), max_length=5, validators=[languages.validate_language]
     )
     auth_token = models.TextField()
+    classifier = models.CharField(
+        _("classifier"),
+        max_length=16,
+        validators=[utils.validate_classifier],
+        editable=False,
+    )
     created = models.DateTimeField(editable=False, auto_now_add=True)
 
 

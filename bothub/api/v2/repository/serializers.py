@@ -38,6 +38,7 @@ from bothub.common.models import RepositoryTranslatedExample
 from bothub.common.models import RepositoryTranslatedExampleEntity
 from bothub.common.models import RepositoryVote
 from bothub.common.models import RequestRepositoryAuthorization
+from bothub.utils import classifier_choice
 from .validators import (
     APIExceptionCustom,
     CanCreateRepositoryInOrganizationValidator,
@@ -1405,7 +1406,14 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
 class RepositoryMigrateSerializer(serializers.ModelSerializer):
     class Meta:
         model = RepositoryMigrate
-        fields = ["user", "repository_version", "auth_token", "language", "created"]
+        fields = [
+            "user",
+            "repository_version",
+            "auth_token",
+            "language",
+            "classifier",
+            "created",
+        ]
 
         read_only_fields = ["user", "created_at"]
 
@@ -1416,17 +1424,20 @@ class RepositoryMigrateSerializer(serializers.ModelSerializer):
         validators=[CanContributeInRepositoryVersionValidator()],
     )
     language = serializers.ChoiceField(LANGUAGE_CHOICES, label=_("Language"))
+    classifier = serializers.ChoiceField(classifier_choice(), label=_("Classifier"))
 
     def create(self, validated_data):
         validated_data.update({"user": self.context.get("request").user})
         repository_version = validated_data.get("repository_version")
         auth_token = validated_data.get("auth_token")
         language = validated_data.get("language")
+        classifier = validated_data.get("classifier")
 
         instance = super().create(validated_data)
 
         celery_app.send_task(
-            "migrate_repository_wit", args=[repository_version.pk, auth_token, language]
+            "migrate_repository",
+            args=[repository_version.pk, auth_token, language, classifier],
         )
         return instance
 
