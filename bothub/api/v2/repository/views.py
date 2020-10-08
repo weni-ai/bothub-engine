@@ -8,10 +8,9 @@ from django.utils.translation import ugettext_lazy as _
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import mixins
+from rest_framework import mixins, status
 from rest_framework import parsers
 from rest_framework import permissions
-from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.exceptions import APIException
 from rest_framework.exceptions import PermissionDenied
@@ -40,6 +39,7 @@ from bothub.common.models import (
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryCategory
 from bothub.common.models import RepositoryExample
+from bothub.common.models import RepositoryMigrate
 from bothub.common.models import RepositoryVersion
 from bothub.common.models import RepositoryVote
 from bothub.common.models import RequestRepositoryAuthorization
@@ -59,6 +59,7 @@ from .permissions import (
     RepositoryEntityHasPermission,
     RepositoryInfoPermission,
     RepositoryIntentPermission,
+    RepositoryMigratePermission,
 )
 from .permissions import RepositoryExamplePermission
 from .permissions import RepositoryPermission
@@ -86,6 +87,7 @@ from .serializers import RepositoryAuthorizationSerializer
 from .serializers import RepositoryCategorySerializer
 from .serializers import RepositoryContributionsSerializer
 from .serializers import RepositoryExampleSerializer
+from .serializers import RepositoryMigrateSerializer
 from .serializers import RepositorySerializer
 from .serializers import RepositoryUpload
 from .serializers import RepositoryVotesSerializer
@@ -480,6 +482,17 @@ class RepositoryVotesViewSet(
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+class RepositoryMigrateViewSet(mixins.CreateModelMixin, GenericViewSet):
+    """
+    Repository migrate all senteces wit.
+    """
+
+    queryset = RepositoryMigrate.objects
+    serializer_class = RepositoryMigrateSerializer
+    permission_classes = [IsAuthenticated, RepositoryMigratePermission]
+    metadata_class = Metadata
+
+
 class RepositoriesViewSet(mixins.ListModelMixin, GenericViewSet):
     """
     List all public repositories.
@@ -556,6 +569,9 @@ class SearchRepositoriesViewSet(mixins.ListModelMixin, GenericViewSet):
     queryset = Repository.objects
     serializer_class = RepositorySerializer
     lookup_field = "nickname"
+    filter_class = RepositoriesFilter
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    search_fields = ["$name", "^name", "=name"]
 
     def get_queryset(self, *args, **kwargs):
         try:
@@ -573,15 +589,15 @@ class SearchRepositoriesViewSet(mixins.ListModelMixin, GenericViewSet):
                             owner__nickname=self.request.query_params.get(
                                 "nickname", self.request.user
                             )
-                        )
+                        ).distinct()
                 return self.queryset.filter(
                     owner__nickname=self.request.query_params.get(
                         "nickname", self.request.user
                     ),
                     is_private=False,
-                )
+                ).distinct()
             else:
-                return self.queryset.filter(owner=self.request.user)
+                return self.queryset.filter(owner=self.request.user).distinct()
         except TypeError:
             return self.queryset.none()
 

@@ -119,56 +119,88 @@ class TranslateExampleTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(len(content_data.get("entities")), 1)
 
-    def test_entities_no_valid(self):
-        example = RepositoryExample.objects.create(
-            repository_version_language=self.repository.current_version(),
-            text="my name is user",
-            intent=self.example_intent_1,
-        )
-        RepositoryExampleEntity.objects.create(
-            repository_example=self.example, start=11, end=18, entity="name"
-        )
-        response, content_data = self.request(
-            {
-                "original_example": example.id,
-                "language": languages.LANGUAGE_PT,
-                "text": "meu nome é user",
-                "entities": [{"start": 11, "end": 18, "entity": "nome"}],
-            },
-            self.owner_token,
-        )
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(len(content_data.get("entities")), 1)
+    # def test_entities_no_valid(self):
+    #     example = RepositoryExample.objects.create(
+    #         repository_version_language=self.repository.current_version(),
+    #         text="my name is user",
+    #         intent=self.example_intent_1,
+    #     )
+    #     RepositoryExampleEntity.objects.create(
+    #         repository_example=self.example, start=11, end=18, entity="name"
+    #     )
+    #     response, content_data = self.request(
+    #         {
+    #             "original_example": example.id,
+    #             "language": languages.LANGUAGE_PT,
+    #             "text": "meu nome é user",
+    #             "entities": [{"start": 11, "end": 18, "entity": "nome"}],
+    #         },
+    #         self.owner_token,
+    #     )
+    #     self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+    #     self.assertEqual(len(content_data.get("entities")), 1)
 
-    def test_entities_no_valid_2(self):
-        example = RepositoryExample.objects.create(
-            repository_version_language=self.repository.current_version(),
-            text="my name is user",
-            intent=self.example_intent_1,
-        )
-        RepositoryExampleEntity.objects.create(
-            repository_example=self.example, start=11, end=18, entity="name"
-        )
-        response, content_data = self.request(
-            {
-                "original_example": example.id,
-                "language": languages.LANGUAGE_PT,
-                "text": "meu nome é user",
-                "entities": [
-                    {"start": 11, "end": 18, "entity": "name"},
-                    {"start": 0, "end": 3, "entity": "my"},
-                ],
-            },
-            self.owner_token,
-        )
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(len(content_data.get("entities")), 1)
+    # def test_entities_no_valid_2(self):
+    #     example = RepositoryExample.objects.create(
+    #         repository_version_language=self.repository.current_version(),
+    #         text="my name is user",
+    #         intent=self.example_intent_1,
+    #     )
+    #     RepositoryExampleEntity.objects.create(
+    #         repository_example=self.example, start=11, end=18, entity="name"
+    #     )
+    #     response, content_data = self.request(
+    #         {
+    #             "original_example": example.id,
+    #             "language": languages.LANGUAGE_PT,
+    #             "text": "meu nome é user",
+    #             "entities": [
+    #                 {"start": 11, "end": 18, "entity": "name"},
+    #                 {"start": 0, "end": 3, "entity": "my"},
+    #             ],
+    #         },
+    #         self.owner_token,
+    #     )
+    #     self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+    #     self.assertEqual(len(content_data.get("entities")), 1)
 
     def test_can_not_translate_to_same_language(self):
         response, content_data = self.request(
             {
                 "original_example": self.example.id,
                 "language": self.example.repository_version_language.language,
+                "text": "oi",
+                "entities": [],
+            },
+            self.owner_token,
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("language", content_data.keys())
+
+    def test_cannot_translate_sentences_in_a_language_other_than_the_base(self):
+        example = RepositoryExample.objects.create(
+            repository_version_language=self.repository.current_version(
+                language=languages.LANGUAGE_PT
+            ),
+            text="hi",
+            intent=self.example_intent_1,
+        )
+        response, content_data = self.request(
+            {
+                "original_example": example.id,
+                "language": languages.LANGUAGE_DE,
+                "text": "oi",
+                "entities": [],
+            },
+            self.owner_token,
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("language", content_data.keys())
+
+        response, content_data = self.request(
+            {
+                "original_example": example.id,
+                "language": languages.LANGUAGE_PT,
                 "text": "oi",
                 "entities": [],
             },
