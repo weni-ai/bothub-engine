@@ -1,16 +1,22 @@
+import requests
 import io
 import json
 import re
 import zipfile
+from collections import Counter
 from datetime import timedelta
 from urllib.parse import urlencode
 
-import requests
 from django.conf import settings
 from django.db import transaction
 from django.db.models import Q, Count
 from django.utils import timezone
 
+from bothub.utils import (
+    intentions_balance_score,
+    intentions_size_score,
+    evaluate_size_score,
+)
 from bothub import translate
 from bothub.celery import app
 from bothub.common.models import (
@@ -28,6 +34,7 @@ from bothub.common.models import (
     RepositoryIntent,
     Repository,
     RepositoryNLPLog,
+    RepositoryScore,
 )
 
 
@@ -337,6 +344,66 @@ def auto_translation(
     task_queue.status = RepositoryQueueTask.STATUS_SUCCESS
     task_queue.end_training = timezone.now()
     task_queue.save(update_fields=["status", "end_training"])
+
+
+@app.task()
+def repository_score():
+    for version in RepositoryVersion.objects.filter(is_default=True):
+        dataset = {}
+        train = {}
+        train_total = 0
+        evaluate_intents = []
+        evaluate_total = 0
+
+        version_language = version.get_version_language(version.repository.language)
+
+        for intent in version_language.intents:
+            train[RepositoryIntent.objects.get(pk=intent).text] = len(
+                version_language.intents
+            )
+            train_total += version_language.total_training_end
+            if version_language.added_evaluate.filter(pk=intent):
+                evaluate_intents.append(
+                    version_language.added_evaluate.filter(pk=intent).first().text
+                )
+                evaluate_total += 1
+
+        tempdataset = Counter(evaluate_intents)
+
+        dataset["intentions"] = list(
+            version.version_intents.all().values_list("text", flat=True)
+        )
+
+        dataset["train_count"] = train_total
+        dataset["train"] = train
+        dataset["evaluate_count"] = evaluate_total
+        dataset["evaluate"] = {k: tempdataset[k] for k in tempdataset if tempdataset[k]}
+
+        intentions_balance = intentions_balance_score(dataset)
+        intentions_size = intentions_size_score(dataset)
+        evaluate_size = evaluate_size_score(dataset)
+
+        score, created = RepositoryScore.objects.get_or_create(
+            repository=version.repository
+        )
+
+        score.intents_balance_score = float(intentions_balance.get("score"))
+        score.intents_balance_recommended = intentions_balance.get("recommended")
+        score.intents_size_score = float(intentions_size.get("score"))
+        score.intents_size_recommended = intentions_size.get("recommended")
+        score.evaluate_size_score = float(evaluate_size.get("score"))
+        score.evaluate_size_recommended = evaluate_size.get("recommended")
+
+        score.save(
+            update_fields=[
+                "intents_balance_score",
+                "intents_balance_recommended",
+                "intents_size_score",
+                "intents_size_recommended",
+                "evaluate_size_score",
+                "evaluate_size_recommended",
+            ]
+        )
 
 
 @app.task(name="migrate_repository_wit")
