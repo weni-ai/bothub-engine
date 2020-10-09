@@ -394,14 +394,16 @@ def intents_score():
         score.evaluate_size_score = float(evaluate_size.get("score"))
         score.evaluate_size_recommended = evaluate_size.get("recommended")
 
-        score.save(update_fields=[
-            "intents_balance_score",
-            "intents_balance_recommended",
-            "intents_size_score",
-            "intents_size_recommended",
-            "evaluate_size_score",
-            "evaluate_size_recommended",
-        ])
+        score.save(
+            update_fields=[
+                "intents_balance_score",
+                "intents_balance_recommended",
+                "intents_size_score",
+                "intents_size_recommended",
+                "evaluate_size_score",
+                "evaluate_size_recommended",
+            ]
+        )
 
 
 @app.task(name="migrate_repository_wit")
