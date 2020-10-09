@@ -28,6 +28,7 @@ from bothub.common.models import (
     RepositoryNLPTrain,
     RepositoryIntent,
     RepositoryTranslator,
+    RepositoryScore,
 )
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryCategory
@@ -473,6 +474,7 @@ class NewRepositorySerializer(serializers.ModelSerializer):
             "authorizations",
             "ready_for_parse",
             "count_authorizations",
+            "repository_score",
         ]
         read_only = [
             "uuid",
@@ -599,6 +601,7 @@ class NewRepositorySerializer(serializers.ModelSerializer):
     count_authorizations = serializers.IntegerField(
         style={"show": False}, read_only=True, source="repository.count_authorizations"
     )
+    repository_score = serializers.SerializerMethodField(style={"show": False})
 
     def get_authorizations(self, obj):
         auths = RepositoryAuthorization.objects.filter(
@@ -891,6 +894,10 @@ class NewRepositorySerializer(serializers.ModelSerializer):
             "id": obj.repository.current_version().repository_version.pk,
             "name": obj.repository.current_version().repository_version.name,
         }
+
+    def get_repository_score(self, obj):
+        score, created = obj.repository.repository_score.get_or_create()
+        return RepositoryScoreSerializer(score).data
 
 
 class RepositoryTrainInfoSerializer(serializers.ModelSerializer):
@@ -1640,3 +1647,16 @@ class RepositoryIntentSerializer(serializers.ModelSerializer):
         ref_name = None
 
     text = serializers.CharField(required=True, validators=[IntentValidator()])
+
+
+class RepositoryScoreSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RepositoryScore
+        fields = [
+            "intents_balance_score",
+            "intents_balance_recommended",
+            "intents_size_score",
+            "intents_size_recommended",
+            "evaluate_size_score",
+            "evaluate_size_recommended",
+        ]
