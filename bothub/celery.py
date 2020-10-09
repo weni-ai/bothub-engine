@@ -24,6 +24,10 @@ app.conf.beat_schedule = {
         "task": "bothub.common.tasks.repositories_count_authorizations",
         "schedule": schedules.crontab(hour="8", minute=0),
     },
+    "repository-score": {
+        "task": "bothub.common.tasks.repository_score",
+        "schedule": schedules.crontab(minute="*/5"),
+    },
 }
 
 
