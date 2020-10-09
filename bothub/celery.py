@@ -26,7 +26,7 @@ app.conf.beat_schedule = {
     },
     "intentions-balance-scores": {
         "task": "bothub.common.tasks.intents_score",
-        "schedule": 5.0,
+        "schedule": schedules.crontab(minute="*/5"),
     },
 }
 
