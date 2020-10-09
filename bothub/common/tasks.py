@@ -347,7 +347,7 @@ def auto_translation(
 
 
 @app.task()
-def intents_score():
+def repository_score():
     for version in RepositoryVersion.objects.filter(is_default=True):
         dataset = {}
         train = {}
