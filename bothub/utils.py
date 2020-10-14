@@ -7,12 +7,15 @@ import random
 import re
 import string
 import uuid
+import requests
 
 from botocore.exceptions import ClientError
 from collections import OrderedDict
 from django.conf import settings
 from django.db.models import IntegerField, Subquery
 from django.utils.text import slugify
+from rest_framework.exceptions import APIException
+from rest_framework import status
 
 
 entity_regex = re.compile(
@@ -283,6 +286,27 @@ def plot_func(func, optimal):
     plt.ylabel("score")
     plt.xlabel("distance")
     plt.show()
+
+
+def request_nlp(user_authorization, nlp_server, route):
+    try:
+        url = f"{nlp_server if nlp_server else settings.BOTHUB_NLP_BASE_URL}"
+        url += f"{route}"
+        data = {
+            "text": "dívida",
+            "language": "pt_br",
+            "n_words_to_generate": "4"
+        }
+        header = {
+            "Authorization": "Bearer " + user_authorization
+        }
+        r = requests.post(url, json=data, headers=header)
+        return r
+    except requests.exceptions.ConnectionError:
+        raise APIException(
+            {"status_code": status.HTTP_503_SERVICE_UNAVAILABLE},
+            code=status.HTTP_503_SERVICE_UNAVAILABLE,
+        )
 
 
 class CountSubquery(Subquery):

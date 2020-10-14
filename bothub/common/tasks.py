@@ -469,3 +469,8 @@ def migrate_repository_wit(repository_version, auth_token, language):
         return False
     except json.JSONDecodeError:
         return False
+
+
+@app.task(name="word_suggestions")
+def word_suggestions(repository_version, language):
+    pass
