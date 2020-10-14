@@ -288,20 +288,15 @@ def plot_func(func, optimal):
     plt.show()
 
 
-def request_nlp(user_authorization, nlp_server, route):
+def request_nlp(auth, nlp_server, route, data):
     try:
         url = f"{nlp_server if nlp_server else settings.BOTHUB_NLP_BASE_URL}"
-        url += f"{route}"
-        data = {
-            "text": "dívida",
-            "language": "pt_br",
-            "n_words_to_generate": "4"
-        }
+        url += f"{route}/?"
         header = {
-            "Authorization": "Bearer " + user_authorization
+            "Authorization": "Bearer " + auth
         }
         r = requests.post(url, json=data, headers=header)
-        return r
+        return r.text
     except requests.exceptions.ConnectionError:
         raise APIException(
             {"status_code": status.HTTP_503_SERVICE_UNAVAILABLE},

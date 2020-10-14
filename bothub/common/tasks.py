@@ -16,6 +16,7 @@ from bothub.utils import (
     intentions_balance_score,
     intentions_size_score,
     evaluate_size_score,
+    request_nlp,
 )
 from bothub import translate
 from bothub.celery import app
@@ -472,5 +473,18 @@ def migrate_repository_wit(repository_version, auth_token, language):
 
 
 @app.task(name="word_suggestions")
-def word_suggestions(repository_version, language):
-    pass
+def word_suggestions(repository_example, auth_token):  # repository_example, auth_token
+    example = RepositoryExample.objects.filter(id=repository_example.id)
+    if example:
+        for word in example.get_text().split():
+            data = {
+                "text": word,
+                "language": example.language,
+                "n_words_to_generate": "4",
+            }
+            return request_nlp(
+                auth_token,
+                None,
+                'word_suggestion',
+                data,
+            )
