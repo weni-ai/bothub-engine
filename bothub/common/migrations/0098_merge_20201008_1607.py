@@ -6,9 +6,8 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('common', '0097_repositoryscore'),
-        ('common', '0097_repositorymigrate'),
+        ("common", "0097_repositoryscore"),
+        ("common", "0097_repositorymigrate"),
     ]
 
-    operations = [
-    ]
+    operations = []

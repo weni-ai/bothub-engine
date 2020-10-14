@@ -6,27 +6,41 @@ import django.db.models.deletion
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('common', '0096_auto_20201001_2005'),
-    ]
+    dependencies = [("common", "0096_auto_20201001_2005")]
 
     operations = [
         migrations.CreateModel(
-            name='RepositoryScore',
+            name="RepositoryScore",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('intents_balance_score', models.FloatField(default=0.0)),
-                ('intents_balance_recommended', models.TextField(null=True)),
-                ('intents_size_score', models.FloatField(default=0.0)),
-                ('intents_size_recommended', models.TextField(null=True)),
-                ('evaluate_size_score', models.FloatField(default=0.0)),
-                ('evaluate_size_recommended', models.TextField(null=True)),
-                ('repository', models.ForeignKey(editable=False, on_delete=django.db.models.deletion.CASCADE, related_name='repository_score', to='common.Repository')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("intents_balance_score", models.FloatField(default=0.0)),
+                ("intents_balance_recommended", models.TextField(null=True)),
+                ("intents_size_score", models.FloatField(default=0.0)),
+                ("intents_size_recommended", models.TextField(null=True)),
+                ("evaluate_size_score", models.FloatField(default=0.0)),
+                ("evaluate_size_recommended", models.TextField(null=True)),
+                (
+                    "repository",
+                    models.ForeignKey(
+                        editable=False,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="repository_score",
+                        to="common.Repository",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'repository score',
-                'verbose_name_plural': 'repository scores',
-                'unique_together': {('repository',)},
+                "verbose_name": "repository score",
+                "verbose_name_plural": "repository scores",
+                "unique_together": {("repository",)},
             },
-        ),
+        )
     ]
