@@ -1,19 +1,19 @@
-import boto3
 import io
 import math
-import matplotlib.pyplot as plt
-import numpy as np
 import random
 import re
 import string
 import uuid
-
-from botocore.exceptions import ClientError
+import boto3
+import matplotlib.pyplot as plt
+import numpy as np
 from collections import OrderedDict
+from botocore.exceptions import ClientError
 from django.conf import settings
-from django.db.models import IntegerField, Subquery
+from django.db.models import Subquery, IntegerField
 from django.utils.text import slugify
-
+from django.utils.translation import ugettext_lazy as _
+from rest_framework.exceptions import ValidationError
 
 entity_regex = re.compile(
     r"\[(?P<entity_text>[^\]]+)" r"\]\((?P<entity>[^:)]*?)" r"(?:\:(?P<value>[^)]+))?\)"
@@ -283,6 +283,23 @@ def plot_func(func, optimal):
     plt.ylabel("score")
     plt.xlabel("distance")
     plt.show()
+
+
+def is_valid_classifier(value):  # pragma: no cover
+    from bothub.common.migrate_classifiers import TYPES
+
+    return value in TYPES.keys()
+
+
+def validate_classifier(value):  # pragma: no cover
+    if not is_valid_classifier(value):
+        raise ValidationError(_("{} is not a supported classifier.").format(value))
+
+
+def classifier_choice():
+    from bothub.common.migrate_classifiers import TYPES
+
+    return list(TYPES.keys())
 
 
 class CountSubquery(Subquery):
