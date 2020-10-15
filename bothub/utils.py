@@ -8,6 +8,7 @@ import re
 import string
 import uuid
 import requests
+import json
 
 from botocore.exceptions import ClientError
 from collections import OrderedDict
@@ -296,7 +297,8 @@ def request_nlp(auth, nlp_server, route, data):
             "Authorization": "Bearer " + auth
         }
         r = requests.post(url, json=data, headers=header)
-        return r.text
+        data = json.loads(r.text)
+        return data
     except requests.exceptions.ConnectionError:
         raise APIException(
             {"status_code": status.HTTP_503_SERVICE_UNAVAILABLE},
