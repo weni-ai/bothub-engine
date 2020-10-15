@@ -473,8 +473,11 @@ def migrate_repository_wit(repository_version, auth_token, language):
 
 
 @app.task(name="word_suggestions")
-def word_suggestions(repository_example, auth_token):  # repository_example, auth_token
+def word_suggestions(repository_example, auth_token):
     example = RepositoryExample.objects.filter(id=repository_example.id)
+    suggestions = []
+    dataset = {}
+
     if example:
         for word in example.get_text().split():
             data = {
@@ -482,9 +485,13 @@ def word_suggestions(repository_example, auth_token):  # repository_example, aut
                 "language": example.language,
                 "n_words_to_generate": "4",
             }
-            return request_nlp(
-                auth_token,
-                None,
-                'word_suggestion',
-                data,
+            suggestions.append(
+                request_nlp(
+                    auth_token,
+                    None,
+                    'word_suggestion',
+                    data,
+                )
             )
+        dataset["suggestions"] = {i for i in suggestions}
+    return dataset
