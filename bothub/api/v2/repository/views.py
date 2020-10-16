@@ -95,10 +95,8 @@ from .serializers import RequestRepositoryAuthorizationSerializer
 from .serializers import ShortRepositorySerializer
 from ..metadata import Metadata
 
-# review after push
-from rest_framework.views import APIView
-from django.http.response import JsonResponse
-from .serializers import ExampleSuggestionSerializer
+# review before push
+from .serializers import RepositoryExampleSuggestionSerializer
 
 
 class NewRepositoryViewSet(
@@ -966,7 +964,10 @@ class RepositoryIntentViewSet(
         return super().update(request, *args, **kwargs)
 
 
-class ExampleSuggestionsViewSet(mixins.RetrieveModelMixin, GenericViewSet):
+# Organizer after push
+class RepositoryExampleSuggestionsViewSet(mixins.RetrieveModelMixin, GenericViewSet):
 
-    def retrieve(self):
-        return Response('text')
+    queryset = RepositoryExample.objects
+    serializer_class = RepositoryExampleSuggestionSerializer
+    permission_classes = []
+    metadata_class = Metadata
