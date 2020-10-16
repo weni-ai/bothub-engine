@@ -94,6 +94,7 @@ INSTALLED_APPS = [
     "bothub.authentication",
     "bothub.common",
     "bothub.api",
+    "bothub.common.migrate_classifiers",
     "django_celery_results",
     "django_celery_beat",
 ]
@@ -368,3 +369,6 @@ TOKEN_SEARCH_REPOSITORIES = env.str("TOKEN_SEARCH_REPOSITORIES")
 
 # Google API Translation KEY
 GOOGLE_API_TRANSLATION_KEY = env.str("GOOGLE_API_TRANSLATION_KEY")
+
+
+BASE_MIGRATIONS_TYPES = ["bothub.common.migrate_classifiers.wit.WitType"]
