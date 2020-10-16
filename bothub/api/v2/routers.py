@@ -54,6 +54,8 @@ from .translator.views import (
     RepositoryTranslatorViewSet,
 )
 
+from .repository.views import ExampleSuggestionsViewSet
+
 
 class Router(routers.SimpleRouter):
     routes = [
@@ -191,3 +193,6 @@ router.register("account/reset-password", ResetPasswordViewSet)
 router.register("org/organization", OrganizationViewSet)
 router.register("org/profile", OrganizationProfileViewSet)
 router.register("org/authorizations", OrganizationAuthorizationViewSet)
+
+# review after test
+router.register("repository/example/suggestions", ExampleSuggestionsViewSet, base_name="suggestions")

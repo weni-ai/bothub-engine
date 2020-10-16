@@ -95,6 +95,11 @@ from .serializers import RequestRepositoryAuthorizationSerializer
 from .serializers import ShortRepositorySerializer
 from ..metadata import Metadata
 
+# review after push
+from rest_framework.views import APIView
+from django.http.response import JsonResponse
+from .serializers import ExampleSuggestionSerializer
+
 
 class NewRepositoryViewSet(
     MultipleFieldLookupMixin, mixins.RetrieveModelMixin, GenericViewSet
@@ -959,3 +964,9 @@ class RepositoryIntentViewSet(
     def update(self, request, *args, **kwargs):
         self.filter_class = None
         return super().update(request, *args, **kwargs)
+
+
+class ExampleSuggestionsViewSet(mixins.RetrieveModelMixin, GenericViewSet):
+
+    def retrieve(self):
+        return Response('text')

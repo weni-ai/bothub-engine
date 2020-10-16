@@ -1673,5 +1673,11 @@ class RepositoryScoreSerializer(serializers.ModelSerializer):
         ]
 
 
-class RepositoryExampleSuggestionSerializer(serializers.Serializer):
+class ExampleSuggestionSerializer(serializers.Serializer):
     suggestions = serializers.JSONField()
+
+    def get(self, validated_data):
+        result = celery_app.send_task(
+            "word_suggestions"
+        )
+        return result
