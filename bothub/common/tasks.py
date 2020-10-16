@@ -475,13 +475,15 @@ def migrate_repository_wit(repository_version, auth_token, language):
 def word_suggestions(repository_example, auth_token):
     try:
         example = RepositoryExample.objects.filter(id=repository_example.id)
+        # example = RepositoryExample.objects.filter(id=43)
+        auth_token = "d9d9a7600140d8af5617db5b42e6d2a7a1601664031"
         dataset = {}
 
         if example:
-            for word in example.get_text().split():
+            for word in example.first().get_text().split():
                 data = {
                     "text": word,
-                    "language": example.language,
+                    "language": example.first().language,
                     "n_words_to_generate": "4",
                 }
                 dataset[word] = (
@@ -496,7 +498,7 @@ def word_suggestions(repository_example, auth_token):
         return dataset
     except requests.ConnectionError:
         return False
-    except requests.JSONDecodeError:
+    except json.JSONDecodeError:
         return False
 
 

@@ -1676,8 +1676,15 @@ class RepositoryScoreSerializer(serializers.ModelSerializer):
 class RepositoryExampleSuggestionSerializer(serializers.Serializer):
     suggestions = serializers.JSONField()
 
-    def get(self):
-        result = celery_app.send_task(
-            "word_suggestions"
+    def create(self, validated_data):
+        validated_data.update({"user": self.context.get("request").user})
+        repository_example = validated_data.get("repository_example")
+        auth_token = validated_data.get("auth_token")
+
+        instance = super().create(validated_data)
+
+        celery_app.send_task(
+            "word_suggestions",
+            args=[repository_example.pk, auth_token],
         )
-        return result
+        return instance
