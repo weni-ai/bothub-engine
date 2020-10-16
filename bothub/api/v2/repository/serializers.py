@@ -446,8 +446,6 @@ class NewRepositorySerializer(serializers.ModelSerializer):
             "available_languages",
             "entities",
             "groups_list",
-            "ready_for_train",
-            "requirements_to_train",
             "created_at",
             "language",
             "owner",
@@ -463,7 +461,6 @@ class NewRepositorySerializer(serializers.ModelSerializer):
             "authorization",
             "request_authorization",
             "available_request_authorization",
-            "languages_warnings",
             "algorithm",
             "use_language_model_featurizer",
             "use_competing_intents",
@@ -518,8 +515,6 @@ class NewRepositorySerializer(serializers.ModelSerializer):
     available_languages = serializers.SerializerMethodField(style={"show": False})
     entities = serializers.SerializerMethodField(style={"show": False})
     groups_list = serializers.SerializerMethodField(style={"show": False})
-    ready_for_train = serializers.SerializerMethodField(style={"show": False})
-    requirements_to_train = serializers.SerializerMethodField(style={"show": False})
     created_at = serializers.DateTimeField(
         style={"show": False}, read_only=True, source="repository.created_at"
     )
@@ -549,7 +544,6 @@ class NewRepositorySerializer(serializers.ModelSerializer):
     available_request_authorization = serializers.SerializerMethodField(
         style={"show": False}
     )
-    languages_warnings = serializers.SerializerMethodField(style={"show": False})
     algorithm = serializers.ChoiceField(
         style={"show": False, "only_settings": True},
         choices=Repository.ALGORITHM_CHOICES,
