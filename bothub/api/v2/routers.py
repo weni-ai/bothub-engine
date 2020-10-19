@@ -155,6 +155,7 @@ router.register(
     "repository/authorization-requests", RepositoryAuthorizationRequestsViewSet
 )
 router.register("repository/example", RepositoryExampleViewSet)
+router.register("repository/example/suggestions", RepositoryExampleSuggestionsViewSet)
 router.register("repository/intent", RepositoryIntentViewSet)
 router.register("repository/evaluate/results", ResultsListViewSet)
 router.register("repository/evaluate", EvaluateViewSet)
@@ -193,6 +194,3 @@ router.register("account/reset-password", ResetPasswordViewSet)
 router.register("org/organization", OrganizationViewSet)
 router.register("org/profile", OrganizationProfileViewSet)
 router.register("org/authorizations", OrganizationAuthorizationViewSet)
-
-# review after test
-router.register("repository/example/suggestions", RepositoryExampleSuggestionsViewSet, base_name="suggestions")

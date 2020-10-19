@@ -475,8 +475,6 @@ def migrate_repository_wit(repository_version, auth_token, language):
 def word_suggestions(repository_example, auth_token):
     try:
         example = RepositoryExample.objects.filter(id=repository_example.id)
-        # example = RepositoryExample.objects.filter(id=43)
-        auth_token = "d9d9a7600140d8af5617db5b42e6d2a7a1601664031"
         dataset = {}
 
         if example:
@@ -486,14 +484,7 @@ def word_suggestions(repository_example, auth_token):
                     "language": example.first().language,
                     "n_words_to_generate": "4",
                 }
-                dataset[word] = (
-                    request_nlp(
-                        auth_token,
-                        None,
-                        'word_suggestion',
-                        data,
-                    )
-                )
+                dataset[word] = request_nlp(auth_token, None, "word_suggestion", data)
 
         return dataset
     except requests.ConnectionError:
@@ -504,9 +495,6 @@ def word_suggestions(repository_example, auth_token):
 
 @app.task(name="migrate_repository")
 def migrate_repository(repository_version, auth_token, language, name_classifier):
-    # print(repository_version.get_migration_types())
-    # for cl_type in repository_version.get_migration_types():
-    #     print(cl_type.slug)
     version = RepositoryVersion.objects.get(pk=repository_version)
     instance = version.get_migration_types().get(name_classifier)
     instance.repository_version = version

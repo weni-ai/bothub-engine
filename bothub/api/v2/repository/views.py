@@ -27,6 +27,7 @@ from bothub.api.v2.mixins import MultipleFieldLookupMixin
 from bothub.authentication.authorization import TranslatorAuthentication
 from bothub.authentication.models import RepositoryOwner
 from bothub.common import languages
+from bothub.common.tasks import word_suggestions
 from bothub.common.models import (
     Repository,
     RepositoryNLPLog,
@@ -93,10 +94,8 @@ from .serializers import RepositoryUpload
 from .serializers import RepositoryVotesSerializer
 from .serializers import RequestRepositoryAuthorizationSerializer
 from .serializers import ShortRepositorySerializer
-from ..metadata import Metadata
-
-# review before push
 from .serializers import RepositoryExampleSuggestionSerializer
+from ..metadata import Metadata
 
 
 class NewRepositoryViewSet(
@@ -969,5 +968,15 @@ class RepositoryExampleSuggestionsViewSet(mixins.RetrieveModelMixin, GenericView
 
     queryset = RepositoryExample.objects
     serializer_class = RepositoryExampleSuggestionSerializer
-    permission_classes = []
-    metadata_class = Metadata
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def retrieve(self, request, *args, **kwargs):
+        example = self.get_object()
+        auth = example.repository_version_language.repository_version.repository.get_user_authorization(
+            request.user
+        )
+        if not auth.can_read:
+            raise PermissionDenied()
+        task = word_suggestions(example, str(auth))
+
+        return Response({"suggestions": task})
