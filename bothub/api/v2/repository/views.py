@@ -963,7 +963,6 @@ class RepositoryIntentViewSet(
         return super().update(request, *args, **kwargs)
 
 
-# Organizer after push
 class RepositoryExampleSuggestionsViewSet(mixins.RetrieveModelMixin, GenericViewSet):
 
     queryset = RepositoryExample.objects
