@@ -488,9 +488,9 @@ def word_suggestions(repository_example, auth_token):
                 }
                 if not r.get(word):
                     r.set(word, json.dumps(request_nlp(auth_token, None, "word_suggestion", data)), ex=timeout)
-                    dataset[word] = r.get(word)
+                    dataset[word] = r.get(word).decode("utf-8")
                 else:
-                    dataset[word] = r.get(word)
+                    dataset[word] = r.get(word).decode("utf-8")
                 # dataset[word] = request_nlp(auth_token, None, "word_suggestion", data)
         return dataset
     except requests.ConnectionError:
