@@ -3,6 +3,7 @@ import requests
 import json
 import zipfile
 import io
+import redis
 from collections import Counter
 from datetime import timedelta
 from urllib.parse import urlencode
@@ -473,6 +474,7 @@ def migrate_repository_wit(repository_version, auth_token, language):
 
 @app.task(name="word_suggestions")
 def word_suggestions(repository_example, auth_token):
+    r = redis.Redis()
     try:
         example = RepositoryExample.objects.filter(id=repository_example.id)
         dataset = {}
@@ -484,7 +486,12 @@ def word_suggestions(repository_example, auth_token):
                     "language": example.first().language,
                     "n_words_to_generate": "4",
                 }
-                dataset[word] = request_nlp(auth_token, None, "word_suggestion", data)
+                if not r.get(word):
+                    r.set(word, json.dumps(request_nlp(auth_token, None, "word_suggestion", data)), ex=60 * 60 * 24)
+                    dataset[word] = r.get(word)
+                else:
+                    dataset[word] = r.get(word)
+                # dataset[word] = request_nlp(auth_token, None, "word_suggestion", data)
 
         return dataset
     except requests.ConnectionError:

@@ -974,8 +974,7 @@ class RepositoryExampleSuggestionsViewSet(mixins.RetrieveModelMixin, GenericView
         auth = example.repository_version_language.repository_version.repository.get_user_authorization(
             request.user
         )
-        if not auth.can_read:
-            raise PermissionDenied()
+
         task = word_suggestions(example, str(auth))
 
         return Response({"suggestions": task})
