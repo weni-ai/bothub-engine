@@ -475,10 +475,10 @@ def migrate_repository_wit(repository_version, auth_token, language):
 @app.task(name="word_suggestions")
 def word_suggestions(repository_example, auth_token):
     r = redis.Redis()
+    timeout = 1296000
     try:
         example = RepositoryExample.objects.filter(id=repository_example.id)
         dataset = {}
-
         if example:
             for word in example.first().get_text().split():
                 data = {
@@ -487,12 +487,11 @@ def word_suggestions(repository_example, auth_token):
                     "n_words_to_generate": "4",
                 }
                 if not r.get(word):
-                    r.set(word, json.dumps(request_nlp(auth_token, None, "word_suggestion", data)), ex=60 * 60 * 24)
+                    r.set(word, json.dumps(request_nlp(auth_token, None, "word_suggestion", data)), ex=timeout)
                     dataset[word] = r.get(word)
                 else:
                     dataset[word] = r.get(word)
                 # dataset[word] = request_nlp(auth_token, None, "word_suggestion", data)
-
         return dataset
     except requests.ConnectionError:
         return False
