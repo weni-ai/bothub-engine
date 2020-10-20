@@ -487,11 +487,24 @@ def word_suggestions(repository_example, auth_token):
                     "n_words_to_generate": "4",
                 }
                 if not r.get(word):
-                    r.set(word, json.dumps(request_nlp(auth_token, None, "word_suggestion", data)), ex=timeout)
+                    suggestions = json.dumps(
+                        request_nlp(auth_token, None, "word_suggestion", data)
+                    )
+                    data = json.loads(suggestions)
+                    r.set(
+                        word,
+                        str(
+                            {
+                                i: data["similar_words"][i]
+                                for i in range(0, len(data["similar_words"]))
+                            }
+                        ),
+                        ex=timeout,
+                    )
                     dataset[word] = r.get(word).decode("utf-8")
                 else:
                     dataset[word] = r.get(word).decode("utf-8")
-                # dataset[word] = request_nlp(auth_token, None, "word_suggestion", data)
+
         return dataset
     except requests.ConnectionError:
         return False

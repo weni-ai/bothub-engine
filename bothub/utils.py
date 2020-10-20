@@ -299,7 +299,7 @@ def request_nlp(auth, nlp_server, route, data):
             "Authorization": "Bearer " + auth
         }
         r = requests.post(url, json=data, headers=header)
-        data = json.loads(r.text)
+        data = r.json()
         return data
     except requests.exceptions.ConnectionError:
         raise APIException(
