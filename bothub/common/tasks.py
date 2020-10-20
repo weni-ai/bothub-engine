@@ -495,7 +495,7 @@ def word_suggestions(repository_example, auth_token):
                         word,
                         str(
                             {
-                                i: data["similar_words"][i]
+                                i: data["similar_words"][i][0]
                                 for i in range(0, len(data["similar_words"]))
                             }
                         ),
