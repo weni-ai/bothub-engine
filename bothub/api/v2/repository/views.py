@@ -967,7 +967,7 @@ class RepositoryExampleSuggestionsViewSet(mixins.RetrieveModelMixin, GenericView
 
     queryset = RepositoryExample.objects
     serializer_class = RepositoryExampleSuggestionSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def retrieve(self, request, *args, **kwargs):
         example = self.get_object()
