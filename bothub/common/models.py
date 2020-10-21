@@ -1264,6 +1264,7 @@ class RepositoryReports(models.Model):
     class Meta:
         verbose_name = _("repository report")
         verbose_name_plural = _("repository reports")
+        unique_together = ["repository_version_language", "user", "report_date"]
 
     repository_version_language = models.ForeignKey(
         RepositoryVersionLanguage,
