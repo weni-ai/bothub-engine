@@ -4,22 +4,19 @@ import random
 import re
 import string
 import uuid
-import requests
-import json
+from collections import OrderedDict
 
-from botocore.exceptions import ClientError
 import boto3
 import matplotlib.pyplot as plt
 import numpy as np
-from collections import OrderedDict
+import requests
 from botocore.exceptions import ClientError
 from django.conf import settings
-from django.db.models import Subquery, IntegerField
+from django.db.models import IntegerField, Subquery
 from django.utils.text import slugify
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import status
-from rest_framework.exceptions import ValidationError
-from rest_framework.exceptions import APIException
+from rest_framework.exceptions import APIException, ValidationError
 
 entity_regex = re.compile(
     r"\[(?P<entity_text>[^\]]+)" r"\]\((?P<entity>[^:)]*?)" r"(?:\:(?P<value>[^)]+))?\)"

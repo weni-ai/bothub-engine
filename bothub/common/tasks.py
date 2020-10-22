@@ -477,26 +477,22 @@ def word_suggestions(repository_example, auth_token):
     r = redis.Redis()
     timeout = 1296000
     try:
-        example = RepositoryExample.objects.filter(id=repository_example.id)
         dataset = {}
-        if example:
-            for word in example.first().get_text().split():
+        if repository_example:
+            for word in repository_example.text.split():
                 data = {
                     "text": word,
-                    "language": example.first().language,
+                    "language": repository_example.language,
                     "n_words_to_generate": "4",
                 }
                 if not r.get(word):
-                    suggestions = json.dumps(
-                        request_nlp(auth_token, None, "word_suggestion", data)
-                    )
-                    data = json.loads(suggestions)
+                    suggestions = request_nlp(auth_token, None, "word_suggestion", data)
                     r.set(
                         word,
                         str(
                             {
-                                i: data["similar_words"][i][0]
-                                for i in range(0, len(data["similar_words"]))
+                                i: suggestions["similar_words"][i][0]
+                                for i in range(0, len(suggestions["similar_words"]))
                             }
                         ),
                         ex=timeout,
