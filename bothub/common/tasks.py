@@ -473,7 +473,7 @@ def migrate_repository_wit(repository_version, auth_token, language):
 
 
 @app.task(name="word_suggestions")
-def word_suggestions(repository_example, auth_token):
+def word_suggestions(repository_example, authorization_token):
     r = redis.Redis()
     timeout = 1296000
     try:
@@ -486,7 +486,7 @@ def word_suggestions(repository_example, auth_token):
                     "n_words_to_generate": "4",
                 }
                 if not r.get(word):
-                    suggestions = request_nlp(auth_token, None, "word_suggestion", data)
+                    suggestions = request_nlp(authorization_token, None, "word_suggestion", data)
                     r.set(
                         word,
                         str(
