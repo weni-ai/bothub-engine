@@ -38,7 +38,6 @@ from .nlp.views import RepositoryUpdateInterpretersViewSet
 from .examples.views import ExamplesViewSet
 from .evaluate.views import EvaluateViewSet
 from .evaluate.views import ResultsListViewSet
-from .examples.views import ExampleSuggestionsViewSet
 from .account.views import LoginViewSet
 from .account.views import RegisterUserViewSet
 from .account.views import ChangePasswordViewSet
@@ -154,7 +153,6 @@ router.register(
     "repository/authorization-requests", RepositoryAuthorizationRequestsViewSet
 )
 router.register("repository/example", RepositoryExampleViewSet)
-router.register("repository/example/suggestions", ExampleSuggestionsViewSet)
 router.register("repository/intent", RepositoryIntentViewSet)
 router.register("repository/evaluate/results", ResultsListViewSet)
 router.register("repository/evaluate", EvaluateViewSet)

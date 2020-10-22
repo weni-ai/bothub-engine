@@ -486,7 +486,9 @@ def word_suggestions(repository_example_id, authorization_token):
                     "language": repository_example.language,
                     "n_words_to_generate": "4",
                 }
-                if not r.get(word):
+                if r.get(word):
+                    dataset[word] = r.get(word).decode("utf-8")
+                else:
                     suggestions = request_nlp(authorization_token, None, "word_suggestion", data)
                     r.set(
                         word,
@@ -498,8 +500,6 @@ def word_suggestions(repository_example_id, authorization_token):
                         ),
                         ex=timeout,
                     )
-                    dataset[word] = r.get(word).decode("utf-8")
-                else:
                     dataset[word] = r.get(word).decode("utf-8")
 
         return dataset

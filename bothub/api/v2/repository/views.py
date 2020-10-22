@@ -90,6 +90,7 @@ from .serializers import (
     RepositoryUpload,
     RepositoryVotesSerializer,
     RequestRepositoryAuthorizationSerializer,
+    RepositoryExampleSuggestionSerializer,
     ShortRepositorySerializer,
     TrainSerializer,
     WordDistributionSerializer,
@@ -814,6 +815,30 @@ class RepositoryExampleViewSet(
                 not_added.append(data)
 
         return Response({"added": count_added, "not_added": not_added})
+
+    @action(
+        detail=True,
+        methods=["GET"],
+        url_name="word-suggestions",
+        serializer_class=RepositoryExampleSuggestionSerializer,
+    )
+    def word_suggestions(self, request, **kwargs):
+        """
+        Get four suggestions for words on a example on same language
+        """
+        self.permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+        example = self.get_object()
+        repository_authorization = example.repository_version_language.repository_version.repository.get_user_authorization(
+            request.user
+        )
+
+        task = celery_app.send_task(
+            name="word_suggestions", args=[example.pk, str(repository_authorization)]
+        )
+        task.wait()
+        suggestions = task.result
+
+        return Response({"suggestions": suggestions})
 
 
 class RepositoryNLPLogViewSet(

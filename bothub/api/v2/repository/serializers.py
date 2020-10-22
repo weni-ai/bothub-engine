@@ -1675,3 +1675,7 @@ class RepositoryScoreSerializer(serializers.ModelSerializer):
             "evaluate_size_score",
             "evaluate_size_recommended",
         ]
+
+
+class RepositoryExampleSuggestionSerializer(serializers.Serializer):
+    pass

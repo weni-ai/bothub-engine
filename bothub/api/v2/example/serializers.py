@@ -94,7 +94,3 @@ class RepositoriesSearchExamplesSerializer(serializers.Serializer):
 
 class RepositoriesSearchExamplesResponseSerializer(serializers.Serializer):
     result = serializers.ListField(required=True)
-
-
-class RepositoryExampleSuggestionSerializer(serializers.Serializer):
-    pass
