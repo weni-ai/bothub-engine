@@ -3,7 +3,6 @@ import requests
 import json
 import zipfile
 import io
-import redis
 from collections import Counter
 from datetime import timedelta
 from urllib.parse import urlencode
@@ -474,9 +473,9 @@ def migrate_repository_wit(repository_version, auth_token, language):
 
 @app.task(name="word_suggestions")
 def word_suggestions(repository_example_id, authorization_token):
-    r = redis.Redis()
-    repository_example = RepositoryExample.objects.filter(id=repository_example_id).first()
-    timeout = 1296000
+    repository_example = RepositoryExample.objects.filter(
+        id=repository_example_id
+    ).first()
     try:
         dataset = {}
         if repository_example:
@@ -486,21 +485,15 @@ def word_suggestions(repository_example_id, authorization_token):
                     "language": repository_example.language,
                     "n_words_to_generate": "4",
                 }
-                if r.get(word):
-                    dataset[word] = r.get(word).decode("utf-8")
-                else:
-                    suggestions = request_nlp(authorization_token, None, "word_suggestion", data)
-                    r.set(
-                        word,
-                        str(
-                            {
-                                i: suggestions["similar_words"][i][0]
-                                for i in range(0, len(suggestions["similar_words"]))
-                            }
-                        ),
-                        ex=timeout,
-                    )
-                    dataset[word] = r.get(word).decode("utf-8")
+                suggestions = request_nlp(
+                    authorization_token, None, "word_suggestion", data
+                )
+                dataset[word] = str(
+                    {
+                        i: suggestions["similar_words"][i][0]
+                        for i in range(0, len(suggestions["similar_words"]))
+                    }
+                )
 
         return dataset
     except requests.ConnectionError:
