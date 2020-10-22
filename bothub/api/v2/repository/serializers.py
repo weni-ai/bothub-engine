@@ -8,49 +8,53 @@ from rest_framework.exceptions import PermissionDenied
 
 from bothub import utils
 from bothub.api.v2.example.serializers import RepositoryExampleEntitySerializer
-from bothub.api.v2.fields import EntityText, RepositoryVersionRelatedField
-from bothub.api.v2.fields import ModelMultipleChoiceField
-from bothub.api.v2.fields import TextField
+from bothub.api.v2.fields import (
+    EntityText,
+    ModelMultipleChoiceField,
+    RepositoryVersionRelatedField,
+    TextField,
+)
 from bothub.authentication.models import RepositoryOwner
 from bothub.celery import app as celery_app
 from bothub.common import languages
 from bothub.common.languages import LANGUAGE_CHOICES
 from bothub.common.models import (
-    Repository,
-    RepositoryVersion,
-    RepositoryNLPLog,
-    RepositoryEntity,
-    RepositoryEvaluate,
-    RepositoryExampleEntity,
-    RepositoryQueueTask,
-    OrganizationAuthorization,
     Organization,
-    RepositoryNLPTrain,
+    OrganizationAuthorization,
+    Repository,
+    RepositoryAuthorization,
+    RepositoryCategory,
+    RepositoryEntity,
+    RepositoryEntityGroup,
+    RepositoryEvaluate,
+    RepositoryExample,
+    RepositoryExampleEntity,
     RepositoryIntent,
-    RepositoryTranslator,
+    RepositoryMigrate,
+    RepositoryNLPLog,
+    RepositoryNLPTrain,
+    RepositoryQueueTask,
     RepositoryScore,
+    RepositoryTranslatedExample,
+    RepositoryTranslatedExampleEntity,
+    RepositoryTranslator,
+    RepositoryVersion,
+    RepositoryVote,
+    RequestRepositoryAuthorization,
 )
-from bothub.common.models import RepositoryAuthorization
-from bothub.common.models import RepositoryCategory
-from bothub.common.models import RepositoryEntityGroup
-from bothub.common.models import RepositoryExample
-from bothub.common.models import RepositoryMigrate
-from bothub.common.models import RepositoryTranslatedExample
-from bothub.common.models import RepositoryTranslatedExampleEntity
-from bothub.common.models import RepositoryVote
-from bothub.common.models import RequestRepositoryAuthorization
 from bothub.utils import classifier_choice
-from .validators import (
-    APIExceptionCustom,
-    CanCreateRepositoryInOrganizationValidator,
-    IntentValidator,
-)
-from .validators import CanContributeInRepositoryValidator
-from .validators import CanContributeInRepositoryVersionValidator
-from .validators import ExampleWithIntentOrEntityValidator
+
 from ..translation.validators import (
     CanContributeInRepositoryExampleValidator,
     CanContributeInRepositoryTranslatedExampleValidator,
+)
+from .validators import (
+    APIExceptionCustom,
+    CanContributeInRepositoryValidator,
+    CanContributeInRepositoryVersionValidator,
+    CanCreateRepositoryInOrganizationValidator,
+    ExampleWithIntentOrEntityValidator,
+    IntentValidator,
 )
 
 
@@ -1671,7 +1675,3 @@ class RepositoryScoreSerializer(serializers.ModelSerializer):
             "evaluate_size_score",
             "evaluate_size_recommended",
         ]
-
-
-class RepositoryExampleSuggestionSerializer(serializers.Serializer):
-    pass

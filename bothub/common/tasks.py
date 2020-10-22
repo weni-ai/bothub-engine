@@ -473,8 +473,9 @@ def migrate_repository_wit(repository_version, auth_token, language):
 
 
 @app.task(name="word_suggestions")
-def word_suggestions(repository_example, authorization_token):
+def word_suggestions(repository_example_id, authorization_token):
     r = redis.Redis()
+    repository_example = RepositoryExample.objects.filter(id=repository_example_id).first()
     timeout = 1296000
     try:
         dataset = {}

@@ -7,19 +7,22 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework import mixins
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied
-from rest_framework.filters import OrderingFilter
-from rest_framework.filters import SearchFilter
+from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
+from bothub.celery import app as celery_app
 from bothub.common.models import RepositoryExample
-from .filters import ExamplesFilter
+
 from ..example.serializers import (
-    RepositoryExampleSerializer,
-    RepositoriesSearchExamplesSerializer,
     RepositoriesSearchExamplesResponseSerializer,
+    RepositoriesSearchExamplesSerializer,
+    RepositoryExampleSerializer,
+    RepositoryExampleSuggestionSerializer,
 )
 from ..repository.permissions import RepositoryExamplePermission
+from .filters import ExamplesFilter
 
 
 class ExamplesViewSet(mixins.ListModelMixin, GenericViewSet):
@@ -98,3 +101,27 @@ class ExamplesViewSet(mixins.ListModelMixin, GenericViewSet):
                 ]
             }
         )
+
+
+class ExampleSuggestionsViewSet(mixins.RetrieveModelMixin, GenericViewSet):
+    """
+    Get four suggestions for each word in example in same language.
+    """
+
+    queryset = RepositoryExample.objects
+    serializer_class = RepositoryExampleSuggestionSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def retrieve(self, request, *args, **kwargs):
+        example = self.get_object()
+        repository_authorization = example.repository_version_language.repository_version.repository.get_user_authorization(
+            request.user
+        )
+
+        task = celery_app.send_task(
+            name="word_suggestions", args=[example.pk, str(repository_authorization)]
+        )
+        task.wait()
+        suggestions = task.result
+
+        return Response({"suggestions": suggestions})
