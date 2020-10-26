@@ -1,8 +1,5 @@
-import re
-import requests
 import json
-import zipfile
-import io
+import requests
 from collections import Counter
 from datetime import timedelta
 from urllib.parse import urlencode
@@ -406,71 +403,6 @@ def repository_score():
         )
 
 
-@app.task(name="migrate_repository_wit")
-def migrate_repository_wit(repository_version, auth_token, language):
-    try:
-        request_api = requests.get(
-            url="https://api.wit.ai/export",
-            headers={"Authorization": "Bearer {}".format(auth_token)},
-        ).json()
-
-        expressions = ""
-        response = requests.get(request_api.get("uri"))
-        with zipfile.ZipFile(io.BytesIO(response.content)) as thezip:
-            for zipinfo in thezip.infolist():
-                with thezip.open(zipinfo) as thefile:
-                    if re.search("utterances.*", thefile.name):
-                        for line in thefile.readlines():
-                            expressions += line.decode("utf-8", "replace").replace(
-                                '\\"', ""
-                            )
-
-        for data in json.loads(expressions).get("utterances", []):
-            instance = RepositoryVersion.objects.get(pk=repository_version)
-            text = str(data.get("text").encode("utf-8", "replace").decode("utf-8"))
-            intent_text = data.get("intent")
-
-            if RepositoryExample.objects.filter(
-                text=text,
-                intent__text=intent_text,
-                repository_version_language__repository_version__repository=instance.repository,
-                repository_version_language__repository_version=instance,
-                repository_version_language__language=language,
-            ):
-                continue
-
-            intent, created = RepositoryIntent.objects.get_or_create(
-                text=intent_text, repository_version=instance
-            )
-            example_id = RepositoryExample.objects.create(
-                repository_version_language=instance.get_version_language(
-                    language=language
-                ),
-                text=text,
-                intent=intent,
-            )
-
-            for entities in data.get("entities", []):
-                entity_text = (
-                    entities.get("entity").split(":")[0].replace(" ", "_").lower()
-                )
-                start = entities.get("start")
-                end = entities.get("end")
-
-                entity, created = RepositoryEntity.objects.get_or_create(
-                    repository_version=instance, value=entity_text
-                )
-                RepositoryExampleEntity.objects.create(
-                    repository_example=example_id, start=start, end=end, entity=entity
-                )
-
-        return True
-    except requests.ConnectionError:
-        return False
-    except json.JSONDecodeError:
-        return False
-
-
 @app.task(name="word_suggestions")
 def word_suggestions(repository_example_id, authorization_token):
     example = RepositoryExample.objects.get(
@@ -478,22 +410,40 @@ def word_suggestions(repository_example_id, authorization_token):
     )
     try:
         dataset = {}
-        if example.language in settings.SUPPORTED_LANGUAGES:
-            for word in example.text.split():
+        if example.language in settings.SUGGESTION_LANGUAGES:
+            if len(example.text.split()) > 1:
+                for word in example.text.split():
+                    data = {
+                        "text": word,
+                        "language": example.language,
+                        "n_words_to_generate": settings.N_WORDS_TO_GENERATE,
+                    }
+                    suggestions = request_nlp(
+                        authorization_token, None, "word_suggestion", data
+                    )
+                    dataset[word] = str(
+                        {
+                            i: suggestions["similar_words"][i][0]
+                            for i in range(0, len(suggestions["similar_words"]))
+                        }
+                    )
+            else:
                 data = {
-                    "text": word,
+                    "text": example.text,
                     "language": example.language,
                     "n_words_to_generate": settings.N_WORDS_TO_GENERATE,
                 }
                 suggestions = request_nlp(
                     authorization_token, None, "word_suggestion", data
                 )
-                dataset[word] = str(
+                dataset[example.text] = str(
                     {
                         i: suggestions["similar_words"][i][0]
                         for i in range(0, len(suggestions["similar_words"]))
                     }
                 )
+        else:
+            dataset["language"] = False
 
         return dataset
     except requests.ConnectionError:
