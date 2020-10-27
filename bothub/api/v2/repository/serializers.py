@@ -446,8 +446,6 @@ class NewRepositorySerializer(serializers.ModelSerializer):
             "available_languages",
             "entities",
             "groups_list",
-            "ready_for_train",
-            "requirements_to_train",
             "created_at",
             "language",
             "owner",
@@ -463,7 +461,6 @@ class NewRepositorySerializer(serializers.ModelSerializer):
             "authorization",
             "request_authorization",
             "available_request_authorization",
-            "languages_warnings",
             "algorithm",
             "use_language_model_featurizer",
             "use_competing_intents",
@@ -486,7 +483,6 @@ class NewRepositorySerializer(serializers.ModelSerializer):
             "entities_list",
             "evaluate_languages_count",
             "groups_list",
-            "ready_for_train",
             "created_at",
             "authorization",
             "nlp_server",
@@ -518,8 +514,6 @@ class NewRepositorySerializer(serializers.ModelSerializer):
     available_languages = serializers.SerializerMethodField(style={"show": False})
     entities = serializers.SerializerMethodField(style={"show": False})
     groups_list = serializers.SerializerMethodField(style={"show": False})
-    ready_for_train = serializers.SerializerMethodField(style={"show": False})
-    requirements_to_train = serializers.SerializerMethodField(style={"show": False})
     created_at = serializers.DateTimeField(
         style={"show": False}, read_only=True, source="repository.created_at"
     )
@@ -549,7 +543,6 @@ class NewRepositorySerializer(serializers.ModelSerializer):
     available_request_authorization = serializers.SerializerMethodField(
         style={"show": False}
     )
-    languages_warnings = serializers.SerializerMethodField(style={"show": False})
     algorithm = serializers.ChoiceField(
         style={"show": False, "only_settings": True},
         choices=Repository.ALGORITHM_CHOICES,
@@ -645,32 +638,6 @@ class NewRepositorySerializer(serializers.ModelSerializer):
 
     def get_groups_list(self, obj):
         return obj.groups.distinct().values_list("value", flat=True).distinct()
-
-    def get_ready_for_train(self, obj):
-        queryset = RepositoryExample.objects.filter(
-            repository_version_language__repository_version=obj
-        )
-        return obj.repository.ready_for_train(
-            queryset=queryset, repository_version=obj.pk
-        )
-
-    def get_requirements_to_train(self, obj):
-        queryset = RepositoryExample.objects.filter(
-            repository_version_language__repository_version=obj
-        )
-        return dict(
-            filter(
-                lambda l: l[1],
-                map(
-                    lambda u: (u.language, u.requirements_to_train),
-                    obj.repository.current_versions(
-                        queryset=queryset,
-                        repository_version=obj.pk,
-                        version_default=obj.is_default,
-                    ),
-                ),
-            )
-        )
 
     def get_owner(self, obj):
         return {
@@ -866,25 +833,6 @@ class NewRepositorySerializer(serializers.ModelSerializer):
         except RequestRepositoryAuthorization.DoesNotExist:
             return True
 
-    def get_languages_warnings(self, obj):
-        queryset = RepositoryExample.objects.filter(
-            repository_version_language__repository_version=obj
-        )
-
-        return dict(
-            filter(
-                lambda w: len(w[1]) > 0,
-                map(
-                    lambda u: (u.language, u.warnings),
-                    obj.repository.current_versions(
-                        queryset=queryset,
-                        version_default=obj.is_default,
-                        repository_version=obj.pk,
-                    ),
-                ),
-            )
-        )
-
     def get_nlp_server(self, obj):
         if obj.repository.nlp_server:
             return obj.repository.nlp_server
@@ -907,9 +855,6 @@ class RepositoryTrainInfoSerializer(serializers.ModelSerializer):
         fields = [
             "repository_version_id",
             "uuid",
-            "ready_for_train",
-            "requirements_to_train",
-            "languages_warnings",
         ]
         read_only = fields
         ref_name = None
@@ -921,54 +866,6 @@ class RepositoryTrainInfoSerializer(serializers.ModelSerializer):
     uuid = serializers.UUIDField(
         style={"show": False}, read_only=True, source="repository.uuid"
     )
-    ready_for_train = serializers.SerializerMethodField(style={"show": False})
-    requirements_to_train = serializers.SerializerMethodField(style={"show": False})
-    languages_warnings = serializers.SerializerMethodField(style={"show": False})
-
-    def get_ready_for_train(self, obj):
-        queryset = RepositoryExample.objects.filter(
-            repository_version_language__repository_version=obj
-        )
-        return obj.repository.ready_for_train(
-            queryset=queryset, repository_version=obj.pk
-        )
-
-    def get_requirements_to_train(self, obj):
-        queryset = RepositoryExample.objects.filter(
-            repository_version_language__repository_version=obj
-        )
-        return dict(
-            filter(
-                lambda l: l[1],
-                map(
-                    lambda u: (u.language, u.requirements_to_train),
-                    obj.repository.current_versions(
-                        queryset=queryset,
-                        repository_version=obj.pk,
-                        version_default=obj.is_default,
-                    ),
-                ),
-            )
-        )
-
-    def get_languages_warnings(self, obj):
-        queryset = RepositoryExample.objects.filter(
-            repository_version_language__repository_version=obj
-        )
-
-        return dict(
-            filter(
-                lambda w: len(w[1]) > 0,
-                map(
-                    lambda u: (u.language, u.warnings),
-                    obj.repository.current_versions(
-                        queryset=queryset,
-                        version_default=obj.is_default,
-                        repository_version=obj.pk,
-                    ),
-                ),
-            )
-        )
 
 
 class RepositorySerializer(serializers.ModelSerializer):
