@@ -829,14 +829,14 @@ class RepositoryExampleViewSet(
         self.permission_classes = [permissions.IsAuthenticatedOrReadOnly]
         example = self.get_object()
 
-        repository_authorization = example.repository_version_language.repository_version.repository.get_user_authorization(
+        authorization = example.repository_version_language.repository_version.repository.get_user_authorization(
             request.user
         )
-        if not repository_authorization.can_read:
+        if not authorization.can_read:
             raise PermissionDenied()
 
         task = celery_app.send_task(
-            name="word_suggestions", args=[example.pk, str(repository_authorization)]
+            name="word_suggestions", args=[example.pk, str(authorization)]
         )
         task.wait()
         suggestions = task.result
