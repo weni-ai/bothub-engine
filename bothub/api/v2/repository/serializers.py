@@ -897,6 +897,25 @@ class RepositoryTrainInfoSerializer(serializers.ModelSerializer):
             )
         )
 
+    def get_languages_warnings(self, obj):
+        queryset = RepositoryExample.objects.filter(
+            repository_version_language__repository_version=obj
+        )
+
+        return dict(
+            filter(
+                lambda w: len(w[1]) > 0,
+                map(
+                    lambda u: (u.language, u.warnings),
+                    obj.repository.current_versions(
+                        queryset=queryset,
+                        version_default=obj.is_default,
+                        repository_version=obj.pk,
+                    ),
+                ),
+            )
+        )
+
 
 class RepositorySerializer(serializers.ModelSerializer):
     class Meta:
