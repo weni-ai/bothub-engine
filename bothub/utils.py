@@ -178,7 +178,6 @@ def intentions_balance_score(dataset):
         # Mean of sentences/intention excluding this intention
         # It is the optimal target
         excl_mean = excl_size / (intentions_count - 1)
-        # print(this_size, excl_mean)
         scores.append(score_normal(this_size, excl_mean))
 
     try:

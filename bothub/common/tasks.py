@@ -421,12 +421,7 @@ def word_suggestions(repository_example_id, authorization_token):
                     suggestions = request_nlp(
                         authorization_token, None, "word_suggestion", data
                     )
-                    dataset[word] = str(
-                        {
-                            i: suggestions["similar_words"][i][0]
-                            for i in range(0, len(suggestions["similar_words"]))
-                        }
-                    )
+                    dataset[word] = suggestions
             else:
                 data = {
                     "text": example.text,
