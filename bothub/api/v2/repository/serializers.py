@@ -8,49 +8,53 @@ from rest_framework.exceptions import PermissionDenied
 
 from bothub import utils
 from bothub.api.v2.example.serializers import RepositoryExampleEntitySerializer
-from bothub.api.v2.fields import EntityText, RepositoryVersionRelatedField
-from bothub.api.v2.fields import ModelMultipleChoiceField
-from bothub.api.v2.fields import TextField
+from bothub.api.v2.fields import (
+    EntityText,
+    ModelMultipleChoiceField,
+    RepositoryVersionRelatedField,
+    TextField,
+)
 from bothub.authentication.models import RepositoryOwner
 from bothub.celery import app as celery_app
 from bothub.common import languages
 from bothub.common.languages import LANGUAGE_CHOICES
 from bothub.common.models import (
-    Repository,
-    RepositoryVersion,
-    RepositoryNLPLog,
-    RepositoryEntity,
-    RepositoryEvaluate,
-    RepositoryExampleEntity,
-    RepositoryQueueTask,
-    OrganizationAuthorization,
     Organization,
-    RepositoryNLPTrain,
+    OrganizationAuthorization,
+    Repository,
+    RepositoryAuthorization,
+    RepositoryCategory,
+    RepositoryEntity,
+    RepositoryEntityGroup,
+    RepositoryEvaluate,
+    RepositoryExample,
+    RepositoryExampleEntity,
     RepositoryIntent,
-    RepositoryTranslator,
+    RepositoryMigrate,
+    RepositoryNLPLog,
+    RepositoryNLPTrain,
+    RepositoryQueueTask,
     RepositoryScore,
+    RepositoryTranslatedExample,
+    RepositoryTranslatedExampleEntity,
+    RepositoryTranslator,
+    RepositoryVersion,
+    RepositoryVote,
+    RequestRepositoryAuthorization,
 )
-from bothub.common.models import RepositoryAuthorization
-from bothub.common.models import RepositoryCategory
-from bothub.common.models import RepositoryEntityGroup
-from bothub.common.models import RepositoryExample
-from bothub.common.models import RepositoryMigrate
-from bothub.common.models import RepositoryTranslatedExample
-from bothub.common.models import RepositoryTranslatedExampleEntity
-from bothub.common.models import RepositoryVote
-from bothub.common.models import RequestRepositoryAuthorization
 from bothub.utils import classifier_choice
-from .validators import (
-    APIExceptionCustom,
-    CanCreateRepositoryInOrganizationValidator,
-    IntentValidator,
-)
-from .validators import CanContributeInRepositoryValidator
-from .validators import CanContributeInRepositoryVersionValidator
-from .validators import ExampleWithIntentOrEntityValidator
+
 from ..translation.validators import (
     CanContributeInRepositoryExampleValidator,
     CanContributeInRepositoryTranslatedExampleValidator,
+)
+from .validators import (
+    APIExceptionCustom,
+    CanContributeInRepositoryValidator,
+    CanContributeInRepositoryVersionValidator,
+    CanCreateRepositoryInOrganizationValidator,
+    ExampleWithIntentOrEntityValidator,
+    IntentValidator,
 )
 
 
@@ -855,17 +859,66 @@ class RepositoryTrainInfoSerializer(serializers.ModelSerializer):
         fields = [
             "repository_version_id",
             "uuid",
+            "ready_for_train",
+            "requirements_to_train",
+            "languages_warnings",
         ]
         read_only = fields
         ref_name = None
-
     repository_version_id = serializers.PrimaryKeyRelatedField(
         read_only=True, style={"show": False}, source="pk"
     )
-
     uuid = serializers.UUIDField(
         style={"show": False}, read_only=True, source="repository.uuid"
     )
+    ready_for_train = serializers.SerializerMethodField(style={"show": False})
+    requirements_to_train = serializers.SerializerMethodField(style={"show": False})
+    languages_warnings = serializers.SerializerMethodField(style={"show": False})
+
+    def get_ready_for_train(self, obj):
+        queryset = RepositoryExample.objects.filter(
+            repository_version_language__repository_version=obj
+        )
+        return obj.repository.ready_for_train(
+            queryset=queryset, repository_version=obj.pk
+        )
+
+    def get_requirements_to_train(self, obj):
+        queryset = RepositoryExample.objects.filter(
+            repository_version_language__repository_version=obj
+        )
+        return dict(
+            filter(
+                lambda l: l[1],
+                map(
+                    lambda u: (u.language, u.requirements_to_train),
+                    obj.repository.current_versions(
+                        queryset=queryset,
+                        repository_version=obj.pk,
+                        version_default=obj.is_default,
+                    ),
+                ),
+            )
+        )
+
+    def get_languages_warnings(self, obj):
+        queryset = RepositoryExample.objects.filter(
+            repository_version_language__repository_version=obj
+        )
+
+        return dict(
+            filter(
+                lambda w: len(w[1]) > 0,
+                map(
+                    lambda u: (u.language, u.warnings),
+                    obj.repository.current_versions(
+                        queryset=queryset,
+                        version_default=obj.is_default,
+                        repository_version=obj.pk,
+                    ),
+                ),
+            )
+        )
 
 
 class RepositorySerializer(serializers.ModelSerializer):
@@ -1568,3 +1621,7 @@ class RepositoryScoreSerializer(serializers.ModelSerializer):
             "evaluate_size_score",
             "evaluate_size_recommended",
         ]
+
+
+class RepositoryExampleSuggestionSerializer(serializers.Serializer):
+    pass
