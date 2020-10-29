@@ -8,92 +8,93 @@ from django.utils.translation import ugettext_lazy as _
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import mixins, status
-from rest_framework import parsers
-from rest_framework import permissions
+from rest_framework import mixins, parsers, permissions, status
 from rest_framework.decorators import action
-from rest_framework.exceptions import APIException
-from rest_framework.exceptions import PermissionDenied
-from rest_framework.exceptions import UnsupportedMediaType
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import (
+    APIException,
+    PermissionDenied,
+    UnsupportedMediaType,
+    ValidationError,
+)
 from rest_framework.filters import SearchFilter
 from rest_framework.parsers import MultiPartParser
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from bothub.api.v2.mixins import MultipleFieldLookupMixin
 from bothub.authentication.authorization import TranslatorAuthentication
 from bothub.authentication.models import RepositoryOwner
+from bothub.celery import app as celery_app
 from bothub.common import languages
 from bothub.common.models import (
-    Repository,
-    RepositoryNLPLog,
-    RepositoryEntity,
-    RepositoryQueueTask,
-    RepositoryIntent,
     OrganizationAuthorization,
+    Repository,
+    RepositoryAuthorization,
+    RepositoryCategory,
+    RepositoryEntity,
+    RepositoryExample,
+    RepositoryIntent,
+    RepositoryMigrate,
+    RepositoryNLPLog,
+    RepositoryQueueTask,
     RepositoryTranslator,
+    RepositoryVersion,
+    RepositoryVote,
+    RequestRepositoryAuthorization,
 )
-from bothub.common.models import RepositoryAuthorization
-from bothub.common.models import RepositoryCategory
-from bothub.common.models import RepositoryExample
-from bothub.common.models import RepositoryMigrate
-from bothub.common.models import RepositoryVersion
-from bothub.common.models import RepositoryVote
-from bothub.common.models import RequestRepositoryAuthorization
-from bothub.celery import app as celery_app
+
+from ..metadata import Metadata
 from .filters import (
     RepositoriesFilter,
-    RepositoryNLPLogFilter,
+    RepositoryAuthorizationFilter,
+    RepositoryAuthorizationRequestsFilter,
     RepositoryEntitiesFilter,
-    RepositoryQueueTaskFilter,
-    RepositoryNLPLogReportsFilter,
     RepositoryIntentFilter,
+    RepositoryNLPLogFilter,
+    RepositoryNLPLogReportsFilter,
+    RepositoryQueueTaskFilter,
 )
-from .filters import RepositoryAuthorizationFilter
-from .filters import RepositoryAuthorizationRequestsFilter
 from .permissions import (
     RepositoryAdminManagerAuthorization,
     RepositoryEntityHasPermission,
+    RepositoryExamplePermission,
     RepositoryInfoPermission,
     RepositoryIntentPermission,
     RepositoryMigratePermission,
+    RepositoryPermission,
 )
-from .permissions import RepositoryExamplePermission
-from .permissions import RepositoryPermission
 from .serializers import (
     AnalyzeTextSerializer,
-    TrainSerializer,
-    RepositoryNLPLogSerializer,
     DebugParseSerializer,
-    WordDistributionSerializer,
-    RepositoryEntitySerializer,
+    EvaluateSerializer,
     NewRepositorySerializer,
-    RasaUploadSerializer,
     RasaSerializer,
-    RepositoryQueueTaskSerializer,
-    RepositoryPermissionSerializer,
-    RepositoryNLPLogReportsSerializer,
-    RepositoryIntentSerializer,
+    RasaUploadSerializer,
+    RepositoryAuthorizationRoleSerializer,
+    RepositoryAuthorizationSerializer,
     RepositoryAutoTranslationSerializer,
-    RepositoryTranslatorInfoSerializer,
+    RepositoryCategorySerializer,
+    RepositoryContributionsSerializer,
+    RepositoryEntitySerializer,
+    RepositoryExampleSerializer,
+    RepositoryIntentSerializer,
+    RepositoryMigrateSerializer,
+    RepositoryNLPLogReportsSerializer,
+    RepositoryNLPLogSerializer,
+    RepositoryPermissionSerializer,
+    RepositoryQueueTaskSerializer,
+    RepositorySerializer,
     RepositoryTrainInfoSerializer,
+    RepositoryTranslatorInfoSerializer,
+    RepositoryUpload,
+    RepositoryVotesSerializer,
+    RequestRepositoryAuthorizationSerializer,
+    RepositoryExampleSuggestionSerializer,
+    ShortRepositorySerializer,
+    TrainSerializer,
+    WordDistributionSerializer,
 )
-from .serializers import EvaluateSerializer
-from .serializers import RepositoryAuthorizationRoleSerializer
-from .serializers import RepositoryAuthorizationSerializer
-from .serializers import RepositoryCategorySerializer
-from .serializers import RepositoryContributionsSerializer
-from .serializers import RepositoryExampleSerializer
-from .serializers import RepositoryMigrateSerializer
-from .serializers import RepositorySerializer
-from .serializers import RepositoryUpload
-from .serializers import RepositoryVotesSerializer
-from .serializers import RequestRepositoryAuthorizationSerializer
-from .serializers import ShortRepositorySerializer
-from ..metadata import Metadata
 
 
 class NewRepositoryViewSet(
@@ -814,6 +815,33 @@ class RepositoryExampleViewSet(
                 not_added.append(data)
 
         return Response({"added": count_added, "not_added": not_added})
+
+    @action(
+        detail=True,
+        methods=["GET"],
+        url_name="word-suggestions",
+        serializer_class=RepositoryExampleSuggestionSerializer,
+    )
+    def word_suggestions(self, request, **kwargs):
+        """
+        Get four suggestions for words on a example on same language
+        """
+        self.permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+        example = self.get_object()
+
+        authorization = example.repository_version_language.repository_version.repository.get_user_authorization(
+            request.user
+        )
+        if not authorization.can_read:
+            raise PermissionDenied()
+
+        task = celery_app.send_task(
+            name="word_suggestions", args=[example.pk, str(authorization)]
+        )
+        task.wait()
+        suggestions = task.result
+
+        return Response({"suggestions": suggestions})
 
 
 class RepositoryNLPLogViewSet(

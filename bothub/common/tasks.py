@@ -1,3 +1,4 @@
+import json
 import requests
 from collections import Counter
 from datetime import timedelta
@@ -30,6 +31,7 @@ from bothub.utils import (
     intentions_balance_score,
     intentions_size_score,
     evaluate_size_score,
+    request_nlp,
 )
 
 
@@ -401,11 +403,47 @@ def repository_score():
         )
 
 
+@app.task(name="word_suggestions")
+def word_suggestions(repository_example_id, authorization_token):
+    example = RepositoryExample.objects.get(
+        pk=repository_example_id
+    )
+    try:
+        dataset = {}
+        if example.language in settings.SUGGESTION_LANGUAGES:
+            if len(example.text.split()) > 1:
+                for word in example.text.split():
+                    data = {
+                        "text": word,
+                        "language": example.language,
+                        "n_words_to_generate": settings.N_WORDS_TO_GENERATE,
+                    }
+                    suggestions = request_nlp(
+                        authorization_token, None, "word_suggestion", data
+                    )
+                    dataset[word] = suggestions
+            else:
+                data = {
+                    "text": example.text,
+                    "language": example.language,
+                    "n_words_to_generate": settings.N_WORDS_TO_GENERATE,
+                }
+                suggestions = request_nlp(
+                    authorization_token, None, "word_suggestion", data
+                )
+                dataset[example.text] = suggestions
+        else:
+            dataset["language"] = False
+
+        return dataset
+    except requests.ConnectionError:
+        return False
+    except json.JSONDecodeError:
+        return False
+
+
 @app.task(name="migrate_repository")
 def migrate_repository(repository_version, auth_token, language, name_classifier):
-    # print(repository_version.get_migration_types())
-    # for cl_type in repository_version.get_migration_types():
-    #     print(cl_type.slug)
     version = RepositoryVersion.objects.get(pk=repository_version)
     instance = version.get_migration_types().get(name_classifier)
     instance.repository_version = version
