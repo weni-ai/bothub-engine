@@ -1,4 +1,5 @@
 import json
+import random
 import requests
 from collections import Counter
 from datetime import timedelta
@@ -405,9 +406,7 @@ def repository_score():
 
 @app.task(name="word_suggestions")
 def word_suggestions(repository_example_id, authorization_token):
-    example = RepositoryExample.objects.get(
-        pk=repository_example_id
-    )
+    example = RepositoryExample.objects.get(pk=repository_example_id)
     try:
         dataset = {}
         if example.language in settings.SUGGESTION_LANGUAGES:
@@ -450,3 +449,36 @@ def migrate_repository(repository_version, auth_token, language, name_classifier
     instance.auth_token = auth_token
     instance.language = language
     return instance.start_migrate()
+
+
+@app.task(name="intent_suggestions")
+def intent_suggestions(intent_id, authorization_token):
+    intent = RepositoryIntent.objects.get(pk=intent_id)
+    language = intent.repository_version.version_languages.first().language
+    try:
+        dataset = {}
+        if intent:
+            if language in settings.SUGGESTION_LANGUAGES:
+                data = {
+                    "intent": intent.text,
+                    "language": language,
+                    "n_sentences_to_generate": settings.N_SENTENCES_TO_GENERATE,
+                }
+                suggestions = request_nlp(
+                    authorization_token, None, "intent_sentence_suggestion", data
+                )
+                random.shuffle(suggestions["suggested_sentences"])
+                if suggestions["suggested_sentences"]:
+                    dataset[intent.text] = suggestions["suggested_sentences"][:10]
+                else:
+                    dataset[intent.text] = False
+            else:
+                dataset["language"] = False
+        else:
+            dataset["intent"] = False
+
+        return dataset
+    except requests.ConnectionError:
+        return False
+    except json.JSONDecodeError:
+        return False

@@ -62,6 +62,7 @@ env = environ.Env(
     GOOGLE_API_TRANSLATION_KEY=(str, None),
     N_WORDS_TO_GENERATE=(str, "4"),
     SUGGESTION_LANGUAGES=(cast_supported_languages, "en|pt_br"),
+    N_SENTENCES_TO_GENERATE=(str, "10"),
 )
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -380,3 +381,6 @@ SUGGESTION_LANGUAGES = env.str("SUGGESTION_LANGUAGES")
 
 # Word suggestions
 N_WORDS_TO_GENERATE = env.str("N_WORDS_TO_GENERATE")
+
+# Intent suggestions
+N_SENTENCES_TO_GENERATE = env.str("N_SENTENCES_TO_GENERATE")
