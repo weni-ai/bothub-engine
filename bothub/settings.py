@@ -60,9 +60,9 @@ env = environ.Env(
     CELERY_BROKER_URL=(str, "redis://localhost:6379/0"),
     TOKEN_SEARCH_REPOSITORIES=(str, None),
     GOOGLE_API_TRANSLATION_KEY=(str, None),
-    N_WORDS_TO_GENERATE=(str, "4"),
+    N_WORDS_TO_GENERATE=(int, 4),
     SUGGESTION_LANGUAGES=(cast_supported_languages, "en|pt_br"),
-    N_SENTENCES_TO_GENERATE=(str, "10"),
+    N_SENTENCES_TO_GENERATE=(int, 10),
 )
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -380,7 +380,7 @@ BASE_MIGRATIONS_TYPES = ["bothub.common.migrate_classifiers.wit.WitType"]
 SUGGESTION_LANGUAGES = env.str("SUGGESTION_LANGUAGES")
 
 # Word suggestions
-N_WORDS_TO_GENERATE = env.str("N_WORDS_TO_GENERATE")
+N_WORDS_TO_GENERATE = env.int("N_WORDS_TO_GENERATE")
 
 # Intent suggestions
-N_SENTENCES_TO_GENERATE = env.str("N_SENTENCES_TO_GENERATE")
+N_SENTENCES_TO_GENERATE = env.int("N_SENTENCES_TO_GENERATE")

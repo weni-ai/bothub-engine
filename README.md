@@ -131,6 +131,9 @@ You can set environment variables in your OS, write on ```.env``` file or pass v
 | TOKEN_SEARCH_REPOSITORIES |  ```string``` | ```None``` | Specify the token to be used in the search_repositories_examples route, if not specified, the route is available without authentication
 | GOOGLE_API_TRANSLATION_KEY |  ```string``` | ```None``` | Specify the Google Translation API passkey, used in machine translation
 | ENVIRONMENT |  ```string``` | ```production``` | Specify the environment you are going to run, it is also used for sentry
+| SUGGESTION_LANGUAGES |  ```string``` | ```en|pt_br``` | Specify the the languages supported by environment for word and intent suggestions
+| N_WORDS_TO_GENERATE |  ```int``` | ```4``` | Specify the number of suggestions that will be returned for word suggestions 
+| N_SENTENCES_TO_GENERATE |  ```int``` | ```10``` | Specify the number of suggestions that will be returned for intent suggestions
 
 ## Roadmap
 
