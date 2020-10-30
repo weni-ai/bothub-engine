@@ -1,6 +1,5 @@
 import json
 import requests
-from collections import Counter
 from datetime import timedelta
 from urllib.parse import urlencode
 from django.conf import settings
