@@ -289,7 +289,7 @@ def plot_func(func, optimal):
 def request_nlp(auth, nlp_server, route, data):
     try:
         url = f"{nlp_server if nlp_server else settings.BOTHUB_NLP_BASE_URL}"
-        url += f"{route}/?"
+        url += f"v2/{route}/?"
         header = {
             "Authorization": "Bearer " + auth
         }
