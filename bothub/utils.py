@@ -160,7 +160,7 @@ def score_cumulated(x, optimal):
     return sigma_func * 100
 
 
-def intentions_balance_score(dataset):
+def intentions_balance_score(dataset):  # pragma: no cover
     intentions = dataset["intentions"]
     sentences = dataset["train"]
 
@@ -191,7 +191,7 @@ def intentions_balance_score(dataset):
     }
 
 
-def intentions_size_score(dataset):
+def intentions_size_score(dataset):  # pragma: no cover
     intentions = dataset["intentions"]
     sentences = dataset["train"]
 
@@ -220,7 +220,7 @@ def intentions_size_score(dataset):
     return {"score": score, "recommended": f"{optimal} sentences per intention"}
 
 
-def evaluate_size_score(dataset):
+def evaluate_size_score(dataset):  # pragma: no cover
     intentions = dataset["intentions"]
 
     intentions_size = len(intentions)
@@ -286,7 +286,7 @@ def plot_func(func, optimal):
     plt.show()
 
 
-def request_nlp(auth, nlp_server, route, data):
+def request_nlp(auth, nlp_server, route, data):  # pragma: no cover
     try:
         url = f"{nlp_server if nlp_server else settings.BOTHUB_NLP_BASE_URL}"
         url += f"{route}/?"

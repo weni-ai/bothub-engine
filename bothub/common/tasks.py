@@ -348,7 +348,7 @@ def auto_translation(
 
 
 @app.task()
-def repository_score():
+def repository_score():  # pragma: no cover
     for version in RepositoryVersion.objects.filter(is_default=True):
         dataset = {}
         train = {}
