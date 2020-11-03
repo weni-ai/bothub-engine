@@ -1,6 +1,7 @@
 import json
 import random
 import requests
+import redis
 from collections import Counter
 from datetime import timedelta
 from urllib.parse import urlencode
@@ -34,6 +35,8 @@ from bothub.utils import (
     evaluate_size_score,
     request_nlp,
 )
+
+TIMEOUT = settings.REDIS_TIMEOUT
 
 
 @app.task()
@@ -405,7 +408,7 @@ def repository_score():
 
 
 @app.task(name="word_suggestions")
-def word_suggestions(repository_example_id, authorization_token):
+def word_suggestions(repository_example_id, authorization_token):  # pragma: no cover
     example = RepositoryExample.objects.get(pk=repository_example_id)
     try:
         dataset = {}
@@ -452,26 +455,37 @@ def migrate_repository(repository_version, auth_token, language, name_classifier
 
 
 @app.task(name="intent_suggestions")
-def intent_suggestions(intent_id, authorization_token):
+def intent_suggestions(intent_id, authorization_token):  # pragma: no cover
+    r = redis.Redis()
     intent = RepositoryIntent.objects.get(pk=intent_id)
     language = intent.repository_version.version_languages.first().language
     try:
         dataset = {}
         if intent:
             if language in settings.SUGGESTION_LANGUAGES:
-                data = {
-                    "intent": intent.text,
-                    "language": language,
-                    "n_sentences_to_generate": settings.N_SENTENCES_TO_GENERATE,
-                }
-                suggestions = request_nlp(
-                    authorization_token, None, "intent_sentence_suggestion", data
-                )
-                random.shuffle(suggestions["suggested_sentences"])
-                if suggestions["suggested_sentences"]:
-                    dataset[intent.text] = suggestions["suggested_sentences"][:10]
+                if r.get(intent.text):
+                    dataset[intent.text] = (
+                        r.get(intent.text)
+                        .decode("utf-8")
+                        .strip("][")
+                        .replace("'", "")
+                        .split(", ")
+                    )
                 else:
-                    dataset[intent.text] = False
+                    data = {
+                        "intent": intent.text,
+                        "language": language,
+                        "n_sentences_to_generate": settings.N_SENTENCES_TO_GENERATE,
+                    }
+                    suggestions = request_nlp(
+                        authorization_token, None, "intent_sentence_suggestion", data
+                    )
+                    random.shuffle(suggestions["suggested_sentences"])
+                    if suggestions["suggested_sentences"]:
+                        dataset[intent.text] = suggestions["suggested_sentences"][:10]
+                        r.set(intent.text, str(dataset[intent.text]), TIMEOUT)
+                    else:
+                        dataset[intent.text] = False
             else:
                 dataset["language"] = False
         else:

@@ -134,6 +134,7 @@ You can set environment variables in your OS, write on ```.env``` file or pass v
 | SUGGESTION_LANGUAGES |  ```string``` | ```en|pt_br``` | Specify the the languages supported by environment for word and intent suggestions
 | N_WORDS_TO_GENERATE |  ```int``` | ```4``` | Specify the number of suggestions that will be returned for word suggestions 
 | N_SENTENCES_TO_GENERATE |  ```int``` | ```10``` | Specify the number of suggestions that will be returned for intent suggestions
+| REDIS_TIMEOUT |  ```int``` | ```3600``` | Specify a systemwide Redis keys life time
 
 ## Roadmap
 

@@ -63,6 +63,7 @@ env = environ.Env(
     N_WORDS_TO_GENERATE=(int, 4),
     SUGGESTION_LANGUAGES=(cast_supported_languages, "en|pt_br"),
     N_SENTENCES_TO_GENERATE=(int, 10),
+    REDIS_TIMEOUT=(int, 3600),
 )
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -384,3 +385,6 @@ N_WORDS_TO_GENERATE = env.int("N_WORDS_TO_GENERATE")
 
 # Intent suggestions
 N_SENTENCES_TO_GENERATE = env.int("N_SENTENCES_TO_GENERATE")
+
+# Set Redis timeout
+REDIS_TIMEOUT = env.int("REDIS_TIMEOUT")
