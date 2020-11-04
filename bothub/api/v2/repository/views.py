@@ -843,6 +843,41 @@ class RepositoryExampleViewSet(
 
         return Response({"suggestions": suggestions})
 
+    @action(
+        detail=True,
+        methods=["POST"],
+        url_name="repository-examples",
+        serializer_class=RepositoryExampleSerializer,
+    )
+    def examples(self, request, **kwargs):
+        try:
+            repository = get_object_or_404(
+                Repository, pk=request.data.get("repository")
+            )
+        except DjangoValidationError:
+            raise PermissionDenied()
+
+        user_authorization = repository.get_user_authorization(request.user)
+        if not user_authorization.can_write:
+            raise PermissionDenied()
+
+        count_added = 0
+        not_added = []
+        if self.request.data:
+            for data in self.request.data["examples"]:
+                serializer = RepositoryExampleSerializer(
+                    data=data, context={"request": request}
+                )
+                if serializer.is_valid():
+                    serializer.save()
+                    count_added += 1
+                else:
+                    not_added.append(data)
+
+            return Response({"added": count_added, "not_added": not_added})
+
+        return Response({"examples": False})
+
 
 class RepositoryNLPLogViewSet(
     mixins.ListModelMixin,

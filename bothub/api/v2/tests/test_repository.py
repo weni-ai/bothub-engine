@@ -1356,6 +1356,72 @@ class RepositoryExampleUploadTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
+class RepositoryExamplesTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.owner, self.owner_token = create_user_and_token("owner")
+        self.user, self.user_token = create_user_and_token()
+
+        self.repository = Repository.objects.create(
+            owner=self.owner.repository_owner,
+            name="Testing",
+            slug="test",
+            language=languages.LANGUAGE_EN,
+        )
+
+    def request(self, token):
+        authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
+        examples = b"""[
+                    {
+                        "text": "yes",
+                        "language": "en",
+                        "entities": [{
+                            "label": "yes",
+                            "entity": "_yes",
+                            "start": 0,
+                            "end": 3
+                        }],
+                        "intent": "greet"
+                    },
+                    {
+                        "text": "alright",
+                        "language": "en",
+                        "entities": [{
+                            "label": "yes",
+                            "entity": "_yes",
+                            "start": 0,
+                            "end": 3
+                        }],
+                        "intent": "greet"
+                    }
+                ]"""
+
+        request = self.factory.post(
+            "/v2/repository/example/examples/",
+            {
+                examples
+            },
+            **authorization_header,
+        )
+        response = RepositoryExampleViewSet.as_view({"post": "examples"})(
+            request
+        )
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data)
+
+    def test_okay(self):
+        response, content_data = self.request(self.owner_token)
+        self.assertEqual(content_data.get("added"), 2)
+        self.assertEqual(len(content_data.get("not_added")), 0)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_permission_denied(self):
+        response, content_data = self.request(self.user_token)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
 class RepositoryExampleDestroyTestCase(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
