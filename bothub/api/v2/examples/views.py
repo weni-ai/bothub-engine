@@ -7,19 +7,19 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework import mixins
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied
-from rest_framework.filters import OrderingFilter
-from rest_framework.filters import SearchFilter
+from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from bothub.common.models import RepositoryExample
-from .filters import ExamplesFilter
+
 from ..example.serializers import (
-    RepositoryExampleSerializer,
-    RepositoriesSearchExamplesSerializer,
     RepositoriesSearchExamplesResponseSerializer,
+    RepositoriesSearchExamplesSerializer,
+    RepositoryExampleSerializer,
 )
 from ..repository.permissions import RepositoryExamplePermission
+from .filters import ExamplesFilter
 
 
 class ExamplesViewSet(mixins.ListModelMixin, GenericViewSet):

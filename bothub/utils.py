@@ -7,13 +7,15 @@ import uuid
 import boto3
 import matplotlib.pyplot as plt
 import numpy as np
+import requests
 from collections import OrderedDict
 from botocore.exceptions import ClientError
 from django.conf import settings
-from django.db.models import Subquery, IntegerField
+from django.db.models import IntegerField, Subquery
 from django.utils.text import slugify
 from django.utils.translation import ugettext_lazy as _
-from rest_framework.exceptions import ValidationError
+from rest_framework import status
+from rest_framework.exceptions import APIException, ValidationError
 
 entity_regex = re.compile(
     r"\[(?P<entity_text>[^\]]+)" r"\]\((?P<entity>[^:)]*?)" r"(?:\:(?P<value>[^)]+))?\)"
@@ -176,7 +178,6 @@ def intentions_balance_score(dataset):
         # Mean of sentences/intention excluding this intention
         # It is the optimal target
         excl_mean = excl_size / (intentions_count - 1)
-        # print(this_size, excl_mean)
         scores.append(score_normal(this_size, excl_mean))
 
     try:
@@ -207,7 +208,7 @@ def intentions_size_score(dataset):
     for intention in sentences.keys():
         this_size = sentences[intention]
         if this_size >= optimal:
-            scores.append(1.0)
+            scores.append(100.0)
         else:
             scores.append(score_cumulated(this_size, optimal))
 
@@ -234,7 +235,7 @@ def evaluate_size_score(dataset):
     )
 
     if evaluate_count >= optimal:
-        score = 1.0
+        score = 100.0
     else:
         score = score_cumulated(evaluate_count, optimal)
 
@@ -283,6 +284,23 @@ def plot_func(func, optimal):
     plt.ylabel("score")
     plt.xlabel("distance")
     plt.show()
+
+
+def request_nlp(auth, nlp_server, route, data):
+    try:
+        url = f"{nlp_server if nlp_server else settings.BOTHUB_NLP_BASE_URL}"
+        url += f"{route}/?"
+        header = {
+            "Authorization": "Bearer " + auth
+        }
+        r = requests.post(url, json=data, headers=header)
+        data = r.json()
+        return data
+    except requests.exceptions.ConnectionError:
+        raise APIException(
+            {"status_code": status.HTTP_503_SERVICE_UNAVAILABLE},
+            code=status.HTTP_503_SERVICE_UNAVAILABLE,
+        )
 
 
 def is_valid_classifier(value):  # pragma: no cover

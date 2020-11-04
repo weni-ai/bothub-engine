@@ -1,5 +1,5 @@
+import json
 import requests
-from collections import Counter
 from datetime import timedelta
 from urllib.parse import urlencode
 from django.conf import settings
@@ -30,6 +30,7 @@ from bothub.utils import (
     intentions_balance_score,
     intentions_size_score,
     evaluate_size_score,
+    request_nlp,
 )
 
 
@@ -345,34 +346,65 @@ def auto_translation(
 def repository_score():
     for version in RepositoryVersion.objects.filter(is_default=True):
         dataset = {}
+        intents = []
         train = {}
         train_total = 0
-        evaluate_intents = []
-        evaluate_total = 0
 
-        version_language = version.get_version_language(version.repository.language)
-
-        for intent in version_language.intents:
-            train[RepositoryIntent.objects.get(pk=intent).text] = len(
-                version_language.intents
-            )
-            train_total += version_language.total_training_end
-            if version_language.added_evaluate.filter(pk=intent):
-                evaluate_intents.append(
-                    version_language.added_evaluate.filter(pk=intent).first().text
-                )
-                evaluate_total += 1
-
-        tempdataset = Counter(evaluate_intents)
-
-        dataset["intentions"] = list(
-            version.version_intents.all().values_list("text", flat=True)
+        repository_examples = RepositoryExample.objects.filter(
+            repository_version_language__repository_version=version,
+            repository_version_language__language=version.repository.language,
         )
 
+        filtered_examples = list(
+            map(
+                lambda intent: {
+                    "value": intent.text,
+                    "examples__count": version.repository.examples(
+                        queryset=repository_examples, version_default=version.is_default
+                    )
+                    .filter(intent=intent)
+                    .count(),
+                },
+                version.version_intents.all(),
+            )
+        )
+
+        repository_evaluate = RepositoryEvaluate.objects.filter(
+            repository_version_language__repository_version=version,
+            repository_version_language__language=version.repository.language,
+        )
+
+        filtered_evaluate_sentences = dict(
+            map(
+                lambda x: (
+                    x,
+                    version.repository.evaluations(
+                        language=x,
+                        queryset=repository_evaluate,
+                        version_default=version.is_default,
+                    ).count(),
+                ),
+                version.repository.available_languages(
+                    queryset=RepositoryExample.objects.filter(
+                        repository_version_language__repository_version=version,
+                        repository_version_language__language=version.repository.language,
+                    ),
+                    version_default=version.is_default,
+                ),
+            )
+        )
+
+        for example in filtered_examples:
+            train[example["value"]] = example["examples__count"]
+            intents.append(example["value"])
+            train_total += example["examples__count"]
+
+        dataset["intentions"] = intents
         dataset["train_count"] = train_total
         dataset["train"] = train
-        dataset["evaluate_count"] = evaluate_total
-        dataset["evaluate"] = {k: tempdataset[k] for k in tempdataset if tempdataset[k]}
+        dataset["evaluate_count"] = filtered_evaluate_sentences[
+            version.repository.language
+        ]
 
         intentions_balance = intentions_balance_score(dataset)
         intentions_size = intentions_size_score(dataset)
@@ -401,11 +433,45 @@ def repository_score():
         )
 
 
+@app.task(name="word_suggestions")
+def word_suggestions(repository_example_id, authorization_token):
+    example = RepositoryExample.objects.get(pk=repository_example_id)
+    try:
+        dataset = {}
+        if example.language in settings.SUGGESTION_LANGUAGES:
+            if len(example.text.split()) > 1:
+                for word in example.text.split():
+                    data = {
+                        "text": word,
+                        "language": example.language,
+                        "n_words_to_generate": settings.N_WORDS_TO_GENERATE,
+                    }
+                    suggestions = request_nlp(
+                        authorization_token, None, "word_suggestion", data
+                    )
+                    dataset[word] = suggestions
+            else:
+                data = {
+                    "text": example.text,
+                    "language": example.language,
+                    "n_words_to_generate": settings.N_WORDS_TO_GENERATE,
+                }
+                suggestions = request_nlp(
+                    authorization_token, None, "word_suggestion", data
+                )
+                dataset[example.text] = suggestions
+        else:
+            dataset["language"] = False
+
+        return dataset
+    except requests.ConnectionError:
+        return False
+    except json.JSONDecodeError:
+        return False
+
+
 @app.task(name="migrate_repository")
 def migrate_repository(repository_version, auth_token, language, name_classifier):
-    # print(repository_version.get_migration_types())
-    # for cl_type in repository_version.get_migration_types():
-    #     print(cl_type.slug)
     version = RepositoryVersion.objects.get(pk=repository_version)
     instance = version.get_migration_types().get(name_classifier)
     instance.repository_version = version
