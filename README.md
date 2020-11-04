@@ -130,6 +130,12 @@ You can set environment variables in your OS, write on ```.env``` file or pass v
 | BOTHUB_NLP_RASA_VERSION |  ```string``` | ```1.4.3``` | Specify the version of rasa used in the nlp worker
 | TOKEN_SEARCH_REPOSITORIES |  ```string``` | ```None``` | Specify the token to be used in the search_repositories_examples route, if not specified, the route is available without authentication
 | GOOGLE_API_TRANSLATION_KEY |  ```string``` | ```None``` | Specify the Google Translation API passkey, used in machine translation
+| APM_DISABLE_SEND |  ```bool``` | ```False``` | Disable sending Elastic APM
+| APM_SERVICE_DEBUG |  ```bool``` | ```False``` | Enable APM debug mode
+| APM_SERVICE_NAME |  ```string``` | ```''``` | APM Service Name
+| APM_SECRET_TOKEN |  ```string``` | ```''``` | APM Secret Token
+| APM_SERVER_URL |  ```string``` | ```''``` | APM URL
+| APM_SERVICE_ENVIRONMENT |  ```string``` | ```''``` | Environment that APM is running on
 | ENVIRONMENT |  ```string``` | ```production``` | Specify the environment you are going to run, it is also used for sentry
 
 ## Roadmap

@@ -208,7 +208,7 @@ def intentions_size_score(dataset):
     for intention in sentences.keys():
         this_size = sentences[intention]
         if this_size >= optimal:
-            scores.append(1.0)
+            scores.append(100.0)
         else:
             scores.append(score_cumulated(this_size, optimal))
 
@@ -235,7 +235,7 @@ def evaluate_size_score(dataset):
     )
 
     if evaluate_count >= optimal:
-        score = 1.0
+        score = 100.0
     else:
         score = score_cumulated(evaluate_count, optimal)
 
@@ -289,7 +289,7 @@ def plot_func(func, optimal):
 def request_nlp(auth, nlp_server, route, data):
     try:
         url = f"{nlp_server if nlp_server else settings.BOTHUB_NLP_BASE_URL}"
-        url += f"{route}/?"
+        url += f"v2/{route}/?"
         header = {
             "Authorization": "Bearer " + auth
         }
