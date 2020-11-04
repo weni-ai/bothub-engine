@@ -62,6 +62,12 @@ env = environ.Env(
     GOOGLE_API_TRANSLATION_KEY=(str, None),
     N_WORDS_TO_GENERATE=(str, "4"),
     SUGGESTION_LANGUAGES=(cast_supported_languages, "en|pt_br"),
+    APM_DISABLE_SEND=(bool, False),
+    APM_SERVICE_DEBUG=(bool, False),
+    APM_SERVICE_NAME=(str, ""),
+    APM_SECRET_TOKEN=(str, ""),
+    APM_SERVER_URL=(str, ""),
+    APM_SERVICE_ENVIRONMENT=(str, "production"),
 )
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -93,6 +99,7 @@ INSTALLED_APPS = [
     "drf_yasg",
     "django_filters",
     "corsheaders",
+    "elasticapm.contrib.django",
     "bothub.authentication",
     "bothub.common",
     "bothub.api",
@@ -102,6 +109,8 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    "elasticapm.contrib.django.middleware.TracingMiddleware",
+    "elasticapm.contrib.django.middleware.Catch404Middleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -128,6 +137,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "django.template.context_processors.i18n",
+                "elasticapm.contrib.django.context_processors.rum_tracing",
             ]
         },
     }
@@ -260,6 +270,10 @@ LOGGING["handlers"]["bothub.health"] = {
     "class": "logging.StreamHandler",
     "formatter": "bothub.health",
 }
+LOGGING["handlers"]["elasticapm"] = {
+    "level": "WARNING",
+    "class": "elasticapm.contrib.django.handlers.LoggingHandler",
+}
 LOGGING["loggers"]["bothub.health.checks"] = {
     "handlers": ["bothub.health"],
     "level": "DEBUG",
@@ -280,6 +294,11 @@ LOGGING["loggers"]["django.db.backends"] = {
 }
 LOGGING["loggers"]["sentry.errors"] = {
     "level": "DEBUG",
+    "handlers": ["console"],
+    "propagate": False,
+}
+LOGGING["loggers"]["elasticapm.errors"] = {
+    "level": "ERROR",
     "handlers": ["console"],
     "propagate": False,
 }
@@ -380,3 +399,23 @@ SUGGESTION_LANGUAGES = env.str("SUGGESTION_LANGUAGES")
 
 # Word suggestions
 N_WORDS_TO_GENERATE = env.str("N_WORDS_TO_GENERATE")
+
+
+# Elastic Observability APM
+ELASTIC_APM = {
+    "DISABLE_SEND": env.bool("APM_DISABLE_SEND"),
+    "DEBUG": env.bool("APM_SERVICE_DEBUG"),
+    "SERVICE_NAME": env("APM_SERVICE_NAME"),
+    "SECRET_TOKEN": env("APM_SECRET_TOKEN"),
+    "SERVER_URL": env("APM_SERVER_URL"),
+    "ENVIRONMENT": env("APM_SERVICE_ENVIRONMENT"),
+    "DJANGO_TRANSACTION_NAME_FROM_ROUTE": True,
+    "PROCESSORS": (
+        "elasticapm.processors.sanitize_stacktrace_locals",
+        "elasticapm.processors.sanitize_http_request_cookies",
+        "elasticapm.processors.sanitize_http_headers",
+        "elasticapm.processors.sanitize_http_wsgi_env",
+        "elasticapm.processors.sanitize_http_request_querystring",
+        "elasticapm.processors.sanitize_http_request_body",
+    ),
+}
