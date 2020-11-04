@@ -290,9 +290,7 @@ def request_nlp(auth, nlp_server, route, data):
     try:
         url = f"{nlp_server if nlp_server else settings.BOTHUB_NLP_BASE_URL}"
         url += f"{route}/?"
-        header = {
-            "Authorization": "Bearer " + auth
-        }
+        header = {"Authorization": "Bearer " + auth}
         r = requests.post(url, json=data, headers=header)
         data = r.json()
         return data
