@@ -208,7 +208,7 @@ def intentions_size_score(dataset):
     for intention in sentences.keys():
         this_size = sentences[intention]
         if this_size >= optimal:
-            scores.append(1.0)
+            scores.append(100.0)
         else:
             scores.append(score_cumulated(this_size, optimal))
 
@@ -235,7 +235,7 @@ def evaluate_size_score(dataset):
     )
 
     if evaluate_count >= optimal:
-        score = 1.0
+        score = 100.0
     else:
         score = score_cumulated(evaluate_count, optimal)
 
