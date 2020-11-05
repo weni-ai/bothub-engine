@@ -849,17 +849,17 @@ class RepositoryExampleViewSet(
         url_name="repository-examples",
         serializer_class=RepositoryExampleSerializer,
     )
-    def examples(self, request, **kwargs):
+    def examples(self, request, **kwargs):  # pragman: no cover
         try:
             repository = get_object_or_404(
-                Repository, pk=request.data.get("repository")
+                Repository, pk=self.request.data.get("repository")
             )
         except DjangoValidationError:
             raise PermissionDenied()
 
         try:
             repository_version = get_object_or_404(
-                RepositoryVersion, pk=request.data.get("repository_version")
+                RepositoryVersion, pk=self.request.data.get("repository_version")
             )
         except DjangoValidationError:
             raise PermissionDenied()
@@ -868,24 +868,26 @@ class RepositoryExampleViewSet(
         if not user_authorization.can_write:
             raise PermissionDenied()
 
-        try:
-            json_data = json.loads(str(self.request.data))
-        except json.decoder.JSONDecodeError:
-            raise UnsupportedMediaType("json")
+        repository_version = get_object_or_404(
+            RepositoryVersion, pk=self.request.data.get("repository_version")
+        )
 
         count_added = 0
         not_added = []
-        for data in json_data:
-            print(data)
+
+        for data in json.loads(self.request.data["examples"]):
+
             response_data = data
-            response_data["repository"] = request.data.get("repository")
-            response_data["repository_version"] = repository_version.pk
+            response_data["repository"] = self.request.data.get("repository")
+            response_data["repository_version"] = self.request.data.get("repository_version")
 
             intent, created = RepositoryIntent.objects.get_or_create(
                 text=response_data.get("intent"), repository_version=repository_version
             )
 
             response_data.update({"intent": intent.pk})
+
+            print(response_data)
 
             serializer = RepositoryExampleSerializer(
                 data=response_data, context={"request": request}
@@ -894,11 +896,9 @@ class RepositoryExampleViewSet(
                 serializer.save()
                 count_added += 1
             else:
-                not_added.append(self.request.data["examples"])
+                not_added.append(data)
 
-            return Response({"added": count_added, "not_added": not_added})
-
-        return Response({"examples": False})
+        return Response({"added": count_added, "not_added": not_added})
 
 
 class RepositoryNLPLogViewSet(

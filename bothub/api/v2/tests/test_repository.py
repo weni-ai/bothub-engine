@@ -1400,9 +1400,9 @@ class RepositoryExamplesTestCase(TestCase):
         request = self.factory.post(
             "/v2/repository/example/examples/",
             {
-                "examples": str(examples),
-                "repository": str(self.repository.uuid),
+                "repository": self.repository.uuid,
                 "repository_version": self.repository.current_version().repository_version.pk,
+                "examples": str(examples),
             },
             **authorization_header,
         )
