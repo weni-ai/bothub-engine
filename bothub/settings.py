@@ -101,6 +101,7 @@ INSTALLED_APPS = [
     "bothub.common.migrate_classifiers",
     "django_celery_results",
     "django_celery_beat",
+    "django_redis",
 ]
 
 MIDDLEWARE = [
@@ -377,14 +378,29 @@ GOOGLE_API_TRANSLATION_KEY = env.str("GOOGLE_API_TRANSLATION_KEY")
 
 BASE_MIGRATIONS_TYPES = ["bothub.common.migrate_classifiers.wit.WitType"]
 
+
 # Suggestion Languages
 SUGGESTION_LANGUAGES = env.str("SUGGESTION_LANGUAGES")
+
 
 # Word suggestions
 N_WORDS_TO_GENERATE = env.int("N_WORDS_TO_GENERATE")
 
+
 # Intent suggestions
 N_SENTENCES_TO_GENERATE = env.int("N_SENTENCES_TO_GENERATE")
+
+
+# django_redis
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+}
 
 # Set Redis timeout
 REDIS_TIMEOUT = env.int("REDIS_TIMEOUT")

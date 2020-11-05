@@ -1,6 +1,5 @@
 import json
 import random
-import redis
 import requests
 from datetime import timedelta
 from urllib.parse import urlencode
@@ -8,6 +7,7 @@ from django.conf import settings
 from django.db import transaction
 from django.db.models import Q, Count
 from django.utils import timezone
+from django.core.cache import cache
 
 from bothub import translate
 from bothub.celery import app
@@ -486,17 +486,15 @@ def migrate_repository(repository_version, auth_token, language, name_classifier
 
 @app.task(name="intent_suggestions")
 def intent_suggestions(intent_id, authorization_token):  # pragma: no cover
-    r = redis.Redis()
     intent = RepositoryIntent.objects.get(pk=intent_id)
     language = intent.repository_version.version_languages.first().language
     try:
         dataset = {}
         if intent:
             if language in settings.SUGGESTION_LANGUAGES:
-                if r.get(intent.text):
+                if cache.get(intent.text):
                     dataset[intent.text] = (
-                        r.get(intent.text)
-                        .decode("utf-8")
+                        cache.get(intent.text)
                         .strip("][")
                         .replace("'", "")
                         .split(", ")
@@ -513,7 +511,7 @@ def intent_suggestions(intent_id, authorization_token):  # pragma: no cover
                     random.shuffle(suggestions["suggested_sentences"])
                     if suggestions["suggested_sentences"]:
                         dataset[intent.text] = suggestions["suggested_sentences"][:10]
-                        r.set(intent.text, str(dataset[intent.text]), TIMEOUT)
+                        cache.set(intent.text, str(dataset[intent.text]), timeout=TIMEOUT)
                     else:
                         dataset[intent.text] = False
             else:
