@@ -868,22 +868,33 @@ class RepositoryExampleViewSet(
         if not user_authorization.can_write:
             raise PermissionDenied()
 
+        try:
+            json_data = json.loads(str(self.request.data))
+        except json.decoder.JSONDecodeError:
+            raise UnsupportedMediaType("json")
+
         count_added = 0
         not_added = []
-        if self.request.data:
-            for data in self.request.data["examples"]:
-                print(data)
-                response_data = data
-                response_data["repository"] = request.data.get("repository")
-                response_data["repository_version"] = repository_version.pk
-                serializer = RepositoryExampleSerializer(
-                    data=response_data, context={"request": request}
-                )
-                if serializer.is_valid():
-                    serializer.save()
-                    count_added += 1
-                else:
-                    not_added.append(data)
+        for data in json_data:
+            print(data)
+            response_data = data
+            response_data["repository"] = request.data.get("repository")
+            response_data["repository_version"] = repository_version.pk
+
+            intent, created = RepositoryIntent.objects.get_or_create(
+                text=response_data.get("intent"), repository_version=repository_version
+            )
+
+            response_data.update({"intent": intent.pk})
+
+            serializer = RepositoryExampleSerializer(
+                data=response_data, context={"request": request}
+            )
+            if serializer.is_valid():
+                serializer.save()
+                count_added += 1
+            else:
+                not_added.append(self.request.data["examples"])
 
             return Response({"added": count_added, "not_added": not_added})
 
