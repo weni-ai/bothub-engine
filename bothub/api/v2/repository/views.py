@@ -987,3 +987,31 @@ class RepositoryIntentViewSet(
     def update(self, request, *args, **kwargs):
         self.filter_class = None
         return super().update(request, *args, **kwargs)
+
+    @action(
+        detail=True,
+        methods=["GET"],
+        url_name="intent-examples",
+        serializer_class=RepositoryIntent,
+    )
+    def intent_examples(self, request, **kwargs):
+        """
+        Return intent examples
+        """
+        self.filter_class = None
+        self.permission_classes = [permissions.IsAuthenticated]
+        intent = self.get_object()
+
+        authorization = intent.repository_version.repository.get_user_authorization(
+            request.user
+        )
+
+        if not authorization.can_read:
+            raise PermissionDenied()
+
+        examples = []
+        for example in intent.repositoryexample_set.all():
+            if example:
+                examples.append(example.text)
+
+        return Response({"examples": examples})

@@ -2142,3 +2142,87 @@ class UpdateRepositoryIntentTestCase(TestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class RepositoryIntentGetExamplesTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.owner, self.owner_token = create_user_and_token("owner")
+        self.user, self.user_token = create_user_and_token("user")
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name="Testing",
+            slug="test",
+            language=languages.LANGUAGE_EN,
+        )
+
+        self.repository_version = self.repository.current_version().repository_version
+
+        self.example_intent_1 = RepositoryIntent.objects.create(
+            text="greet",
+            repository_version=self.repository.current_version().repository_version,
+        )
+        RepositoryExample.objects.create(
+            repository_version_language=self.repository.current_version(),
+            text="hi",
+            intent=self.example_intent_1,
+        )
+        RepositoryExample.objects.create(
+            repository_version_language=self.repository.current_version(),
+            text="welcome",
+            intent=self.example_intent_1,
+        )
+
+    def request(self, id, token=None):
+        authorization_header = (
+            {"HTTP_AUTHORIZATION": "Token {}".format(token.key)} if token else {}
+        )
+
+        request = self.factory.get(
+            "/v2/repository/intent/{}/intent_examples".format(id),
+            **authorization_header,
+        )
+
+        response = RepositoryIntentViewSet.as_view({"get": "intent_examples"})(
+            request, pk=id, partial=True
+        )
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data)
+
+    def test_okay_get_text(self):
+        response, content_data = self.request(
+            self.example_intent_1.pk, self.owner_token
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(content_data.get("examples"), ['welcome', 'hi'])
+
+    def test_authorized(self):
+        intent = RepositoryIntent.objects.create(
+            repository_version=self.repository_version, text="positive"
+        )
+        response, content_data = self.request(
+            intent.pk, self.user_token
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_unauthorized(self):
+        repository = Repository.objects.create(
+            owner=self.owner,
+            name="Testing2",
+            slug="test2",
+            language=languages.LANGUAGE_EN,
+            is_private=True,
+        )
+        repository_version = repository.current_version().repository_version
+        intent = RepositoryIntent.objects.create(
+            repository_version=repository_version, text="positive"
+        )
+        response, content_data = self.request(
+            intent.pk, self.user_token
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
