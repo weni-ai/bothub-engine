@@ -857,6 +857,13 @@ class RepositoryExampleViewSet(
         except DjangoValidationError:
             raise PermissionDenied()
 
+        try:
+            repository_version = get_object_or_404(
+                RepositoryVersion, pk=request.data.get("repository_version")
+            )
+        except DjangoValidationError:
+            raise PermissionDenied()
+
         user_authorization = repository.get_user_authorization(request.user)
         if not user_authorization.can_write:
             raise PermissionDenied()
@@ -865,8 +872,12 @@ class RepositoryExampleViewSet(
         not_added = []
         if self.request.data:
             for data in self.request.data["examples"]:
+                print(data)
+                response_data = data
+                response_data["repository"] = request.data.get("repository")
+                response_data["repository_version"] = repository_version.pk
                 serializer = RepositoryExampleSerializer(
-                    data=data, context={"request": request}
+                    data=response_data, context={"request": request}
                 )
                 if serializer.is_valid():
                     serializer.save()
