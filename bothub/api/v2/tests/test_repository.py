@@ -2197,15 +2197,13 @@ class RepositoryIntentGetExamplesTestCase(TestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(content_data.get("examples"), ['welcome', 'hi'])
+        self.assertEqual(content_data.get("examples"), ["welcome", "hi"])
 
     def test_authorized(self):
         intent = RepositoryIntent.objects.create(
             repository_version=self.repository_version, text="positive"
         )
-        response, content_data = self.request(
-            intent.pk, self.user_token
-        )
+        response, content_data = self.request(intent.pk, self.user_token)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -2221,8 +2219,6 @@ class RepositoryIntentGetExamplesTestCase(TestCase):
         intent = RepositoryIntent.objects.create(
             repository_version=repository_version, text="positive"
         )
-        response, content_data = self.request(
-            intent.pk, self.user_token
-        )
+        response, content_data = self.request(intent.pk, self.user_token)
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
