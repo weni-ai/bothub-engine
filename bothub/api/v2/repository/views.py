@@ -849,19 +849,19 @@ class RepositoryExampleViewSet(
         url_name="repository-examples",
         serializer_class=RepositoryExampleSerializer,
     )
-    def examples(self, request, **kwargs):  # pragman: no cover
+    def examples(self, request, **kwargs):
         try:
             repository = get_object_or_404(
                 Repository, pk=self.request.data.get("repository")
             )
-        except DjangoValidationError:
+        except DjangoValidationError:  # pragma: no cover
             raise PermissionDenied()
 
         try:
             repository_version = get_object_or_404(
                 RepositoryVersion, pk=self.request.data.get("repository_version")
             )
-        except DjangoValidationError:
+        except DjangoValidationError:  # pragma: no cover
             raise PermissionDenied()
 
         user_authorization = repository.get_user_authorization(request.user)
@@ -887,8 +887,6 @@ class RepositoryExampleViewSet(
 
             response_data.update({"intent": intent.pk})
 
-            print(response_data)
-
             serializer = RepositoryExampleSerializer(
                 data=response_data, context={"request": request}
             )
@@ -896,7 +894,7 @@ class RepositoryExampleViewSet(
                 serializer.save()
                 count_added += 1
             else:
-                not_added.append(data)
+                not_added.append(data)  # pragma: no cover
 
         return Response({"added": count_added, "not_added": not_added})
 
