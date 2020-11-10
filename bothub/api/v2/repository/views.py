@@ -993,13 +993,13 @@ class RepositoryIntentViewSet(
         methods=["GET"],
         url_name="intent-suggestions",
         serializer_class=RepositoryIntentSerializer,
+        permission_classes=[permissions.IsAuthenticated],
     )
     def intent_suggestions(self, request, **kwargs):
         """
         Get 10 suggestions for intent on your self language
         """
         self.filter_class = None
-        self.permission_classes = [permissions.IsAuthenticatedOrReadOnly]
         intent = self.get_object()
 
         authorization = intent.repository_version.repository.get_user_authorization(

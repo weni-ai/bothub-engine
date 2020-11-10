@@ -70,6 +70,7 @@ env = environ.Env(
     APM_SECRET_TOKEN=(str, ""),
     APM_SERVER_URL=(str, ""),
     APM_SERVICE_ENVIRONMENT=(str, "production"),
+    DJANGO_REDIS_URL=(str, "redis://localhost:6379/1"),
 )
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -414,7 +415,7 @@ N_SENTENCES_TO_GENERATE = env.int("N_SENTENCES_TO_GENERATE")
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://127.0.0.1:6379/1",
+        "LOCATION": env("DJANGO_REDIS_URL"),
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }

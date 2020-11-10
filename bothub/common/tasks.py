@@ -35,8 +35,6 @@ from bothub.utils import (
     request_nlp,
 )
 
-TIMEOUT = settings.REDIS_TIMEOUT
-
 
 @app.task()
 def trainings_check_task():
@@ -494,17 +492,14 @@ def intent_suggestions(intent_id, authorization_token):  # pragma: no cover
             if language in settings.SUGGESTION_LANGUAGES:
                 if cache.get(intent.text):
                     dataset[intent.text] = (
-                        cache.get(intent.text)
-                        .strip("][")
-                        .replace("'", "")
-                        .split(", ")
+                        cache.get(intent.text).strip("][").replace("'", "").split(", ")
                     )
                 else:
                     data = {
                         "intent": intent.text,
                         "language": language,
                         "n_sentences_to_generate": settings.N_SENTENCES_TO_GENERATE,
-                        "repository_version": intent.repository_version_id
+                        "repository_version": intent.repository_version_id,
                     }
                     suggestions = request_nlp(
                         authorization_token, None, "intent_sentence_suggestion", data
@@ -512,7 +507,11 @@ def intent_suggestions(intent_id, authorization_token):  # pragma: no cover
                     random.shuffle(suggestions["suggested_sentences"])
                     if suggestions["suggested_sentences"]:
                         dataset[intent.text] = suggestions["suggested_sentences"][:10]
-                        cache.set(intent.text, str(dataset[intent.text]), timeout=TIMEOUT)
+                        cache.set(
+                            intent.text,
+                            str(dataset[intent.text]),
+                            timeout=settings.REDIS_TIMEOUT,
+                        )
                     else:
                         dataset[intent.text] = False
             else:
