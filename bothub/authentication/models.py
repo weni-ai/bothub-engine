@@ -75,7 +75,7 @@ class RepositoryOwner(models.Model):
     )
     nickname = models.CharField(
         _("nickname"),
-        max_length=16,
+        max_length=150,
         validators=[validate_user_nickname_format, validate_user_nickname_value],
         help_text=_(
             "User's or Organization nickname, using letters, numbers, underscores "

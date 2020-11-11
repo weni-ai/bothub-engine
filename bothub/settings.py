@@ -89,6 +89,7 @@ BASE_URL = env.str("BASE_URL")
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
+    "mozilla_django_oidc",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
@@ -205,13 +206,30 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework.authentication.TokenAuthentication"
+        # "rest_framework.authentication.TokenAuthentication"
+        'mozilla_django_oidc.contrib.drf.OIDCAuthentication',
     ],
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination." + "LimitOffsetPagination",
     "PAGE_SIZE": 20,
     "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"],
     "DEFAULT_METADATA_CLASS": "bothub.api.v2.metadata.Metadata",
 }
+
+
+# mozilla-django-oidc
+OIDC_RP_CLIENT_ID = "bothub"
+OIDC_RP_CLIENT_SECRET = 'c1650a35-1ada-4bcc-89a8-f0195db38441'
+OIDC_OP_AUTHORIZATION_ENDPOINT = 'http://localhost:8080/auth/realms/example/protocol/openid-connect/auth'
+OIDC_OP_TOKEN_ENDPOINT = 'http://localhost:8080/auth/realms/example/protocol/openid-connect/token'
+OIDC_OP_USER_ENDPOINT = 'http://localhost:8080/auth/realms/example/protocol/openid-connect/userinfo'
+OIDC_OP_JWKS_ENDPOINT = 'http://localhost:8080/auth/realms/example/protocol/openid-connect/certs'
+OIDC_RP_SIGN_ALGO = "RS256"
+OIDC_OP_LOGOUT_ENDPOINT = 'http://localhost:8080/auth/realms/example/protocol/openid-connect/logout'
+
+# OIDC_AUTHENTICATE_CLASS = 'bothub.authentication.views.ConnectOIDCAuthenticationRequestView'
+# OIDC_CALLBACK_CLASS = 'bothub.authentication.views.ConnectOIDCAuthenticationCallbackView'
+OIDC_DRF_AUTH_BACKEND = 'bothub.authentication.oidc_authentication.ConnectOIDCAuthenticationBackend'
+# LOGIN_REDIRECT_URL = '/v2/account/get-token/'
 
 
 # cors headers
@@ -299,6 +317,16 @@ LOGGING["loggers"]["sentry.errors"] = {
 }
 LOGGING["loggers"]["elasticapm.errors"] = {
     "level": "ERROR",
+    "handlers": ["console"],
+    "propagate": False,
+}
+LOGGING["loggers"]["mozilla_django_oidc"] = {
+    "level": "DEBUG",
+    "handlers": ["console"],
+    "propagate": False,
+}
+LOGGING["loggers"]["connect_django_oidc"] = {
+    "level": "DEBUG",
     "handlers": ["console"],
     "propagate": False,
 }
