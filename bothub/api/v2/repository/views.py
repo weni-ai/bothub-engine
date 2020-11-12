@@ -868,10 +868,6 @@ class RepositoryExampleViewSet(
         if not user_authorization.can_write:
             raise PermissionDenied()
 
-        repository_version = get_object_or_404(
-            RepositoryVersion, pk=self.request.data.get("repository_version")
-        )
-
         count_added = 0
         not_added = []
 
