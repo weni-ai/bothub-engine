@@ -1005,11 +1005,12 @@ class RepositoryIntentViewSet(
         authorization = intent.repository_version.repository.get_user_authorization(
             request.user
         )
+
         if not authorization.can_read:
             raise PermissionDenied()
 
         task = celery_app.send_task(
-            name="intent_suggestions", args=[intent.pk, str(authorization)]
+            name="intent_suggestions", args=[intent.pk, str(authorization.pk)]
         )
         task.wait()
         suggestions = task.result
