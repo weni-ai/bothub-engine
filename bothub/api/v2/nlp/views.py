@@ -497,10 +497,21 @@ class RepositoryUpdateInterpretersViewSet(
         rasa_version = request.query_params.get(
             "rasa_version", settings.BOTHUB_NLP_RASA_VERSION
         )
+        no_bot_data = request.query_params.get("no_bot_data")
 
         validator = URLValidator()
-
         aws = False
+
+        if no_bot_data:  # pragma: no cover
+            return Response(
+                {
+                    "version_id": update.id,
+                    "repository_uuid": update.repository_version.repository.uuid,
+                    "total_training_end": update.total_training_end,
+                    "language": update.language,
+                    "from_aws": aws,
+                }
+            )
 
         try:
             validator(str(update.get_trainer(rasa_version).bot_data))
