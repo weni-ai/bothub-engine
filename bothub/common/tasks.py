@@ -499,14 +499,18 @@ def intent_suggestions(intent_id, authorization_token):  # pragma: no cover
                         "intent": intent.text,
                         "language": language,
                         "n_sentences_to_generate": settings.N_SENTENCES_TO_GENERATE,
-                        "repository_version": intent.repository_version_id,
+                        "repository_version": intent.repository_version.get_version_language(
+                            language
+                        ).pk,
                     }
                     suggestions = request_nlp(
                         authorization_token, None, "intent_sentence_suggestion", data
                     )
                     random.shuffle(suggestions["suggested_sentences"])
                     if suggestions["suggested_sentences"]:
-                        dataset[intent.text] = suggestions["suggested_sentences"][:10]
+                        dataset[intent.text] = suggestions["suggested_sentences"][
+                            : settings.N_SENTENCES_TO_GENERATE
+                        ]
                         cache.set(
                             intent.text,
                             str(dataset[intent.text]),
