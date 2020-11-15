@@ -99,10 +99,10 @@ class RepositoryEvaluateSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         repository = validated_data.pop("repository")
         language = validated_data.get("language", instance.language)
-
         instance.text = validated_data.get("text", instance.text)
         instance.intent = validated_data.get("intent", instance.intent)
-        instance.repository_version_language = repository.current_version(language)
+        if not validated_data.get("repository_version_language"):  # pragma: no cover
+            instance.repository_version_language = repository.current_version(language)
         instance.save()
         instance.delete_entities()
 
