@@ -987,3 +987,32 @@ class RepositoryIntentViewSet(
     def update(self, request, *args, **kwargs):
         self.filter_class = None
         return super().update(request, *args, **kwargs)
+
+    @action(
+        detail=True,
+        methods=["GET"],
+        url_name="intent-suggestions",
+        serializer_class=RepositoryIntentSerializer,
+        permission_classes=[permissions.IsAuthenticated],
+    )
+    def intent_suggestions(self, request, **kwargs):
+        """
+        Get 10 suggestions for intent on your self language
+        """
+        self.filter_class = None
+        intent = self.get_object()
+
+        authorization = intent.repository_version.repository.get_user_authorization(
+            request.user
+        )
+
+        if not authorization.can_read:
+            raise PermissionDenied()
+
+        task = celery_app.send_task(
+            name="intent_suggestions", args=[intent.pk, str(authorization.pk)]
+        )
+        task.wait()
+        suggestions = task.result
+
+        return Response({"suggestions": suggestions})

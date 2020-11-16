@@ -1,4 +1,5 @@
 import json
+import random
 import requests
 from datetime import timedelta
 from urllib.parse import urlencode
@@ -6,6 +7,7 @@ from django.conf import settings
 from django.db import transaction
 from django.db.models import Q, Count
 from django.utils import timezone
+from django.core.cache import cache
 
 from bothub import translate
 from bothub.celery import app
@@ -343,7 +345,7 @@ def auto_translation(
 
 
 @app.task()
-def repository_score():
+def repository_score():  # pragma: no cover
     for version in RepositoryVersion.objects.filter(is_default=True):
         dataset = {}
         intents = []
@@ -434,7 +436,7 @@ def repository_score():
 
 
 @app.task(name="word_suggestions")
-def word_suggestions(repository_example_id, authorization_token):
+def word_suggestions(repository_example_id, authorization_token):  # pragma: no cover
     example = RepositoryExample.objects.get(pk=repository_example_id)
     try:
         dataset = {}
@@ -478,3 +480,49 @@ def migrate_repository(repository_version, auth_token, language, name_classifier
     instance.auth_token = auth_token
     instance.language = language
     return instance.start_migrate()
+
+
+@app.task(name="intent_suggestions")
+def intent_suggestions(intent_id, authorization_token):  # pragma: no cover
+    intent = RepositoryIntent.objects.get(pk=intent_id)
+    language = intent.repository_version.version_languages.first().language
+    try:
+        dataset = {}
+        if intent:
+            if language in settings.SUGGESTION_LANGUAGES:
+                if cache.get(intent.text):
+                    dataset[intent.text] = (
+                        cache.get(intent.text).strip("][").replace("'", "").split(", ")
+                    )
+                else:
+                    data = {
+                        "intent": intent.text,
+                        "language": language,
+                        "n_sentences_to_generate": settings.N_SENTENCES_TO_GENERATE,
+                        "repository_version": intent.repository_version_id
+                    }
+                    suggestions = request_nlp(
+                        authorization_token, None, "intent_sentence_suggestion", data
+                    )
+                    random.shuffle(suggestions["suggested_sentences"])
+                    if suggestions["suggested_sentences"]:
+                        dataset[intent.text] = suggestions["suggested_sentences"][
+                            : settings.N_SENTENCES_TO_GENERATE
+                        ]
+                        cache.set(
+                            intent.text,
+                            str(dataset[intent.text]),
+                            timeout=settings.REDIS_TIMEOUT,
+                        )
+                    else:
+                        dataset[intent.text] = False
+            else:
+                dataset["language"] = False
+        else:
+            dataset["intent"] = False
+
+        return dataset
+    except requests.ConnectionError:
+        return False
+    except json.JSONDecodeError:
+        return False
