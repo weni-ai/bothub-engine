@@ -14,6 +14,7 @@ from bothub.api.v2.repository.views import (
     NewRepositoryViewSet,
     RepositoryIntentViewSet,
     RepositoryTrainInfoViewSet,
+    BulkRepositoryExamplesViewSet,
 )
 from bothub.api.v2.repository.views import RepositoriesViewSet
 from bothub.api.v2.repository.views import RepositoryAuthorizationRequestsViewSet
@@ -2210,3 +2211,72 @@ class UpdateRepositoryIntentTestCase(TestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class RepositoryBulkExamplesTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.owner, self.owner_token = create_user_and_token("owner")
+        self.user, self.user_token = create_user_and_token()
+
+        self.repository = Repository.objects.create(
+            owner=self.owner.repository_owner,
+            name="Testing",
+            slug="test",
+            language=languages.LANGUAGE_EN,
+        )
+
+    def request(self, token):
+        authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
+        request = self.factory.post(
+            "/v2/repository/bulk-example/",
+            [{
+                "repository": self.repository.uuid,
+                "text": "alright",
+                "intent": "affirmative",
+                "language": "en",
+                "entities": [
+                    {
+                        "label": "yes",
+                        "entity": "_yes",
+                        "start": 0,
+                        "end": 3,
+                    }
+                ],
+                "repository_version": self.repository.current_version().repository_version.pk
+            },
+            {
+                "repository": self.repository.uuid,
+                "text": "yes",
+                "intent": "affirmative",
+                "language": "en",
+                "entities": [
+                    {
+                        "label": "yes",
+                        "entity": "_yes",
+                        "start": 0,
+                        "end": 3,
+                    }
+                ],
+                "repository_version": self.repository.current_version().repository_version.pk
+            }],
+            **authorization_header,
+        )
+        response = BulkRepositoryExamplesViewSet.as_view({"post": "bulk-example"})(
+            request
+        )
+        response.render()
+        # content_data = json.loads(response.content)
+        print(response)
+        return (response)
+
+    def test_okay(self):
+        response = self.request(self.owner_token)
+        # self.assertEqual(content_data.get("added"), 2)
+        # self.assertEqual(len(content_data.get("not_added")), 0)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    # def test_permission_denied(self):
+    #     response, content_data = self.request(self.user_token)
+    #     self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

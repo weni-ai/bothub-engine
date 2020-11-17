@@ -20,7 +20,7 @@ from rest_framework.filters import SearchFilter
 from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
-from rest_framework.viewsets import GenericViewSet
+from rest_framework.viewsets import GenericViewSet, ModelViewSet
 
 from bothub.api.v2.mixins import MultipleFieldLookupMixin
 from bothub.authentication.authorization import TranslatorAuthentication
@@ -1067,3 +1067,24 @@ class RepositoryIntentViewSet(
         suggestions = task.result
 
         return Response({"suggestions": suggestions})
+
+
+class CreateListMixin:
+    """Allows bulk creation of a resource."""
+    def get_serializer(self, *args, **kwargs):
+        if isinstance(kwargs.get('data', {}), list):
+            kwargs['many'] = True
+
+        return super().get_serializer(*args, **kwargs)
+
+
+class BulkRepositoryExamplesViewSet(mixins.CreateModelMixin, GenericViewSet):
+    queryset = RepositoryExample.objects
+    serializer_class = RepositoryExampleSerializer
+
+    """Allows bulk creation of a resource."""
+    def get_serializer(self, *args, **kwargs):
+        if isinstance(kwargs.get('data', {}), list):
+            kwargs['many'] = True
+
+        return super().get_serializer(*args, **kwargs)
