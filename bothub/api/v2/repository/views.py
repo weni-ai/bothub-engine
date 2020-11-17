@@ -20,7 +20,7 @@ from rest_framework.filters import SearchFilter
 from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
-from rest_framework.viewsets import GenericViewSet, ModelViewSet
+from rest_framework.viewsets import GenericViewSet
 
 from bothub.api.v2.mixins import MultipleFieldLookupMixin
 from bothub.authentication.authorization import TranslatorAuthentication
@@ -1020,6 +1020,7 @@ class RepositoryIntentViewSet(
 
 class RepositoryExamplesBulkCreateViewSet(mixins.CreateModelMixin, GenericViewSet):
     """Allows bulk creation of Examples inside an array."""
+    
     queryset = RepositoryExample.objects
     serializer_class = RepositoryExampleSerializer
 

@@ -2159,36 +2159,24 @@ class RepositoryExamplesBulkCreateTestCase(TestCase):
             language=languages.LANGUAGE_EN,
         )
 
-        self.data = [{
-            "repository": str(self.repository.uuid),
-            "text": "alright",
-            "intent": "affirmative",
-            "language": "en",
-            "entities": [
-                {
-                    "label": "yes",
-                    "entity": "_yes",
-                    "start": 0,
-                    "end": 3,
-                }
-            ],
-            "repository_version": self.repository.current_version().repository_version.pk
+        self.data = [
+            {
+                "repository": str(self.repository.uuid),
+                "text": "alright",
+                "intent": "affirmative",
+                "language": "en",
+                "entities": [{"label": "yes", "entity": "_yes", "start": 0, "end": 3}],
+                "repository_version": self.repository.current_version().repository_version.pk,
             },
             {
                 "repository": str(self.repository.uuid),
                 "text": "yes",
                 "intent": "affirmative",
                 "language": "en",
-                "entities": [
-                    {
-                        "label": "yes",
-                        "entity": "_yes",
-                        "start": 0,
-                        "end": 3,
-                    }
-                ],
-                "repository_version": self.repository.current_version().repository_version.pk
-            }]
+                "entities": [{"label": "yes", "entity": "_yes", "start": 0, "end": 3}],
+                "repository_version": self.repository.current_version().repository_version.pk,
+            },
+        ]
 
     def request(self, token):
         authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
@@ -2203,18 +2191,22 @@ class RepositoryExamplesBulkCreateTestCase(TestCase):
         )
         response.render()
         content_data = json.loads(response.content)
-        # print(response, content_data)
         return (response, content_data)
 
     def test_okay(self):
         response, content_data = self.request(self.owner_token)
         count = 0
         for content in content_data:
-            self.assertEqual(content.get("repository_version"), self.data[count].get("repository_version"))
+            self.assertEqual(
+                content.get("repository_version"),
+                self.data[count].get("repository_version"),
+            )
             self.assertEqual(content.get("text"), self.data[count].get("text"))
             self.assertEqual(content.get("intent"), self.data[count].get("intent"))
             self.assertEqual(content.get("language"), self.data[count].get("language"))
-            self.assertNotEqual(content.get("entities"), self.data[count].get("entities"))
+            self.assertNotEqual(
+                content.get("entities"), self.data[count].get("entities")
+            )
             count += 1
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
