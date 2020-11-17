@@ -843,57 +843,6 @@ class RepositoryExampleViewSet(
 
         return Response({"suggestions": suggestions})
 
-    @action(
-        detail=True,
-        methods=["POST"],
-        url_name="repository-examples",
-        serializer_class=RepositoryExampleSerializer,
-    )
-    def examples(self, request, **kwargs):
-        try:
-            repository = get_object_or_404(
-                Repository, pk=self.request.data.get("repository")
-            )
-        except DjangoValidationError:  # pragma: no cover
-            raise PermissionDenied()
-
-        try:
-            repository_version = get_object_or_404(
-                RepositoryVersion, pk=self.request.data.get("repository_version")
-            )
-        except DjangoValidationError:  # pragma: no cover
-            raise PermissionDenied()
-
-        user_authorization = repository.get_user_authorization(request.user)
-        if not user_authorization.can_write:
-            raise PermissionDenied()
-
-        count_added = 0
-        not_added = []
-
-        for data in json.loads(self.request.data["examples"]):
-
-            response_data = data
-            response_data["repository"] = self.request.data.get("repository")
-            response_data["repository_version"] = self.request.data.get("repository_version")
-
-            intent, created = RepositoryIntent.objects.get_or_create(
-                text=response_data.get("intent"), repository_version=repository_version
-            )
-
-            response_data.update({"intent": intent.pk})
-
-            serializer = RepositoryExampleSerializer(
-                data=response_data, context={"request": request}
-            )
-            if serializer.is_valid():
-                serializer.save()
-                count_added += 1
-            else:
-                not_added.append(data)  # pragma: no cover
-
-        return Response({"added": count_added, "not_added": not_added})
-
 
 class RepositoryNLPLogViewSet(
     mixins.ListModelMixin,
@@ -1069,20 +1018,11 @@ class RepositoryIntentViewSet(
         return Response({"suggestions": suggestions})
 
 
-class CreateListMixin:
-    """Allows bulk creation of a resource."""
-    def get_serializer(self, *args, **kwargs):
-        if isinstance(kwargs.get('data', {}), list):
-            kwargs['many'] = True
-
-        return super().get_serializer(*args, **kwargs)
-
-
-class BulkRepositoryExamplesViewSet(mixins.CreateModelMixin, GenericViewSet):
+class RepositoryExamplesBulkCreateViewSet(mixins.CreateModelMixin, GenericViewSet):
+    """Allows bulk creation of Examples inside an array."""
     queryset = RepositoryExample.objects
     serializer_class = RepositoryExampleSerializer
 
-    """Allows bulk creation of a resource."""
     def get_serializer(self, *args, **kwargs):
         if isinstance(kwargs.get('data', {}), list):
             kwargs['many'] = True
