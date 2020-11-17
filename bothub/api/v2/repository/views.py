@@ -1020,7 +1020,7 @@ class RepositoryIntentViewSet(
 
 class RepositoryExamplesBulkCreateViewSet(mixins.CreateModelMixin, GenericViewSet):
     """Allows bulk creation of Examples inside an array."""
-    
+
     queryset = RepositoryExample.objects
     serializer_class = RepositoryExampleSerializer
 
