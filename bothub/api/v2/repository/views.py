@@ -442,17 +442,12 @@ class RepositoryViewSet(
         serializer = EvaluateSerializer(data=request.data)  # pragma: no cover
         serializer.is_valid(raise_exception=True)  # pragma: no cover
 
-        automatic = {"cross_validation": True}  # pragma: no cover
-        automatic.update(serializer.data)  # pragma: no cover
-
-        request = repository.request_nlp_evaluate(  # pragma: no cover
-            user_authorization, automatic
+        task = celery_app.send_task(
+            name="auto_evaluate",
+            args=[serializer.data, str(user_authorization)]
         )
-        if request.status_code != status.HTTP_200_OK:  # pragma: no cover
-            raise APIException(  # pragma: no cover
-                {"status_code": request.status_code}, code=request.status_code
-            )
-        return Response(request.json())  # pragma: no cover
+        task.wait()
+        return Response(task.result)  # pragma: no cover
 
 
 @method_decorator(

@@ -526,3 +526,22 @@ def intent_suggestions(intent_id, authorization_token):  # pragma: no cover
         return False
     except json.JSONDecodeError:
         return False
+
+
+@app.task(name="auto_evaluate")
+def auto_evaluate(data, authorization_token):  # pragma: no cover
+    try:
+        if data:
+            request_data = {
+                "language": data.get("language"),
+                "repository_version": data.get("repository_version"),
+                "cross_validation": True
+            }
+        r = request_nlp(
+            authorization_token, None, "evaluate", request_data
+        )
+        return r
+    except requests.ConnectionError:
+        return False
+    except json.JSONDecodeError:
+        return False

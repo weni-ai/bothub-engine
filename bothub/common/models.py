@@ -532,9 +532,6 @@ class Repository(models.Model):
                     data={
                         "language": data.get("language"),
                         "repository_version": data.get("repository_version"),
-                        "cross_validation": data.get("cross_validation")
-                        if data.get("cross_validation")
-                        else False,  # pragma: no cover
                     },
                     headers={
                         "Authorization": "Bearer {}".format(user_authorization.uuid)
@@ -547,7 +544,12 @@ class Repository(models.Model):
                         if self.nlp_server
                         else settings.BOTHUB_NLP_BASE_URL
                     ),
-                    data={"language": data.get("language")},
+                    data={
+                        "language": data.get("language"),
+                        "cross_validation": data.get("cross_validation")
+                        if data.get("cross_validation")
+                        else False,  # pragma: no cover
+                    },
                     headers={
                         "Authorization": "Bearer {}".format(user_authorization.uuid)
                     },
