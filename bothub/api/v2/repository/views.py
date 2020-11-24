@@ -431,7 +431,7 @@ class RepositoryViewSet(
         lookup_fields=["uuid"],
         serializer_class=EvaluateSerializer,
     )
-    def auto_evaluate(self, request, **kwargs):
+    def auto_evaluate(self, request, **kwargs):  # pragma: no cover
         """
         Automatic evaluate repository using Bothub NLP service
         """
@@ -439,15 +439,15 @@ class RepositoryViewSet(
         user_authorization = repository.get_user_authorization(request.user)
         if not user_authorization.can_write:
             raise PermissionDenied()
-        serializer = EvaluateSerializer(data=request.data)  # pragma: no cover
-        serializer.is_valid(raise_exception=True)  # pragma: no cover
+        serializer = EvaluateSerializer(data=request.data)  
+        serializer.is_valid(raise_exception=True)
 
         task = celery_app.send_task(
             name="auto_evaluate",
             args=[serializer.data, str(user_authorization)]
         )
         task.wait()
-        return Response(task.result)  # pragma: no cover
+        return Response(task.result)
 
 
 @method_decorator(
