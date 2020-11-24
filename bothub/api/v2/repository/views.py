@@ -1018,7 +1018,7 @@ class RepositoryIntentViewSet(
         return Response({"suggestions": suggestions})
 
 
-class RepositoryExamplesBulkCreateViewSet(mixins.CreateModelMixin, GenericViewSet):
+class RepositoryExamplesBulkViewSet(mixins.CreateModelMixin, GenericViewSet):
     """Allows bulk creation of Examples inside an array."""
 
     queryset = RepositoryExample.objects

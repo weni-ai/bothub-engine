@@ -14,7 +14,7 @@ from bothub.api.v2.repository.views import (
     NewRepositoryViewSet,
     RepositoryIntentViewSet,
     RepositoryTrainInfoViewSet,
-    RepositoryExamplesBulkCreateViewSet,
+    RepositoryExamplesBulkViewSet,
 )
 from bothub.api.v2.repository.views import RepositoriesViewSet
 from bothub.api.v2.repository.views import RepositoryAuthorizationRequestsViewSet
@@ -2145,7 +2145,7 @@ class UpdateRepositoryIntentTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
-class RepositoryExamplesBulkCreateTestCase(TestCase):
+class RepositoryExamplesBulkTestCase(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
 
@@ -2186,7 +2186,7 @@ class RepositoryExamplesBulkCreateTestCase(TestCase):
             content_type="application/json",
             **authorization_header,
         )
-        response = RepositoryExamplesBulkCreateViewSet.as_view({"post": "create"})(
+        response = RepositoryExamplesBulkViewSet.as_view({"post": "create"})(
             request
         )
         response.render()
@@ -2195,8 +2195,7 @@ class RepositoryExamplesBulkCreateTestCase(TestCase):
 
     def test_okay(self):
         response, content_data = self.request(self.owner_token)
-        count = 0
-        for content in content_data:
+        for count, content in enumerate(content_data):
             self.assertEqual(
                 content.get("repository_version"),
                 self.data[count].get("repository_version"),
@@ -2207,7 +2206,102 @@ class RepositoryExamplesBulkCreateTestCase(TestCase):
             self.assertNotEqual(
                 content.get("entities"), self.data[count].get("entities")
             )
-            count += 1
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_null_data(self):
+        self.data = {}
+        response, content_data = self.request(self.owner_token)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_first_invalid_data(self):
+        self.data = [
+            {
+                "repository": str(self.repository.uuid),
+                "text": None,
+                "intent": None,
+                "language": None,
+                "entities": [{"label": "yes", "entity": "_yes", "start": 0, "end": 0}],
+                "repository_version": self.repository.current_version().repository_version.pk,
+            },
+            {
+                "repository": str(self.repository.uuid),
+                "text": "yes",
+                "intent": "affirmative",
+                "language": "en",
+                "entities": [{"label": "yes", "entity": "_yes", "start": 0, "end": 3}],
+                "repository_version": self.repository.current_version().repository_version.pk,
+            },
+        ]
+        response, content_data = self.request(self.owner_token)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_second_invalid_data(self):
+        self.data = [
+            {
+                "repository": str(self.repository.uuid),
+                "text": "yes",
+                "intent": "affirmative",
+                "language": "en",
+                "entities": [{"label": "yes", "entity": "_yes", "start": 0, "end": 3}],
+                "repository_version": self.repository.current_version().repository_version.pk,
+            },
+            {
+                "repository": str(self.repository.uuid),
+                "text": None,
+                "intent": None,
+                "language": None,
+                "entities": [{"label": "yes", "entity": "_yes", "start": 0, "end": 0}],
+                "repository_version": self.repository.current_version().repository_version.pk,
+            },
+        ]
+        response, content_data = self.request(self.owner_token)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_string_data(self):
+        self.data = '''[{
+                "repository": str(self.repository.uuid),
+                "text": "yes",
+                "intent": "affirmative",
+                "language": "en",
+                "entities": [{"label": "yes", "entity": "_yes", "start": 0, "end": 3}],
+                "repository_version": self.repository.current_version().repository_version.pk,
+            },
+            {
+                "repository": str(self.repository.uuid),
+                "text": None,
+                "intent": None,
+                "language": None,
+                "entities": [{"label": "yes", "entity": "_yes", "start": 0, "end": 0}],
+                "repository_version": self.repository.current_version().repository_version.pk,
+            }]'''
+
+        response, content_data = self.request(self.owner_token)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_create_one_into_array_data(self):
+        self.data = [
+            {
+                "repository": str(self.repository.uuid),
+                "text": "alright",
+                "intent": "affirmative",
+                "language": "en",
+                "entities": [{"label": "yes", "entity": "_yes", "start": 0, "end": 3}],
+                "repository_version": self.repository.current_version().repository_version.pk,
+            }
+        ]
+        response, content_data = self.request(self.owner_token)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_create_one_without_array_data(self):
+        self.data = {
+            "repository": str(self.repository.uuid),
+            "text": "alright",
+            "intent": "affirmative",
+            "language": "en",
+            "entities": [{"label": "yes", "entity": "_yes", "start": 0, "end": 3}],
+            "repository_version": self.repository.current_version().repository_version.pk,
+        }
+        response, content_data = self.request(self.owner_token)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_permission_denied(self):
