@@ -1016,3 +1016,16 @@ class RepositoryIntentViewSet(
         suggestions = task.result
 
         return Response({"suggestions": suggestions})
+
+
+class RepositoryExamplesBulkViewSet(mixins.CreateModelMixin, GenericViewSet):
+    """Allows bulk creation of Examples inside an array."""
+
+    queryset = RepositoryExample.objects
+    serializer_class = RepositoryExampleSerializer
+
+    def get_serializer(self, *args, **kwargs):
+        if isinstance(kwargs.get('data', {}), list):
+            kwargs['many'] = True
+
+        return super().get_serializer(*args, **kwargs)
