@@ -483,39 +483,29 @@ def migrate_repository(repository_version, auth_token, language, name_classifier
 
 
 @app.task(name="intent_suggestions")
-def intent_suggestions(intent_id, authorization_token):  # pragma: no cover
+def intent_suggestions(intent_id, language, authorization_token):  # pragma: no cover
     intent = RepositoryIntent.objects.get(pk=intent_id)
-    language = intent.repository_version.version_languages.first().language
+    if not language:
+        language = intent.repository_version.repository.language
+
     try:
         dataset = {}
         if intent:
             if language in settings.SUGGESTION_LANGUAGES:
-                if cache.get(intent.text):
-                    dataset[intent.text] = (
-                        cache.get(intent.text).strip("][").replace("'", "").split(", ")
-                    )
-                else:
-                    data = {
-                        "intent": intent.text,
-                        "language": language,
-                        "n_sentences_to_generate": settings.N_SENTENCES_TO_GENERATE,
-                        "repository_version": intent.repository_version_id
-                    }
-                    suggestions = request_nlp(
-                        authorization_token, None, "intent_sentence_suggestion", data
-                    )
-                    random.shuffle(suggestions["suggested_sentences"])
-                    if suggestions["suggested_sentences"]:
-                        dataset[intent.text] = suggestions["suggested_sentences"][
-                            : settings.N_SENTENCES_TO_GENERATE
-                        ]
-                        cache.set(
-                            intent.text,
-                            str(dataset[intent.text]),
-                            timeout=settings.REDIS_TIMEOUT,
-                        )
-                    else:
-                        dataset[intent.text] = False
+                data = {
+                    "intent": intent.text,
+                    "language": language,
+                    "n_sentences_to_generate": settings.N_SENTENCES_TO_GENERATE,
+                    "repository_version": intent.repository_version_id
+                }
+                suggestions = request_nlp(
+                    authorization_token, None, "intent_sentence_suggestion", data
+                )
+                random.shuffle(suggestions["suggested_sentences"])
+                if suggestions["suggested_sentences"]:
+                    dataset[intent.text] = suggestions["suggested_sentences"][
+                        : settings.N_SENTENCES_TO_GENERATE
+                    ]
             else:
                 dataset["language"] = False
         else:
