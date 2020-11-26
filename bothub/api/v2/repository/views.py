@@ -1025,6 +1025,7 @@ class RepositoryIntentViewSet(
         """
         self.filter_class = None
         intent = self.get_object()
+        language = self.request.query_params.get("language")
 
         authorization = intent.repository_version.repository.get_user_authorization(
             request.user
@@ -1034,9 +1035,22 @@ class RepositoryIntentViewSet(
             raise PermissionDenied()
 
         task = celery_app.send_task(
-            name="intent_suggestions", args=[intent.pk, str(authorization.pk)]
+            name="intent_suggestions", args=[intent.pk, language, str(authorization.pk)]
         )
         task.wait()
         suggestions = task.result
 
         return Response({"suggestions": suggestions})
+
+
+class RepositoryExamplesBulkViewSet(mixins.CreateModelMixin, GenericViewSet):
+    """Allows bulk creation of Examples inside an array."""
+
+    queryset = RepositoryExample.objects
+    serializer_class = RepositoryExampleSerializer
+
+    def get_serializer(self, *args, **kwargs):
+        if isinstance(kwargs.get('data', {}), list):
+            kwargs['many'] = True
+
+        return super().get_serializer(*args, **kwargs)
