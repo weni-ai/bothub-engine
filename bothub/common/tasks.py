@@ -7,7 +7,6 @@ from django.conf import settings
 from django.db import transaction
 from django.db.models import Q, Count
 from django.utils import timezone
-from django.core.cache import cache
 
 from bothub import translate
 from bothub.celery import app
