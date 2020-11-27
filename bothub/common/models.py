@@ -1194,9 +1194,11 @@ class RepositoryQueueTask(models.Model):
     ]
     TYPE_PROCESSING_TRAINING = 0
     TYPE_PROCESSING_AUTO_TRANSLATE = 1
+    TYPE_PROCESSING_AUTO_EVALUATE = 1
     TYPE_PROCESSING_CHOICES = [
         (TYPE_PROCESSING_TRAINING, _("NLP Tranining")),
         (TYPE_PROCESSING_AUTO_TRANSLATE, _("Repository Auto Translation")),
+        (TYPE_PROCESSING_AUTO_EVALUATE, _("Repository Auto Evaluate")),
     ]
 
     repositoryversionlanguage = models.ForeignKey(
@@ -2076,6 +2078,8 @@ class RepositoryEvaluateResult(models.Model):
     )
 
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
+
+    automatic = models.BooleanField(_("automatic evaluate"), default=False)
 
     def save(self, *args, **kwargs):
         repository = self.repository_version_language.repository_version.repository
