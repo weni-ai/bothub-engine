@@ -13,7 +13,7 @@ RUN pip install pipenv==2018.11.26
 RUN pip install gunicorn==19.9.0
 RUN pip install gevent==1.4.0
 RUN pip install psycopg2-binary
-RUN apt-get install libjpeg-dev libgpgme-dev linux-libc-dev musl-dev libffi-dev libssl-dev
+RUN apt-get install -y libjpeg-dev libgpgme-dev linux-libc-dev musl-dev libffi-dev libssl-dev
 ENV LIBRARY_PATH=/lib:/usr/lib
 
 COPY Pipfile Pipfile
