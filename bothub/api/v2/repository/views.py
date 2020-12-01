@@ -431,9 +431,9 @@ class RepositoryViewSet(
         lookup_fields=["uuid"],
         serializer_class=EvaluateSerializer,
     )
-    def auto_evaluate(self, request, **kwargs):  # pragma: no cover
+    def evaluate_crossvalidation(self, request, **kwargs):  # pragma: no cover
         """
-        Automatic evaluate repository using Bothub NLP service
+        Cross validation evaluate repository using Bothub NLP service
         """
         repository = self.get_object()
         user_authorization = repository.get_user_authorization(request.user)
@@ -443,7 +443,7 @@ class RepositoryViewSet(
         serializer.is_valid(raise_exception=True)
 
         task = celery_app.send_task(
-            name="auto_evaluate", args=[serializer.data, str(user_authorization)]
+            name="evaluate_crossvalidation", args=[serializer.data, str(user_authorization)]
         )
         task.wait()
         return Response(task.result)

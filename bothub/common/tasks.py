@@ -517,8 +517,8 @@ def intent_suggestions(intent_id, language, authorization_token):  # pragma: no 
         return False
 
 
-@app.task(name="auto_evaluate")
-def auto_evaluate(data, authorization_token):  # pragma: no cover
+@app.task(name="evaluate_crossvalidation")
+def evaluate_crossvalidation(data, authorization_token):  # pragma: no cover
     try:
         if data:
             request_data = {
