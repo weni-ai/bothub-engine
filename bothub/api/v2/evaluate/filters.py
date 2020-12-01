@@ -104,10 +104,10 @@ class EvaluateResultsFilter(filters.FilterSet):
         help_text=_("Filter for examples with version id."),
     )
 
-    automatic = filters.BooleanFilter(
-        field_name="automatic",
-        method="filter_repository_automatic",
-        help_text=_("Filter for repository automatic results."),
+    cross_validation = filters.BooleanFilter(
+        field_name="cross_validation",
+        method="filter_repository_cross_validation",
+        help_text=_("Filter for repository cross_validation results."),
     )
 
     def filter_repository_uuid(self, queryset, name, value):
