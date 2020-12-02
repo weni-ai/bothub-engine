@@ -32,6 +32,7 @@ from bothub.common.models import (
     Organization,
     OrganizationAuthorization,
     RepositoryIntent,
+    RepositoryVersion,
 )
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RepositoryCategory
@@ -40,6 +41,7 @@ from bothub.common.models import RepositoryExampleEntity
 from bothub.common.models import RepositoryTranslatedExample
 from bothub.common.models import RepositoryVote
 from bothub.common.models import RequestRepositoryAuthorization
+from bothub.common.tasks import evaluate_crossvalidation
 
 
 def get_valid_mockups(categories):
@@ -2307,3 +2309,60 @@ class RepositoryExamplesBulkTestCase(TestCase):
     def test_permission_denied(self):
         response = self.request(self.user_token)
         self.assertEqual(response[0].status_code, status.HTTP_403_FORBIDDEN)
+
+
+class EvaluateCrossValidationTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.owner, self.owner_token = create_user_and_token("owner")
+        self.user, self.user_token = create_user_and_token()
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name="Testing",
+            slug="test",
+            language=languages.LANGUAGE_EN,
+        )
+
+        self.repository_version = RepositoryVersion.objects.create(
+            repository=self.repository, name="test"
+        )
+
+    def request(self, repository, data={}, token=None):
+        authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
+
+        request = self.factory.post(
+            "/v2/repository/repository-details/{}/evaluate_crossvalidation/".format(str(repository.uuid)),
+            data,
+            **authorization_header,
+        )
+
+        response = RepositoryViewSet.as_view({"post": "evaluate_crossvalidation"})(
+            request, uuid=repository.uuid
+        )
+
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data)
+
+    def test_permission_denied(self):
+        response, content_data = self.request(self.repository, {}, self.user_token)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_invalid_data(self):
+        data = {
+            "repository_version": self.repository_version.pk
+        }
+        response, content_data = self.request(self.repository, data, self.owner_token)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_cross_validation_task(self):
+        data = {
+            "repository_version": self.repository_version.pk,
+            "language": self.repository.language
+        }
+        auth = self.repository.get_user_authorization(self.owner)
+        result = evaluate_crossvalidation(data, str(auth))
+
+        self.assertEquals(result, {'detail': 'This repository has never been trained'})
