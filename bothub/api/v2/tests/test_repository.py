@@ -41,7 +41,6 @@ from bothub.common.models import RepositoryExampleEntity
 from bothub.common.models import RepositoryTranslatedExample
 from bothub.common.models import RepositoryVote
 from bothub.common.models import RequestRepositoryAuthorization
-from bothub.common.tasks import evaluate_crossvalidation
 
 
 def get_valid_mockups(categories):
