@@ -2356,13 +2356,3 @@ class EvaluateCrossValidationTestCase(TestCase):
         }
         response, content_data = self.request(self.repository, data, self.owner_token)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-    def test_cross_validation_task(self):
-        data = {
-            "repository_version": self.repository_version.pk,
-            "language": self.repository.language
-        }
-        auth = self.repository.get_user_authorization(self.owner)
-        result = evaluate_crossvalidation(data, str(auth))
-
-        self.assertEquals(result, {'detail': 'This repository has never been trained'})
