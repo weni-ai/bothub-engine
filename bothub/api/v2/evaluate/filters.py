@@ -137,7 +137,7 @@ class EvaluateResultsFilter(filters.FilterSet):
     def filter_repository_version(self, queryset, name, value):
         return queryset
 
-    def filter_repository_automatic(self, queryset, name, value):
+    def filter_repository_cross_validation(self, queryset, name, value):
         return queryset
 
 
@@ -166,10 +166,10 @@ class EvaluateResultFilter(filters.FilterSet):
         help_text=_("Filter for examples with version id."),
     )
 
-    automatic = filters.BooleanFilter(
-        field_name="automatic",
-        method="filter_repository_automatic",
-        help_text=_("Filter for repository automatic results."),
+    cross_validation = filters.BooleanFilter(
+        field_name="cross_validation",
+        method="filter_repository_cross_validation",
+        help_text=_("Filter for repository cross validation results."),
     )
 
     def filter_evaluate_text(self, queryset, name, value):
@@ -194,5 +194,5 @@ class EvaluateResultFilter(filters.FilterSet):
     def filter_repository_version(self, queryset, name, value):
         return queryset
 
-    def filter_repository_automatic(self, queryset, name, value):
+    def filter_repository_cross_validation(self, queryset, name, value):
         return queryset
