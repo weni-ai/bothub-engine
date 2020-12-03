@@ -427,7 +427,7 @@ class RepositoryViewSet(
     @action(
         detail=True,
         methods=["POST"],
-        url_name="repository-auto-evaluate",
+        url_name="repository-evaluate-crossvalidation",
         lookup_fields=["uuid"],
         serializer_class=EvaluateSerializer,
     )
