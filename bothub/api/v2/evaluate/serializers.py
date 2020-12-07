@@ -117,7 +117,7 @@ class RepositoryEvaluateSerializer(serializers.ModelSerializer):
 class RepositoryEvaluateResultVersionsSerializer(serializers.ModelSerializer):
     class Meta:
         model = RepositoryEvaluateResult
-        fields = ["id", "language", "created_at", "version", "cross_validation"]
+        fields = ["id", "language", "created_at", "version"]
         ref_name = None
 
     language = serializers.SerializerMethodField()
@@ -190,6 +190,7 @@ class RepositoryEvaluateResultSerializer(serializers.ModelSerializer):
             "entities_list",
             "intent_results",
             "entity_results",
+            "cross_validation",
         ]
         ref_name = None
 

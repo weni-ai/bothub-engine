@@ -195,4 +195,4 @@ class EvaluateResultFilter(filters.FilterSet):
         return queryset
 
     def filter_repository_cross_validation(self, queryset, name, value):
-        return queryset
+        return queryset.filter(cross_validation=value)

@@ -775,3 +775,23 @@ class ListEvaluateResultTestFilterCase(TestCase):
         )
         self.assertEqual(len(content_data["log"]["results"]), 1)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_crossvalidation_false_filter(self):
+        response, content_data = self.request(
+            self.owner_token,
+            "?repository_uuid={}&cross_validation=False".format(
+                self.repository.uuid
+            ),
+        )
+        self.assertEqual(content_data["cross_validation"], False)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_crossvalidation_true_filter(self):
+        response, content_data = self.request(
+            self.owner_token,
+            "?repository_uuid={}&cross_validation=True".format(
+                self.repository.uuid
+            ),
+        )
+        self.assertEqual(content_data, {'detail': 'Not found.'})
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
