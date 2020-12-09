@@ -787,11 +787,24 @@ class ListEvaluateResultTestFilterCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_crossvalidation_true_filter(self):
+        intent_results = RepositoryEvaluateResultScore.objects.create(
+            f1_score=0.976, precision=0.978, accuracy=0.976
+        )
+        entity_results = RepositoryEvaluateResultScore.objects.create(
+            f1_score=0.977, precision=0.978, accuracy=0.978
+        )
+        self.evaluate_result = RepositoryEvaluateResult.objects.create(
+            repository_version_language=self.repository.current_version(),
+            intent_results=intent_results,
+            entity_results=entity_results,
+            cross_validation=True,
+        )
         response, content_data = self.request(
             self.owner_token,
             "?repository_uuid={}&cross_validation=True".format(
                 self.repository.uuid
             ),
         )
-        self.assertEqual(content_data, {'detail': 'Not found.'})
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(content_data["cross_validation"], True)
+        self.assertEqual(len(content_data["log"]["results"]), 0)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
