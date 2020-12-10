@@ -466,6 +466,13 @@ class RepositoryViewSet(
                 "users who voted for this repository",
                 type=openapi.TYPE_STRING,
             ),
+            openapi.Parameter(
+                "cross_validation",
+                openapi.IN_QUERY,
+                description="Cross validation, returns a list of "
+                "results generated with cross validation method",
+                type=openapi.TYPE_BOOLEAN,
+            ),
         ]
     ),
 )
