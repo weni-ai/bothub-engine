@@ -801,8 +801,9 @@ class ListEvaluateResultTestFilterCase(TestCase):
         )
         response, content_data = self.request(
             self.owner_token,
-            "?repository_uuid={}&cross_validation=True".format(
-                self.repository.uuid
+            "?repository_uuid={}&cross_validation={}".format(
+                self.repository.uuid,
+                True
             ),
         )
         self.assertEqual(content_data["cross_validation"], True)
