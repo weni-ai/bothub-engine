@@ -386,7 +386,6 @@ class RepositoryAuthorizationEvaluateViewSet(mixins.RetrieveModelMixin, GenericV
             matrix_chart=request.data.get("matrix_chart"),
             confidence_chart=request.data.get("confidence_chart"),
             log=request.data.get("log"),
-            cross_validation=request.data.get("cross_validation")
         )
 
         return Response(

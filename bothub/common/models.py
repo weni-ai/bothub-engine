@@ -544,12 +544,7 @@ class Repository(models.Model):
                         if self.nlp_server
                         else settings.BOTHUB_NLP_BASE_URL
                     ),
-                    data={
-                        "language": data.get("language"),
-                        "cross_validation": data.get("cross_validation")
-                        if data.get("cross_validation")
-                        else False,  # pragma: no cover
-                    },
+                    data={"language": data.get("language")},
                     headers={
                         "Authorization": "Bearer {}".format(user_authorization.uuid)
                     },
@@ -2076,8 +2071,6 @@ class RepositoryEvaluateResult(models.Model):
     )
 
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
-
-    cross_validation = models.BooleanField(_("cross validation"), default=False)
 
     def save(self, *args, **kwargs):
         repository = self.repository_version_language.repository_version.repository

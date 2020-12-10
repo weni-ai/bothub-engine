@@ -104,12 +104,6 @@ class EvaluateResultsFilter(filters.FilterSet):
         help_text=_("Filter for examples with version id."),
     )
 
-    cross_validation = filters.BooleanFilter(
-        field_name="cross_validation",
-        method="filter_repository_cross_validation",
-        help_text=_("Filter for repository cross_validation results."),
-    )
-
     def filter_repository_uuid(self, queryset, name, value):
         request = self.request
         try:
@@ -137,9 +131,6 @@ class EvaluateResultsFilter(filters.FilterSet):
     def filter_repository_version(self, queryset, name, value):
         return queryset
 
-    def filter_repository_cross_validation(self, queryset, name, value):
-        return queryset.filter(cross_validation=value)
-
 
 class EvaluateResultFilter(filters.FilterSet):
     class Meta:
@@ -166,12 +157,6 @@ class EvaluateResultFilter(filters.FilterSet):
         help_text=_("Filter for examples with version id."),
     )
 
-    cross_validation = filters.BooleanFilter(
-        field_name="cross_validation",
-        method="filter_repository_cross_validation",
-        help_text=_("Filter for repository cross validation results."),
-    )
-
     def filter_evaluate_text(self, queryset, name, value):
         return queryset.filter(log__icontains=value)
 
@@ -193,6 +178,3 @@ class EvaluateResultFilter(filters.FilterSet):
 
     def filter_repository_version(self, queryset, name, value):
         return queryset
-
-    def filter_repository_cross_validation(self, queryset, name, value):
-        return queryset.filter(cross_validation=value)
