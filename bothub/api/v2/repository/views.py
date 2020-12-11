@@ -1012,6 +1012,19 @@ class RepositoryIntentViewSet(
         self.filter_class = None
         return super().update(request, *args, **kwargs)
 
+    @method_decorator(
+        decorator=swagger_auto_schema(
+            manual_parameters=[
+                openapi.Parameter(
+                    "language",
+                    openapi.IN_QUERY,
+                    description="Repository version language to suggest, "
+                    "if none, Repository language will be used",
+                    type=openapi.TYPE_STRING,
+                ),
+            ]
+        ),
+    )
     @action(
         detail=True,
         methods=["GET"],
