@@ -444,3 +444,17 @@ ELASTIC_APM = {
         "elasticapm.processors.sanitize_http_request_body",
     ),
 }
+REST_FRAMEWORK["DEFAULT_AUTHENTICATION_CLASSES"].append("mozilla_django_oidc.contrib.drf.OIDCAuthentication")
+INSTALLED_APPS = (*INSTALLED_APPS, "mozilla_django_oidc",)
+LOGGING["loggers"]["mozilla_django_oidc"] = {"level": "DEBUG", "handlers": ["console"], "propagate": False}
+LOGGING["loggers"]["connect_django_oidc"] = {"level": "DEBUG", "handlers": ["console"], "propagate": False}
+# mozilla-django-oidc
+OIDC_RP_CLIENT_ID = "bothub"
+OIDC_RP_CLIENT_SECRET = "719f3249-9921-4e44-b9eb-34579fc06ce5"
+OIDC_OP_AUTHORIZATION_ENDPOINT = "http://keycloak-connect.push.al/auth/realms/ilhasoft/protocol/openid-connect/auth"
+OIDC_OP_TOKEN_ENDPOINT = "http://keycloak-connect.push.al/auth/realms/ilhasoft/protocol/openid-connect/token"
+OIDC_OP_USER_ENDPOINT = "http://keycloak-connect.push.al/auth/realms/ilhasoft/protocol/openid-connect/userinfo"
+OIDC_OP_JWKS_ENDPOINT = "http://keycloak-connect.push.al/auth/realms/ilhasoft/protocol/openid-connect/certs"
+OIDC_RP_SIGN_ALGO = "RS256"
+OIDC_OP_LOGOUT_ENDPOINT = "http://keycloak-connect.push.al/auth/realms/ilhasoft/protocol/openid-connect/logout"
+OIDC_DRF_AUTH_BACKEND = "bothub.authentication.oidc_authentication.ConnectOIDCAuthenticationBackend"
