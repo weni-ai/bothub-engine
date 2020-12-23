@@ -150,7 +150,7 @@ You can set environment variables in your OS, write on ```.env``` file or pass v
 | OIDC_OP_USER_ENDPOINT | ```string``` | ```None``` | URL of your OpenID Connect provider userinfo endpoint.
 | OIDC_OP_JWKS_ENDPOINT | ```string``` | ```None``` | URL of your OpenID Connect provider JWKS endpoint.
 | OIDC_RP_SIGN_ALGO | ```string``` | ```RS256``` | Sets the algorithm the IdP uses to sign ID tokens.
-| OIDC_DRF_AUTH_BACKEND | ```string``` | ```bothub.authentication.oidc_authentication.WeniOIDCAuthenticationBackend``` | Define the authentication middleware for the django rest framework.
+| OIDC_DRF_AUTH_BACKEND | ```string``` | ```bothub.authentication.authorization.WeniOIDCAuthenticationBackend``` | Define the authentication middleware for the django rest framework.
 
 
 ## Roadmap

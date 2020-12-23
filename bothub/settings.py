@@ -458,7 +458,7 @@ if OIDC_ENABLED:
         "handlers": ["console"],
         "propagate": False,
     }
-    LOGGING["loggers"]["connect_django_oidc"] = {
+    LOGGING["loggers"]["weni_django_oidc"] = {
         "level": "DEBUG",
         "handlers": ["console"],
         "propagate": False,
@@ -473,5 +473,5 @@ if OIDC_ENABLED:
     OIDC_RP_SIGN_ALGO = env.str("OIDC_RP_SIGN_ALGO", default="RS256")
     OIDC_DRF_AUTH_BACKEND = env.str(
         "OIDC_DRF_AUTH_BACKEND",
-        default="bothub.authentication.oidc_authentication.ConnectOIDCAuthenticationBackend",
+        default="bothub.authentication.authorization.WeniOIDCAuthenticationBackend",
     )
