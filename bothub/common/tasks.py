@@ -478,7 +478,7 @@ def migrate_repository(repository_version, auth_token, language, name_classifier
     instance.repository_version = version
     instance.auth_token = auth_token
     instance.language = language
-    return instance.start_migrate()
+    return instance.migrate()
 
 
 @app.task(name="intent_suggestions")

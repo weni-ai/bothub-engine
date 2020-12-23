@@ -6,8 +6,8 @@ from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django.utils.translation import ugettext_lazy as _
 from django_filters.rest_framework import DjangoFilterBackend
-from drf_yasg import openapi
-from drf_yasg.utils import swagger_auto_schema
+from drf_yasg2 import openapi
+from drf_yasg2.utils import swagger_auto_schema
 from rest_framework import mixins, parsers, permissions, status
 from rest_framework.decorators import action
 from rest_framework.exceptions import (
@@ -1013,6 +1013,19 @@ class RepositoryIntentViewSet(
         self.filter_class = None
         return super().update(request, *args, **kwargs)
 
+    @method_decorator(
+        decorator=swagger_auto_schema(
+            manual_parameters=[
+                openapi.Parameter(
+                    "language",
+                    openapi.IN_QUERY,
+                    description="Repository version language to suggest, "
+                    "if none, Repository language will be used",
+                    type=openapi.TYPE_STRING,
+                ),
+            ]
+        ),
+    )
     @action(
         detail=True,
         methods=["GET"],

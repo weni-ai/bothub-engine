@@ -4,8 +4,8 @@ import openpyxl
 from django.db.models import Count, Q
 from django.http import HttpResponse
 from django.utils.decorators import method_decorator
-from drf_yasg import openapi
-from drf_yasg.utils import swagger_auto_schema
+from drf_yasg2 import openapi
+from drf_yasg2.utils import swagger_auto_schema
 from openpyxl.drawing.image import Image
 from openpyxl.writer.excel import save_virtual_workbook
 from rest_framework import mixins

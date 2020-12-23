@@ -3,8 +3,8 @@ from django.urls import path, include
 from django.conf import settings
 
 from rest_framework import permissions
-from drf_yasg.views import get_schema_view
-from drf_yasg import openapi
+from drf_yasg2.views import get_schema_view
+from drf_yasg2 import openapi
 
 from bothub.api.v2 import urls as bothub_api_v2_urls
 from bothub.api.v2.swagger import CustomOpenAPISchemaGenerator
@@ -28,7 +28,7 @@ schema_view = get_schema_view(
 )
 
 urlpatterns = [
-    path("", schema_view.with_ui("swagger")),
+    path("", schema_view.with_ui("redoc")),
     path("v2/", include(bothub_api_v2_urls)),
     path("admin/", admin.site.urls),
     path("ping/", ping, name="ping"),
