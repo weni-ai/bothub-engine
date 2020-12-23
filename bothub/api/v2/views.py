@@ -1,9 +1,10 @@
 import json
 
-from django.http import HttpResponse, JsonResponse, Http404
-from django.shortcuts import redirect
+from django.conf import settings
+from django.http import JsonResponse, Http404, HttpResponse
 from django.shortcuts import get_object_or_404
-from django.views.decorators.csrf import csrf_protect, csrf_exempt
+from django.shortcuts import redirect
+from django.views.decorators.csrf import csrf_exempt
 
 from bothub.authentication.models import User
 from bothub.common.models import Repository
@@ -21,23 +22,34 @@ def repository_shortcut(self, **kwargs):  # pragma: no cover
 
 @csrf_exempt
 def check_user_legacy(request, email: str):  # pragma: no cover
+    try:
+        if settings.SECRET_KEY_CHECK_LEGACY_USER:
+            prefix, token = request.headers.get("Authorization").split()
+            if prefix.lower() != "bearer" or token != settings.SECRET_KEY_CHECK_LEGACY_USER:
+                return HttpResponse(status=404)
+    except AttributeError:
+        return HttpResponse(status=404)
+
     if request.method == "GET":
         obj = get_object_or_404(User, email=email)
-        return JsonResponse({
-            "id": obj.pk,
-            "username": obj.nickname,
-            "email": obj.email,
-            "firstName": obj.name,
-            "lastName": "",
-            "enabled": obj.is_active,
-            "emailVerified": obj.is_active,
-            "attributes": {},
-            "roles": [],
-            "groups": []
-        })
+        return JsonResponse(
+            {
+                "id": obj.pk,
+                "username": obj.nickname,
+                "email": obj.email,
+                "firstName": obj.name,
+                "lastName": "",
+                "enabled": obj.is_active,
+                "emailVerified": obj.is_active,
+                "attributes": {},
+                "roles": [],
+                "groups": [],
+            }
+        )
     elif request.method == "POST":
         obj = get_object_or_404(User, nickname=email)
-        body_unicode = request.body.decode('utf-8')
+        body_unicode = request.body.decode("utf-8")
         body = json.loads(body_unicode)
-        obj.check_password(raw_password=body.get('password'))
+        obj.check_password(raw_password=body.get("password"))
         return JsonResponse({}) if obj else Http404()
+    return HttpResponse(status=404)

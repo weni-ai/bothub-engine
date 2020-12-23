@@ -779,9 +779,7 @@ class ListEvaluateResultTestFilterCase(TestCase):
     def test_crossvalidation_false_filter(self):
         response, content_data = self.request(
             self.owner_token,
-            "?repository_uuid={}&cross_validation=False".format(
-                self.repository.uuid
-            ),
+            "?repository_uuid={}&cross_validation=False".format(self.repository.uuid),
         )
         self.assertEqual(content_data["cross_validation"], False)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -802,8 +800,7 @@ class ListEvaluateResultTestFilterCase(TestCase):
         response, content_data = self.request(
             self.owner_token,
             "?repository_uuid={}&cross_validation={}".format(
-                self.repository.uuid,
-                True
+                self.repository.uuid, True
             ),
         )
         self.assertEqual(content_data["cross_validation"], True)

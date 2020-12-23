@@ -15,6 +15,5 @@ urlpatterns = [
         views.check_user_legacy,
         name="check-user-legacy",
     ),
-
     path("", include(router.urls)),
 ]

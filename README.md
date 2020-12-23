@@ -141,6 +141,17 @@ You can set environment variables in your OS, write on ```.env``` file or pass v
 | N_WORDS_TO_GENERATE |  ```int``` | ```4``` | Specify the number of suggestions that will be returned for word suggestions 
 | N_SENTENCES_TO_GENERATE |  ```int``` | ```10``` | Specify the number of suggestions that will be returned for intent suggestions
 | REDIS_TIMEOUT |  ```int``` | ```3600``` | Specify a systemwide Redis keys life time
+| SECRET_KEY_CHECK_LEGACY_USER | ```string``` | ```None``` | Enables and specifies the token to use for the legacy user endpoint.
+| OIDC_ENABLED | ```bool``` | ```False``` | Enable using OIDC.
+| OIDC_RP_CLIENT_ID | ```string``` | ```None``` | OpenID Connect client ID provided by your OP.
+| OIDC_RP_CLIENT_SECRET | ```string``` | ```None``` | OpenID Connect client secret provided by your OP.
+| OIDC_OP_AUTHORIZATION_ENDPOINT | ```string``` | ```None``` | URL of your OpenID Connect provider authorization endpoint.
+| OIDC_OP_TOKEN_ENDPOINT | ```string``` | ```None``` | URL of your OpenID Connect provider token endpoint.
+| OIDC_OP_USER_ENDPOINT | ```string``` | ```None``` | URL of your OpenID Connect provider userinfo endpoint.
+| OIDC_OP_JWKS_ENDPOINT | ```string``` | ```None``` | URL of your OpenID Connect provider JWKS endpoint.
+| OIDC_RP_SIGN_ALGO | ```string``` | ```RS256``` | Sets the algorithm the IdP uses to sign ID tokens.
+| OIDC_DRF_AUTH_BACKEND | ```string``` | ```bothub.authentication.oidc_authentication.WeniOIDCAuthenticationBackend``` | Define the authentication middleware for the django rest framework.
+
 
 ## Roadmap
 

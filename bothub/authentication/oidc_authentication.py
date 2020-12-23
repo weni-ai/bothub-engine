@@ -6,11 +6,10 @@ LOGGER = logging.getLogger("connect_django_oidc")
 
 
 class ConnectOIDCAuthenticationBackend(OIDCAuthenticationBackend):
-
     def verify_claims(self, claims):
         # validação de permissão
         verified = super(ConnectOIDCAuthenticationBackend, self).verify_claims(claims)
-        is_admin = "admin" in claims.get("roles", [])
+        # is_admin = "admin" in claims.get("roles", [])
         return (
             verified
         )  # and is_admin # not checking for user roles from keycloak at this time

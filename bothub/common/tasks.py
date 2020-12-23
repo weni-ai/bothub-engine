@@ -495,7 +495,7 @@ def intent_suggestions(intent_id, language, authorization_token):  # pragma: no 
                     "intent": intent.text,
                     "language": language,
                     "n_sentences_to_generate": settings.N_SENTENCES_TO_GENERATE,
-                    "repository_version": intent.repository_version_id
+                    "repository_version": intent.repository_version_id,
                 }
                 suggestions = request_nlp(
                     authorization_token, None, "intent_sentence_suggestion", data
@@ -524,11 +524,9 @@ def evaluate_crossvalidation(data, authorization_token):  # pragma: no cover
             request_data = {
                 "language": data.get("language"),
                 "repository_version": data.get("repository_version"),
-                "cross_validation": True
+                "cross_validation": True,
             }
-        r = request_nlp(
-            authorization_token, None, "evaluate", request_data
-        )
+        r = request_nlp(authorization_token, None, "evaluate", request_data)
         return r
     except requests.ConnectionError:
         return False

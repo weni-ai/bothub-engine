@@ -443,7 +443,8 @@ class RepositoryViewSet(
         serializer.is_valid(raise_exception=True)
 
         task = celery_app.send_task(  # pragma: no cover
-            name="evaluate_crossvalidation", args=[serializer.data, str(user_authorization)]
+            name="evaluate_crossvalidation",
+            args=[serializer.data, str(user_authorization)],
         )
         task.wait()  # pragma: no cover
         return Response(task.result)  # pragma: nocover
@@ -1050,7 +1051,7 @@ class RepositoryExamplesBulkViewSet(mixins.CreateModelMixin, GenericViewSet):
     serializer_class = RepositoryExampleSerializer
 
     def get_serializer(self, *args, **kwargs):
-        if isinstance(kwargs.get('data', {}), list):
-            kwargs['many'] = True
+        if isinstance(kwargs.get("data", {}), list):
+            kwargs["many"] = True
 
         return super().get_serializer(*args, **kwargs)

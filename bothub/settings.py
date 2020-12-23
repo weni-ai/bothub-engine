@@ -71,6 +71,8 @@ env = environ.Env(
     APM_SERVER_URL=(str, ""),
     APM_SERVICE_ENVIRONMENT=(str, "production"),
     DJANGO_REDIS_URL=(str, "redis://localhost:6379/1"),
+    OIDC_ENABLED=(bool, False),
+    SECRET_KEY_CHECK_LEGACY_USER=(str, None),
 )
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -416,15 +418,12 @@ CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
         "LOCATION": env("DJANGO_REDIS_URL"),
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient",
-        }
+        "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient"},
     }
 }
 
 # Set Redis timeout
 REDIS_TIMEOUT = env.int("REDIS_TIMEOUT")
-N_WORDS_TO_GENERATE = env.str("N_WORDS_TO_GENERATE")
 
 # Elastic Observability APM
 ELASTIC_APM = {
@@ -444,17 +443,35 @@ ELASTIC_APM = {
         "elasticapm.processors.sanitize_http_request_body",
     ),
 }
-REST_FRAMEWORK["DEFAULT_AUTHENTICATION_CLASSES"].append("mozilla_django_oidc.contrib.drf.OIDCAuthentication")
-INSTALLED_APPS = (*INSTALLED_APPS, "mozilla_django_oidc",)
-LOGGING["loggers"]["mozilla_django_oidc"] = {"level": "DEBUG", "handlers": ["console"], "propagate": False}
-LOGGING["loggers"]["connect_django_oidc"] = {"level": "DEBUG", "handlers": ["console"], "propagate": False}
+
+SECRET_KEY_CHECK_LEGACY_USER = env.str("SECRET_KEY_CHECK_LEGACY_USER")
+
 # mozilla-django-oidc
-OIDC_RP_CLIENT_ID = "bothub"
-OIDC_RP_CLIENT_SECRET = "719f3249-9921-4e44-b9eb-34579fc06ce5"
-OIDC_OP_AUTHORIZATION_ENDPOINT = "http://keycloak-connect.push.al/auth/realms/ilhasoft/protocol/openid-connect/auth"
-OIDC_OP_TOKEN_ENDPOINT = "http://keycloak-connect.push.al/auth/realms/ilhasoft/protocol/openid-connect/token"
-OIDC_OP_USER_ENDPOINT = "http://keycloak-connect.push.al/auth/realms/ilhasoft/protocol/openid-connect/userinfo"
-OIDC_OP_JWKS_ENDPOINT = "http://keycloak-connect.push.al/auth/realms/ilhasoft/protocol/openid-connect/certs"
-OIDC_RP_SIGN_ALGO = "RS256"
-OIDC_OP_LOGOUT_ENDPOINT = "http://keycloak-connect.push.al/auth/realms/ilhasoft/protocol/openid-connect/logout"
-OIDC_DRF_AUTH_BACKEND = "bothub.authentication.oidc_authentication.ConnectOIDCAuthenticationBackend"
+OIDC_ENABLED = env.bool("OIDC_ENABLED")
+if OIDC_ENABLED:
+    REST_FRAMEWORK["DEFAULT_AUTHENTICATION_CLASSES"].append(
+        "mozilla_django_oidc.contrib.drf.OIDCAuthentication"
+    )
+    INSTALLED_APPS = (*INSTALLED_APPS, "mozilla_django_oidc")
+    LOGGING["loggers"]["mozilla_django_oidc"] = {
+        "level": "DEBUG",
+        "handlers": ["console"],
+        "propagate": False,
+    }
+    LOGGING["loggers"]["connect_django_oidc"] = {
+        "level": "DEBUG",
+        "handlers": ["console"],
+        "propagate": False,
+    }
+
+    OIDC_RP_CLIENT_ID = env.str("OIDC_RP_CLIENT_ID")
+    OIDC_RP_CLIENT_SECRET = env.str("OIDC_RP_CLIENT_SECRET")
+    OIDC_OP_AUTHORIZATION_ENDPOINT = env.str("OIDC_OP_AUTHORIZATION_ENDPOINT")
+    OIDC_OP_TOKEN_ENDPOINT = env.str("OIDC_OP_TOKEN_ENDPOINT")
+    OIDC_OP_USER_ENDPOINT = env.str("OIDC_OP_USER_ENDPOINT")
+    OIDC_OP_JWKS_ENDPOINT = env.str("OIDC_OP_JWKS_ENDPOINT")
+    OIDC_RP_SIGN_ALGO = env.str("OIDC_RP_SIGN_ALGO", default="RS256")
+    OIDC_DRF_AUTH_BACKEND = env.str(
+        "OIDC_DRF_AUTH_BACKEND",
+        default="bothub.authentication.oidc_authentication.ConnectOIDCAuthenticationBackend",
+    )
