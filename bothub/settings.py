@@ -71,6 +71,8 @@ env = environ.Env(
     APM_SERVER_URL=(str, ""),
     APM_SERVICE_ENVIRONMENT=(str, "production"),
     DJANGO_REDIS_URL=(str, "redis://localhost:6379/1"),
+    OIDC_ENABLED=(bool, False),
+    SECRET_KEY_CHECK_LEGACY_USER=(str, None),
 )
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -416,15 +418,12 @@ CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
         "LOCATION": env("DJANGO_REDIS_URL"),
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient",
-        }
+        "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient"},
     }
 }
 
 # Set Redis timeout
 REDIS_TIMEOUT = env.int("REDIS_TIMEOUT")
-N_WORDS_TO_GENERATE = env.str("N_WORDS_TO_GENERATE")
 
 # Elastic Observability APM
 ELASTIC_APM = {
@@ -444,3 +443,35 @@ ELASTIC_APM = {
         "elasticapm.processors.sanitize_http_request_body",
     ),
 }
+
+SECRET_KEY_CHECK_LEGACY_USER = env.str("SECRET_KEY_CHECK_LEGACY_USER")
+
+# mozilla-django-oidc
+OIDC_ENABLED = env.bool("OIDC_ENABLED")
+if OIDC_ENABLED:
+    REST_FRAMEWORK["DEFAULT_AUTHENTICATION_CLASSES"].append(
+        "mozilla_django_oidc.contrib.drf.OIDCAuthentication"
+    )
+    INSTALLED_APPS = (*INSTALLED_APPS, "mozilla_django_oidc")
+    LOGGING["loggers"]["mozilla_django_oidc"] = {
+        "level": "DEBUG",
+        "handlers": ["console"],
+        "propagate": False,
+    }
+    LOGGING["loggers"]["weni_django_oidc"] = {
+        "level": "DEBUG",
+        "handlers": ["console"],
+        "propagate": False,
+    }
+
+    OIDC_RP_CLIENT_ID = env.str("OIDC_RP_CLIENT_ID")
+    OIDC_RP_CLIENT_SECRET = env.str("OIDC_RP_CLIENT_SECRET")
+    OIDC_OP_AUTHORIZATION_ENDPOINT = env.str("OIDC_OP_AUTHORIZATION_ENDPOINT")
+    OIDC_OP_TOKEN_ENDPOINT = env.str("OIDC_OP_TOKEN_ENDPOINT")
+    OIDC_OP_USER_ENDPOINT = env.str("OIDC_OP_USER_ENDPOINT")
+    OIDC_OP_JWKS_ENDPOINT = env.str("OIDC_OP_JWKS_ENDPOINT")
+    OIDC_RP_SIGN_ALGO = env.str("OIDC_RP_SIGN_ALGO", default="RS256")
+    OIDC_DRF_AUTH_BACKEND = env.str(
+        "OIDC_DRF_AUTH_BACKEND",
+        default="bothub.authentication.authorization.WeniOIDCAuthenticationBackend",
+    )

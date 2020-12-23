@@ -865,6 +865,7 @@ class RepositoryTrainInfoSerializer(serializers.ModelSerializer):
         ]
         read_only = fields
         ref_name = None
+
     repository_version_id = serializers.PrimaryKeyRelatedField(
         read_only=True, style={"show": False}, source="pk"
     )

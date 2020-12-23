@@ -2187,9 +2187,7 @@ class RepositoryExamplesBulkTestCase(TestCase):
             content_type="application/json",
             **authorization_header,
         )
-        response = RepositoryExamplesBulkViewSet.as_view({"post": "create"})(
-            request
-        )
+        response = RepositoryExamplesBulkViewSet.as_view({"post": "create"})(request)
         response.render()
         content_data = json.loads(response.content)
         return (response, content_data)
@@ -2259,7 +2257,7 @@ class RepositoryExamplesBulkTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_string_data(self):
-        self.data = '''[{
+        self.data = """[{
                 "repository": str(self.repository.uuid),
                 "text": "yes",
                 "intent": "affirmative",
@@ -2274,7 +2272,7 @@ class RepositoryExamplesBulkTestCase(TestCase):
                 "language": None,
                 "entities": [{"label": "yes", "entity": "_yes", "start": 0, "end": 0}],
                 "repository_version": self.repository.current_version().repository_version.pk,
-            }]'''
+            }]"""
 
         response, content_data = self.request(self.owner_token)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -2332,7 +2330,9 @@ class EvaluateCrossValidationTestCase(TestCase):
         authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
 
         request = self.factory.post(
-            "/v2/repository/repository-details/{}/evaluate_crossvalidation/".format(str(repository.uuid)),
+            "/v2/repository/repository-details/{}/evaluate_crossvalidation/".format(
+                str(repository.uuid)
+            ),
             data,
             **authorization_header,
         )
@@ -2350,8 +2350,6 @@ class EvaluateCrossValidationTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_invalid_data(self):
-        data = {
-            "repository_version": self.repository_version.pk
-        }
+        data = {"repository_version": self.repository_version.pk}
         response, content_data = self.request(self.repository, data, self.owner_token)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
