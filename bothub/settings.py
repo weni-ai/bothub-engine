@@ -101,7 +101,7 @@ INSTALLED_APPS = [
     "django.contrib.postgres",
     "rest_framework",
     "rest_framework.authtoken",
-    "drf_yasg",
+    "drf_yasg2",
     "django_filters",
     "corsheaders",
     "elasticapm.contrib.django",
