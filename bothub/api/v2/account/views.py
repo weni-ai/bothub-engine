@@ -1,7 +1,7 @@
 from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django_filters.rest_framework import DjangoFilterBackend
-from drf_yasg.utils import swagger_auto_schema
+from drf_yasg2.utils import swagger_auto_schema
 from rest_framework import permissions
 from rest_framework import status, mixins
 from rest_framework.authtoken.models import Token

@@ -1,5 +1,5 @@
 from django.conf import settings
-from drf_yasg.generators import OpenAPISchemaGenerator, EndpointEnumerator
+from drf_yasg2.generators import OpenAPISchemaGenerator, EndpointEnumerator
 
 
 class CustomEndpointEnumerator(EndpointEnumerator):

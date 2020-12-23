@@ -6,8 +6,8 @@ from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django.utils.translation import ugettext_lazy as _
 from django_filters.rest_framework import DjangoFilterBackend
-from drf_yasg import openapi
-from drf_yasg.utils import swagger_auto_schema
+from drf_yasg2 import openapi
+from drf_yasg2.utils import swagger_auto_schema
 from rest_framework import mixins, parsers, permissions, status
 from rest_framework.decorators import action
 from rest_framework.exceptions import (
@@ -419,10 +419,34 @@ class RepositoryViewSet(
             user_authorization, serializer.data
         )
         if request.status_code != status.HTTP_200_OK:  # pragma: no cover
-            raise APIException(  # pragma: no cover
+            raise APIException(
                 {"status_code": request.status_code}, code=request.status_code
-            )
+            )  # pragma: no cover
         return Response(request.json())  # pragma: no cover
+
+    @action(
+        detail=True,
+        methods=["POST"],
+        url_name="repository-evaluate-crossvalidation",
+        lookup_fields=["uuid"],
+        serializer_class=EvaluateSerializer,
+    )
+    def evaluate_crossvalidation(self, request, **kwargs):
+        """
+        Cross validation evaluate repository using Bothub NLP service
+        """
+        repository = self.get_object()
+        user_authorization = repository.get_user_authorization(request.user)
+        if not user_authorization.can_write:
+            raise PermissionDenied()  # pragma: no cover
+        serializer = EvaluateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        task = celery_app.send_task(  # pragma: no cover
+            name="evaluate_crossvalidation", args=[serializer.data, str(user_authorization)]
+        )
+        task.wait()  # pragma: no cover
+        return Response(task.result)  # pragma: nocover
 
 
 @method_decorator(
@@ -987,3 +1011,59 @@ class RepositoryIntentViewSet(
     def update(self, request, *args, **kwargs):
         self.filter_class = None
         return super().update(request, *args, **kwargs)
+
+    @method_decorator(
+        decorator=swagger_auto_schema(
+            manual_parameters=[
+                openapi.Parameter(
+                    "language",
+                    openapi.IN_QUERY,
+                    description="Repository version language to suggest, "
+                    "if none, Repository language will be used",
+                    type=openapi.TYPE_STRING,
+                ),
+            ]
+        ),
+    )
+    @action(
+        detail=True,
+        methods=["GET"],
+        url_name="intent-suggestions",
+        serializer_class=RepositoryIntentSerializer,
+        permission_classes=[permissions.IsAuthenticated],
+    )
+    def intent_suggestions(self, request, **kwargs):
+        """
+        Get 10 suggestions for intent on your self language
+        """
+        self.filter_class = None
+        intent = self.get_object()
+        language = self.request.query_params.get("language")
+
+        authorization = intent.repository_version.repository.get_user_authorization(
+            request.user
+        )
+
+        if not authorization.can_read:
+            raise PermissionDenied()
+
+        task = celery_app.send_task(
+            name="intent_suggestions", args=[intent.pk, language, str(authorization.pk)]
+        )
+        task.wait()
+        suggestions = task.result
+
+        return Response({"suggestions": suggestions})
+
+
+class RepositoryExamplesBulkViewSet(mixins.CreateModelMixin, GenericViewSet):
+    """Allows bulk creation of Examples inside an array."""
+
+    queryset = RepositoryExample.objects
+    serializer_class = RepositoryExampleSerializer
+
+    def get_serializer(self, *args, **kwargs):
+        if isinstance(kwargs.get('data', {}), list):
+            kwargs['many'] = True
+
+        return super().get_serializer(*args, **kwargs)
