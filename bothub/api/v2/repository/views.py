@@ -1022,9 +1022,9 @@ class RepositoryIntentViewSet(
                     description="Repository version language to suggest, "
                     "if none, Repository language will be used",
                     type=openapi.TYPE_STRING,
-                ),
+                )
             ]
-        ),
+        )
     )
     @action(
         detail=True,

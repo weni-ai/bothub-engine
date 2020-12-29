@@ -25,7 +25,10 @@ def check_user_legacy(request, email: str):  # pragma: no cover
     try:
         if settings.SECRET_KEY_CHECK_LEGACY_USER:
             prefix, token = request.headers.get("Authorization").split()
-            if prefix.lower() != "bearer" or token != settings.SECRET_KEY_CHECK_LEGACY_USER:
+            if (
+                prefix.lower() != "bearer"
+                or token != settings.SECRET_KEY_CHECK_LEGACY_USER
+            ):
                 return HttpResponse(status=404)
     except AttributeError:
         return HttpResponse(status=404)

@@ -5,8 +5,11 @@ from mozilla_django_oidc.auth import OIDCAuthenticationBackend
 from rest_framework import exceptions
 from rest_framework.authentication import TokenAuthentication
 
-from bothub.common.models import RepositoryTranslator, Repository
-
+from bothub.common.models import (
+    RepositoryTranslator,
+    Repository,
+    RepositoryAuthorization,
+)
 
 LOGGER = logging.getLogger("weni_django_oidc")
 
@@ -31,6 +34,22 @@ class TranslatorAuthentication(TokenAuthentication):
             raise exceptions.PermissionDenied()
 
         return (token.created_by, token)
+
+
+class NLPAuthentication(TokenAuthentication):
+    keyword = "Bearer"
+    model = RepositoryAuthorization
+
+    def authenticate_credentials(self, key):
+        model = self.get_model()
+        try:
+            authorization = model.objects.get(uuid=key)
+            if not authorization.can_translate:
+                raise exceptions.PermissionDenied()
+
+            return (authorization.user, authorization)
+        except RepositoryAuthorization.DoesNotExist:
+            raise exceptions.AuthenticationFailed(_("Invalid token."))
 
 
 class WeniOIDCAuthenticationBackend(OIDCAuthenticationBackend):
