@@ -20,7 +20,7 @@ from bothub.common.models import RepositoryEvaluateResultEntity
 from bothub.common.languages import LANGUAGE_CHOICES
 
 from ..fields import EntityValueField, RepositoryVersionRelatedField
-from .validators import ThereIsEntityValidator
+from .validators import ThereIsEntityValidator, ThereIsExistingSentenceValidator
 from .validators import ThereIsIntentValidator
 
 
@@ -69,6 +69,7 @@ class RepositoryEvaluateSerializer(serializers.ModelSerializer):
         super().__init__(*args, **kwargs)
         self.validators.append(ThereIsEntityValidator())
         self.validators.append(ThereIsIntentValidator())
+        self.validators.append(ThereIsExistingSentenceValidator())
 
     def create(self, validated_data):
         entities = validated_data.pop("entities")
