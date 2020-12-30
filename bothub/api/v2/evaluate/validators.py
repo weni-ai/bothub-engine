@@ -1,7 +1,7 @@
 from django.utils.translation import ugettext_lazy as _
 from rest_framework.exceptions import ValidationError
 
-from bothub.common.models import RepositoryExample
+from bothub.common.models import RepositoryExample, RepositoryEvaluate
 
 
 class ThereIsIntentValidator(object):
@@ -37,3 +37,20 @@ class ThereIsEntityValidator(object):
                         )
                     }
                 )
+
+
+class ThereIsExistingSentenceValidator(object):
+    def __call__(self, attrs):
+        text = attrs.get("text")
+        intent = attrs.get("intent")
+        language = attrs.get("language")
+        repository_version = attrs.get("repository_version_language")
+
+        queryset = RepositoryEvaluate.objects.filter(
+            repository_version_language__language=language,
+            repository_version_language__repository_version=repository_version,
+            text=text,
+            intent=intent,
+        )
+        if queryset:
+            raise ValidationError(_("You already have this phrase in your tests"))

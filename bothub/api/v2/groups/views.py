@@ -9,7 +9,10 @@ from bothub.common.models import RepositoryEntityGroup
 
 
 class RepositoryEntityGroupViewSet(
-    mixins.CreateModelMixin, mixins.DestroyModelMixin, GenericViewSet
+    mixins.CreateModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    GenericViewSet,
 ):
     queryset = RepositoryEntityGroup.objects
     serializer_class = RepositoryEntityGroupSeralizer

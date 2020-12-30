@@ -295,6 +295,60 @@ class NewEvaluateTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(content_data.get("repository_version"), repository_version.pk)
 
+    def test_exist_sentence(self):
+        self.request(
+            {
+                "repository": str(self.repository.uuid),
+                "text": "haha",
+                "language": languages.LANGUAGE_EN,
+                "repository_version": self.repository_version.pk,
+                "intent": "greet",
+                "entities": [],
+            },
+            self.owner_token,
+        )
+
+        response, content_data = self.request(
+            {
+                "repository": str(self.repository.uuid),
+                "text": "haha",
+                "language": languages.LANGUAGE_EN,
+                "repository_version": self.repository_version.pk,
+                "intent": "greet",
+                "entities": [],
+            },
+            self.owner_token,
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_sentence_in_other_language(self):
+        response, content_data = self.request(
+            {
+                "repository": str(self.repository.uuid),
+                "text": "haha",
+                "language": languages.LANGUAGE_EN,
+                "repository_version": self.repository_version.pk,
+                "intent": "greet",
+                "entities": [],
+            },
+            self.owner_token,
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        response, content_data = self.request(
+            {
+                "repository": str(self.repository.uuid),
+                "text": "haha",
+                "language": languages.LANGUAGE_PT,
+                "repository_version": self.repository_version.pk,
+                "intent": "greet",
+                "entities": [],
+            },
+            self.owner_token,
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
 
 class EvaluateDestroyTestCase(TestCase):
     def setUp(self):
