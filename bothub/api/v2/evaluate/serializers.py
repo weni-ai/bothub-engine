@@ -258,7 +258,23 @@ class RepositoryEvaluateResultSerializer(serializers.ModelSerializer):
                 return log
 
         if len(obj.log) > 0:
-            result_log = json.loads(obj.log)
+            try:
+                result_log = sorted(
+                    json.loads(obj.log),
+                    key=lambda x: (
+                        x["intent_status"] == "error" or x["entity_status"] == "error"
+                        if {"intent_status", "entity_status"} <= x.keys()
+                        else x["intent_status"] == "error"
+                        if "intent_status" in x
+                        else x["entity_status"]
+                        if "entity_status" in x
+                        else {}
+                    ),
+                    reverse=True,
+                )
+            except TypeError:
+                result_log = json.loads(obj.log)
+
             pagination = Paginator(tuple(result_log), paginate_by)
 
             results = filter(
