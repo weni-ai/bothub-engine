@@ -2,6 +2,7 @@ import json
 
 from django.test import RequestFactory
 from django.test import TestCase
+from django.test.client import MULTIPART_CONTENT
 from rest_framework import status
 
 from bothub.common import languages
@@ -168,3 +169,80 @@ class GroupDestroyTestCase(TestCase):
         self.assertEqual(entity.first().pk, self.entity_1.pk)
         self.assertEqual(entity.first().entity.group, None)
         self.assertEqual(entity.count(), 1)
+
+
+class GroupEditTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.owner, self.owner_token = create_user_and_token("owner")
+        self.user, self.token = create_user_and_token()
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name="Testing",
+            slug="test",
+            language=languages.LANGUAGE_EN,
+        )
+
+        self.repository_version = RepositoryVersion.objects.create(
+            repository=self.repository, name="test"
+        )
+
+        self.repository_version_language = RepositoryVersionLanguage.objects.create(
+            repository_version=self.repository_version,
+            language="en",
+            algorithm="neural_network_internal",
+        )
+
+        self.group = RepositoryEntityGroup.objects.create(
+            repository_version=self.repository_version, value="group_name"
+        )
+
+        self.example_intent_1 = RepositoryIntent.objects.create(
+            text="greet", repository_version=self.repository_version
+        )
+
+        self.example_1 = RepositoryExample.objects.create(
+            repository_version_language=self.repository_version_language,
+            text="test",
+            intent=self.example_intent_1,
+        )
+
+        self.entity_1 = RepositoryExampleEntity.objects.create(
+            repository_example=self.example_1, start=0, end=0, entity="hi"
+        )
+        self.entity_1.entity.set_group("group_name")
+        self.entity_1.entity.save()
+
+    def request(self, token, data):
+        authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
+        request = self.factory.patch(
+            f"/v2/repository/entity/group/{self.group.pk}/",
+            self.factory._encode_data(data, MULTIPART_CONTENT),
+            MULTIPART_CONTENT,
+            **authorization_header,
+        )
+        response = RepositoryEntityGroupViewSet.as_view({"patch": "update"})(
+            request, pk=self.group.pk
+        )
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data)
+
+    def test_okay(self):
+        response, content_data = self.request(
+            self.owner_token,
+            {
+                "value": "group_edited",
+                "repository": str(self.repository.uuid),
+                "repository_version": self.repository_version.pk,
+            },
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        group = RepositoryEntityGroup.objects.get(pk=self.group.pk)
+
+        self.assertEqual(group.pk, self.group.pk)
+        self.assertEqual(group.value, content_data.get("value"))
