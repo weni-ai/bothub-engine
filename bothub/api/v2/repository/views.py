@@ -869,6 +869,25 @@ class RepositoryExampleViewSet(
         return Response({"suggestions": suggestions})
 
 
+@method_decorator(
+    name="list",
+    decorator=swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                "confidence_min",
+                openapi.IN_QUERY,
+                description="Specify the entire percentage of the minimum confidentiality",
+                type=openapi.TYPE_INTEGER,
+            ),
+            openapi.Parameter(
+                "confidence_max",
+                openapi.IN_QUERY,
+                description="Specify the entire percentage of the maximum confidentiality",
+                type=openapi.TYPE_INTEGER,
+            ),
+        ]
+    ),
+)
 class RepositoryNLPLogViewSet(
     mixins.ListModelMixin,
     mixins.RetrieveModelMixin,
