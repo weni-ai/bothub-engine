@@ -1,4 +1,5 @@
 from django.core.exceptions import ValidationError as DjangoValidationError
+from django.db.models import Q
 from django.utils.translation import ugettext_lazy as _
 from django_filters import rest_framework as filters
 from rest_framework.exceptions import NotFound
@@ -109,6 +110,10 @@ class RepositoryNLPLogFilter(filters.FilterSet):
         help_text=_("Filter for examples with version name."),
     )
 
+    confidence = filters.RangeFilter(
+        field_name="repository_version_language", method="filter_confidence"
+    )
+
     def filter_repository_uuid(self, queryset, name, value):
         request = self.request
         try:
@@ -134,6 +139,14 @@ class RepositoryNLPLogFilter(filters.FilterSet):
         return queryset.filter(
             repository_nlp_log__intent=value, repository_nlp_log__is_default=True
         )
+
+    def filter_confidence(self, queryset, name, value):
+        query = queryset.filter(
+            Q(repository_nlp_log__confidence__gte=int(value.start) / 100),
+            Q(repository_nlp_log__confidence__lte=int(value.stop) / 100),
+        )
+        print(query.query)
+        return query
 
 
 class RepositoryEntitiesFilter(filters.FilterSet):
