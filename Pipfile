@@ -33,6 +33,9 @@ matplot = "~=0.1.9"
 django-redis = "~=4.12.1"
 elastic-apm = "~=5.9.0"
 mozilla-django-oidc = "~=1.2.4"
+djangogrpcframework = "~=0.2"
+grpcio = "~=1.34.0"
+grpcio-tools = "~=1.34.0"
 
 [dev-packages]
 "flake8" = "*"
