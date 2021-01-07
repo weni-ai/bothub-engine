@@ -38,6 +38,14 @@ urlpatterns = [
     ),
 ]
 
+# Handler GRPC Server
+
+from bothub.common.handlers import grpc_handlers as cliente_grpc_handlers
+
+def grpc_handlers(server):
+    cliente_grpc_handlers(server)
+
+
 if settings.DEBUG:
 
     def render_template(template_name, **kwargs):

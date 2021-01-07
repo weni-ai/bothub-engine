@@ -65,6 +65,10 @@ collectstatic:
 	@if [ ${IS_PRODUCTION} = true ]; \
 		then python manage.py collectstatic --no-input; \
 		else pipenv run python manage.py collectstatic --no-input; fi
+		
+createproto:
+	@rm -rf ./bothub/protos/*.py
+	@python -m grpc_tools.protoc --proto_path=./bothub/protos/ --python_out=./bothub/protos/ --grpc_python_out=./bothub/protos/ ./bothub/protos/common.proto
 
 
 # Utils

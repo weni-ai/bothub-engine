@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package common;
+
+service RepositoryController {
+    rpc List(Repository) returns (stream Repository) {}
+}
+
+message Repository {
+    string uuid = 1;
+    string name = 2;
+    string slug = 3;
+    string language = 4;
+}
