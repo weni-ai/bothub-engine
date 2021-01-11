@@ -6,112 +6,158 @@ from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
 from google.protobuf import reflection as _reflection
 from google.protobuf import symbol_database as _symbol_database
+
 # @@protoc_insertion_point(imports)
 
 _sym_db = _symbol_database.Default()
 
 
-
-
 DESCRIPTOR = _descriptor.FileDescriptor(
-  name='common.proto',
-  package='common',
-  syntax='proto3',
-  serialized_options=None,
-  create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x0c\x63ommon.proto\x12\x06\x63ommon\"H\n\nRepository\x12\x0c\n\x04uuid\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x0c\n\x04slug\x18\x03 \x01(\t\x12\x10\n\x08language\x18\x04 \x01(\t2J\n\x14RepositoryController\x12\x32\n\x04List\x12\x12.common.Repository\x1a\x12.common.Repository\"\x00\x30\x01\x62\x06proto3'
+    name="common.proto",
+    package="common",
+    syntax="proto3",
+    serialized_options=None,
+    create_key=_descriptor._internal_create_key,
+    serialized_pb=b'\n\x0c\x63ommon.proto\x12\x06\x63ommon"H\n\nRepository\x12\x0c\n\x04uuid\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x0c\n\x04slug\x18\x03 \x01(\t\x12\x10\n\x08language\x18\x04 \x01(\t2J\n\x14RepositoryController\x12\x32\n\x04List\x12\x12.common.Repository\x1a\x12.common.Repository"\x00\x30\x01\x62\x06proto3',
 )
-
-
 
 
 _REPOSITORY = _descriptor.Descriptor(
-  name='Repository',
-  full_name='common.Repository',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  create_key=_descriptor._internal_create_key,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='uuid', full_name='common.Repository.uuid', index=0,
-      number=1, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='name', full_name='common.Repository.name', index=1,
-      number=2, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='slug', full_name='common.Repository.slug', index=2,
-      number=3, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='language', full_name='common.Repository.language', index=3,
-      number=4, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  serialized_options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=24,
-  serialized_end=96,
+    name="Repository",
+    full_name="common.Repository",
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    create_key=_descriptor._internal_create_key,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name="uuid",
+            full_name="common.Repository.uuid",
+            index=0,
+            number=1,
+            type=9,
+            cpp_type=9,
+            label=1,
+            has_default_value=False,
+            default_value=b"".decode("utf-8"),
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+            create_key=_descriptor._internal_create_key,
+        ),
+        _descriptor.FieldDescriptor(
+            name="name",
+            full_name="common.Repository.name",
+            index=1,
+            number=2,
+            type=9,
+            cpp_type=9,
+            label=1,
+            has_default_value=False,
+            default_value=b"".decode("utf-8"),
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+            create_key=_descriptor._internal_create_key,
+        ),
+        _descriptor.FieldDescriptor(
+            name="slug",
+            full_name="common.Repository.slug",
+            index=2,
+            number=3,
+            type=9,
+            cpp_type=9,
+            label=1,
+            has_default_value=False,
+            default_value=b"".decode("utf-8"),
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+            create_key=_descriptor._internal_create_key,
+        ),
+        _descriptor.FieldDescriptor(
+            name="language",
+            full_name="common.Repository.language",
+            index=3,
+            number=4,
+            type=9,
+            cpp_type=9,
+            label=1,
+            has_default_value=False,
+            default_value=b"".decode("utf-8"),
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            serialized_options=None,
+            file=DESCRIPTOR,
+            create_key=_descriptor._internal_create_key,
+        ),
+    ],
+    extensions=[],
+    nested_types=[],
+    enum_types=[],
+    serialized_options=None,
+    is_extendable=False,
+    syntax="proto3",
+    extension_ranges=[],
+    oneofs=[],
+    serialized_start=24,
+    serialized_end=96,
 )
 
-DESCRIPTOR.message_types_by_name['Repository'] = _REPOSITORY
+DESCRIPTOR.message_types_by_name["Repository"] = _REPOSITORY
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
-Repository = _reflection.GeneratedProtocolMessageType('Repository', (_message.Message,), {
-  'DESCRIPTOR' : _REPOSITORY,
-  '__module__' : 'common_pb2'
-  # @@protoc_insertion_point(class_scope:common.Repository)
-  })
+Repository = _reflection.GeneratedProtocolMessageType(
+    "Repository",
+    (_message.Message,),
+    {
+        "DESCRIPTOR": _REPOSITORY,
+        "__module__": "common_pb2"
+        # @@protoc_insertion_point(class_scope:common.Repository)
+    },
+)
 _sym_db.RegisterMessage(Repository)
 
 
-
 _REPOSITORYCONTROLLER = _descriptor.ServiceDescriptor(
-  name='RepositoryController',
-  full_name='common.RepositoryController',
-  file=DESCRIPTOR,
-  index=0,
-  serialized_options=None,
-  create_key=_descriptor._internal_create_key,
-  serialized_start=98,
-  serialized_end=172,
-  methods=[
-  _descriptor.MethodDescriptor(
-    name='List',
-    full_name='common.RepositoryController.List',
+    name="RepositoryController",
+    full_name="common.RepositoryController",
+    file=DESCRIPTOR,
     index=0,
-    containing_service=None,
-    input_type=_REPOSITORY,
-    output_type=_REPOSITORY,
     serialized_options=None,
     create_key=_descriptor._internal_create_key,
-  ),
-])
+    serialized_start=98,
+    serialized_end=172,
+    methods=[
+        _descriptor.MethodDescriptor(
+            name="List",
+            full_name="common.RepositoryController.List",
+            index=0,
+            containing_service=None,
+            input_type=_REPOSITORY,
+            output_type=_REPOSITORY,
+            serialized_options=None,
+            create_key=_descriptor._internal_create_key,
+        )
+    ],
+)
 _sym_db.RegisterServiceDescriptor(_REPOSITORYCONTROLLER)
 
-DESCRIPTOR.services_by_name['RepositoryController'] = _REPOSITORYCONTROLLER
+DESCRIPTOR.services_by_name["RepositoryController"] = _REPOSITORYCONTROLLER
 
 # @@protoc_insertion_point(module_scope)

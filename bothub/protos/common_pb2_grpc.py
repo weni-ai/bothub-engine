@@ -2,7 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-import common_pb2 as common__pb2
+import bothub.protos.common_pb2 as common__pb2
 
 
 class RepositoryControllerStub(object):
@@ -15,10 +15,10 @@ class RepositoryControllerStub(object):
             channel: A grpc.Channel.
         """
         self.List = channel.unary_stream(
-                '/common.RepositoryController/List',
-                request_serializer=common__pb2.Repository.SerializeToString,
-                response_deserializer=common__pb2.Repository.FromString,
-                )
+            "/common.RepositoryController/List",
+            request_serializer=common__pb2.Repository.SerializeToString,
+            response_deserializer=common__pb2.Repository.FromString,
+        )
 
 
 class RepositoryControllerServicer(object):
@@ -27,40 +27,53 @@ class RepositoryControllerServicer(object):
     def List(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
+        context.set_details("Method not implemented!")
+        raise NotImplementedError("Method not implemented!")
 
 
 def add_RepositoryControllerServicer_to_server(servicer, server):
     rpc_method_handlers = {
-            'List': grpc.unary_stream_rpc_method_handler(
-                    servicer.List,
-                    request_deserializer=common__pb2.Repository.FromString,
-                    response_serializer=common__pb2.Repository.SerializeToString,
-            ),
+        "List": grpc.unary_stream_rpc_method_handler(
+            servicer.List,
+            request_deserializer=common__pb2.Repository.FromString,
+            response_serializer=common__pb2.Repository.SerializeToString,
+        )
     }
     generic_handler = grpc.method_handlers_generic_handler(
-            'common.RepositoryController', rpc_method_handlers)
+        "common.RepositoryController", rpc_method_handlers
+    )
     server.add_generic_rpc_handlers((generic_handler,))
 
 
- # This class is part of an EXPERIMENTAL API.
+# This class is part of an EXPERIMENTAL API.
 class RepositoryController(object):
     """Missing associated documentation comment in .proto file."""
 
     @staticmethod
-    def List(request,
+    def List(
+        request,
+        target,
+        options=(),
+        channel_credentials=None,
+        call_credentials=None,
+        insecure=False,
+        compression=None,
+        wait_for_ready=None,
+        timeout=None,
+        metadata=None,
+    ):
+        return grpc.experimental.unary_stream(
+            request,
             target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_stream(request, target, '/common.RepositoryController/List',
+            "/common.RepositoryController/List",
             common__pb2.Repository.SerializeToString,
             common__pb2.Repository.FromString,
-            options, channel_credentials,
-            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+        )

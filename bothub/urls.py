@@ -42,6 +42,7 @@ urlpatterns = [
 
 from bothub.common.handlers import grpc_handlers as cliente_grpc_handlers
 
+
 def grpc_handlers(server):
     cliente_grpc_handlers(server)
 

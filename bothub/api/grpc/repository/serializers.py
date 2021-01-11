@@ -9,4 +9,3 @@ class RepositoryProtoSerializer(proto_serializers.ModelProtoSerializer):
         model = Repository
         proto_class = common_pb2.Repository
         fields = ["uuid", "name", "slug", "language"]
-
