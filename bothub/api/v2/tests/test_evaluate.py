@@ -295,6 +295,60 @@ class NewEvaluateTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(content_data.get("repository_version"), repository_version.pk)
 
+    def test_exist_sentence(self):
+        self.request(
+            {
+                "repository": str(self.repository.uuid),
+                "text": "haha",
+                "language": languages.LANGUAGE_EN,
+                "repository_version": self.repository_version.pk,
+                "intent": "greet",
+                "entities": [],
+            },
+            self.owner_token,
+        )
+
+        response, content_data = self.request(
+            {
+                "repository": str(self.repository.uuid),
+                "text": "haha",
+                "language": languages.LANGUAGE_EN,
+                "repository_version": self.repository_version.pk,
+                "intent": "greet",
+                "entities": [],
+            },
+            self.owner_token,
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_sentence_in_other_language(self):
+        response, content_data = self.request(
+            {
+                "repository": str(self.repository.uuid),
+                "text": "haha",
+                "language": languages.LANGUAGE_EN,
+                "repository_version": self.repository_version.pk,
+                "intent": "greet",
+                "entities": [],
+            },
+            self.owner_token,
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        response, content_data = self.request(
+            {
+                "repository": str(self.repository.uuid),
+                "text": "haha",
+                "language": languages.LANGUAGE_PT,
+                "repository_version": self.repository_version.pk,
+                "intent": "greet",
+                "entities": [],
+            },
+            self.owner_token,
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
 
 class EvaluateDestroyTestCase(TestCase):
     def setUp(self):
@@ -779,9 +833,7 @@ class ListEvaluateResultTestFilterCase(TestCase):
     def test_crossvalidation_false_filter(self):
         response, content_data = self.request(
             self.owner_token,
-            "?repository_uuid={}&cross_validation=False".format(
-                self.repository.uuid
-            ),
+            "?repository_uuid={}&cross_validation=False".format(self.repository.uuid),
         )
         self.assertEqual(content_data["cross_validation"], False)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -802,8 +854,7 @@ class ListEvaluateResultTestFilterCase(TestCase):
         response, content_data = self.request(
             self.owner_token,
             "?repository_uuid={}&cross_validation={}".format(
-                self.repository.uuid,
-                True
+                self.repository.uuid, True
             ),
         )
         self.assertEqual(content_data["cross_validation"], True)

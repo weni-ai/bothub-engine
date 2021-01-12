@@ -443,7 +443,8 @@ class RepositoryViewSet(
         serializer.is_valid(raise_exception=True)
 
         task = celery_app.send_task(  # pragma: no cover
-            name="evaluate_crossvalidation", args=[serializer.data, str(user_authorization)]
+            name="evaluate_crossvalidation",
+            args=[serializer.data, str(user_authorization)],
         )
         task.wait()  # pragma: no cover
         return Response(task.result)  # pragma: nocover
@@ -868,6 +869,25 @@ class RepositoryExampleViewSet(
         return Response({"suggestions": suggestions})
 
 
+@method_decorator(
+    name="list",
+    decorator=swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                "confidence_min",
+                openapi.IN_QUERY,
+                description="Specify the entire percentage of the minimum confidentiality",
+                type=openapi.TYPE_INTEGER,
+            ),
+            openapi.Parameter(
+                "confidence_max",
+                openapi.IN_QUERY,
+                description="Specify the entire percentage of the maximum confidentiality",
+                type=openapi.TYPE_INTEGER,
+            ),
+        ]
+    ),
+)
 class RepositoryNLPLogViewSet(
     mixins.ListModelMixin,
     mixins.RetrieveModelMixin,
@@ -1021,9 +1041,9 @@ class RepositoryIntentViewSet(
                     description="Repository version language to suggest, "
                     "if none, Repository language will be used",
                     type=openapi.TYPE_STRING,
-                ),
+                )
             ]
-        ),
+        )
     )
     @action(
         detail=True,
@@ -1063,7 +1083,7 @@ class RepositoryExamplesBulkViewSet(mixins.CreateModelMixin, GenericViewSet):
     serializer_class = RepositoryExampleSerializer
 
     def get_serializer(self, *args, **kwargs):
-        if isinstance(kwargs.get('data', {}), list):
-            kwargs['many'] = True
+        if isinstance(kwargs.get("data", {}), list):
+            kwargs["many"] = True
 
         return super().get_serializer(*args, **kwargs)

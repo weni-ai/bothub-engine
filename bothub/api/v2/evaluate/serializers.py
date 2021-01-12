@@ -20,7 +20,7 @@ from bothub.common.models import RepositoryEvaluateResultEntity
 from bothub.common.languages import LANGUAGE_CHOICES
 
 from ..fields import EntityValueField, RepositoryVersionRelatedField
-from .validators import ThereIsEntityValidator
+from .validators import ThereIsEntityValidator, ThereIsExistingSentenceValidator
 from .validators import ThereIsIntentValidator
 
 
@@ -69,6 +69,7 @@ class RepositoryEvaluateSerializer(serializers.ModelSerializer):
         super().__init__(*args, **kwargs)
         self.validators.append(ThereIsEntityValidator())
         self.validators.append(ThereIsIntentValidator())
+        self.validators.append(ThereIsExistingSentenceValidator())
 
     def create(self, validated_data):
         entities = validated_data.pop("entities")
@@ -258,7 +259,23 @@ class RepositoryEvaluateResultSerializer(serializers.ModelSerializer):
                 return log
 
         if len(obj.log) > 0:
-            result_log = json.loads(obj.log)
+            try:
+                result_log = sorted(
+                    json.loads(obj.log),
+                    key=lambda x: (
+                        x["intent_status"] == "error" or x["entity_status"] == "error"
+                        if {"intent_status", "entity_status"} <= x.keys()
+                        else x["intent_status"] == "error"
+                        if "intent_status" in x
+                        else x["entity_status"]
+                        if "entity_status" in x
+                        else {}
+                    ),
+                    reverse=True,
+                )
+            except TypeError:
+                result_log = json.loads(obj.log)
+
             pagination = Paginator(tuple(result_log), paginate_by)
 
             results = filter(

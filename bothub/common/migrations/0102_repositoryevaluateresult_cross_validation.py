@@ -5,14 +5,12 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('common', '0101_auto_20201020_1546'),
-    ]
+    dependencies = [("common", "0101_auto_20201020_1546")]
 
     operations = [
         migrations.AddField(
-            model_name='repositoryevaluateresult',
-            name='cross_validation',
-            field=models.BooleanField(default=False, verbose_name='cross validation'),
-        ),
+            model_name="repositoryevaluateresult",
+            name="cross_validation",
+            field=models.BooleanField(default=False, verbose_name="cross validation"),
+        )
     ]
