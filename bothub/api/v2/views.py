@@ -34,7 +34,7 @@ def check_user_legacy(request, email: str):  # pragma: no cover
         return HttpResponse(status=404)
 
     if request.method == "GET":
-        obj = get_object_or_404(User, email=email)
+        obj = get_object_or_404(User, email__iexact=email)
         return JsonResponse(
             {
                 "id": obj.pk,
@@ -50,7 +50,7 @@ def check_user_legacy(request, email: str):  # pragma: no cover
             }
         )
     elif request.method == "POST":
-        obj = get_object_or_404(User, nickname=email)
+        obj = get_object_or_404(User, nickname__iexact=email)
         body_unicode = request.body.decode("utf-8")
         body = json.loads(body_unicode)
         check_password = obj.check_password(raw_password=body.get("password"))
