@@ -53,6 +53,6 @@ def check_user_legacy(request, email: str):  # pragma: no cover
         obj = get_object_or_404(User, nickname=email)
         body_unicode = request.body.decode("utf-8")
         body = json.loads(body_unicode)
-        obj.check_password(raw_password=body.get("password"))
-        return JsonResponse({}) if obj else Http404()
+        check_password = obj.check_password(raw_password=body.get("password"))
+        return JsonResponse({}) if check_password else HttpResponse(status=404)
     return HttpResponse(status=404)
