@@ -38,8 +38,8 @@ def check_user_legacy(request, email: str):  # pragma: no cover
         return JsonResponse(
             {
                 "id": obj.pk,
-                "username": obj.nickname,
-                "email": obj.email,
+                "username": obj.nickname.lower(),
+                "email": obj.email.lower(),
                 "firstName": obj.name,
                 "lastName": "",
                 "enabled": obj.is_active,
