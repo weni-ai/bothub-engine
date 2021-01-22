@@ -43,7 +43,7 @@ def check_user_legacy(request, email: str):  # pragma: no cover
                 "firstName": obj.name,
                 "lastName": "",
                 "enabled": obj.is_active,
-                "emailVerified": obj.is_active,
+                "emailVerified": False,
                 "attributes": {},
                 "roles": [],
                 "groups": [],
