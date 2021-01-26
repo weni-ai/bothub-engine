@@ -37,7 +37,6 @@ def check_user_legacy(request, email: str):  # pragma: no cover
         obj = get_object_or_404(User, email__iexact=email)
         return JsonResponse(
             {
-                "id": obj.pk,
                 "username": obj.nickname.lower(),
                 "email": obj.email.lower(),
                 "firstName": obj.name,
