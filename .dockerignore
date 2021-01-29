@@ -6,3 +6,4 @@ staticfiles/
 *.py[cod]
 settings.ini
 db.sqlite3
+.env

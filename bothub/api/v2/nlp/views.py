@@ -14,6 +14,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from bothub.api.v2.nlp.serializers import NLPSerializer, RepositoryNLPLogSerializer
+from bothub.authentication.authorization import NLPAuthentication
 from bothub.authentication.models import User
 from bothub.common import languages
 from bothub.common.models import (
@@ -53,6 +54,7 @@ class RepositoryAuthorizationTrainViewSet(
     serializer_class = NLPSerializer
     permission_classes = [AllowAny]
     pagination_class = NLPPagination
+    authentication_classes = [NLPAuthentication]
 
     def retrieve(self, request, *args, **kwargs):
         check_auth(request)
@@ -195,6 +197,7 @@ class RepositoryAuthorizationParseViewSet(mixins.RetrieveModelMixin, GenericView
     queryset = RepositoryAuthorization.objects
     serializer_class = NLPSerializer
     permission_classes = [AllowAny]
+    authentication_classes = [NLPAuthentication]
 
     def retrieve(self, request, *args, **kwargs):
         check_auth(request)
@@ -259,6 +262,7 @@ class RepositoryAuthorizationInfoViewSet(mixins.RetrieveModelMixin, GenericViewS
     queryset = RepositoryAuthorization.objects
     serializer_class = NLPSerializer
     permission_classes = [AllowAny]
+    authentication_classes = [NLPAuthentication]
 
     def retrieve(self, request, *args, **kwargs):
         check_auth(request)
@@ -278,6 +282,7 @@ class RepositoryAuthorizationEvaluateViewSet(mixins.RetrieveModelMixin, GenericV
     queryset = RepositoryAuthorization.objects
     serializer_class = NLPSerializer
     permission_classes = [AllowAny]
+    authentication_classes = [NLPAuthentication]
 
     def retrieve(self, request, *args, **kwargs):
         check_auth(request)
@@ -386,6 +391,7 @@ class RepositoryAuthorizationEvaluateViewSet(mixins.RetrieveModelMixin, GenericV
             matrix_chart=request.data.get("matrix_chart"),
             confidence_chart=request.data.get("confidence_chart"),
             log=request.data.get("log"),
+            cross_validation=request.data.get("cross_validation"),
         )
 
         return Response(
@@ -470,6 +476,7 @@ class NLPLangsViewSet(mixins.ListModelMixin, GenericViewSet):
     queryset = RepositoryAuthorization.objects
     serializer_class = NLPSerializer
     permission_classes = [AllowAny]
+    authentication_classes = [NLPAuthentication]
 
     def list(self, request, *args, **kwargs):
         return Response(
@@ -489,6 +496,7 @@ class RepositoryUpdateInterpretersViewSet(
     queryset = RepositoryVersionLanguage.objects
     serializer_class = NLPSerializer
     permission_classes = [AllowAny]
+    authentication_classes = [NLPAuthentication]
 
     def retrieve(self, request, *args, **kwargs):
         check_auth(request)
@@ -497,10 +505,21 @@ class RepositoryUpdateInterpretersViewSet(
         rasa_version = request.query_params.get(
             "rasa_version", settings.BOTHUB_NLP_RASA_VERSION
         )
+        no_bot_data = request.query_params.get("no_bot_data")
 
         validator = URLValidator()
-
         aws = False
+
+        if no_bot_data:  # pragma: no cover
+            return Response(
+                {
+                    "version_id": update.id,
+                    "repository_uuid": update.repository_version.repository.uuid,
+                    "total_training_end": update.total_training_end,
+                    "language": update.language,
+                    "from_aws": aws,
+                }
+            )
 
         try:
             validator(str(update.get_trainer(rasa_version).bot_data))
@@ -545,3 +564,4 @@ class RepositoryNLPLogsViewSet(mixins.CreateModelMixin, GenericViewSet):
     queryset = RepositoryNLPLog.objects
     serializer_class = RepositoryNLPLogSerializer
     permission_classes = [AllowAny]
+    authentication_classes = [NLPAuthentication]

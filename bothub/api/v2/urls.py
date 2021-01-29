@@ -10,5 +10,10 @@ urlpatterns = [
         views.repository_shortcut,
         name="repository-shortcut",
     ),
+    path(
+        "check-user-legacy/<str:email>/",
+        views.check_user_legacy,
+        name="check-user-legacy",
+    ),
     path("", include(router.urls)),
 ]
