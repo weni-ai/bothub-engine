@@ -97,7 +97,14 @@ class RepositoryAuthorizationTrainViewSet(
             RepositoryVersionLanguage, pk=request.query_params.get("repository_version")
         )
 
-        page = self.paginate_queryset(queryset.examples)
+        intent = request.query_params.get("intent")
+        examples = (
+            queryset.examples.filter(intent__text=intent)
+            if intent
+            else queryset.examples
+        )
+
+        page = self.paginate_queryset(examples)
 
         examples_return = []
 
