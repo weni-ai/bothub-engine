@@ -42,6 +42,7 @@ class NLPAuthentication(TokenAuthentication):
 
     def authenticate(self, request):
         from bothub.api.v2.nlp.views import RepositoryAuthorizationParseViewSet
+        from bothub.api.v2.nlp.views import RepositoryUpdateInterpretersViewSet
 
         auth = get_authorization_header(request).split()
 
@@ -65,6 +66,8 @@ class NLPAuthentication(TokenAuthentication):
 
         if isinstance(
             request.parser_context.get("view"), RepositoryAuthorizationParseViewSet
+        ) or isinstance(
+            request.parser_context.get("view"), RepositoryUpdateInterpretersViewSet
         ):
             return self.authenticate_credentials(token, validation=False)
 
