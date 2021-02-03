@@ -215,7 +215,7 @@ class AuthorizationTrainGetExamplesTestCase(TestCase):
         )
 
         self.repository_authorization = RepositoryAuthorization.objects.create(
-            user=self.user, repository=self.repository, role=3
+            user=self.user, repository=self.repository, role=RepositoryAuthorization.ROLE_ADMIN
         )
 
         self.repository_version = RepositoryVersion.objects.create(
