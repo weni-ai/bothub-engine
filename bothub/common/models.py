@@ -645,11 +645,17 @@ class Repository(models.Model):
             )
         )
 
-    def intents(self, queryset=None, version_default=True):
+    def intents(self, queryset=None, version_default=True, repository_version=None):
         intents = (
-            self.examples(queryset=queryset, version_default=version_default)
+            self.examples(
+                queryset=queryset,
+                version_default=version_default,
+                repository_version=repository_version,
+            )
             if queryset
-            else self.examples(version_default=version_default)
+            else self.examples(
+                version_default=version_default, repository_version=repository_version
+            )
         )
         return list(set(intents.values_list("intent__text", flat=True)))
 
@@ -672,7 +678,13 @@ class Repository(models.Model):
             self.name, self.owner.nickname, self.slug
         )  # pragma: no cover
 
-    def examples(self, language=None, queryset=None, version_default=True):
+    def examples(
+        self,
+        language=None,
+        queryset=None,
+        version_default=True,
+        repository_version=None,
+    ):
         if queryset is None:
             queryset = RepositoryExample.objects
         query = queryset.filter(
@@ -685,6 +697,11 @@ class Repository(models.Model):
             )
         if language:
             query = query.filter(repository_version_language__language=language)
+
+        if repository_version:
+            query = query.filter(
+                repository_version_language__repository_version__id=repository_version
+            )
         return query
 
     def evaluations(
