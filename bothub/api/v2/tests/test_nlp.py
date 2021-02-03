@@ -198,3 +198,102 @@ class AuthorizationInfoTestCase(TestCase):
     def test_not_auth(self):
         response, content_data = self.request(str(uuid.uuid4()))
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+
+class AuthorizationTrainGetExamplesTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.owner, self.owner_token = create_user_and_token("owner")
+        self.user, self.user_token = create_user_and_token()
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name="Testing",
+            slug="test",
+            language=languages.LANGUAGE_EN,
+        )
+
+        self.repository_authorization = RepositoryAuthorization.objects.create(
+            user=self.user, repository=self.repository, role=RepositoryAuthorization.ROLE_ADMIN
+        )
+
+        self.repository_version = RepositoryVersion.objects.create(
+            repository=self.repository, name="test"
+        )
+
+        self.repository_version_language = RepositoryVersionLanguage.objects.create(
+            repository_version=self.repository_version,
+            language=languages.LANGUAGE_EN,
+            algorithm="neural_network_internal",
+        )
+
+        self.example_intent_1 = RepositoryIntent.objects.create(
+            text="greet", repository_version=self.repository_version
+        )
+        self.example_intent_2 = RepositoryIntent.objects.create(
+            text="farewell", repository_version=self.repository_version
+        )
+
+        self.repository_examples = RepositoryExample.objects.create(
+            repository_version_language=self.repository_version_language,
+            text="hello",
+            intent=self.example_intent_1,
+        )
+        self.repository_examples_2 = RepositoryExample.objects.create(
+            repository_version_language=self.repository_version_language,
+            text="bye",
+            intent=self.example_intent_2,
+        )
+        self.repository_examples_3 = RepositoryExample.objects.create(
+            repository_version_language=self.repository_version_language,
+            text="goodbye",
+            intent=self.example_intent_2,
+        )
+
+        self.repository_entity = RepositoryExampleEntity.objects.create(
+            repository_example=self.repository_examples, start=11, end=18, entity="name"
+        )
+
+    def request(self, token, intent=""):
+        authorization_header = {"HTTP_AUTHORIZATION": "Bearer {}".format(token)}
+        request = self.factory.get(
+            "/v2/repository/nlp/authorization/train/get_examples/",
+            {
+                "repository_version": self.repository_version_language.pk,
+                "intent": intent,
+            },
+            **authorization_header
+        )
+        response = RepositoryAuthorizationTrainViewSet.as_view({"get": "get_examples"})(
+            request
+        )
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data)
+
+    def test_ok(self):
+        response, content_data = self.request(str(self.repository_authorization.uuid))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_not_auth(self):
+        response, content_data = self.request(str(uuid.uuid4()))
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_get_examples_without_filter(self):
+        response, content_data = self.request(str(self.repository_authorization.uuid))
+        self.assertEqual(response.data.get("count"), 3)
+        self.assertEqual(response.data.get("results")[0].get("text"), "goodbye")
+
+    def test_get_examples_with_intent_filter(self):
+        response, content_data = self.request(
+            str(self.repository_authorization.uuid), "farewell"
+        )
+        self.assertEqual(response.data.get("count"), 2)
+        self.assertEqual(response.data.get("results")[1].get("text"), "bye")
+
+    def test_get_examples_with_non_existent_intent_filter(self):
+        response, content_data = self.request(
+            str(self.repository_authorization.uuid), "non-existent"
+        )
+        self.assertEqual(response.data.get("count"), 0)
