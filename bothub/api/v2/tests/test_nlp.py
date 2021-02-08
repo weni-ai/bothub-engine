@@ -178,10 +178,13 @@ class AuthorizationInfoTestCase(TestCase):
             repository_example=self.repository_examples, start=11, end=18, entity="name"
         )
 
-    def request(self, token):
+    def request(self, token, repository_version=""):
         authorization_header = {"HTTP_AUTHORIZATION": "Bearer {}".format(token)}
         request = self.factory.get(
             "/v2/repository/nlp/authorization/info/{}/".format(token),
+            {
+                "repository_version": repository_version
+            },
             **authorization_header
         )
         response = RepositoryAuthorizationInfoViewSet.as_view({"get": "retrieve"})(
@@ -198,6 +201,23 @@ class AuthorizationInfoTestCase(TestCase):
     def test_not_auth(self):
         response, content_data = self.request(str(uuid.uuid4()))
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_list_all_repository_intents(self):
+        response, content_data = self.request(str(self.repository_authorization.uuid))
+        self.assertEqual(len(response.data.get("intents")), 1)
+
+    def test_list_repository_intents_with_filter_version(self):
+        response, content_data = self.request(
+            str(self.repository_authorization.uuid),
+            repository_version=self.repository_version_language.pk
+        )
+        self.assertEqual(len(response.data.get("intents")), 1)
+
+        response, content_data = self.request(
+            str(self.repository_authorization.uuid),
+            repository_version="0"
+        )
+        self.assertEqual(len(response.data.get("intents")), 0)
 
 
 class AuthorizationTrainGetExamplesTestCase(TestCase):
