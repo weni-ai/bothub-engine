@@ -1424,6 +1424,7 @@ class TrainSerializer(serializers.Serializer):
 class EvaluateSerializer(serializers.Serializer):
     language = serializers.ChoiceField(LANGUAGE_CHOICES, required=True)
     repository_version = serializers.IntegerField(required=False)
+    cross_validation = serializers.BooleanField(default=False)
 
 
 class RepositoryAutoTranslationSerializer(serializers.Serializer):
