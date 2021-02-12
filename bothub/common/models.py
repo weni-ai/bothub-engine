@@ -1,3 +1,4 @@
+import json
 import uuid
 from functools import reduce
 
@@ -531,7 +532,7 @@ class Repository(models.Model):
             headers = {
                 "Authorization": f"Bearer {user_authorization.uuid}"
             }
-            r = requests.post(url, data=data, headers=headers)
+            r = requests.post(url, data=json.dumps(data), headers=headers)
 
             return r  # pragma: no cover
         except requests.exceptions.ConnectionError:  # pragma: no cover
