@@ -532,7 +532,7 @@ class Repository(models.Model):
             headers = {
                 "Authorization": f"Bearer {user_authorization.uuid}"
             }
-            r = requests.post(url, data=json.dump(data), headers=headers)
+            r = requests.post(url, data=json.dumps(data), headers=headers)
 
             return r  # pragma: no cover
         except requests.exceptions.ConnectionError:  # pragma: no cover
