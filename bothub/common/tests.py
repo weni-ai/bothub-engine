@@ -1,3 +1,4 @@
+import requests_mock
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.test import TestCase
@@ -7,7 +8,7 @@ from bothub.authentication.models import User
 from . import languages
 from .exceptions import DoesNotHaveTranslation
 from .exceptions import TrainingNotAllowed
-from .models import Repository, RepositoryIntent
+from .models import Repository, RepositoryIntent, RepositoryEvaluate
 from .models import RepositoryAuthorization
 from .models import RepositoryEntity
 from .models import RepositoryEntityGroup
@@ -229,6 +230,14 @@ class RepositoryTestCase(TestCase):
             intent=self.example_intent_1,
         )
 
+        self.evaluate_test_phrase = RepositoryEvaluate.objects.create(
+            repository_version_language=self.repository.current_version(
+                languages.LANGUAGE_EN
+            ),
+            intent=self.example_intent_1,
+            text="test"
+        )
+
     def test_languages_status(self):
         languages_status = self.repository.languages_status
         self.assertListEqual(
@@ -327,6 +336,145 @@ class RepositoryTestCase(TestCase):
         )
 
         self.assertNotIn("", self.repository.intents())
+
+    def test_have_at_least_one_test_phrase_registered(self):
+        self.assertFalse(self.repository.have_at_least_one_test_phrase_registered(
+            language=languages.LANGUAGE_PT_BR
+        ))
+        self.assertTrue(self.repository.have_at_least_one_test_phrase_registered(
+            language=languages.LANGUAGE_EN
+        ))
+
+    def test_have_at_least_two_intents_registered(self):
+        self.assertFalse(self.repository.have_at_least_two_intents_registered())
+        intent_test = RepositoryIntent.objects.create(
+            text="farewall", repository_version=self.repository_version
+        )
+        RepositoryExample.objects.create(
+            repository_version_language=self.repository.current_version(
+                languages.LANGUAGE_PT
+            ),
+            text="test",
+            intent=intent_test,
+        )
+        self.assertTrue(self.repository.have_at_least_two_intents_registered())
+
+    def test_have_at_least_fifteen_examples_registered(self):
+        self.assertFalse(self.repository.have_at_least_fifteen_examples_registered(
+            language=languages.LANGUAGE_EN
+        ))
+        for i in range(0, 15):
+            RepositoryExample.objects.create(
+                repository_version_language=self.repository.current_version(
+                    languages.LANGUAGE_EN
+                ),
+                text=f"test{i}",
+                intent=self.example_intent_1,
+            )
+        self.assertTrue(self.repository.have_at_least_fifteen_examples_registered(
+            language=languages.LANGUAGE_EN
+        ))
+
+    def test_have_at_least_three_examples_for_each_intent(self):
+        self.assertFalse(self.repository.have_at_least_three_examples_for_each_intent(
+            language=languages.LANGUAGE_EN
+        ))
+        for i in range(0, 3):
+            RepositoryExample.objects.create(
+                repository_version_language=self.repository.current_version(
+                    languages.LANGUAGE_EN
+                ),
+                text=f"test{i}",
+                intent=self.example_intent_1,
+            )
+        self.assertTrue(self.repository.have_at_least_three_examples_for_each_intent(
+            language=languages.LANGUAGE_EN
+        ))
+
+    def test_validate_if_can_run_manual_evaluate(self):
+        with self.assertRaises(ValidationError):
+            self.repository.validate_if_can_run_manual_evaluate(language=languages.LANGUAGE_EN)
+
+    def test_validate_if_can_run_automatic_evaluate(self):
+        with self.assertRaises(ValidationError):
+            self.repository.validate_if_can_run_automatic_evaluate(language=languages.LANGUAGE_EN)
+
+    @requests_mock.Mocker()
+    def test_request_nlp_manual_evaluate(self, request_mock):
+        intent_test = RepositoryIntent.objects.create(
+            text="farewall", repository_version=self.repository_version
+        )
+        RepositoryExample.objects.create(
+            repository_version_language=self.repository.current_version(
+                languages.LANGUAGE_PT
+            ),
+            text="test",
+            intent=intent_test,
+        )
+
+        url = f"{self.repository.nlp_server if self.repository.nlp_server else settings.BOTHUB_NLP_BASE_URL}"
+        url = f"{url}evaluate/"
+        json = {
+            "language": languages.LANGUAGE_EN,
+            "status": "processing",
+            "repository_version": 46268,
+            "evaluate_id": None,
+            "evaluate_version": None,
+            "cross_validation": False
+        }
+        request_mock.post(url=url, json=json)
+
+        response = self.repository.request_nlp_manual_evaluate(
+            user_authorization=self.repository.get_user_authorization(self.owner),
+            data={
+                "language": languages.LANGUAGE_EN,
+                "repository_version": 46268
+            }
+        )
+        self.assertEqual(json, response.json())
+
+    @requests_mock.Mocker()
+    def test_request_nlp_automatic_evaluate(self, request_mock):
+        intent_test = RepositoryIntent.objects.create(
+            text="farewall", repository_version=self.repository_version
+        )
+        for i in range(0, 8):
+            RepositoryExample.objects.create(
+                repository_version_language=self.repository.current_version(
+                    languages.LANGUAGE_EN
+                ),
+                text=f"test{i}",
+                intent=intent_test,
+            )
+        for i in range(0, 8):
+            RepositoryExample.objects.create(
+                repository_version_language=self.repository.current_version(
+                    languages.LANGUAGE_EN
+                ),
+                text=f"test{i}",
+                intent=self.example_intent_1,
+            )
+
+        url = f"{self.repository.nlp_server if self.repository.nlp_server else settings.BOTHUB_NLP_BASE_URL}"
+        url = f"{url}evaluate/"
+        json = {
+            "language": languages.LANGUAGE_EN,
+            "status": "processing",
+            "repository_version": 46268,
+            "evaluate_id": None,
+            "evaluate_version": None,
+            "cross_validation": True
+        }
+        request_mock.post(url=url, json=json)
+
+        response = self.repository.request_nlp_automatic_evaluate(
+            user_authorization=self.repository.get_user_authorization(self.owner),
+            data={
+                "language": languages.LANGUAGE_EN,
+                "repository_version": 46268
+            }
+        )
+        self.assertEqual(json, response.json())
 
 
 class RepositoryExampleTestCase(TestCase):

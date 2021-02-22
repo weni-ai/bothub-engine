@@ -179,6 +179,7 @@ class ResultsListViewSet(
     permission_classes = [IsAuthenticated, RepositoryEvaluateResultPermission]
     filter_class = EvaluateResultsFilter
     filter_backends = [OrderingFilter, DjangoFilterBackend]
+    filter_fields = ["cross_validation"]
     ordering_fields = ["created_at"]
 
     def retrieve(self, request, *args, **kwargs):
