@@ -209,7 +209,7 @@ class AuthorizationInfoTestCase(TestCase):
     def test_list_repository_intents_with_filter_version(self):
         response, content_data = self.request(
             str(self.repository_authorization.uuid),
-            repository_version=self.repository_version_language.pk
+            repository_version=self.repository_version.pk
         )
         self.assertEqual(len(response.data.get("intents")), 1)
 
