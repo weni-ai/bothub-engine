@@ -8,7 +8,7 @@ from bothub.authentication.models import User
 from . import languages
 from .exceptions import DoesNotHaveTranslation
 from .exceptions import TrainingNotAllowed
-from .models import Repository, RepositoryIntent, RepositoryEvaluate
+from .models import Repository, RepositoryIntent, RepositoryEvaluate, RepositoryQueueTask
 from .models import RepositoryAuthorization
 from .models import RepositoryEntity
 from .models import RepositoryEntityGroup
@@ -416,8 +416,8 @@ class RepositoryTestCase(TestCase):
         url = f"{url}evaluate/"
         json = {
             "language": languages.LANGUAGE_EN,
-            "status": "processing",
-            "repository_version": 46268,
+            "status": RepositoryQueueTask.STATUS_PROCESSING,
+            "repository_version": self.repository_version.pk,
             "evaluate_id": None,
             "evaluate_version": None,
             "cross_validation": False
@@ -428,7 +428,7 @@ class RepositoryTestCase(TestCase):
             user_authorization=self.repository.get_user_authorization(self.owner),
             data={
                 "language": languages.LANGUAGE_EN,
-                "repository_version": 46268
+                "repository_version": self.repository_version.pk
             }
         )
         self.assertEqual(json, response.json())
@@ -459,8 +459,8 @@ class RepositoryTestCase(TestCase):
         url = f"{url}evaluate/"
         json = {
             "language": languages.LANGUAGE_EN,
-            "status": "processing",
-            "repository_version": 46268,
+            "status": RepositoryQueueTask.STATUS_PROCESSING,
+            "repository_version": self.repository_version.pk,
             "evaluate_id": None,
             "evaluate_version": None,
             "cross_validation": True
@@ -471,7 +471,7 @@ class RepositoryTestCase(TestCase):
             user_authorization=self.repository.get_user_authorization(self.owner),
             data={
                 "language": languages.LANGUAGE_EN,
-                "repository_version": 46268
+                "repository_version": self.repository_version.pk
             }
         )
         self.assertEqual(json, response.json())
