@@ -2308,7 +2308,7 @@ class RepositoryExamplesBulkTestCase(TestCase):
         self.assertEqual(response[0].status_code, status.HTTP_403_FORBIDDEN)
 
 
-class EvaluateCrossValidationTestCase(TestCase):
+class EvaluateAutomaticTestCase(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
 
@@ -2330,14 +2330,14 @@ class EvaluateCrossValidationTestCase(TestCase):
         authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
 
         request = self.factory.post(
-            "/v2/repository/repository-details/{}/evaluate_crossvalidation/".format(
+            "/v2/repository/repository-details/{}/automatic_evaluate/".format(
                 str(repository.uuid)
             ),
             data,
             **authorization_header,
         )
 
-        response = RepositoryViewSet.as_view({"post": "evaluate_crossvalidation"})(
+        response = RepositoryViewSet.as_view({"post": "automatic_evaluate"})(
             request, uuid=repository.uuid
         )
 
