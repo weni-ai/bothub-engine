@@ -377,6 +377,50 @@ class Repository(models.Model):
         self.__use_name_entities = self.use_name_entities
         self.__use_analyze_char = self.use_analyze_char
 
+    def have_at_least_one_test_phrase_registered(self, language: str) -> bool:
+        return self.evaluations(language=language).count() > 0
+
+    def have_at_least_two_intents_registered(self) -> bool:
+        return len(self.intents()) >= 2
+
+    def have_at_least_fifteen_examples_registered(self, language: str) -> bool:
+        return self.examples(language=language).count() >= 15
+
+    def have_at_least_three_examples_for_each_intent(self, language: str) -> bool:
+        return all(
+            [
+                self.examples(language=language).filter(intent__text=intent).count() > 3
+                for intent in self.intents()
+            ]
+        )
+
+    def validate_if_can_run_manual_evaluate(self, language: str) -> None:
+        if not self.have_at_least_one_test_phrase_registered(language=language):
+            raise ValidationError(
+                _("You need to have at least " + "one registered test phrase")
+            )
+
+        if not self.have_at_least_two_intents_registered():
+            raise ValidationError(
+                _("You need to have at least " + "two registered intents")
+            )
+
+    def validate_if_can_run_automatic_evaluate(self, language: str) -> None:
+        if not self.have_at_least_two_intents_registered():
+            raise ValidationError(
+                _("You need to have at least " + "two registered intents")
+            )
+
+        if not self.have_at_least_fifteen_examples_registered(language=language):
+            raise ValidationError(
+                _("You need to have at least " + "fifteen registered train phrases")
+            )
+
+        if not self.have_at_least_three_examples_for_each_intent(language=language):
+            raise ValidationError(
+                _("You need to have at least " + "three train phrases for each intent")
+            )
+
     def request_nlp_train(self, user_authorization, data):
         try:  # pragma: no cover
             if data.get("repository_version"):
@@ -521,17 +565,37 @@ class Repository(models.Model):
                 code=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
 
-    def request_nlp_evaluate(self, user_authorization, data):
+    def request_nlp_manual_evaluate(self, user_authorization, data):
+        self.validate_if_can_run_manual_evaluate(language=data.get("language"))
+
         try:  # pragma: no cover
             url = f"{self.nlp_server if self.nlp_server else settings.BOTHUB_NLP_BASE_URL}evaluate/"
             data = {
                 "language": data.get("language"),
                 "repository_version": data.get("repository_version"),
-                "cross_validation": data.get("cross_validation", False)
+                "cross_validation": False,
             }
-            headers = {
-                "Authorization": f"Bearer {user_authorization.uuid}"
+            headers = {"Authorization": f"Bearer {user_authorization.uuid}"}
+            r = requests.post(url, data=json.dumps(data), headers=headers)
+
+            return r  # pragma: no cover
+        except requests.exceptions.ConnectionError:  # pragma: no cover
+            raise APIException(  # pragma: no cover
+                {"status_code": status.HTTP_503_SERVICE_UNAVAILABLE},
+                code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
+    def request_nlp_automatic_evaluate(self, user_authorization, data):
+        self.validate_if_can_run_automatic_evaluate(language=data.get("language"))
+
+        try:  # pragma: no cover
+            url = f"{self.nlp_server if self.nlp_server else settings.BOTHUB_NLP_BASE_URL}evaluate/"
+            data = {
+                "language": data.get("language"),
+                "repository_version": data.get("repository_version"),
+                "cross_validation": True,
             }
+            headers = {"Authorization": f"Bearer {user_authorization.uuid}"}
             r = requests.post(url, data=json.dumps(data), headers=headers)
 
             return r  # pragma: no cover

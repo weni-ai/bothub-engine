@@ -36,6 +36,7 @@ mozilla-django-oidc = "~=1.2.4"
 
 [dev-packages]
 "flake8" = "*"
+requests-mock = "~=1.8.0"
 coverage = "*"
 ipython = "*"
 autopep8 = "*"
