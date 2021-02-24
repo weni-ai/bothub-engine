@@ -8,7 +8,12 @@ from bothub.authentication.models import User
 from . import languages
 from .exceptions import DoesNotHaveTranslation
 from .exceptions import TrainingNotAllowed
-from .models import Repository, RepositoryIntent, RepositoryEvaluate, RepositoryQueueTask
+from .models import (
+    Repository,
+    RepositoryIntent,
+    RepositoryEvaluate,
+    RepositoryQueueTask,
+)
 from .models import RepositoryAuthorization
 from .models import RepositoryEntity
 from .models import RepositoryEntityGroup
@@ -235,7 +240,7 @@ class RepositoryTestCase(TestCase):
                 languages.LANGUAGE_EN
             ),
             intent=self.example_intent_1,
-            text="test"
+            text="test",
         )
 
     def test_languages_status(self):
@@ -338,12 +343,16 @@ class RepositoryTestCase(TestCase):
         self.assertNotIn("", self.repository.intents())
 
     def test_have_at_least_one_test_phrase_registered(self):
-        self.assertFalse(self.repository.have_at_least_one_test_phrase_registered(
-            language=languages.LANGUAGE_PT_BR
-        ))
-        self.assertTrue(self.repository.have_at_least_one_test_phrase_registered(
-            language=languages.LANGUAGE_EN
-        ))
+        self.assertFalse(
+            self.repository.have_at_least_one_test_phrase_registered(
+                language=languages.LANGUAGE_PT_BR
+            )
+        )
+        self.assertTrue(
+            self.repository.have_at_least_one_test_phrase_registered(
+                language=languages.LANGUAGE_EN
+            )
+        )
 
     def test_have_at_least_two_intents_registered(self):
         self.assertFalse(self.repository.have_at_least_two_intents_registered())
@@ -360,9 +369,11 @@ class RepositoryTestCase(TestCase):
         self.assertTrue(self.repository.have_at_least_two_intents_registered())
 
     def test_have_at_least_fifteen_examples_registered(self):
-        self.assertFalse(self.repository.have_at_least_fifteen_examples_registered(
-            language=languages.LANGUAGE_EN
-        ))
+        self.assertFalse(
+            self.repository.have_at_least_fifteen_examples_registered(
+                language=languages.LANGUAGE_EN
+            )
+        )
         for i in range(0, 15):
             RepositoryExample.objects.create(
                 repository_version_language=self.repository.current_version(
@@ -371,14 +382,18 @@ class RepositoryTestCase(TestCase):
                 text=f"test{i}",
                 intent=self.example_intent_1,
             )
-        self.assertTrue(self.repository.have_at_least_fifteen_examples_registered(
-            language=languages.LANGUAGE_EN
-        ))
+        self.assertTrue(
+            self.repository.have_at_least_fifteen_examples_registered(
+                language=languages.LANGUAGE_EN
+            )
+        )
 
     def test_have_at_least_three_examples_for_each_intent(self):
-        self.assertFalse(self.repository.have_at_least_three_examples_for_each_intent(
-            language=languages.LANGUAGE_EN
-        ))
+        self.assertFalse(
+            self.repository.have_at_least_three_examples_for_each_intent(
+                language=languages.LANGUAGE_EN
+            )
+        )
         for i in range(0, 3):
             RepositoryExample.objects.create(
                 repository_version_language=self.repository.current_version(
@@ -387,17 +402,23 @@ class RepositoryTestCase(TestCase):
                 text=f"test{i}",
                 intent=self.example_intent_1,
             )
-        self.assertTrue(self.repository.have_at_least_three_examples_for_each_intent(
-            language=languages.LANGUAGE_EN
-        ))
+        self.assertTrue(
+            self.repository.have_at_least_three_examples_for_each_intent(
+                language=languages.LANGUAGE_EN
+            )
+        )
 
     def test_validate_if_can_run_manual_evaluate(self):
         with self.assertRaises(ValidationError):
-            self.repository.validate_if_can_run_manual_evaluate(language=languages.LANGUAGE_EN)
+            self.repository.validate_if_can_run_manual_evaluate(
+                language=languages.LANGUAGE_EN
+            )
 
     def test_validate_if_can_run_automatic_evaluate(self):
         with self.assertRaises(ValidationError):
-            self.repository.validate_if_can_run_automatic_evaluate(language=languages.LANGUAGE_EN)
+            self.repository.validate_if_can_run_automatic_evaluate(
+                language=languages.LANGUAGE_EN
+            )
 
     @requests_mock.Mocker()
     def test_request_nlp_manual_evaluate(self, request_mock):
@@ -420,7 +441,7 @@ class RepositoryTestCase(TestCase):
             "repository_version": self.repository_version.pk,
             "evaluate_id": None,
             "evaluate_version": None,
-            "cross_validation": False
+            "cross_validation": False,
         }
         request_mock.post(url=url, json=json)
 
@@ -428,8 +449,8 @@ class RepositoryTestCase(TestCase):
             user_authorization=self.repository.get_user_authorization(self.owner),
             data={
                 "language": languages.LANGUAGE_EN,
-                "repository_version": self.repository_version.pk
-            }
+                "repository_version": self.repository_version.pk,
+            },
         )
         self.assertEqual(json, response.json())
 
@@ -463,7 +484,7 @@ class RepositoryTestCase(TestCase):
             "repository_version": self.repository_version.pk,
             "evaluate_id": None,
             "evaluate_version": None,
-            "cross_validation": True
+            "cross_validation": True,
         }
         request_mock.post(url=url, json=json)
 
@@ -471,8 +492,8 @@ class RepositoryTestCase(TestCase):
             user_authorization=self.repository.get_user_authorization(self.owner),
             data={
                 "language": languages.LANGUAGE_EN,
-                "repository_version": self.repository_version.pk
-            }
+                "repository_version": self.repository_version.pk,
+            },
         )
         self.assertEqual(json, response.json())
 

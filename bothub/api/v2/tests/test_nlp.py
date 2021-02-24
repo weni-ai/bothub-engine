@@ -182,9 +182,7 @@ class AuthorizationInfoTestCase(TestCase):
         authorization_header = {"HTTP_AUTHORIZATION": "Bearer {}".format(token)}
         request = self.factory.get(
             "/v2/repository/nlp/authorization/info/{}/".format(token),
-            {
-                "repository_version": repository_version
-            },
+            {"repository_version": repository_version},
             **authorization_header
         )
         response = RepositoryAuthorizationInfoViewSet.as_view({"get": "retrieve"})(
@@ -209,13 +207,12 @@ class AuthorizationInfoTestCase(TestCase):
     def test_list_repository_intents_with_filter_version(self):
         response, content_data = self.request(
             str(self.repository_authorization.uuid),
-            repository_version=self.repository_version.pk
+            repository_version=self.repository_version.pk,
         )
         self.assertEqual(len(response.data.get("intents")), 1)
 
         response, content_data = self.request(
-            str(self.repository_authorization.uuid),
-            repository_version="0"
+            str(self.repository_authorization.uuid), repository_version="0"
         )
         self.assertEqual(len(response.data.get("intents")), 0)
 
@@ -235,7 +232,9 @@ class AuthorizationTrainGetExamplesTestCase(TestCase):
         )
 
         self.repository_authorization = RepositoryAuthorization.objects.create(
-            user=self.user, repository=self.repository, role=RepositoryAuthorization.ROLE_ADMIN
+            user=self.user,
+            repository=self.repository,
+            role=RepositoryAuthorization.ROLE_ADMIN,
         )
 
         self.repository_version = RepositoryVersion.objects.create(

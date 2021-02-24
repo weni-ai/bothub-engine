@@ -396,20 +396,30 @@ class Repository(models.Model):
 
     def validate_if_can_run_manual_evaluate(self, language: str) -> None:
         if not self.have_at_least_one_test_phrase_registered(language=language):
-            raise ValidationError(_("You need to have at least " + "one registered test phrase"))
+            raise ValidationError(
+                _("You need to have at least " + "one registered test phrase")
+            )
 
         if not self.have_at_least_two_intents_registered():
-            raise ValidationError(_("You need to have at least " + "two registered intents"))
+            raise ValidationError(
+                _("You need to have at least " + "two registered intents")
+            )
 
     def validate_if_can_run_automatic_evaluate(self, language: str) -> None:
         if not self.have_at_least_two_intents_registered():
-            raise ValidationError(_("You need to have at least " + "two registered intents"))
+            raise ValidationError(
+                _("You need to have at least " + "two registered intents")
+            )
 
         if not self.have_at_least_fifteen_examples_registered(language=language):
-            raise ValidationError(_("You need to have at least " + "fifteen registered train phrases"))
+            raise ValidationError(
+                _("You need to have at least " + "fifteen registered train phrases")
+            )
 
         if not self.have_at_least_three_examples_for_each_intent(language=language):
-            raise ValidationError(_("You need to have at least " + "three train phrases for each intent"))
+            raise ValidationError(
+                _("You need to have at least " + "three train phrases for each intent")
+            )
 
     def request_nlp_train(self, user_authorization, data):
         try:  # pragma: no cover
@@ -563,11 +573,9 @@ class Repository(models.Model):
             data = {
                 "language": data.get("language"),
                 "repository_version": data.get("repository_version"),
-                "cross_validation": False
+                "cross_validation": False,
             }
-            headers = {
-                "Authorization": f"Bearer {user_authorization.uuid}"
-            }
+            headers = {"Authorization": f"Bearer {user_authorization.uuid}"}
             r = requests.post(url, data=json.dumps(data), headers=headers)
 
             return r  # pragma: no cover
@@ -585,11 +593,9 @@ class Repository(models.Model):
             data = {
                 "language": data.get("language"),
                 "repository_version": data.get("repository_version"),
-                "cross_validation": True
+                "cross_validation": True,
             }
-            headers = {
-                "Authorization": f"Bearer {user_authorization.uuid}"
-            }
+            headers = {"Authorization": f"Bearer {user_authorization.uuid}"}
             r = requests.post(url, data=json.dumps(data), headers=headers)
 
             return r  # pragma: no cover
