@@ -527,11 +527,9 @@ class Repository(models.Model):
             data = {
                 "language": data.get("language"),
                 "repository_version": data.get("repository_version"),
-                "cross_validation": data.get("cross_validation", False)
+                "cross_validation": data.get("cross_validation", False),
             }
-            headers = {
-                "Authorization": f"Bearer {user_authorization.uuid}"
-            }
+            headers = {"Authorization": f"Bearer {user_authorization.uuid}"}
             r = requests.post(url, data=json.dumps(data), headers=headers)
 
             return r  # pragma: no cover
