@@ -500,8 +500,8 @@ def intent_suggestions(intent_id, language, authorization_token):  # pragma: no 
                 suggestions = request_nlp(
                     authorization_token, None, "intent_sentence_suggestion", data
                 )
-                random.shuffle(suggestions["suggested_sentences"])
-                if suggestions["suggested_sentences"]:
+                if suggestions.get("suggested_sentences", None):
+                    random.shuffle(suggestions["suggested_sentences"])
                     dataset[intent.text] = suggestions["suggested_sentences"][
                         : settings.N_SENTENCES_TO_GENERATE
                     ]
