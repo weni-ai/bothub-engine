@@ -23,7 +23,6 @@ from bothub.common.models import (
     RepositoryNLPLog,
     RepositoryExample,
     RepositoryEvaluate,
-    RepositoryQueueTask,
 )
 from bothub.common.models import RepositoryEntity
 from bothub.common.models import RepositoryEvaluateResult
@@ -139,9 +138,7 @@ class RepositoryAuthorizationTrainViewSet(
         type_processing = request.data.get("type_processing")
 
         repository.create_task(
-            id_queue=id_queue,
-            from_queue=from_queue,
-            type_processing=type_processing,
+            id_queue=id_queue, from_queue=from_queue, type_processing=type_processing
         )
         return Response({})
 
