@@ -136,10 +136,12 @@ class RepositoryAuthorizationTrainViewSet(
 
         id_queue = request.data.get("task_id")
         from_queue = request.data.get("from_queue")
+        type_processing = request.data.get("type_processing")
+
         repository.create_task(
             id_queue=id_queue,
             from_queue=from_queue,
-            type_processing=RepositoryQueueTask.TYPE_PROCESSING_TRAINING,
+            type_processing=type_processing,
         )
         return Response({})
 
