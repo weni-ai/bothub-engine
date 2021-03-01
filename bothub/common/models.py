@@ -456,36 +456,18 @@ class Repository(models.Model):
 
     def request_nlp_analyze(self, user_authorization, data):
         try:  # pragma: no cover
-            if data.get("repository_version"):
-                r = requests.post(  # pragma: no cover
-                    "{}parse/".format(
-                        self.nlp_server
-                        if self.nlp_server
-                        else settings.BOTHUB_NLP_BASE_URL
-                    ),
-                    data={
-                        "text": data.get("text"),
-                        "language": data.get("language"),
-                        "repository_version": data.get("repository_version"),
-                        "from_backend": True,
-                    },
-                    headers={
-                        "Authorization": "Bearer {}".format(user_authorization.uuid)
-                    },
-                )
-            else:
-                r = requests.post(  # pragma: no cover
-                    "{}parse/".format(
-                        self.nlp_server
-                        if self.nlp_server
-                        else settings.BOTHUB_NLP_BASE_URL
-                    ),
-                    data={"text": data.get("text"), "language": data.get("language")},
-                    headers={
-                        "Authorization": "Bearer {}".format(user_authorization.uuid)
-                    },
-                )
+            url = f"{self.nlp_server if self.nlp_server else settings.BOTHUB_NLP_BASE_URL}parse/"
+            data = {
+                "text": data.get("text"),
+                "language": data.get("language"),
+                "repository_version": data.get("repository_version"),
+                "from_backend": True,
+            }
+            headers = {"Authorization": f"Bearer {user_authorization.uuid}"}
+            r = requests.post(url, data=json.dumps(data), headers=headers)
+
             return r  # pragma: no cover
+
         except requests.exceptions.ConnectionError:  # pragma: no cover
             raise APIException(  # pragma: no cover
                 {"status_code": status.HTTP_503_SERVICE_UNAVAILABLE},
@@ -1255,9 +1237,11 @@ class RepositoryQueueTask(models.Model):
     ]
     TYPE_PROCESSING_TRAINING = 0
     TYPE_PROCESSING_AUTO_TRANSLATE = 1
+    TYPE_PROCESSING_EVALUATE_CROSS_VALIDATION = 2
     TYPE_PROCESSING_CHOICES = [
         (TYPE_PROCESSING_TRAINING, _("NLP Tranining")),
         (TYPE_PROCESSING_AUTO_TRANSLATE, _("Repository Auto Translation")),
+        (TYPE_PROCESSING_EVALUATE_CROSS_VALIDATION, _("Evaluate Cross Validation")),
     ]
 
     repositoryversionlanguage = models.ForeignKey(
