@@ -42,30 +42,29 @@ def trainings_check_task():
         | Q(status=RepositoryQueueTask.STATUS_PROCESSING)
     )
     for train in trainers:
-        if train.type_processing == RepositoryQueueTask.TYPE_PROCESSING_TRAINING:
-            services = {
-                RepositoryQueueTask.QUEUE_AIPLATFORM: "ai-platform",
-                RepositoryQueueTask.QUEUE_CELERY: "celery",
-            }
-            result = requests.get(
-                url=f"{settings.BOTHUB_NLP_BASE_URL}v2/task-queue/",
-                params=urlencode(
-                    {
-                        "id_task": train.id_queue,
-                        "from_queue": services.get(train.from_queue),
-                    }
-                ),
-            ).json()
+        services = {
+            RepositoryQueueTask.QUEUE_AIPLATFORM: "ai-platform",
+            RepositoryQueueTask.QUEUE_CELERY: "celery",
+        }
+        result = requests.get(
+            url=f"{settings.BOTHUB_NLP_BASE_URL}v2/task-queue/",
+            params=urlencode(
+                {
+                    "id_task": train.id_queue,
+                    "from_queue": services.get(train.from_queue),
+                }
+            ),
+        ).json()
 
-            if int(result.get("status")) != train.status:
-                fields = ["status", "ml_units"]
-                train.status = result.get("status")
-                if train.status == RepositoryQueueTask.STATUS_SUCCESS:
-                    train.end_training = timezone.now()
-                    fields.append("end_training")
-                train.ml_units = result.get("ml_units")
-                train.save(update_fields=fields)
-                continue
+        if int(result.get("status")) != train.status:
+            fields = ["status", "ml_units"]
+            train.status = result.get("status")
+            if train.status == RepositoryQueueTask.STATUS_SUCCESS:
+                train.end_training = timezone.now()
+                fields.append("end_training")
+            train.ml_units = result.get("ml_units")
+            train.save(update_fields=fields)
+            continue
 
         # Verifica o treinamento que esta em execução, caso o tempo de criação seja maior que 2 horas
         # ele torna a task como falha

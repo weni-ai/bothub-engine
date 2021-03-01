@@ -1237,9 +1237,11 @@ class RepositoryQueueTask(models.Model):
     ]
     TYPE_PROCESSING_TRAINING = 0
     TYPE_PROCESSING_AUTO_TRANSLATE = 1
+    TYPE_PROCESSING_EVALUATE_CROSS_VALIDATION = 2
     TYPE_PROCESSING_CHOICES = [
         (TYPE_PROCESSING_TRAINING, _("NLP Tranining")),
         (TYPE_PROCESSING_AUTO_TRANSLATE, _("Repository Auto Translation")),
+        (TYPE_PROCESSING_EVALUATE_CROSS_VALIDATION, _("Evaluate Cross Validation")),
     ]
 
     repositoryversionlanguage = models.ForeignKey(
