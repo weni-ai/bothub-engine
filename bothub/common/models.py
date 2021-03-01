@@ -383,13 +383,10 @@ class Repository(models.Model):
     def have_at_least_two_intents_registered(self) -> bool:
         return len(self.intents()) >= 2
 
-    def have_at_least_fifteen_examples_registered(self, language: str) -> bool:
-        return self.examples(language=language).count() >= 15
-
-    def have_at_least_three_examples_for_each_intent(self, language: str) -> bool:
+    def have_at_least_twenty_examples_for_each_intent(self, language: str) -> bool:
         return all(
             [
-                self.examples(language=language).filter(intent__text=intent).count() > 3
+                self.examples(language=language).filter(intent__text=intent).count() >= 20
                 for intent in self.intents()
             ]
         )
@@ -411,14 +408,9 @@ class Repository(models.Model):
                 _("You need to have at least " + "two registered intents")
             )
 
-        if not self.have_at_least_fifteen_examples_registered(language=language):
+        if not self.have_at_least_twenty_examples_for_each_intent(language=language):
             raise ValidationError(
-                _("You need to have at least " + "fifteen registered train phrases")
-            )
-
-        if not self.have_at_least_three_examples_for_each_intent(language=language):
-            raise ValidationError(
-                _("You need to have at least " + "three train phrases for each intent")
+                _("You need to have at least " + "twenty train phrases for each intent")
             )
 
     def request_nlp_train(self, user_authorization, data):
