@@ -368,13 +368,13 @@ class RepositoryTestCase(TestCase):
         )
         self.assertTrue(self.repository.have_at_least_two_intents_registered())
 
-    def test_have_at_least_fifteen_examples_registered(self):
+    def test_have_at_least_twenty_examples_for_each_intent(self):
         self.assertFalse(
-            self.repository.have_at_least_fifteen_examples_registered(
+            self.repository.have_at_least_twenty_examples_for_each_intent(
                 language=languages.LANGUAGE_EN
             )
         )
-        for i in range(0, 15):
+        for i in range(0, 20):
             RepositoryExample.objects.create(
                 repository_version_language=self.repository.current_version(
                     languages.LANGUAGE_EN
@@ -383,27 +383,7 @@ class RepositoryTestCase(TestCase):
                 intent=self.example_intent_1,
             )
         self.assertTrue(
-            self.repository.have_at_least_fifteen_examples_registered(
-                language=languages.LANGUAGE_EN
-            )
-        )
-
-    def test_have_at_least_three_examples_for_each_intent(self):
-        self.assertFalse(
-            self.repository.have_at_least_three_examples_for_each_intent(
-                language=languages.LANGUAGE_EN
-            )
-        )
-        for i in range(0, 3):
-            RepositoryExample.objects.create(
-                repository_version_language=self.repository.current_version(
-                    languages.LANGUAGE_EN
-                ),
-                text=f"test{i}",
-                intent=self.example_intent_1,
-            )
-        self.assertTrue(
-            self.repository.have_at_least_three_examples_for_each_intent(
+            self.repository.have_at_least_twenty_examples_for_each_intent(
                 language=languages.LANGUAGE_EN
             )
         )
@@ -459,7 +439,7 @@ class RepositoryTestCase(TestCase):
         intent_test = RepositoryIntent.objects.create(
             text="farewall", repository_version=self.repository_version
         )
-        for i in range(0, 8):
+        for i in range(0, 20):
             RepositoryExample.objects.create(
                 repository_version_language=self.repository.current_version(
                     languages.LANGUAGE_EN
@@ -467,7 +447,7 @@ class RepositoryTestCase(TestCase):
                 text=f"test{i}",
                 intent=intent_test,
             )
-        for i in range(0, 8):
+        for i in range(0, 20):
             RepositoryExample.objects.create(
                 repository_version_language=self.repository.current_version(
                     languages.LANGUAGE_EN
@@ -475,7 +455,6 @@ class RepositoryTestCase(TestCase):
                 text=f"test{i}",
                 intent=self.example_intent_1,
             )
-
         url = f"{self.repository.nlp_server if self.repository.nlp_server else settings.BOTHUB_NLP_BASE_URL}"
         url = f"{url}evaluate/"
         json = {
