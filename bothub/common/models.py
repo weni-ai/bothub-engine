@@ -1,3 +1,4 @@
+import json
 import uuid
 from functools import reduce
 
@@ -376,6 +377,42 @@ class Repository(models.Model):
         self.__use_name_entities = self.use_name_entities
         self.__use_analyze_char = self.use_analyze_char
 
+    def have_at_least_one_test_phrase_registered(self, language: str) -> bool:
+        return self.evaluations(language=language).count() > 0
+
+    def have_at_least_two_intents_registered(self) -> bool:
+        return len(self.intents()) >= 2
+
+    def have_at_least_twenty_examples_for_each_intent(self, language: str) -> bool:
+        return all(
+            [
+                self.examples(language=language).filter(intent__text=intent).count() >= 20
+                for intent in self.intents()
+            ]
+        )
+
+    def validate_if_can_run_manual_evaluate(self, language: str) -> None:
+        if not self.have_at_least_one_test_phrase_registered(language=language):
+            raise ValidationError(
+                _("You need to have at least " + "one registered test phrase")
+            )
+
+        if not self.have_at_least_two_intents_registered():
+            raise ValidationError(
+                _("You need to have at least " + "two registered intents")
+            )
+
+    def validate_if_can_run_automatic_evaluate(self, language: str) -> None:
+        if not self.have_at_least_two_intents_registered():
+            raise ValidationError(
+                _("You need to have at least " + "two registered intents")
+            )
+
+        if not self.have_at_least_twenty_examples_for_each_intent(language=language):
+            raise ValidationError(
+                _("You need to have at least " + "twenty train phrases for each intent")
+            )
+
     def request_nlp_train(self, user_authorization, data):
         try:  # pragma: no cover
             if data.get("repository_version"):
@@ -411,36 +448,18 @@ class Repository(models.Model):
 
     def request_nlp_analyze(self, user_authorization, data):
         try:  # pragma: no cover
-            if data.get("repository_version"):
-                r = requests.post(  # pragma: no cover
-                    "{}parse/".format(
-                        self.nlp_server
-                        if self.nlp_server
-                        else settings.BOTHUB_NLP_BASE_URL
-                    ),
-                    data={
-                        "text": data.get("text"),
-                        "language": data.get("language"),
-                        "repository_version": data.get("repository_version"),
-                        "from_backend": True,
-                    },
-                    headers={
-                        "Authorization": "Bearer {}".format(user_authorization.uuid)
-                    },
-                )
-            else:
-                r = requests.post(  # pragma: no cover
-                    "{}parse/".format(
-                        self.nlp_server
-                        if self.nlp_server
-                        else settings.BOTHUB_NLP_BASE_URL
-                    ),
-                    data={"text": data.get("text"), "language": data.get("language")},
-                    headers={
-                        "Authorization": "Bearer {}".format(user_authorization.uuid)
-                    },
-                )
+            url = f"{self.nlp_server if self.nlp_server else settings.BOTHUB_NLP_BASE_URL}parse/"
+            data = {
+                "text": data.get("text"),
+                "language": data.get("language"),
+                "repository_version": data.get("repository_version"),
+                "from_backend": True,
+            }
+            headers = {"Authorization": f"Bearer {user_authorization.uuid}"}
+            r = requests.post(url, data=json.dumps(data), headers=headers)
+
             return r  # pragma: no cover
+
         except requests.exceptions.ConnectionError:  # pragma: no cover
             raise APIException(  # pragma: no cover
                 {"status_code": status.HTTP_503_SERVICE_UNAVAILABLE},
@@ -520,40 +539,39 @@ class Repository(models.Model):
                 code=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
 
-    def request_nlp_evaluate(self, user_authorization, data):
+    def request_nlp_manual_evaluate(self, user_authorization, data):
+        self.validate_if_can_run_manual_evaluate(language=data.get("language"))
+
         try:  # pragma: no cover
-            if data.get("repository_version"):
-                r = requests.post(  # pragma: no cover
-                    "{}evaluate/".format(
-                        self.nlp_server
-                        if self.nlp_server
-                        else settings.BOTHUB_NLP_BASE_URL
-                    ),
-                    data={
-                        "language": data.get("language"),
-                        "repository_version": data.get("repository_version"),
-                    },
-                    headers={
-                        "Authorization": "Bearer {}".format(user_authorization.uuid)
-                    },
-                )
-            else:
-                r = requests.post(  # pragma: no cover
-                    "{}evaluate/".format(
-                        self.nlp_server
-                        if self.nlp_server
-                        else settings.BOTHUB_NLP_BASE_URL
-                    ),
-                    data={
-                        "language": data.get("language"),
-                        "cross_validation": data.get("cross_validation")
-                        if data.get("cross_validation")
-                        else False,  # pragma: no cover
-                    },
-                    headers={
-                        "Authorization": "Bearer {}".format(user_authorization.uuid)
-                    },
-                )
+            url = f"{self.nlp_server if self.nlp_server else settings.BOTHUB_NLP_BASE_URL}evaluate/"
+            data = {
+                "language": data.get("language"),
+                "repository_version": data.get("repository_version"),
+                "cross_validation": False,
+            }
+            headers = {"Authorization": f"Bearer {user_authorization.uuid}"}
+            r = requests.post(url, data=json.dumps(data), headers=headers)
+
+            return r  # pragma: no cover
+        except requests.exceptions.ConnectionError:  # pragma: no cover
+            raise APIException(  # pragma: no cover
+                {"status_code": status.HTTP_503_SERVICE_UNAVAILABLE},
+                code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
+    def request_nlp_automatic_evaluate(self, user_authorization, data):
+        self.validate_if_can_run_automatic_evaluate(language=data.get("language"))
+
+        try:  # pragma: no cover
+            url = f"{self.nlp_server if self.nlp_server else settings.BOTHUB_NLP_BASE_URL}evaluate/"
+            data = {
+                "language": data.get("language"),
+                "repository_version": data.get("repository_version"),
+                "cross_validation": True,
+            }
+            headers = {"Authorization": f"Bearer {user_authorization.uuid}"}
+            r = requests.post(url, data=json.dumps(data), headers=headers)
+
             return r  # pragma: no cover
         except requests.exceptions.ConnectionError:  # pragma: no cover
             raise APIException(  # pragma: no cover
@@ -645,11 +663,17 @@ class Repository(models.Model):
             )
         )
 
-    def intents(self, queryset=None, version_default=True):
+    def intents(self, queryset=None, version_default=True, repository_version=None):
         intents = (
-            self.examples(queryset=queryset, version_default=version_default)
+            self.examples(
+                queryset=queryset,
+                version_default=version_default,
+                repository_version=repository_version,
+            )
             if queryset
-            else self.examples(version_default=version_default)
+            else self.examples(
+                version_default=version_default, repository_version=repository_version
+            )
         )
         return list(set(intents.values_list("intent__text", flat=True)))
 
@@ -672,7 +696,13 @@ class Repository(models.Model):
             self.name, self.owner.nickname, self.slug
         )  # pragma: no cover
 
-    def examples(self, language=None, queryset=None, version_default=True):
+    def examples(
+        self,
+        language=None,
+        queryset=None,
+        version_default=True,
+        repository_version=None,
+    ):
         if queryset is None:
             queryset = RepositoryExample.objects
         query = queryset.filter(
@@ -685,6 +715,11 @@ class Repository(models.Model):
             )
         if language:
             query = query.filter(repository_version_language__language=language)
+
+        if repository_version:
+            query = query.filter(
+                repository_version_language__repository_version__id=repository_version
+            )
         return query
 
     def evaluations(
@@ -1194,9 +1229,11 @@ class RepositoryQueueTask(models.Model):
     ]
     TYPE_PROCESSING_TRAINING = 0
     TYPE_PROCESSING_AUTO_TRANSLATE = 1
+    TYPE_PROCESSING_EVALUATE_CROSS_VALIDATION = 2
     TYPE_PROCESSING_CHOICES = [
         (TYPE_PROCESSING_TRAINING, _("NLP Tranining")),
         (TYPE_PROCESSING_AUTO_TRANSLATE, _("Repository Auto Translation")),
+        (TYPE_PROCESSING_EVALUATE_CROSS_VALIDATION, _("Evaluate Cross Validation")),
     ]
 
     repositoryversionlanguage = models.ForeignKey(

@@ -1,6 +1,8 @@
 from django.utils.decorators import method_decorator
 from drf_yasg2 import openapi
 from drf_yasg2.utils import swagger_auto_schema
+from rest_framework.decorators import action
+from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from rest_framework import mixins
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
@@ -179,9 +181,24 @@ class ResultsListViewSet(
     permission_classes = [IsAuthenticated, RepositoryEvaluateResultPermission]
     filter_class = EvaluateResultsFilter
     filter_backends = [OrderingFilter, DjangoFilterBackend]
+    filter_fields = ["cross_validation"]
     ordering_fields = ["created_at"]
 
     def retrieve(self, request, *args, **kwargs):
         self.serializer_class = RepositoryEvaluateResultSerializer
         self.filter_class = EvaluateResultFilter
         return super().retrieve(request, *args, **kwargs)
+
+    @action(detail=False, methods=["GET"], url_name="compare_results")
+    def compare_results(self, request, **kwargs):
+        try:
+            results_ids_to_compare = request.query_params.get("ids", "").split(",")
+            results = self.get_queryset().filter(pk__in=results_ids_to_compare)
+            serializer = RepositoryEvaluateResultSerializer(results, many=True, context={"request": request})
+        except ValueError:
+            return Response(
+                {"detail": "Send only integers in the 'ids' parameter. If there is a ',' left, remove it."},
+                400
+            )
+
+        return Response(serializer.data, 200)

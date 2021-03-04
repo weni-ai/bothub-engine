@@ -58,6 +58,14 @@ from .translator.views import (
 
 class Router(routers.SimpleRouter):
     routes = [
+        # Dynamically generated list routes. Generated using
+        # @action(detail=False) decorator on methods of the viewset.
+        routers.DynamicRoute(
+            url=r'^{prefix}/{url_path}{trailing_slash}$',
+            name='{basename}-{url_name}',
+            detail=False,
+            initkwargs={}
+        ),
         # Dynamically generated list routes.
         # Generated using @action decorator
         # on methods of the viewset.

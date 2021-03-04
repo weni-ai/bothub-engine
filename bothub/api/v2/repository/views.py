@@ -396,7 +396,7 @@ class RepositoryViewSet(
     )
     def evaluate(self, request, **kwargs):
         """
-        Evaluate repository using Bothub NLP service
+        Manual evaluate repository using Bothub NLP service
         """
         repository = self.get_object()
         user_authorization = repository.get_user_authorization(request.user)
@@ -405,19 +405,13 @@ class RepositoryViewSet(
         serializer = EvaluateSerializer(data=request.data)  # pragma: no cover
         serializer.is_valid(raise_exception=True)  # pragma: no cover
 
-        if not repository.evaluations(language=request.data.get("language")).count():
-            raise APIException(
-                detail=_("You need to have at least " + "one registered test phrase")
-            )  # pragma: no cover
+        try:
+            request = repository.request_nlp_manual_evaluate(  # pragma: no cover
+                user_authorization, serializer.data
+            )
+        except DjangoValidationError as e:
+            raise APIException(e.message, code=400)
 
-        if len(repository.intents()) <= 1:
-            raise APIException(
-                detail=_("You need to have at least " + "two registered intents")
-            )  # pragma: no cover
-
-        request = repository.request_nlp_evaluate(  # pragma: no cover
-            user_authorization, serializer.data
-        )
         if request.status_code != status.HTTP_200_OK:  # pragma: no cover
             raise APIException(
                 {"status_code": request.status_code}, code=request.status_code
@@ -427,27 +421,33 @@ class RepositoryViewSet(
     @action(
         detail=True,
         methods=["POST"],
-        url_name="repository-evaluate-crossvalidation",
+        url_name="repository-automatic-evaluate",
         lookup_fields=["uuid"],
         serializer_class=EvaluateSerializer,
     )
-    def evaluate_crossvalidation(self, request, **kwargs):
+    def automatic_evaluate(self, request, **kwargs):
         """
-        Cross validation evaluate repository using Bothub NLP service
+        Automatic evaluate repository using Bothub NLP service
         """
         repository = self.get_object()
         user_authorization = repository.get_user_authorization(request.user)
         if not user_authorization.can_write:
-            raise PermissionDenied()  # pragma: no cover
-        serializer = EvaluateSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+            raise PermissionDenied()
+        serializer = EvaluateSerializer(data=request.data)  # pragma: no cover
+        serializer.is_valid(raise_exception=True)  # pragma: no cover
 
-        task = celery_app.send_task(  # pragma: no cover
-            name="evaluate_crossvalidation",
-            args=[serializer.data, str(user_authorization)],
-        )
-        task.wait()  # pragma: no cover
-        return Response(task.result)  # pragma: nocover
+        try:
+            request = repository.request_nlp_automatic_evaluate(  # pragma: no cover
+                user_authorization, serializer.data
+            )
+        except DjangoValidationError as e:
+            raise APIException(e.message, code=400)
+
+        if request.status_code != status.HTTP_200_OK:  # pragma: no cover
+            raise APIException(
+                {"status_code": request.status_code}, code=request.status_code
+            )  # pragma: no cover
+        return Response(request.json())  # pragma: no cover
 
 
 @method_decorator(

@@ -42,30 +42,29 @@ def trainings_check_task():
         | Q(status=RepositoryQueueTask.STATUS_PROCESSING)
     )
     for train in trainers:
-        if train.type_processing == RepositoryQueueTask.TYPE_PROCESSING_TRAINING:
-            services = {
-                RepositoryQueueTask.QUEUE_AIPLATFORM: "ai-platform",
-                RepositoryQueueTask.QUEUE_CELERY: "celery",
-            }
-            result = requests.get(
-                url=f"{settings.BOTHUB_NLP_BASE_URL}v2/task-queue/",
-                params=urlencode(
-                    {
-                        "id_task": train.id_queue,
-                        "from_queue": services.get(train.from_queue),
-                    }
-                ),
-            ).json()
+        services = {
+            RepositoryQueueTask.QUEUE_AIPLATFORM: "ai-platform",
+            RepositoryQueueTask.QUEUE_CELERY: "celery",
+        }
+        result = requests.get(
+            url=f"{settings.BOTHUB_NLP_BASE_URL}v2/task-queue/",
+            params=urlencode(
+                {
+                    "id_task": train.id_queue,
+                    "from_queue": services.get(train.from_queue),
+                }
+            ),
+        ).json()
 
-            if int(result.get("status")) != train.status:
-                fields = ["status", "ml_units"]
-                train.status = result.get("status")
-                if train.status == RepositoryQueueTask.STATUS_SUCCESS:
-                    train.end_training = timezone.now()
-                    fields.append("end_training")
-                train.ml_units = result.get("ml_units")
-                train.save(update_fields=fields)
-                continue
+        if int(result.get("status")) != train.status:
+            fields = ["status", "ml_units"]
+            train.status = result.get("status")
+            if train.status == RepositoryQueueTask.STATUS_SUCCESS:
+                train.end_training = timezone.now()
+                fields.append("end_training")
+            train.ml_units = result.get("ml_units")
+            train.save(update_fields=fields)
+            continue
 
         # Verifica o treinamento que esta em execução, caso o tempo de criação seja maior que 2 horas
         # ele torna a task como falha
@@ -500,9 +499,10 @@ def intent_suggestions(intent_id, language, authorization_token):  # pragma: no 
                 suggestions = request_nlp(
                     authorization_token, None, "intent_sentence_suggestion", data
                 )
-                random.shuffle(suggestions["suggested_sentences"])
-                if suggestions["suggested_sentences"]:
-                    dataset[intent.text] = suggestions["suggested_sentences"][
+                suggested_sentences = suggestions.get("suggested_sentences", [])
+                if suggested_sentences:
+                    random.shuffle(suggested_sentences)
+                    dataset[intent.text] = suggested_sentences[
                         : settings.N_SENTENCES_TO_GENERATE
                     ]
             else:

@@ -23,7 +23,6 @@ from bothub.common.models import (
     RepositoryNLPLog,
     RepositoryExample,
     RepositoryEvaluate,
-    RepositoryQueueTask,
 )
 from bothub.common.models import RepositoryEntity
 from bothub.common.models import RepositoryEvaluateResult
@@ -97,7 +96,14 @@ class RepositoryAuthorizationTrainViewSet(
             RepositoryVersionLanguage, pk=request.query_params.get("repository_version")
         )
 
-        page = self.paginate_queryset(queryset.examples)
+        intent = request.query_params.get("intent")
+        examples = (
+            queryset.examples.filter(intent__text=intent)
+            if intent
+            else queryset.examples
+        )
+
+        page = self.paginate_queryset(examples)
 
         examples_return = []
 
@@ -129,10 +135,10 @@ class RepositoryAuthorizationTrainViewSet(
 
         id_queue = request.data.get("task_id")
         from_queue = request.data.get("from_queue")
+        type_processing = request.data.get("type_processing")
+
         repository.create_task(
-            id_queue=id_queue,
-            from_queue=from_queue,
-            type_processing=RepositoryQueueTask.TYPE_PROCESSING_TRAINING,
+            id_queue=id_queue, from_queue=from_queue, type_processing=type_processing
         )
         return Response({})
 
@@ -269,11 +275,16 @@ class RepositoryAuthorizationInfoViewSet(mixins.RetrieveModelMixin, GenericViewS
         repository_authorization = self.get_object()
         repository = repository_authorization.repository
 
+        repository_version = request.query_params.get("repository_version")
+
         queryset = RepositoryExample.objects.filter(
-            repository_version_language__repository_version__repository=repository,
-            repository_version_language__repository_version__is_default=True,
+            repository_version_language__repository_version__repository=repository
         )
-        serializer = repository.intents(queryset=queryset, version_default=True)
+        serializer = repository.intents(
+            queryset=queryset,
+            version_default=False,
+            repository_version=repository_version,
+        )
 
         return Response({"intents": serializer})
 
