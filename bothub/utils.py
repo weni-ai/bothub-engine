@@ -8,14 +8,17 @@ import boto3
 import matplotlib.pyplot as plt
 import numpy as np
 import requests
+import grpc
 from collections import OrderedDict
 from botocore.exceptions import ClientError
 from django.conf import settings
 from django.db.models import IntegerField, Subquery
 from django.utils.text import slugify
 from django.utils.translation import ugettext_lazy as _
+from django.core import exceptions
 from rest_framework import status
 from rest_framework.exceptions import APIException, ValidationError
+from django_grpc_framework import generics
 
 entity_regex = re.compile(
     r"\[(?P<entity_text>[^\]]+)" r"\]\((?P<entity>[^:)]*?)" r"(?:\:(?P<value>[^)]+))?\)"
@@ -324,3 +327,54 @@ class CountSubquery(Subquery):
 
     def __init__(self, queryset, output_field=None, **extra):
         super().__init__(queryset, output_field, **extra)
+
+
+class AbstractService:
+    def get_org_object_pk(self, pk: int):
+        return self.get_org_object(pk)
+
+    def get_org_object(self, value: str, query_parameter: str = "pk"):
+        from bothub.common.models import Organization
+
+        return self._get_object(Organization, value, query_parameter)
+
+    def _get_object(self, model, value: str, query_parameter: str = "pk"):
+
+        query = {query_parameter: value}
+
+        try:
+            return model.objects.get(**query)
+        except model.DoesNotExist:
+            self.raises_not_fount(model.__name__, value)
+        except exceptions.ValidationError:
+            self.raises_not_fount(model.__name__, value)
+
+    def raises_not_fount(self, model_name, value):
+        if not value:
+            value = "None"
+        self.context.abort(
+            grpc.StatusCode.NOT_FOUND, f"{model_name}: {value} not found!"
+        )
+
+
+class AbstractUserService(generics.GenericService):
+    def get_org_object(self, pk: int):
+        from bothub.common.models import Organization
+
+        return self._get_object(Organization, pk)
+
+    def get_user_object(self, pk: int):
+        from bothub.authentication.models import User
+
+        return self._get_object(User, pk)
+
+    def _get_object(self, model, value: str, query_parameter: str = "pk"):
+
+        query = {query_parameter: value}
+
+        try:
+            return model.objects.get(**query)
+        except model.DoesNotExist:
+            self.context.abort(
+                grpc.StatusCode.NOT_FOUND, f"{model.__name__}: {value} not found!"
+            )

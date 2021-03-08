@@ -61,10 +61,10 @@ class Router(routers.SimpleRouter):
         # Dynamically generated list routes. Generated using
         # @action(detail=False) decorator on methods of the viewset.
         routers.DynamicRoute(
-            url=r'^{prefix}/{url_path}{trailing_slash}$',
-            name='{basename}-{url_name}',
+            url=r"^{prefix}/{url_path}{trailing_slash}$",
+            name="{basename}-{url_name}",
             detail=False,
-            initkwargs={}
+            initkwargs={},
         ),
         # Dynamically generated list routes.
         # Generated using @action decorator

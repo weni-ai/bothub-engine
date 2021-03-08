@@ -68,7 +68,7 @@ collectstatic:
 		
 createproto:
 	@rm -rf ./bothub/protos/*.py
-	@python -m grpc_tools.protoc --proto_path=./bothub/protos/ --python_out=./bothub/protos/ --grpc_python_out=./bothub/protos/ ./bothub/protos/common.proto
+	@python -m grpc_tools.protoc --proto_path=./ --python_out=./ --grpc_python_out=./ ./bothub/protos/authentication.proto
 
 
 # Utils

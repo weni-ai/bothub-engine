@@ -194,11 +194,15 @@ class ResultsListViewSet(
         try:
             results_ids_to_compare = request.query_params.get("ids", "").split(",")
             results = self.get_queryset().filter(pk__in=results_ids_to_compare)
-            serializer = RepositoryEvaluateResultSerializer(results, many=True, context={"request": request})
+            serializer = RepositoryEvaluateResultSerializer(
+                results, many=True, context={"request": request}
+            )
         except ValueError:
             return Response(
-                {"detail": "Send only integers in the 'ids' parameter. If there is a ',' left, remove it."},
-                400
+                {
+                    "detail": "Send only integers in the 'ids' parameter. If there is a ',' left, remove it."
+                },
+                400,
             )
 
         return Response(serializer.data, 200)

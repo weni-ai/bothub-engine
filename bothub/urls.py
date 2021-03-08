@@ -11,6 +11,7 @@ from bothub.api.v2.swagger import CustomOpenAPISchemaGenerator
 from bothub.health.views import ping
 from bothub.health.views import r200
 from bothub.common.views import download_bot_data
+from bothub.authentication.handlers import grpc_handlers as cliente_grpc_handlers
 
 
 schema_view = get_schema_view(
@@ -37,10 +38,6 @@ urlpatterns = [
         "downloadbotdata/<int:update_id>/", download_bot_data, name="download_bot_data"
     ),
 ]
-
-# Handler GRPC Server
-
-from bothub.common.handlers import grpc_handlers as cliente_grpc_handlers
 
 
 def grpc_handlers(server):

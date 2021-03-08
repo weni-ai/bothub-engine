@@ -386,7 +386,8 @@ class Repository(models.Model):
     def have_at_least_twenty_examples_for_each_intent(self, language: str) -> bool:
         return all(
             [
-                self.examples(language=language).filter(intent__text=intent).count() >= 20
+                self.examples(language=language).filter(intent__text=intent).count()
+                >= 20
                 for intent in self.intents()
             ]
         )
