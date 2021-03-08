@@ -268,7 +268,7 @@ class RepositoryAuthorizationInfoViewSet(mixins.RetrieveModelMixin, GenericViewS
     queryset = RepositoryAuthorization.objects
     serializer_class = NLPSerializer
     permission_classes = [AllowAny]
-    authentication_classes = [NLPAuthentication]
+    authentication_classes = []
 
     def retrieve(self, request, *args, **kwargs):
         check_auth(request)
