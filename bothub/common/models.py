@@ -580,6 +580,24 @@ class Repository(models.Model):
                 code=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
 
+    def request_nlp_qa(self, user_authorization, data):
+        try:  # pragma: no cover
+            url = f"{self.nlp_server if self.nlp_server else settings.BOTHUB_NLP_BASE_URL}question-answering/"
+            data = {
+                "context": data.get("context"),
+                "question": data.get("question"),
+                "language": data.get("language"),
+            }
+            headers = {"Authorization": f"Bearer {user_authorization.uuid}"}
+            r = requests.post(url, data=json.dumps(data), headers=headers)
+
+            return r  # pragma: no cover
+        except requests.exceptions.ConnectionError:  # pragma: no cover
+            raise APIException(  # pragma: no cover
+                {"status_code": status.HTTP_503_SERVICE_UNAVAILABLE},
+                code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
     def available_languages(self, language=None, queryset=None, version_default=True):
         examples = self.examples(
             language=language, queryset=queryset, version_default=version_default

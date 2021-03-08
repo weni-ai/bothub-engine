@@ -1626,3 +1626,9 @@ class RepositoryScoreSerializer(serializers.ModelSerializer):
 
 class RepositoryExampleSuggestionSerializer(serializers.Serializer):
     pass
+
+
+class QASerializer(serializers.Serializer):
+    context = serializers.CharField(max_length=25000)
+    question = serializers.CharField(max_length=500)
+    language = serializers.ChoiceField(LANGUAGE_CHOICES, required=True)
