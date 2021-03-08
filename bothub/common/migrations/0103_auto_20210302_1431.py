@@ -5,14 +5,19 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('common', '0102_repositoryevaluateresult_cross_validation'),
-    ]
+    dependencies = [("common", "0102_repositoryevaluateresult_cross_validation")]
 
     operations = [
         migrations.AlterField(
-            model_name='repositoryqueuetask',
-            name='type_processing',
-            field=models.PositiveIntegerField(choices=[(0, 'NLP Tranining'), (1, 'Repository Auto Translation'), (2, 'Evaluate Cross Validation')], verbose_name='Type Processing'),
-        ),
+            model_name="repositoryqueuetask",
+            name="type_processing",
+            field=models.PositiveIntegerField(
+                choices=[
+                    (0, "NLP Tranining"),
+                    (1, "Repository Auto Translation"),
+                    (2, "Evaluate Cross Validation"),
+                ],
+                verbose_name="Type Processing",
+            ),
+        )
     ]

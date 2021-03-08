@@ -988,7 +988,9 @@ class CompareEvaluateResultsTestCase(TestCase):
         ids = f"{RepositoryEvaluateResult.objects.first().pk},{RepositoryEvaluateResult.objects.last().pk}"
         authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
         request = self.factory.get(
-            "/v2/evaluate/results/compare_results/?repository_uuid={}&ids={}".format(self.repository.uuid, ids),
+            "/v2/evaluate/results/compare_results/?repository_uuid={}&ids={}".format(
+                self.repository.uuid, ids
+            ),
             **authorization_header,
         )
         response = ResultsListViewSet.as_view({"get": "compare_results"})(
@@ -1005,5 +1007,9 @@ class CompareEvaluateResultsTestCase(TestCase):
 
     def test_compare_two_results(self):
         response, content_data = self.request(self.owner_token)
-        self.assertEqual(RepositoryEvaluateResult.objects.last().pk, response.data[1].get("id"))
-        self.assertEqual(RepositoryEvaluateResult.objects.first().pk, response.data[0].get("id"))
+        self.assertEqual(
+            RepositoryEvaluateResult.objects.last().pk, response.data[1].get("id")
+        )
+        self.assertEqual(
+            RepositoryEvaluateResult.objects.first().pk, response.data[0].get("id")
+        )
