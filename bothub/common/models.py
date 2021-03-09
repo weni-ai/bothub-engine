@@ -2227,6 +2227,24 @@ class RepositoryScore(models.Model):
     evaluate_size_recommended = models.TextField(null=True)
 
 
+class QAKnowledgeBase(models.Model):
+    repository = models.ForeignKey(
+        Repository, models.CASCADE, related_name="knowledge_bases"
+    )
+    title = models.CharField(
+        _("title"), max_length=64, help_text=_("Knowledge Base title")
+    )
+    text = models.TextField(_("text"), help_text=_("Knowledge Base text"))
+    language = models.CharField(
+        _("language"),
+        max_length=5,
+        help_text=_("Knowledge Base language"),
+        validators=[languages.validate_language],
+    )
+    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
+    last_update = models.DateTimeField(_("last update"), auto_now=True)
+
+
 @receiver(models.signals.pre_save, sender=RequestRepositoryAuthorization)
 def set_user_role_on_approved(instance, **kwargs):
     current = None

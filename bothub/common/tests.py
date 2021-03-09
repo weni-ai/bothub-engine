@@ -12,7 +12,7 @@ from .models import (
     Repository,
     RepositoryIntent,
     RepositoryEvaluate,
-    RepositoryQueueTask,
+    RepositoryQueueTask, QAKnowledgeBase,
 )
 from .models import RepositoryAuthorization
 from .models import RepositoryEntity
@@ -1458,3 +1458,25 @@ class RepositorySupportedLanguageQueryTestCase(TestCase):
         example.delete()
         q = Repository.objects.all().supported_language(e_language)
         self.assertEqual(q.count(), 0)
+
+
+class QAKnowledgeBaseTest(TestCase):
+    def setUp(self):
+        self.owner = User.objects.create_user("owner@user.com", "user")
+
+        self.repository = Repository.objects.create(
+            owner=self.owner.repository_owner,
+            name="Test",
+            slug="test",
+            language=languages.LANGUAGE_EN,
+        )
+
+    def test_ok(self):
+        qa_knowledge_base = QAKnowledgeBase.objects.create(
+            repository=self.repository,
+            title="teste",
+            text="Lorem Ipsum is simply dummy text of the printing and typesetting industry.",
+            language="pt_br"
+        )
+        self.assertEqual("teste", qa_knowledge_base.title)
+        self.assertEqual(self.repository.knowledge_bases.last(), qa_knowledge_base)
