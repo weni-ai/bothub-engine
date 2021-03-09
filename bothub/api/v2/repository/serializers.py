@@ -40,7 +40,7 @@ from bothub.common.models import (
     RepositoryTranslator,
     RepositoryVersion,
     RepositoryVote,
-    RequestRepositoryAuthorization,
+    RequestRepositoryAuthorization, QAKnowledgeBase,
 )
 from bothub.utils import classifier_choice
 
@@ -1626,6 +1626,21 @@ class RepositoryScoreSerializer(serializers.ModelSerializer):
 
 class RepositoryExampleSuggestionSerializer(serializers.Serializer):
     pass
+
+
+class QAKnowledgeBaseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = QAKnowledgeBase
+        fields = [
+            "repository",
+            "title",
+            "text",
+            "language",
+        ]
+        read_only_fields = ["id", "created_at", "last_update"]
+
+    repository = serializers.PrimaryKeyRelatedField(queryset=Repository.objects)
+    language = serializers.ChoiceField(languages.LANGUAGE_CHOICES, required=True)
 
 
 class QASerializer(serializers.Serializer):
