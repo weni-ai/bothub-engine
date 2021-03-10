@@ -5,14 +5,12 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('common', '0104_qaknowledgebase'),
-    ]
+    dependencies = [("common", "0104_qaknowledgebase")]
 
     operations = [
         migrations.AlterField(
-            model_name='qaknowledgebase',
-            name='last_update',
-            field=models.DateTimeField(auto_now=True, verbose_name='last update'),
-        ),
+            model_name="qaknowledgebase",
+            name="last_update",
+            field=models.DateTimeField(auto_now=True, verbose_name="last update"),
+        )
     ]

@@ -2,6 +2,7 @@ from rest_framework import routers
 
 from bothub.api.v2.versionning.views import RepositoryVersionViewSet
 from .groups.views import RepositoryEntityGroupViewSet
+from .knowledge_base.views import QAKnowledgeBaseViewSet
 from .organization.views import (
     OrganizationViewSet,
     OrganizationProfileViewSet,
@@ -19,7 +20,7 @@ from .repository.views import (
     RepositoryIntentViewSet,
     RepositoryTranslatorInfoViewSet,
     RepositoryTrainInfoViewSet,
-    RepositoryExamplesBulkViewSet, QAKnowledgeBaseViewSet,
+    RepositoryExamplesBulkViewSet,
 )
 from .repository.views import RepositoryVotesViewSet
 from .repository.views import RepositoryMigrateViewSet
@@ -30,8 +31,11 @@ from .repository.views import SearchRepositoriesViewSet
 from .repository.views import RepositoryAuthorizationViewSet
 from .repository.views import RepositoryAuthorizationRequestsViewSet
 from .repository.views import RepositoryExampleViewSet
-from .nlp.views import RepositoryAuthorizationTrainViewSet, RepositoryNLPLogsViewSet, \
-    RepositoryAuthorizationKnowledgeBaseViewSet
+from .nlp.views import (
+    RepositoryAuthorizationTrainViewSet,
+    RepositoryNLPLogsViewSet,
+    RepositoryAuthorizationKnowledgeBaseViewSet,
+)
 from .nlp.views import RepositoryAuthorizationParseViewSet
 from .nlp.views import RepositoryAuthorizationInfoViewSet
 from .nlp.views import RepositoryAuthorizationEvaluateViewSet
@@ -192,7 +196,8 @@ router.register(
     "repository/nlp/update_interpreters", RepositoryUpdateInterpretersViewSet
 )
 router.register(
-    "repository/nlp/authorization/knowledge-base", RepositoryAuthorizationKnowledgeBaseViewSet
+    "repository/nlp/authorization/knowledge-base",
+    RepositoryAuthorizationKnowledgeBaseViewSet,
 )
 router.register("repository/nlp/log", RepositoryNLPLogsViewSet)
 router.register("account/login", LoginViewSet)

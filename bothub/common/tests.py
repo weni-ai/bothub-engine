@@ -12,7 +12,8 @@ from .models import (
     Repository,
     RepositoryIntent,
     RepositoryEvaluate,
-    RepositoryQueueTask, QAKnowledgeBase,
+    RepositoryQueueTask,
+    QAKnowledgeBase,
 )
 from .models import RepositoryAuthorization
 from .models import RepositoryEntity
@@ -1476,7 +1477,7 @@ class QAKnowledgeBaseTest(TestCase):
             repository=self.repository,
             title="teste",
             text="Lorem Ipsum is simply dummy text of the printing and typesetting industry.",
-            language="pt_br"
+            language="pt_br",
         )
         self.assertEqual("teste", qa_knowledge_base.title)
         self.assertEqual(self.repository.knowledge_bases.last(), qa_knowledge_base)

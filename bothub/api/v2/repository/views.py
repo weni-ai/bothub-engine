@@ -20,7 +20,7 @@ from rest_framework.filters import SearchFilter
 from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
-from rest_framework.viewsets import GenericViewSet, ModelViewSet
+from rest_framework.viewsets import GenericViewSet
 
 from bothub.api.v2.mixins import MultipleFieldLookupMixin
 from bothub.authentication.authorization import TranslatorAuthentication
@@ -41,7 +41,7 @@ from bothub.common.models import (
     RepositoryTranslator,
     RepositoryVersion,
     RepositoryVote,
-    RequestRepositoryAuthorization, QAKnowledgeBase,
+    RequestRepositoryAuthorization,
 )
 
 from ..metadata import Metadata
@@ -94,7 +94,6 @@ from .serializers import (
     ShortRepositorySerializer,
     TrainSerializer,
     WordDistributionSerializer,
-    QASerializer, QAKnowledgeBaseSerializer,
 )
 
 
@@ -448,33 +447,6 @@ class RepositoryViewSet(
             raise APIException(
                 {"status_code": request.status_code}, code=request.status_code
             )  # pragma: no cover
-        return Response(request.json())  # pragma: no cover
-
-    @action(
-        detail=True,
-        methods=["POST"],
-        url_name="repository-qa",
-        lookup_fields=["uuid"],
-        serializer_class=QASerializer,
-    )
-    def qa(self, request, **kwargs):
-        """
-        Question and Answer using Bothub NLP service
-        """
-        repository = self.get_object()
-        user_authorization = repository.get_user_authorization(request.user)
-        serializer = QASerializer(data=request.data)  # pragma: no cover
-        serializer.is_valid(raise_exception=True)  # pragma: no cover
-        if not user_authorization.can_write:
-            raise PermissionDenied()
-
-        request = repository.request_nlp_qa(
-            user_authorization, serializer.data
-        )  # pragma: no cover
-        if request.status_code != status.HTTP_200_OK:  # pragma: no cover
-            raise APIException(  # pragma: no cover
-                {"status_code": request.status_code}, code=request.status_code
-            )
         return Response(request.json())  # pragma: no cover
 
 
@@ -1115,15 +1087,3 @@ class RepositoryExamplesBulkViewSet(mixins.CreateModelMixin, GenericViewSet):
             kwargs["many"] = True
 
         return super().get_serializer(*args, **kwargs)
-
-
-class QAKnowledgeBaseViewSet(
-    mixins.CreateModelMixin,
-    mixins.RetrieveModelMixin,
-    mixins.DestroyModelMixin,
-    mixins.UpdateModelMixin,
-    GenericViewSet
-):
-    queryset = QAKnowledgeBase.objects.all()
-    serializer_class = QAKnowledgeBaseSerializer
-    permission_classes = [permissions.IsAuthenticated, RepositoryPermission]

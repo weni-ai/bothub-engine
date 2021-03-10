@@ -584,9 +584,8 @@ class Repository(models.Model):
         try:  # pragma: no cover
             url = f"{self.nlp_server if self.nlp_server else settings.BOTHUB_NLP_BASE_URL}question-answering/"
             data = {
-                "context": data.get("context"),
+                "knowledge_base": data.get("knowledge_base"),
                 "question": data.get("question"),
-                "language": data.get("language"),
             }
             headers = {"Authorization": f"Bearer {user_authorization.uuid}"}
             r = requests.post(url, data=json.dumps(data), headers=headers)

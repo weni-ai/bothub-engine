@@ -578,7 +578,9 @@ class RepositoryNLPLogsViewSet(mixins.CreateModelMixin, GenericViewSet):
     authentication_classes = [NLPAuthentication]
 
 
-class RepositoryAuthorizationKnowledgeBaseViewSet(mixins.RetrieveModelMixin, GenericViewSet):
+class RepositoryAuthorizationKnowledgeBaseViewSet(
+    mixins.RetrieveModelMixin, GenericViewSet
+):
     queryset = RepositoryAuthorization.objects
     serializer_class = NLPSerializer
     permission_classes = [AllowAny]
@@ -595,12 +597,27 @@ class RepositoryAuthorizationKnowledgeBaseViewSet(mixins.RetrieveModelMixin, Gen
 
         knowledge_base_pk = request.query_params.get("knowledge_base")
 
-        knowledge_base = get_object_or_404(repository.knowledge_bases.all(), pk=knowledge_base_pk)
+        knowledge_base = get_object_or_404(
+            repository.knowledge_bases.all(), pk=knowledge_base_pk
+        )
 
         return Response(
             {
                 "id": knowledge_base.pk,
                 "context": knowledge_base.text,
-                "language": knowledge_base.language
+                "language": knowledge_base.language,
             }
         )
+
+    """@action(detail=True, methods=["GET"], url_name="evaluations", lookup_field=[])
+    def evaluations(self, request, **kwargs):
+        repository_authorization = check_auth(request)
+
+        if not repository_authorization.can_contribute:
+            raise PermissionDenied()
+
+        repository_update = get_object_or_404(
+            RepositoryVersionLanguage, pk=request.query_params.get("repository_version")
+        )
+
+        return Response(data)"""
