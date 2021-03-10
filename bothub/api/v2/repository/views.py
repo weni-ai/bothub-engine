@@ -1117,7 +1117,13 @@ class RepositoryExamplesBulkViewSet(mixins.CreateModelMixin, GenericViewSet):
         return super().get_serializer(*args, **kwargs)
 
 
-class QAKnowledgeBaseViewSet(ModelViewSet):
+class QAKnowledgeBaseViewSet(
+    mixins.CreateModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.DestroyModelMixin,
+    mixins.UpdateModelMixin,
+    GenericViewSet
+):
     queryset = QAKnowledgeBase.objects.all()
     serializer_class = QAKnowledgeBaseSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly, RepositoryPermission]
+    permission_classes = [permissions.IsAuthenticated, RepositoryPermission]
