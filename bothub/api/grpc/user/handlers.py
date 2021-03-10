@@ -1,4 +1,4 @@
-from bothub.authentication.services import UserService, UserPermissionService
+from bothub.api.grpc.user.services import UserService, UserPermissionService
 from bothub.protos import authentication_pb2_grpc
 
 

@@ -1,4 +1,4 @@
-from bothub.common.services import OrgService
+from bothub.api.grpc.organization.services import OrgService
 from bothub.protos import organization_pb2_grpc
 
 
