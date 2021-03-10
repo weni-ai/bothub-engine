@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+package org;
+
+import "google/protobuf/empty.proto";
+
+service OrgController {
+    rpc List(OrgListRequest) returns (stream Org) {}
+    rpc Create(OrgCreateRequest) returns (Org) {}
+    rpc Update(OrgUpdateRequest) returns (OrgUpdateRequest) {}
+    rpc Destroy(OrgDestroyRequest) returns (google.protobuf.Empty) {}
+}
+
+message Org {
+    int32 id = 1;
+    string name = 2;
+    repeated Users users = 3;
+}
+
+message Users {
+    int32 org_user_id = 1;
+    string org_user_email = 2;
+    string org_user_nickname = 3;
+    string org_user_name = 4;
+}
+
+message OrgListRequest {
+    string user_email = 1;
+}
+
+message OrgCreateRequest {
+    string name = 1;
+    string user_email = 2;
+}
+
+message OrgDestroyRequest {
+    int32 id = 1;
+    string user_email = 2;
+}
+
+message OrgUpdateRequest {
+    int32 id = 1;
+    string user_email = 2;
+    optional string name = 3;
+}

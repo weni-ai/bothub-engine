@@ -92,6 +92,30 @@ def unique_slug_generator(validated_data, Repository, new_slug=None):
     return slug
 
 
+def organization_unique_slug_generator(org_name, RepositoryOwner, new_slug=None):
+    """
+    This is for a Django project and it assumes your instance
+    has a model with a slug field and a title character (char) field.
+    """
+    if new_slug is not None:
+        slug = new_slug
+    else:
+        slug = slugify(org_name)[:9:]
+
+    qs_exists = RepositoryOwner.objects.filter(nickname=slug).exists()
+    if qs_exists:
+        new_slug = "{slug}-{randstr}".format(
+            slug=slug,
+            randstr="".join(
+                random.choice(string.ascii_letters + string.digits) for _ in range(6)
+            ).lower(),
+        )
+        return organization_unique_slug_generator(
+            org_name, RepositoryOwner, new_slug=new_slug
+        )
+    return slug
+
+
 def format_entity(text, entity, start, end):
     """
         Returns the correct formatted text with the correct entities
