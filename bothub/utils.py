@@ -387,10 +387,10 @@ class AbstractUserService(generics.GenericService):
 
         return self._get_object(Organization, pk)
 
-    def get_user_object(self, pk: int):
+    def get_user_object(self, email: str):
         from bothub.authentication.models import User
 
-        return self._get_object(User, pk)
+        return self._get_object(User, email, query_parameter="email")
 
     def _get_object(self, model, value: str, query_parameter: str = "pk"):
 

@@ -5,7 +5,7 @@ from bothub.protos import organization_pb2_grpc, organization_pb2
 with grpc.insecure_channel('localhost:50051') as channel:
     # List Organization
     stub = organization_pb2_grpc.OrgControllerStub(channel)
-    for org in stub.List(organization_pb2.OrgListRequest(user_email='daniel.yohan@ilhasoft.com.br')):
+    for org in stub.List(organization_pb2.OrgListRequest(user_email='user@bothub.it')):
         print(org, end="")
 
     # # Crete Organization
@@ -13,7 +13,7 @@ with grpc.insecure_channel('localhost:50051') as channel:
     # response = stub.Create(
     #     organization_pb2.OrgCreateRequest(
     #         name="Daniel",
-    #         user_email='john.dalton@ilhasoft.com.br'
+    #         user_email='user@bothub.it'
     #     )
     # )
     # print(response)
