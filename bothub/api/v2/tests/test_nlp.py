@@ -196,10 +196,6 @@ class AuthorizationInfoTestCase(TestCase):
         response, content_data = self.request(str(self.repository_authorization.uuid))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_not_auth(self):
-        response, content_data = self.request(str(uuid.uuid4()))
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-
     def test_list_all_repository_intents(self):
         response, content_data = self.request(str(self.repository_authorization.uuid))
         self.assertEqual(len(response.data.get("intents")), 1)
