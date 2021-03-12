@@ -586,6 +586,7 @@ class Repository(models.Model):
             data = {
                 "knowledge_base_id": data.get("knowledge_base_id"),
                 "question": data.get("question"),
+                "language": data.get("language"),
             }
             headers = {"Authorization": f"Bearer {user_authorization.uuid}"}
             r = requests.post(url, data=json.dumps(data), headers=headers)

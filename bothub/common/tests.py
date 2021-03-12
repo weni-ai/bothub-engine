@@ -477,6 +477,43 @@ class RepositoryTestCase(TestCase):
         )
         self.assertEqual(json, response.json())
 
+    @requests_mock.Mocker()
+    def test_request_nlp_qa(self, request_mock):
+        qa_knowledge_base = QAKnowledgeBase.objects.create(
+            repository=self.repository,
+            title="teste"
+        )
+        qa_context = QAContext.objects.create(
+            knowledge_base=qa_knowledge_base,
+            text="texto teste",
+            language=languages.LANGUAGE_PT_BR
+        )
+        url = f"{self.repository.nlp_server if self.repository.nlp_server else settings.BOTHUB_NLP_BASE_URL}"
+        url = f"{url}question-answering/"
+        json = {
+            "answers": [
+                {
+                    "text": "teste 1",
+                    "confidence": "0.8423367973327138"
+                },
+                {
+                    "text": "teste 2",
+                    "confidence": "0.07927308637792603"
+                }
+            ]
+        }
+        request_mock.post(url=url, json=json)
+
+        response = self.repository.request_nlp_qa(
+            user_authorization=self.repository.get_user_authorization(self.owner),
+            data={
+                "knowledge_base_id": qa_knowledge_base.pk,
+                "question": "question teste?",
+                "language": qa_context.language,
+            },
+        )
+        self.assertEqual(json, response.json())
+
 
 class RepositoryExampleTestCase(TestCase):
     def setUp(self):
