@@ -13,7 +13,8 @@ from .models import (
     RepositoryIntent,
     RepositoryEvaluate,
     RepositoryQueueTask,
-    QAKnowledgeBase, QAContext,
+    QAKnowledgeBase,
+    QAContext,
 )
 from .models import RepositoryAuthorization
 from .models import RepositoryEntity
@@ -480,26 +481,19 @@ class RepositoryTestCase(TestCase):
     @requests_mock.Mocker()
     def test_request_nlp_qa(self, request_mock):
         qa_knowledge_base = QAKnowledgeBase.objects.create(
-            repository=self.repository,
-            title="teste"
+            repository=self.repository, title="teste"
         )
         qa_context = QAContext.objects.create(
             knowledge_base=qa_knowledge_base,
             text="texto teste",
-            language=languages.LANGUAGE_PT_BR
+            language=languages.LANGUAGE_PT_BR,
         )
         url = f"{self.repository.nlp_server if self.repository.nlp_server else settings.BOTHUB_NLP_BASE_URL}"
         url = f"{url}question-answering/"
         json = {
             "answers": [
-                {
-                    "text": "teste 1",
-                    "confidence": "0.8423367973327138"
-                },
-                {
-                    "text": "teste 2",
-                    "confidence": "0.07927308637792603"
-                }
+                {"text": "teste 1", "confidence": "0.8423367973327138"},
+                {"text": "teste 2", "confidence": "0.07927308637792603"},
             ]
         }
         request_mock.post(url=url, json=json)
@@ -1511,8 +1505,7 @@ class QAKnowledgeBaseTest(TestCase):
 
     def test_ok(self):
         qa_knowledge_base = QAKnowledgeBase.objects.create(
-            repository=self.repository,
-            title="teste"
+            repository=self.repository, title="teste"
         )
         self.assertEqual("teste", qa_knowledge_base.title)
         self.assertEqual(self.repository.knowledge_bases.last(), qa_knowledge_base)
@@ -1530,15 +1523,14 @@ class QAContextTest(TestCase):
         )
 
         self.knowledge_base = QAKnowledgeBase.objects.create(
-            repository=self.repository,
-            title="teste"
+            repository=self.repository, title="teste"
         )
 
     def test_ok(self):
         qa_context = QAContext.objects.create(
             knowledge_base=self.knowledge_base,
             text="teste text",
-            language=languages.LANGUAGE_PT
+            language=languages.LANGUAGE_PT,
         )
         self.assertEqual("teste text", qa_context.text)
         self.assertEqual(self.knowledge_base.contexts.last(), qa_context)

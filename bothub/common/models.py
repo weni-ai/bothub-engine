@@ -2239,7 +2239,9 @@ class QAKnowledgeBase(models.Model):
 
 
 class QAContext(models.Model):
-    knowledge_base = models.ForeignKey(QAKnowledgeBase, on_delete=models.CASCADE, related_name="contexts")
+    knowledge_base = models.ForeignKey(
+        QAKnowledgeBase, on_delete=models.CASCADE, related_name="contexts"
+    )
     text = models.TextField(_("text"), help_text=_("QA context text"), max_length=25000)
     language = models.CharField(
         _("language"),
@@ -2251,7 +2253,7 @@ class QAContext(models.Model):
     last_update = models.DateTimeField(_("last update"), auto_now=True)
 
     class Meta:
-        unique_together = (("knowledge_base", "language"))
+        unique_together = ("knowledge_base", "language")
 
 
 @receiver(models.signals.pre_save, sender=RequestRepositoryAuthorization)

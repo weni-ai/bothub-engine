@@ -32,13 +32,11 @@ class ListQAKnowledgeBaseAPITestCase(TestCase):
         )
 
         self.knowledge_base_1 = QAKnowledgeBase.objects.create(
-            repository=self.repository,
-            title="Testando knowledge"
+            repository=self.repository, title="Testando knowledge"
         )
 
         self.knowledge_base_2 = QAKnowledgeBase.objects.create(
-            repository=self.repository_2,
-            title="Testando knowledge 2"
+            repository=self.repository_2, title="Testando knowledge 2"
         )
 
     def request(self, data={}, token=None):
@@ -46,7 +44,9 @@ class ListQAKnowledgeBaseAPITestCase(TestCase):
             {"HTTP_AUTHORIZATION": "Token {}".format(token.key)} if token else {}
         )
 
-        request = self.factory.get("/v2/repository/qa/knowledge-base/", data, **authorization_header)
+        request = self.factory.get(
+            "/v2/repository/qa/knowledge-base/", data, **authorization_header
+        )
 
         response = QAKnowledgeBaseViewSet.as_view({"get": "list"})(request)
         response.render()
@@ -81,12 +81,17 @@ class ListQAKnowledgeBaseAPITestCase(TestCase):
 
     def test_filter_title(self):
         response, content_data = self.request(
-            {"repository_uuid": self.repository.uuid, "title": self.knowledge_base_1.title},
+            {
+                "repository_uuid": self.repository.uuid,
+                "title": self.knowledge_base_1.title,
+            },
             self.owner_token,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(content_data.get("count"), 1)
-        self.assertEqual(content_data.get("results")[0].get("id"), self.knowledge_base_1.pk)
+        self.assertEqual(
+            content_data.get("results")[0].get("id"), self.knowledge_base_1.pk
+        )
 
 
 class DestroyQAKnowledgeBaseAPITestCase(TestCase):
@@ -104,8 +109,7 @@ class DestroyQAKnowledgeBaseAPITestCase(TestCase):
         )
 
         self.knowledge_base_1 = QAKnowledgeBase.objects.create(
-            repository=self.repository,
-            title="Testando knowledge"
+            repository=self.repository, title="Testando knowledge"
         )
 
     def request(self, token):
@@ -117,9 +121,7 @@ class DestroyQAKnowledgeBaseAPITestCase(TestCase):
             **authorization_header,
         )
         response = QAKnowledgeBaseViewSet.as_view({"delete": "destroy"})(
-            request,
-            pk=self.knowledge_base_1.id,
-            repository_uuid=self.repository.uuid,
+            request, pk=self.knowledge_base_1.id, repository_uuid=self.repository.uuid
         )
         return response
 
@@ -154,8 +156,7 @@ class UpdateKnowledgeBaseAPITestCase(TestCase):
         )
 
         self.knowledge_base_1 = QAKnowledgeBase.objects.create(
-            repository=self.repository,
-            title="Testando knowledge"
+            repository=self.repository, title="Testando knowledge"
         )
 
     def request(self, data, token):
@@ -169,9 +170,7 @@ class UpdateKnowledgeBaseAPITestCase(TestCase):
             **authorization_header,
         )
         response = QAKnowledgeBaseViewSet.as_view({"put": "update"})(
-            request,
-            pk=self.knowledge_base_1.id,
-            repository_uuid=self.repository.uuid,
+            request, pk=self.knowledge_base_1.id, repository_uuid=self.repository.uuid
         )
         response.render()
         content_data = json.loads(response.content)
@@ -180,10 +179,7 @@ class UpdateKnowledgeBaseAPITestCase(TestCase):
 
     def test_okay(self):
         response, content_data = self.request(
-            {
-                "repository": str(self.repository.uuid),
-                "title": "testing"
-            },
+            {"repository": str(self.repository.uuid), "title": "testing"},
             self.owner_token,
         )
         self.assertEqual(content_data.get("title"), "testing")
@@ -191,11 +187,7 @@ class UpdateKnowledgeBaseAPITestCase(TestCase):
 
     def test_private_okay(self):
         response, content_data = self.request(
-            {
-                "repository": str(self.repository.uuid),
-                "title": "testing"
-            },
-            self.token,
+            {"repository": str(self.repository.uuid), "title": "testing"}, self.token
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -215,8 +207,7 @@ class CreateQAKnowledgeBaseAPITestCase(TestCase):
         )
 
         self.knowledge_base_1 = QAKnowledgeBase.objects.create(
-            repository=self.repository,
-            title="Testando knowledge"
+            repository=self.repository, title="Testando knowledge"
         )
 
     def request(self, data, token=None):
@@ -235,20 +226,14 @@ class CreateQAKnowledgeBaseAPITestCase(TestCase):
 
     def test_okay(self):
         response, content_data = self.request(
-            {
-                "repository": str(self.repository.uuid),
-                "title": "testing"
-            },
+            {"repository": str(self.repository.uuid), "title": "testing"},
             self.owner_token,
         )
         self.assertEqual(content_data.get("title"), "testing")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_invalid_data(self):
-        response, content_data = self.request(
-            {},
-            self.owner_token,
-        )
+        response, content_data = self.request({}, self.owner_token)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
@@ -267,8 +252,7 @@ class DetailQAKnowledgeBaseAPITestCase(TestCase):
         )
 
         self.knowledge_base_1 = QAKnowledgeBase.objects.create(
-            repository=self.repository,
-            title="Testando knowledge"
+            repository=self.repository, title="Testando knowledge"
         )
 
     def request(self, repository, token=None):
@@ -284,9 +268,7 @@ class DetailQAKnowledgeBaseAPITestCase(TestCase):
         )
 
         response = QAKnowledgeBaseViewSet.as_view({"get": "retrieve"})(
-            request,
-            repository_uuid=self.repository.uuid,
-            pk=self.knowledge_base_1.pk,
+            request, repository_uuid=self.repository.uuid, pk=self.knowledge_base_1.pk
         )
         response.render()
         content_data = json.loads(response.content)
@@ -319,31 +301,29 @@ class ListQAContextAPITestCase(TestCase):
         )
 
         self.knowledge_base_1 = QAKnowledgeBase.objects.create(
-            repository=self.repository,
-            title="Testando knowledge"
+            repository=self.repository, title="Testando knowledge"
         )
 
         self.knowledge_base_2 = QAKnowledgeBase.objects.create(
-            repository=self.repository_2,
-            title="Testando knowledge"
+            repository=self.repository_2, title="Testando knowledge"
         )
 
         self.context_1 = QAContext.objects.create(
             knowledge_base=self.knowledge_base_1,
             text="teste",
-            language=languages.LANGUAGE_PT_BR
+            language=languages.LANGUAGE_PT_BR,
         )
 
         self.context_2 = QAContext.objects.create(
             knowledge_base=self.knowledge_base_1,
             text="teste 2",
-            language=languages.LANGUAGE_EN
+            language=languages.LANGUAGE_EN,
         )
 
         self.context_3 = QAContext.objects.create(
             knowledge_base=self.knowledge_base_2,
             text="teste 3",
-            language=languages.LANGUAGE_EN
+            language=languages.LANGUAGE_EN,
         )
 
     def request(self, data={}, token=None):
@@ -351,7 +331,9 @@ class ListQAContextAPITestCase(TestCase):
             {"HTTP_AUTHORIZATION": "Token {}".format(token.key)} if token else {}
         )
 
-        request = self.factory.get("/v2/repository/qa/context/", data, **authorization_header)
+        request = self.factory.get(
+            "/v2/repository/qa/context/", data, **authorization_header
+        )
 
         response = QAContextViewSet.as_view({"get": "list"})(request)
         response.render()
@@ -386,7 +368,10 @@ class ListQAContextAPITestCase(TestCase):
 
     def test_filter_knowledge_base_id(self):
         response, content_data = self.request(
-            {"repository_uuid": self.repository.uuid, "knowledge_base_id": self.knowledge_base_1.pk},
+            {
+                "repository_uuid": self.repository.uuid,
+                "knowledge_base_id": self.knowledge_base_1.pk,
+            },
             self.owner_token,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -415,31 +400,29 @@ class DestroyQAContextAPITestCase(TestCase):
         )
 
         self.knowledge_base_1 = QAKnowledgeBase.objects.create(
-            repository=self.repository,
-            title="Testando knowledge"
+            repository=self.repository, title="Testando knowledge"
         )
 
         self.knowledge_base_2 = QAKnowledgeBase.objects.create(
-            repository=self.repository_2,
-            title="Testando knowledge"
+            repository=self.repository_2, title="Testando knowledge"
         )
 
         self.context_1 = QAContext.objects.create(
             knowledge_base=self.knowledge_base_1,
             text="teste",
-            language=languages.LANGUAGE_PT_BR
+            language=languages.LANGUAGE_PT_BR,
         )
 
         self.context_2 = QAContext.objects.create(
             knowledge_base=self.knowledge_base_1,
             text="teste 2",
-            language=languages.LANGUAGE_EN
+            language=languages.LANGUAGE_EN,
         )
 
         self.context_3 = QAContext.objects.create(
             knowledge_base=self.knowledge_base_2,
             text="teste 3",
-            language=languages.LANGUAGE_EN
+            language=languages.LANGUAGE_EN,
         )
 
     def request(self, token):
@@ -451,9 +434,7 @@ class DestroyQAContextAPITestCase(TestCase):
             **authorization_header,
         )
         response = QAContextViewSet.as_view({"delete": "destroy"})(
-            request,
-            pk=self.context_1.pk,
-            repository_uuid=self.repository.uuid,
+            request, pk=self.context_1.pk, repository_uuid=self.repository.uuid
         )
         return response
 
@@ -494,31 +475,29 @@ class UpdateQAContextAPITestCase(TestCase):
         )
 
         self.knowledge_base_1 = QAKnowledgeBase.objects.create(
-            repository=self.repository,
-            title="Testando knowledge"
+            repository=self.repository, title="Testando knowledge"
         )
 
         self.knowledge_base_2 = QAKnowledgeBase.objects.create(
-            repository=self.repository_2,
-            title="Testando knowledge"
+            repository=self.repository_2, title="Testando knowledge"
         )
 
         self.context_1 = QAContext.objects.create(
             knowledge_base=self.knowledge_base_1,
             text="teste",
-            language=languages.LANGUAGE_PT_BR
+            language=languages.LANGUAGE_PT_BR,
         )
 
         self.context_2 = QAContext.objects.create(
             knowledge_base=self.knowledge_base_1,
             text="teste 2",
-            language=languages.LANGUAGE_EN
+            language=languages.LANGUAGE_EN,
         )
 
         self.context_3 = QAContext.objects.create(
             knowledge_base=self.knowledge_base_2,
             text="teste 3",
-            language=languages.LANGUAGE_EN
+            language=languages.LANGUAGE_EN,
         )
 
     def request(self, data, token):
@@ -532,9 +511,7 @@ class UpdateQAContextAPITestCase(TestCase):
             **authorization_header,
         )
         response = QAContextViewSet.as_view({"put": "update"})(
-            request,
-            pk=self.context_1.pk,
-            repository_uuid=self.repository.uuid,
+            request, pk=self.context_1.pk, repository_uuid=self.repository.uuid
         )
         response.render()
         content_data = json.loads(response.content)
@@ -546,7 +523,7 @@ class UpdateQAContextAPITestCase(TestCase):
             {
                 "text": "teste text",
                 "language": languages.LANGUAGE_PT_BR,
-                "knowledge_base": self.knowledge_base_1.pk
+                "knowledge_base": self.knowledge_base_1.pk,
             },
             self.owner_token,
         )
@@ -558,7 +535,7 @@ class UpdateQAContextAPITestCase(TestCase):
             {
                 "text": "teste text",
                 "language": languages.LANGUAGE_PT_BR,
-                "knowledge_base": self.knowledge_base_1.pk
+                "knowledge_base": self.knowledge_base_1.pk,
             },
             self.user_token,
         )
@@ -586,31 +563,29 @@ class CreateQAContextAPITestCase(TestCase):
         )
 
         self.knowledge_base_1 = QAKnowledgeBase.objects.create(
-            repository=self.repository,
-            title="Testando knowledge"
+            repository=self.repository, title="Testando knowledge"
         )
 
         self.knowledge_base_2 = QAKnowledgeBase.objects.create(
-            repository=self.repository_2,
-            title="Testando knowledge"
+            repository=self.repository_2, title="Testando knowledge"
         )
 
         self.context_1 = QAContext.objects.create(
             knowledge_base=self.knowledge_base_1,
             text="teste",
-            language=languages.LANGUAGE_PT_BR
+            language=languages.LANGUAGE_PT_BR,
         )
 
         self.context_2 = QAContext.objects.create(
             knowledge_base=self.knowledge_base_1,
             text="teste 2",
-            language=languages.LANGUAGE_EN
+            language=languages.LANGUAGE_EN,
         )
 
         self.context_3 = QAContext.objects.create(
             knowledge_base=self.knowledge_base_2,
             text="teste 3",
-            language=languages.LANGUAGE_EN
+            language=languages.LANGUAGE_EN,
         )
 
     def request(self, data, token=None):
@@ -632,7 +607,7 @@ class CreateQAContextAPITestCase(TestCase):
             {
                 "text": "teste text",
                 "language": languages.LANGUAGE_PT,
-                "knowledge_base": self.knowledge_base_1.pk
+                "knowledge_base": self.knowledge_base_1.pk,
             },
             self.owner_token,
         )
@@ -645,7 +620,7 @@ class CreateQAContextAPITestCase(TestCase):
             {
                 "text": "teste text",
                 "language": languages.LANGUAGE_PT_BR,
-                "knowledge_base": self.knowledge_base_1.pk
+                "knowledge_base": self.knowledge_base_1.pk,
             },
             self.owner_token,
         )
@@ -653,10 +628,7 @@ class CreateQAContextAPITestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_invalid_data(self):
-        response, content_data = self.request(
-            {},
-            self.owner_token,
-        )
+        response, content_data = self.request({}, self.owner_token)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
@@ -681,31 +653,29 @@ class DetailQAContextAPITestCase(TestCase):
         )
 
         self.knowledge_base_1 = QAKnowledgeBase.objects.create(
-            repository=self.repository,
-            title="Testando knowledge"
+            repository=self.repository, title="Testando knowledge"
         )
 
         self.knowledge_base_2 = QAKnowledgeBase.objects.create(
-            repository=self.repository_2,
-            title="Testando knowledge"
+            repository=self.repository_2, title="Testando knowledge"
         )
 
         self.context_1 = QAContext.objects.create(
             knowledge_base=self.knowledge_base_1,
             text="teste",
-            language=languages.LANGUAGE_PT_BR
+            language=languages.LANGUAGE_PT_BR,
         )
 
         self.context_2 = QAContext.objects.create(
             knowledge_base=self.knowledge_base_1,
             text="teste 2",
-            language=languages.LANGUAGE_EN
+            language=languages.LANGUAGE_EN,
         )
 
         self.context_3 = QAContext.objects.create(
             knowledge_base=self.knowledge_base_2,
             text="teste 3",
-            language=languages.LANGUAGE_EN
+            language=languages.LANGUAGE_EN,
         )
 
     def request(self, repository, token=None):
@@ -721,9 +691,7 @@ class DetailQAContextAPITestCase(TestCase):
         )
 
         response = QAContextViewSet.as_view({"get": "retrieve"})(
-            request,
-            repository_uuid=self.repository.uuid,
-            pk=self.context_1.pk,
+            request, repository_uuid=self.repository.uuid, pk=self.context_1.pk
         )
         response.render()
         content_data = json.loads(response.content)

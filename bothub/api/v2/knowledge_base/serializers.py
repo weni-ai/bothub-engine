@@ -19,5 +19,7 @@ class QAContextSerializer(serializers.ModelSerializer):
         fields = ["id", "text", "language", "knowledge_base"]
         read_only_fields = ["created_at", "last_update"]
 
-    knowledge_base = serializers.PrimaryKeyRelatedField(queryset=QAKnowledgeBase.objects)
+    knowledge_base = serializers.PrimaryKeyRelatedField(
+        queryset=QAKnowledgeBase.objects
+    )
     language = serializers.ChoiceField(languages.LANGUAGE_CHOICES, required=True)

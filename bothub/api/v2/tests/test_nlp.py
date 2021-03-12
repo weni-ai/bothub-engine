@@ -5,14 +5,19 @@ from django.test import TestCase
 from django.test import RequestFactory
 from rest_framework import status
 
-from bothub.api.v2.nlp.views import RepositoryAuthorizationTrainViewSet, RepositoryAuthorizationKnowledgeBaseViewSet
+from bothub.api.v2.nlp.views import (
+    RepositoryAuthorizationTrainViewSet,
+    RepositoryAuthorizationKnowledgeBaseViewSet,
+)
 from bothub.api.v2.nlp.views import RepositoryAuthorizationInfoViewSet
 from bothub.common import languages
 from bothub.common.models import (
     RepositoryAuthorization,
     RepositoryVersion,
     RepositoryVersionLanguage,
-    RepositoryIntent, QAKnowledgeBase, QAContext,
+    RepositoryIntent,
+    QAKnowledgeBase,
+    QAContext,
 )
 from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryExampleEntity
@@ -335,14 +340,13 @@ class AuthorizationKnowledgeBaseTestCase(TestCase):
         )
 
         self.knowledge_base_1 = QAKnowledgeBase.objects.create(
-            repository=self.repository,
-            title="Testando knowledge"
+            repository=self.repository, title="Testando knowledge"
         )
 
         self.context_1 = QAContext.objects.create(
             knowledge_base=self.knowledge_base_1,
             text="teste",
-            language=languages.LANGUAGE_PT_BR
+            language=languages.LANGUAGE_PT_BR,
         )
 
     def request(self, token, repository_version=""):
@@ -351,13 +355,13 @@ class AuthorizationKnowledgeBaseTestCase(TestCase):
             "/v2/repository/nlp/authorization/knowledge-base/{}/".format(token),
             {
                 "knowledge_base_id": self.knowledge_base_1.pk,
-                "language": languages.LANGUAGE_PT_BR
+                "language": languages.LANGUAGE_PT_BR,
             },
             **authorization_header
         )
-        response = RepositoryAuthorizationKnowledgeBaseViewSet.as_view({"get": "retrieve"})(
-            request, pk=token
-        )
+        response = RepositoryAuthorizationKnowledgeBaseViewSet.as_view(
+            {"get": "retrieve"}
+        )(request, pk=token)
         response.render()
         content_data = json.loads(response.content)
         return (response, content_data)
@@ -369,5 +373,7 @@ class AuthorizationKnowledgeBaseTestCase(TestCase):
     def test_list_context(self):
         response, content_data = self.request(str(self.repository_authorization.uuid))
         self.assertEqual(response.data.get("text"), self.context_1.text)
-        self.assertEqual(response.data.get("knowledge_base_id"), self.knowledge_base_1.pk)
+        self.assertEqual(
+            response.data.get("knowledge_base_id"), self.knowledge_base_1.pk
+        )
         self.assertEqual(response.data.get("language"), languages.LANGUAGE_PT_BR)

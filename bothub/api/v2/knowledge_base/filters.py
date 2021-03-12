@@ -37,7 +37,13 @@ class QAKnowledgeBaseFilter(filters.FilterSet):
 class QAContextFilter(filters.FilterSet):
     class Meta:
         model = QAContext
-        fields = ["text", "language", "created_at", "repository_uuid", "knowledge_base_id"]
+        fields = [
+            "text",
+            "language",
+            "created_at",
+            "repository_uuid",
+            "knowledge_base_id",
+        ]
 
     knowledge_base_id = filters.CharFilter(field_name="knowledge_base__id")
 
