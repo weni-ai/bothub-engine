@@ -584,7 +584,7 @@ class Repository(models.Model):
         try:  # pragma: no cover
             url = f"{self.nlp_server if self.nlp_server else settings.BOTHUB_NLP_BASE_URL}question-answering/"
             data = {
-                "knowledge_base": data.get("knowledge_base"),
+                "knowledge_base_id": data.get("knowledge_base_id"),
                 "question": data.get("question"),
             }
             headers = {"Authorization": f"Bearer {user_authorization.uuid}"}
@@ -2233,7 +2233,13 @@ class QAKnowledgeBase(models.Model):
     title = models.CharField(
         _("title"), max_length=64, help_text=_("Knowledge Base title")
     )
-    text = models.TextField(_("text"), help_text=_("Knowledge Base text"))
+    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
+    last_update = models.DateTimeField(_("last update"), auto_now=True)
+
+
+class QAContext(models.Model):
+    knowledge_base = models.ForeignKey(QAKnowledgeBase, on_delete=models.CASCADE, related_name="contexts")
+    text = models.TextField(_("text"), help_text=_("QA context text"), max_length=25000)
     language = models.CharField(
         _("language"),
         max_length=5,
@@ -2242,6 +2248,9 @@ class QAKnowledgeBase(models.Model):
     )
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
     last_update = models.DateTimeField(_("last update"), auto_now=True)
+
+    class Meta:
+        unique_together = (("knowledge_base", "language"))
 
 
 @receiver(models.signals.pre_save, sender=RequestRepositoryAuthorization)

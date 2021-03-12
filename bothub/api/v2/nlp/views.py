@@ -595,29 +595,19 @@ class RepositoryAuthorizationKnowledgeBaseViewSet(
 
         repository = repository_authorization.repository
 
-        knowledge_base_pk = request.query_params.get("knowledge_base")
+        knowledge_base_pk = request.query_params.get("knowledge_base_id")
+        language = request.query_params.get("language")
 
         knowledge_base = get_object_or_404(
             repository.knowledge_bases.all(), pk=knowledge_base_pk
         )
 
+        context = get_object_or_404(knowledge_base.contexts.all(), language=language)
+
         return Response(
             {
-                "id": knowledge_base.pk,
-                "context": knowledge_base.text,
-                "language": knowledge_base.language,
+                "knowledge_base_id": knowledge_base.pk,
+                "text": context.text,
+                "language": context.language,
             }
         )
-
-    """@action(detail=True, methods=["GET"], url_name="evaluations", lookup_field=[])
-    def evaluations(self, request, **kwargs):
-        repository_authorization = check_auth(request)
-
-        if not repository_authorization.can_contribute:
-            raise PermissionDenied()
-
-        repository_update = get_object_or_404(
-            RepositoryVersionLanguage, pk=request.query_params.get("repository_version")
-        )
-
-        return Response(data)"""
