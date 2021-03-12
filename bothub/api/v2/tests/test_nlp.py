@@ -5,14 +5,14 @@ from django.test import TestCase
 from django.test import RequestFactory
 from rest_framework import status
 
-from bothub.api.v2.nlp.views import RepositoryAuthorizationTrainViewSet
+from bothub.api.v2.nlp.views import RepositoryAuthorizationTrainViewSet, RepositoryAuthorizationKnowledgeBaseViewSet
 from bothub.api.v2.nlp.views import RepositoryAuthorizationInfoViewSet
 from bothub.common import languages
 from bothub.common.models import (
     RepositoryAuthorization,
     RepositoryVersion,
     RepositoryVersionLanguage,
-    RepositoryIntent,
+    RepositoryIntent, QAKnowledgeBase, QAContext,
 )
 from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryExampleEntity
@@ -312,3 +312,62 @@ class AuthorizationTrainGetExamplesTestCase(TestCase):
             str(self.repository_authorization.uuid), "non-existent"
         )
         self.assertEqual(response.data.get("count"), 0)
+
+
+class AuthorizationKnowledgeBaseTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.owner, self.owner_token = create_user_and_token("owner")
+        self.user, self.user_token = create_user_and_token()
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name="Testing",
+            slug="test",
+            language=languages.LANGUAGE_EN,
+        )
+
+        self.repository_authorization = RepositoryAuthorization.objects.create(
+            user=self.user,
+            repository=self.repository,
+            role=RepositoryAuthorization.ROLE_ADMIN,
+        )
+
+        self.knowledge_base_1 = QAKnowledgeBase.objects.create(
+            repository=self.repository,
+            title="Testando knowledge"
+        )
+
+        self.context_1 = QAContext.objects.create(
+            knowledge_base=self.knowledge_base_1,
+            text="teste",
+            language=languages.LANGUAGE_PT_BR
+        )
+
+    def request(self, token, repository_version=""):
+        authorization_header = {"HTTP_AUTHORIZATION": "Bearer {}".format(token)}
+        request = self.factory.get(
+            "/v2/repository/nlp/authorization/knowledge-base/{}/".format(token),
+            {
+                "knowledge_base_id": self.knowledge_base_1.pk,
+                "language": languages.LANGUAGE_PT_BR
+            },
+            **authorization_header
+        )
+        response = RepositoryAuthorizationKnowledgeBaseViewSet.as_view({"get": "retrieve"})(
+            request, pk=token
+        )
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data)
+
+    def test_ok(self):
+        response, content_data = self.request(str(self.repository_authorization.uuid))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_list_context(self):
+        response, content_data = self.request(str(self.repository_authorization.uuid))
+        self.assertEqual(response.data.get("text"), self.context_1.text)
+        self.assertEqual(response.data.get("knowledge_base_id"), self.knowledge_base_1.pk)
+        self.assertEqual(response.data.get("language"), languages.LANGUAGE_PT_BR)
