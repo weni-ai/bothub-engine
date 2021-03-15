@@ -1016,7 +1016,7 @@ class RepositorySerializer(serializers.ModelSerializer):
         validated_data.update(
             {
                 "slug": utils.unique_slug_generator(validated_data, Repository),
-                "owner": owner
+                "owner": owner,
             }
         )
 

@@ -96,7 +96,7 @@ class CreateRepositoryAPITestCase(TestCase):
         self.organization = Organization.objects.create(
             name="Organization 1", nickname="organization1"
         )
-        perm = OrganizationAuthorization.objects.create(
+        OrganizationAuthorization.objects.create(
             user=self.owner,
             organization=self.organization,
             role=OrganizationAuthorization.ROLE_ADMIN,
@@ -129,7 +129,9 @@ class CreateRepositoryAPITestCase(TestCase):
 
             self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-            repository = self.organization.repositories.get(uuid=content_data.get("uuid"))
+            repository = self.organization.repositories.get(
+                uuid=content_data.get("uuid")
+            )
 
             self.assertEqual(repository.name, mockup.get("name"))
             self.assertEqual(repository.language, mockup.get("language"))
