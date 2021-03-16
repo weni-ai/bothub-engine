@@ -470,15 +470,9 @@ class RepositoryViewSet(
 
         try:
             repository.validate_if_can_run_automatic_evaluate(language=language)
-            response = {
-                "can_run_evaluate_automatic": True,
-                "messages": []
-            }
+            response = {"can_run_evaluate_automatic": True, "messages": []}
         except DjangoValidationError as e:
-            response = {
-                "can_run_evaluate_automatic": False,
-                "messages": e
-            }
+            response = {"can_run_evaluate_automatic": False, "messages": e}
         return Response(response)  # pragma: no cover
 
 
