@@ -41,6 +41,5 @@ message OrgDestroyRequest {
 
 message OrgUpdateRequest {
     int32 id = 1;
-    string user_email = 2;
-    optional string name = 3;
+    optional string name = 2;
 }
