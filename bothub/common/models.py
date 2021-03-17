@@ -678,7 +678,7 @@ class Repository(models.Model):
         )
         return list(set(intents.values_list("intent__text", flat=True)))
 
-    def formatted_intents(self):
+    def get_formatted_intents(self):
         intents = self.examples().values(
             "intent__text", "intent__pk"
         ).order_by("intent__pk").annotate(examples_count=Count("intent__pk"))

@@ -1037,7 +1037,7 @@ class RepositorySerializer(serializers.ModelSerializer):
         return repository
 
     def get_intents(self, obj):
-        return obj.formatted_intents()
+        return obj.get_formatted_intents()
 
     def get_categories_list(self, obj):
         return RepositoryCategorySerializer(obj.categories, many=True).data
@@ -1149,7 +1149,7 @@ class ShortRepositorySerializer(serializers.ModelSerializer):
     votes = RepositoryVotesSerializer(many=True, read_only=True)
 
     def get_intents(self, obj):
-        return obj.formatted_intents()
+        return obj.get_formatted_intents()
 
     def get_absolute_url(self, obj):
         return obj.get_absolute_url()

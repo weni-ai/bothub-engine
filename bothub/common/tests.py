@@ -1491,7 +1491,7 @@ class RepositoryFormattedIntentsTestCase(TestCase):
         )
 
     def test_get_formatted_intents(self):
-        intents = self.repository.formatted_intents()
+        intents = self.repository.get_formatted_intents()
         self.assertEqual(intents[0].get("value"), self.example_intent_1.text)
         self.assertEqual(intents[0].get("id"), self.example_intent_1.pk)
         self.assertEqual(intents[0].get("examples__count"), 2)
