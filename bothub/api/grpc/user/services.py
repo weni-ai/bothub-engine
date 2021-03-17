@@ -24,7 +24,7 @@ class UserPermissionService(
 ):
     def Retrieve(self, request, context):
         org = self.get_org_object(request.org_id)
-        user = self.get_user_object(request.user_email)
+        user = self.get_user_object(request.org_user_email)
 
         permissions = self.get_user_permissions(org, user)
 

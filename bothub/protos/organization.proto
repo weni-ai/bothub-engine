@@ -31,6 +31,7 @@ message OrgListRequest {
 message OrgCreateRequest {
     string name = 1;
     string user_email = 2;
+    string user_nickname = 3;
 }
 
 message OrgDestroyRequest {

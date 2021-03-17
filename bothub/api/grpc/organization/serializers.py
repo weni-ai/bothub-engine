@@ -56,6 +56,7 @@ class OrgProtoSerializer(proto_serializers.ModelProtoSerializer):
 class OrgCreateProtoSerializer(proto_serializers.ModelProtoSerializer):
 
     user_email = serializers.CharField()
+    user_nickname = serializers.CharField()
 
     def validate_user_email(self, value: str) -> str:
         SerializerUtils.get_user_object(User, value)
@@ -65,7 +66,7 @@ class OrgCreateProtoSerializer(proto_serializers.ModelProtoSerializer):
     class Meta:
         model = Organization
         proto_class = organization_pb2.Org
-        fields = ["name", "user_email"]
+        fields = ["name", "user_email", 'user_nickname']
 
 
 class OrgUpdateProtoSerializer(proto_serializers.ModelProtoSerializer):

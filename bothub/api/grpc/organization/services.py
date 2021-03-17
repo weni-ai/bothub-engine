@@ -24,10 +24,14 @@ class OrgService(generics.GenericService, mixins.ListModelMixin):
             yield msg
 
     def Create(self, request, context):
+        user, created = User.objects.get_or_create(
+            email=request.user_email,
+            defaults={'nickname': request.user_nickname},
+        )
+
         serializer = OrgCreateProtoSerializer(message=request)
         serializer.is_valid(raise_exception=True)
 
-        user = User.objects.get(email=serializer.validated_data.get("user_email"))
         validated_data = {
             "name": serializer.validated_data.get("name"),
             "nickname": utils.organization_unique_slug_generator(
