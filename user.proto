@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+package user;
+
+service UserPermissionController {
+    rpc Retrieve(UserPermissionRetrieveRequest) returns (Permission) {}
+    rpc Update(UserPermissionUpdateRequest) returns (Permission) {}
+    rpc Remove(UserPermissionUpdateRequest) returns (Permission) {}
+}
+
+service UserController {
+    rpc Retrieve(UserRetrieveRequest) returns (User) {}
+}
+
+message UserPermissionRetrieveRequest {
+    int32 user_id = 1;
+    int32 org_id = 2;
+}
+
+message UserPermissionUpdateRequest {
+    int32 org_id = 1;
+    int32 user_id = 2;
+    string permission = 3;
+}
+
+message Permission {
+    bool administrator = 1;
+    bool viewer = 2;
+    bool editor = 3;
+    bool surveyor = 4;
+}
+
+message UserRetrieveRequest {
+    string email = 1;
+}
+
+message User {
+    int32 id = 1;
+    string email = 2;
+    string username = 3;
+    string first_name = 4;
+    string last_name = 5;
+    string date_joined = 6;
+    bool is_active = 7;
+    bool is_superuser = 8;
+}
