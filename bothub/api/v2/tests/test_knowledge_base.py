@@ -11,7 +11,7 @@ from bothub.common import languages
 from bothub.api.v2.tests.utils import create_user_and_token
 
 
-class ListQAKnowledgeBaseAPITestCase(TestCase):
+class DefaultSetUpKnowledgeBaseMixin:
     def setUp(self):
         self.factory = RequestFactory()
         self.owner, self.owner_token = create_user_and_token("owner")
@@ -36,9 +36,29 @@ class ListQAKnowledgeBaseAPITestCase(TestCase):
         )
 
         self.knowledge_base_2 = QAKnowledgeBase.objects.create(
-            repository=self.repository_2, title="Testando knowledge 2"
+            repository=self.repository_2, title="Testando knowledge"
         )
 
+        self.context_1 = QAContext.objects.create(
+            knowledge_base=self.knowledge_base_1,
+            text="teste",
+            language=languages.LANGUAGE_PT_BR,
+        )
+
+        self.context_2 = QAContext.objects.create(
+            knowledge_base=self.knowledge_base_1,
+            text="teste 2",
+            language=languages.LANGUAGE_EN,
+        )
+
+        self.context_3 = QAContext.objects.create(
+            knowledge_base=self.knowledge_base_2,
+            text="teste 3",
+            language=languages.LANGUAGE_EN,
+        )
+
+
+class ListQAKnowledgeBaseAPITestCase(DefaultSetUpKnowledgeBaseMixin, TestCase):
     def request(self, data={}, token=None):
         authorization_header = (
             {"HTTP_AUTHORIZATION": "Token {}".format(token.key)} if token else {}
@@ -94,24 +114,7 @@ class ListQAKnowledgeBaseAPITestCase(TestCase):
         )
 
 
-class DestroyQAKnowledgeBaseAPITestCase(TestCase):
-    def setUp(self):
-        self.factory = RequestFactory()
-
-        self.owner, self.owner_token = create_user_and_token("owner")
-        self.user, self.token = create_user_and_token()
-
-        self.repository = Repository.objects.create(
-            owner=self.owner,
-            name="Testing",
-            slug="test",
-            language=languages.LANGUAGE_EN,
-        )
-
-        self.knowledge_base_1 = QAKnowledgeBase.objects.create(
-            repository=self.repository, title="Testando knowledge"
-        )
-
+class DestroyQAKnowledgeBaseAPITestCase(DefaultSetUpKnowledgeBaseMixin, TestCase):
     def request(self, token):
         authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
         request = self.factory.delete(
@@ -131,7 +134,7 @@ class DestroyQAKnowledgeBaseAPITestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
     def test_private_okay(self):
-        response = self.request(self.token)
+        response = self.request(self.user_token)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_already_deleted(self):
@@ -141,24 +144,7 @@ class DestroyQAKnowledgeBaseAPITestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 
-class UpdateKnowledgeBaseAPITestCase(TestCase):
-    def setUp(self):
-        self.factory = RequestFactory()
-
-        self.owner, self.owner_token = create_user_and_token("owner")
-        self.user, self.token = create_user_and_token()
-
-        self.repository = Repository.objects.create(
-            owner=self.owner,
-            name="Testing",
-            slug="test",
-            language=languages.LANGUAGE_EN,
-        )
-
-        self.knowledge_base_1 = QAKnowledgeBase.objects.create(
-            repository=self.repository, title="Testando knowledge"
-        )
-
+class UpdateKnowledgeBaseAPITestCase(DefaultSetUpKnowledgeBaseMixin, TestCase):
     def request(self, data, token):
         authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
         request = self.factory.put(
@@ -187,29 +173,13 @@ class UpdateKnowledgeBaseAPITestCase(TestCase):
 
     def test_private_okay(self):
         response, content_data = self.request(
-            {"repository": str(self.repository.uuid), "title": "testing"}, self.token
+            {"repository": str(self.repository.uuid), "title": "testing"},
+            self.user_token,
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
-class CreateQAKnowledgeBaseAPITestCase(TestCase):
-    def setUp(self):
-        self.factory = RequestFactory()
-
-        self.owner, self.owner_token = create_user_and_token("owner")
-        self.user, self.token = create_user_and_token()
-
-        self.repository = Repository.objects.create(
-            owner=self.owner,
-            name="Testing",
-            slug="test",
-            language=languages.LANGUAGE_EN,
-        )
-
-        self.knowledge_base_1 = QAKnowledgeBase.objects.create(
-            repository=self.repository, title="Testando knowledge"
-        )
-
+class CreateQAKnowledgeBaseAPITestCase(DefaultSetUpKnowledgeBaseMixin, TestCase):
     def request(self, data, token=None):
         authorization_header = (
             {"HTTP_AUTHORIZATION": "Token {}".format(token.key)} if token else {}
@@ -237,24 +207,7 @@ class CreateQAKnowledgeBaseAPITestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
-class DetailQAKnowledgeBaseAPITestCase(TestCase):
-    def setUp(self):
-        self.factory = RequestFactory()
-
-        self.user, self.user_token = create_user_and_token()
-        self.owner, self.owner_token = create_user_and_token("owner")
-
-        self.repository = Repository.objects.create(
-            owner=self.owner,
-            name="Testing",
-            slug="test",
-            language=languages.LANGUAGE_EN,
-        )
-
-        self.knowledge_base_1 = QAKnowledgeBase.objects.create(
-            repository=self.repository, title="Testando knowledge"
-        )
-
+class DetailQAKnowledgeBaseAPITestCase(DefaultSetUpKnowledgeBaseMixin, TestCase):
     def request(self, repository, token=None):
         authorization_header = (
             {"HTTP_AUTHORIZATION": "Token {}".format(token.key)} if token else {}
@@ -280,52 +233,7 @@ class DetailQAKnowledgeBaseAPITestCase(TestCase):
         self.assertEqual(content_data.get("title"), self.knowledge_base_1.title)
 
 
-class ListQAContextAPITestCase(TestCase):
-    def setUp(self):
-        self.factory = RequestFactory()
-        self.owner, self.owner_token = create_user_and_token("owner")
-        self.user, self.user_token = create_user_and_token("user")
-
-        self.repository = Repository.objects.create(
-            owner=self.owner,
-            name="Repository 1",
-            slug="repo",
-            language=languages.LANGUAGE_EN,
-        )
-
-        self.repository_2 = Repository.objects.create(
-            owner=self.owner,
-            name="Repository 2",
-            slug="repo2",
-            language=languages.LANGUAGE_EN,
-        )
-
-        self.knowledge_base_1 = QAKnowledgeBase.objects.create(
-            repository=self.repository, title="Testando knowledge"
-        )
-
-        self.knowledge_base_2 = QAKnowledgeBase.objects.create(
-            repository=self.repository_2, title="Testando knowledge"
-        )
-
-        self.context_1 = QAContext.objects.create(
-            knowledge_base=self.knowledge_base_1,
-            text="teste",
-            language=languages.LANGUAGE_PT_BR,
-        )
-
-        self.context_2 = QAContext.objects.create(
-            knowledge_base=self.knowledge_base_1,
-            text="teste 2",
-            language=languages.LANGUAGE_EN,
-        )
-
-        self.context_3 = QAContext.objects.create(
-            knowledge_base=self.knowledge_base_2,
-            text="teste 3",
-            language=languages.LANGUAGE_EN,
-        )
-
+class ListQAContextAPITestCase(DefaultSetUpKnowledgeBaseMixin, TestCase):
     def request(self, data={}, token=None):
         authorization_header = (
             {"HTTP_AUTHORIZATION": "Token {}".format(token.key)} if token else {}
@@ -379,52 +287,7 @@ class ListQAContextAPITestCase(TestCase):
         self.assertEqual(content_data.get("results")[0].get("id"), self.context_1.pk)
 
 
-class DestroyQAContextAPITestCase(TestCase):
-    def setUp(self):
-        self.factory = RequestFactory()
-        self.owner, self.owner_token = create_user_and_token("owner")
-        self.user, self.user_token = create_user_and_token("user")
-
-        self.repository = Repository.objects.create(
-            owner=self.owner,
-            name="Repository 1",
-            slug="repo",
-            language=languages.LANGUAGE_EN,
-        )
-
-        self.repository_2 = Repository.objects.create(
-            owner=self.owner,
-            name="Repository 2",
-            slug="repo2",
-            language=languages.LANGUAGE_EN,
-        )
-
-        self.knowledge_base_1 = QAKnowledgeBase.objects.create(
-            repository=self.repository, title="Testando knowledge"
-        )
-
-        self.knowledge_base_2 = QAKnowledgeBase.objects.create(
-            repository=self.repository_2, title="Testando knowledge"
-        )
-
-        self.context_1 = QAContext.objects.create(
-            knowledge_base=self.knowledge_base_1,
-            text="teste",
-            language=languages.LANGUAGE_PT_BR,
-        )
-
-        self.context_2 = QAContext.objects.create(
-            knowledge_base=self.knowledge_base_1,
-            text="teste 2",
-            language=languages.LANGUAGE_EN,
-        )
-
-        self.context_3 = QAContext.objects.create(
-            knowledge_base=self.knowledge_base_2,
-            text="teste 3",
-            language=languages.LANGUAGE_EN,
-        )
-
+class DestroyQAContextAPITestCase(DefaultSetUpKnowledgeBaseMixin, TestCase):
     def request(self, token):
         authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
         request = self.factory.delete(
@@ -454,52 +317,7 @@ class DestroyQAContextAPITestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 
-class UpdateQAContextAPITestCase(TestCase):
-    def setUp(self):
-        self.factory = RequestFactory()
-        self.owner, self.owner_token = create_user_and_token("owner")
-        self.user, self.user_token = create_user_and_token("user")
-
-        self.repository = Repository.objects.create(
-            owner=self.owner,
-            name="Repository 1",
-            slug="repo",
-            language=languages.LANGUAGE_EN,
-        )
-
-        self.repository_2 = Repository.objects.create(
-            owner=self.owner,
-            name="Repository 2",
-            slug="repo2",
-            language=languages.LANGUAGE_EN,
-        )
-
-        self.knowledge_base_1 = QAKnowledgeBase.objects.create(
-            repository=self.repository, title="Testando knowledge"
-        )
-
-        self.knowledge_base_2 = QAKnowledgeBase.objects.create(
-            repository=self.repository_2, title="Testando knowledge"
-        )
-
-        self.context_1 = QAContext.objects.create(
-            knowledge_base=self.knowledge_base_1,
-            text="teste",
-            language=languages.LANGUAGE_PT_BR,
-        )
-
-        self.context_2 = QAContext.objects.create(
-            knowledge_base=self.knowledge_base_1,
-            text="teste 2",
-            language=languages.LANGUAGE_EN,
-        )
-
-        self.context_3 = QAContext.objects.create(
-            knowledge_base=self.knowledge_base_2,
-            text="teste 3",
-            language=languages.LANGUAGE_EN,
-        )
-
+class UpdateQAContextAPITestCase(DefaultSetUpKnowledgeBaseMixin, TestCase):
     def request(self, data, token):
         authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
         request = self.factory.put(
@@ -542,52 +360,7 @@ class UpdateQAContextAPITestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
-class CreateQAContextAPITestCase(TestCase):
-    def setUp(self):
-        self.factory = RequestFactory()
-        self.owner, self.owner_token = create_user_and_token("owner")
-        self.user, self.user_token = create_user_and_token("user")
-
-        self.repository = Repository.objects.create(
-            owner=self.owner,
-            name="Repository 1",
-            slug="repo",
-            language=languages.LANGUAGE_EN,
-        )
-
-        self.repository_2 = Repository.objects.create(
-            owner=self.owner,
-            name="Repository 2",
-            slug="repo2",
-            language=languages.LANGUAGE_EN,
-        )
-
-        self.knowledge_base_1 = QAKnowledgeBase.objects.create(
-            repository=self.repository, title="Testando knowledge"
-        )
-
-        self.knowledge_base_2 = QAKnowledgeBase.objects.create(
-            repository=self.repository_2, title="Testando knowledge"
-        )
-
-        self.context_1 = QAContext.objects.create(
-            knowledge_base=self.knowledge_base_1,
-            text="teste",
-            language=languages.LANGUAGE_PT_BR,
-        )
-
-        self.context_2 = QAContext.objects.create(
-            knowledge_base=self.knowledge_base_1,
-            text="teste 2",
-            language=languages.LANGUAGE_EN,
-        )
-
-        self.context_3 = QAContext.objects.create(
-            knowledge_base=self.knowledge_base_2,
-            text="teste 3",
-            language=languages.LANGUAGE_EN,
-        )
-
+class CreateQAContextAPITestCase(DefaultSetUpKnowledgeBaseMixin, TestCase):
     def request(self, data, token=None):
         authorization_header = (
             {"HTTP_AUTHORIZATION": "Token {}".format(token.key)} if token else {}
@@ -632,52 +405,7 @@ class CreateQAContextAPITestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
-class DetailQAContextAPITestCase(TestCase):
-    def setUp(self):
-        self.factory = RequestFactory()
-        self.owner, self.owner_token = create_user_and_token("owner")
-        self.user, self.user_token = create_user_and_token("user")
-
-        self.repository = Repository.objects.create(
-            owner=self.owner,
-            name="Repository 1",
-            slug="repo",
-            language=languages.LANGUAGE_EN,
-        )
-
-        self.repository_2 = Repository.objects.create(
-            owner=self.owner,
-            name="Repository 2",
-            slug="repo2",
-            language=languages.LANGUAGE_EN,
-        )
-
-        self.knowledge_base_1 = QAKnowledgeBase.objects.create(
-            repository=self.repository, title="Testando knowledge"
-        )
-
-        self.knowledge_base_2 = QAKnowledgeBase.objects.create(
-            repository=self.repository_2, title="Testando knowledge"
-        )
-
-        self.context_1 = QAContext.objects.create(
-            knowledge_base=self.knowledge_base_1,
-            text="teste",
-            language=languages.LANGUAGE_PT_BR,
-        )
-
-        self.context_2 = QAContext.objects.create(
-            knowledge_base=self.knowledge_base_1,
-            text="teste 2",
-            language=languages.LANGUAGE_EN,
-        )
-
-        self.context_3 = QAContext.objects.create(
-            knowledge_base=self.knowledge_base_2,
-            text="teste 3",
-            language=languages.LANGUAGE_EN,
-        )
-
+class DetailQAContextAPITestCase(DefaultSetUpKnowledgeBaseMixin, TestCase):
     def request(self, repository, token=None):
         authorization_header = (
             {"HTTP_AUTHORIZATION": "Token {}".format(token.key)} if token else {}
