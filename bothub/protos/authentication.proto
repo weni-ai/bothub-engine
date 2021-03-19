@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package authentication;
+package weni.bothub.authentication;
 
 import "google/protobuf/empty.proto";
 

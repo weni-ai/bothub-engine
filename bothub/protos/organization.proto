@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package org;
+package weni.bothub.org;
 
 import "google/protobuf/empty.proto";
 

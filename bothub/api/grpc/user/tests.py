@@ -50,7 +50,7 @@ class UserServiceTest(RPCTransactionTestCase):
             permission=OrganizationAuthorization.ROLE_ADMIN,
         )
         retrieve_response = self.user_permission_retrieve_request(
-            org_id=org.id, user_email=user.email
+            org_id=org.id, org_user_email=user.email
         )
 
         self.assertEquals(update_response, retrieve_response)
@@ -63,7 +63,7 @@ class UserServiceTest(RPCTransactionTestCase):
             permission=OrganizationAuthorization.ROLE_USER,
         )
         retrieve_response = self.user_permission_retrieve_request(
-            org_id=self.organization.id, user_email=self.user.email
+            org_id=self.organization.id, org_user_email=self.user.email
         )
 
         self.user_permission_remove_request(
