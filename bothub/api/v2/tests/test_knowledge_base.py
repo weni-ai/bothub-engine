@@ -345,6 +345,7 @@ class UpdateQAContextAPITestCase(DefaultSetUpKnowledgeBaseMixin, TestCase):
             },
             self.owner_token,
         )
+        print(content_data)
         self.assertEqual(content_data.get("text"), "teste text")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
