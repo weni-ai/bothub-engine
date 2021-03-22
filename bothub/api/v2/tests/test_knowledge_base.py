@@ -340,7 +340,7 @@ class UpdateQAContextAPITestCase(DefaultSetUpKnowledgeBaseMixin, TestCase):
         response, content_data = self.request(
             {
                 "text": "teste text",
-                "language": languages.LANGUAGE_PT_BR,
+                "language": languages.LANGUAGE_EN,
                 "knowledge_base": self.knowledge_base_1.pk,
             },
             self.owner_token,
