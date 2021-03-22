@@ -47,7 +47,7 @@ def trainings_check_task():
             RepositoryQueueTask.QUEUE_CELERY: "celery",
         }
         result = requests.get(
-            url=f"{settings.BOTHUB_NLP_BASE_URL}v2/task-queue/",
+            url=f"{settings.BOTHUB_NLP_BASE_URL}task-queue/",
             params=urlencode(
                 {
                     "id_task": train.id_queue,
