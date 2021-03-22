@@ -54,7 +54,7 @@ class DefaultSetUpKnowledgeBaseMixin:
         self.context_3 = QAContext.objects.create(
             knowledge_base=self.knowledge_base_2,
             text="teste 3",
-            language=languages.LANGUAGE_EN,
+            language=languages.LANGUAGE_PT_BR,
         )
 
 
@@ -341,7 +341,7 @@ class UpdateQAContextAPITestCase(DefaultSetUpKnowledgeBaseMixin, TestCase):
             {
                 "text": "teste text",
                 "language": languages.LANGUAGE_EN,
-                "knowledge_base": self.knowledge_base_1.pk,
+                "knowledge_base": self.knowledge_base_2.pk,
             },
             self.owner_token,
         )
