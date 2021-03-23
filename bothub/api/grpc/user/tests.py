@@ -72,7 +72,7 @@ class UserServiceTest(RPCTransactionTestCase):
             permission=OrganizationAuthorization.ROLE_USER,
         )
         retrieve_response_removed = self.user_permission_retrieve_request(
-            org_id=self.organization.id, user_email=self.user.email
+            org_id=self.organization.id, org_user_email=self.user.email
         )
         self.assertNotEquals(retrieve_response.role, retrieve_response_removed.role)
 
