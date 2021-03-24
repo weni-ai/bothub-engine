@@ -29,7 +29,7 @@ class UserPermissionService(
         org = utils.get_organization(self, request.org_id)
         user = utils.get_user(self, request.user_email)
 
-        self.set_user_permission(org, user, request.permission)
+        org.set_user_permission(user=user, permission=request.permission)
 
         permissions = self.get_user_permissions(org, user)
         serializer = UserPermissionProtoSerializer(permissions)
@@ -46,13 +46,6 @@ class UserPermissionService(
         serializer = UserPermissionProtoSerializer(permissions)
 
         return serializer.message
-
-    def set_user_permission(self, org: Organization, user: User, permission: int):
-        perm, created = org.organization_authorizations.get_or_create(
-            user=user, organization=org
-        )
-        perm.role = permission
-        perm.save(update_fields=["role"])
 
     def get_user_permissions(self, org: Organization, user: User) -> dict:
         return org.organization_authorizations.filter(user=user).first()
