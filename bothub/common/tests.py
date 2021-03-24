@@ -1458,3 +1458,40 @@ class RepositorySupportedLanguageQueryTestCase(TestCase):
         example.delete()
         q = Repository.objects.all().supported_language(e_language)
         self.assertEqual(q.count(), 0)
+
+
+class RepositoryFormattedIntentsTestCase(TestCase):
+    def setUp(self):
+        self.language = languages.LANGUAGE_EN
+
+        self.owner = User.objects.create_user("owner@user.com", "user")
+
+        self.repository = Repository.objects.create(
+            owner=self.owner.repository_owner,
+            name="Test",
+            slug="test",
+            language=self.language,
+        )
+
+        self.example_intent_1 = RepositoryIntent.objects.create(
+            text="greet",
+            repository_version=self.repository.current_version().repository_version,
+        )
+
+        self.example = RepositoryExample.objects.create(
+            repository_version_language=self.repository.current_version(),
+            text="hi",
+            intent=self.example_intent_1,
+        )
+
+        self.example_2 = RepositoryExample.objects.create(
+            repository_version_language=self.repository.current_version(),
+            text="hi_2",
+            intent=self.example_intent_1,
+        )
+
+    def test_get_formatted_intents(self):
+        intents = self.repository.get_formatted_intents()
+        self.assertEqual(intents[0].get("value"), self.example_intent_1.text)
+        self.assertEqual(intents[0].get("id"), self.example_intent_1.pk)
+        self.assertEqual(intents[0].get("examples__count"), 2)
