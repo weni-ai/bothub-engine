@@ -93,6 +93,14 @@ class CreateRepositoryAPITestCase(TestCase):
         self.owner, self.owner_token = create_user_and_token("owner")
         self.user, self.user_token = create_user_and_token("user")
         self.category = RepositoryCategory.objects.create(name="Category 1")
+        self.organization = Organization.objects.create(
+            name="Organization 1", nickname="organization1"
+        )
+        OrganizationAuthorization.objects.create(
+            user=self.owner,
+            organization=self.organization,
+            role=OrganizationAuthorization.ROLE_ADMIN,
+        )
 
     def request(self, data, token=None):
         authorization_header = (
@@ -108,13 +116,22 @@ class CreateRepositoryAPITestCase(TestCase):
         content_data = json.loads(response.content)
         return (response, content_data)
 
-    def test_okay(self):
+    def test_create_with_user(self):
         for mockup in get_valid_mockups([self.category]):
+            response, content_data = self.request(mockup, self.owner_token)
+
+            self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_create_with_organization(self):
+        for mockup in get_valid_mockups([self.category]):
+            mockup["organization"] = self.organization.pk
             response, content_data = self.request(mockup, self.owner_token)
 
             self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-            repository = self.owner.repositories.get(uuid=content_data.get("uuid"))
+            repository = self.organization.repositories.get(
+                uuid=content_data.get("uuid")
+            )
 
             self.assertEqual(repository.name, mockup.get("name"))
             self.assertEqual(repository.language, mockup.get("language"))
@@ -2353,3 +2370,73 @@ class EvaluateAutomaticTestCase(TestCase):
         data = {"repository_version": self.repository_version.pk}
         response, content_data = self.request(self.repository, data, self.owner_token)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+
+class CheckCanEvaluateAutomaticTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.owner, self.owner_token = create_user_and_token("owner")
+        self.user, self.user_token = create_user_and_token()
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name="Testing",
+            slug="test",
+            language=languages.LANGUAGE_EN,
+        )
+
+        self.repository_version = RepositoryVersion.objects.create(
+            repository=self.repository, name="test"
+        )
+
+    def request(self, repository, data={}, token=None):
+        authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
+
+        request = self.factory.get(
+            "/v2/repository/repository-details/{}/check_can_automatic_evaluate/".format(
+                str(repository.uuid)
+            ),
+            data,
+            **authorization_header,
+        )
+
+        response = RepositoryViewSet.as_view({"get": "check_can_automatic_evaluate"})(
+            request, uuid=repository.uuid
+        )
+
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data)
+
+    def test_permission_denied(self):
+        response, content_data = self.request(self.repository, {}, self.user_token)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_invalid_data(self):
+        data = {}
+        response, content_data = self.request(self.repository, data, self.owner_token)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_cant_evaluate_automatic(self):
+        data = {"language": self.repository.language}
+        response, content_data = self.request(self.repository, data, self.owner_token)
+        self.assertFalse(content_data.get("can_run_evaluate_automatic"))
+        self.assertEqual(len(content_data.get("messages")), 1)
+
+    def test_can_evaluate_automatic(self):
+        for i in range(0, 2):
+            intent_ = RepositoryIntent.objects.create(
+                text=f"test-{i}",
+                repository_version=self.repository.current_version().repository_version,
+            )
+            for j in range(0, 20):
+                RepositoryExample.objects.create(
+                    repository_version_language=self.repository.current_version(),
+                    text=f"hi-{j}",
+                    intent=intent_,
+                )
+        data = {"language": self.repository.language}
+        response, content_data = self.request(self.repository, data, self.owner_token)
+        self.assertTrue(content_data.get("can_run_evaluate_automatic"))
+        self.assertEqual(len(content_data.get("messages")), 0)

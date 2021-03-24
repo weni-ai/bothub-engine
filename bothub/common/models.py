@@ -8,7 +8,7 @@ from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.core.validators import RegexValidator, _lazy_re_compile
 from django.db import models
-from django.db.models import Sum, Q, IntegerField, Case, When
+from django.db.models import Sum, Q, IntegerField, Case, When, Count
 from django.dispatch import receiver
 from django.template.loader import render_to_string
 from django.utils import timezone
@@ -700,6 +700,23 @@ class Repository(models.Model):
             )
         )
         return list(set(intents.values_list("intent__text", flat=True)))
+
+    def get_formatted_intents(self):
+        intents = (
+            self.examples()
+            .values("intent__text", "intent__pk")
+            .order_by("intent__pk")
+            .annotate(examples_count=Count("intent__pk"))
+        )
+
+        return [
+            {
+                "value": intent.get("intent__text"),
+                "id": intent.get("intent__pk"),
+                "examples__count": intent.get("examples_count"),
+            }
+            for intent in intents
+        ]
 
     @property
     def admins(self):
