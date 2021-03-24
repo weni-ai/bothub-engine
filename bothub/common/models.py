@@ -127,6 +127,11 @@ class Organization(RepositoryOwner):
         )
         return get
 
+    def set_user_permission(self, user: User, permission: int):
+        perm, created = self.organization_authorizations.get_or_create(user=user)
+        perm.role = permission
+        perm.save(update_fields=["role"])
+
 
 class OrganizationAuthorization(models.Model):
     class Meta:

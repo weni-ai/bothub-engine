@@ -377,3 +377,58 @@ class AuthorizationKnowledgeBaseTestCase(TestCase):
             response.data.get("knowledge_base_id"), self.knowledge_base_1.pk
         )
         self.assertEqual(response.data.get("language"), languages.LANGUAGE_PT_BR)
+
+
+class InfoGetCurrentConfigurationTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.owner, self.owner_token = create_user_and_token("owner")
+        self.user, self.user_token = create_user_and_token()
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name="Testing",
+            slug="test",
+            language=languages.LANGUAGE_EN,
+        )
+
+        self.repository_authorization = RepositoryAuthorization.objects.create(
+            user=self.user,
+            repository=self.repository,
+            role=RepositoryAuthorization.ROLE_ADMIN,
+        )
+
+    def request(self, token):
+        authorization_header = {"HTTP_AUTHORIZATION": "Bearer {}".format(token)}
+        request = self.factory.get(
+            "/v2/repository/nlp/authorization/info/{}/get_current_configuration".format(
+                token
+            ),
+            **authorization_header
+        )
+        response = RepositoryAuthorizationInfoViewSet.as_view(
+            {"get": "get_current_configuration"}
+        )(request, pk=token)
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data)
+
+    def test_ok(self):
+        response, content_data = self.request(str(self.repository_authorization.uuid))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_not_perm(self):
+        response, content_data = self.request(str(uuid.uuid4()))
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_get_current_configuration(self):
+        response, content_data = self.request(str(self.repository_authorization.uuid))
+        self.assertEquals(content_data.get("language"), languages.LANGUAGE_EN)
+        self.assertEquals(
+            content_data.get("user_id"), self.repository_authorization.user.pk
+        )
+        self.assertEquals(content_data.get("algorithm"), self.repository.algorithm)
+        self.assertFalse(content_data.get("use_name_entities"))
+        self.assertFalse(content_data.get("use_competing_intents"))
+        self.assertFalse(content_data.get("use_analyze_char"))

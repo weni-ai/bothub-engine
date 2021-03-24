@@ -1016,9 +1016,7 @@ class RepositorySerializer(serializers.ModelSerializer):
             validated_data.update({"owner": self.context["request"].user})
             owner = self.context["request"].user
 
-        validated_data.update(
-            {"slug": utils.unique_slug_generator(validated_data, Repository)}
-        )
+        validated_data.update({"slug": utils.unique_slug_generator(validated_data)})
 
         repository = super().create(validated_data)
 
