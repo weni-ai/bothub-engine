@@ -288,6 +288,23 @@ class RepositoryAuthorizationInfoViewSet(mixins.RetrieveModelMixin, GenericViewS
 
         return Response({"intents": serializer})
 
+    @action(detail=True, methods=["GET"], url_name="get_current_configuration")
+    def get_current_configuration(self, request, **kwargs):
+        check_auth(request)
+        repository_authorization = self.get_object()
+        repository = repository_authorization.repository
+
+        return Response(
+            {
+                "language": repository.language,
+                "user_id": repository_authorization.user.pk,
+                "algorithm": repository.algorithm,
+                "use_name_entities": repository.use_name_entities,
+                "use_competing_intents": repository.use_competing_intents,
+                "use_analyze_char": repository.use_analyze_char,
+            }
+        )
+
 
 class RepositoryAuthorizationEvaluateViewSet(mixins.RetrieveModelMixin, GenericViewSet):
     queryset = RepositoryAuthorization.objects

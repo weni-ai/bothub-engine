@@ -11,7 +11,6 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.dispatch import receiver
 
-
 user_nickname_re = _lazy_re_compile(r"^[-a-zA-Z0-9_]+\Z")
 validate_user_nickname_format = RegexValidator(
     user_nickname_re,
@@ -75,7 +74,7 @@ class RepositoryOwner(models.Model):
     )
     nickname = models.CharField(
         _("nickname"),
-        max_length=16,
+        max_length=150,
         validators=[validate_user_nickname_format, validate_user_nickname_value],
         help_text=_(
             "User's or Organization nickname, using letters, numbers, underscores "
@@ -183,6 +182,16 @@ class User(AbstractBaseUser, RepositoryOwner, PermissionsMixin):
             is_active=False,
         )
         return user
+
+    @property
+    def get_user_organizations(self):
+        from bothub.common.models import Organization, OrganizationAuthorization
+
+        return Organization.objects.filter(
+            pk__in=self.organization_user_authorization.exclude(
+                role=OrganizationAuthorization.LEVEL_NOTHING
+            ).values_list("organization", flat=True)
+        )
 
 
 @receiver(models.signals.post_save, sender=User)
