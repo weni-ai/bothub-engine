@@ -65,6 +65,3 @@ class OrgService(mixins.ListModelMixin, generics.GenericService):
         serializer.save()
 
         return serializer.message
-
-    def get_orgs(self, user: User):
-        return user.get_user_organizations
