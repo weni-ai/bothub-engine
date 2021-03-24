@@ -4,13 +4,12 @@ import random
 import re
 import string
 import uuid
-from collections import OrderedDict
-
 import boto3
 import grpc
 import matplotlib.pyplot as plt
 import numpy as np
 import requests
+from collections import OrderedDict
 from botocore.exceptions import ClientError
 from django.conf import settings
 from django.db.models import IntegerField, Subquery
