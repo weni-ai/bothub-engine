@@ -449,6 +449,32 @@ class RepositoryViewSet(
             )  # pragma: no cover
         return Response(request.json())  # pragma: no cover
 
+    @action(
+        detail=True,
+        methods=["GET"],
+        url_name="check-can-repository-automatic-evaluate",
+        lookup_fields=["uuid"],
+    )
+    def check_can_automatic_evaluate(self, request, **kwargs):
+        """
+        Check if repository can run automatic evaluate.
+        """
+        repository = self.get_object()
+        user_authorization = repository.get_user_authorization(request.user)
+        if not user_authorization.can_write:
+            raise PermissionDenied()
+
+        language = request.query_params.get("language")
+        if not language:
+            raise ValidationError(_("Need to pass 'language' in query params"))
+
+        try:
+            repository.validate_if_can_run_automatic_evaluate(language=language)
+            response = {"can_run_evaluate_automatic": True, "messages": []}
+        except DjangoValidationError as e:
+            response = {"can_run_evaluate_automatic": False, "messages": e}
+        return Response(response)  # pragma: no cover
+
 
 @method_decorator(
     name="list",
