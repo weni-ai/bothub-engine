@@ -5,6 +5,7 @@ import re
 import string
 import uuid
 import boto3
+import grpc
 import matplotlib.pyplot as plt
 import numpy as np
 import requests
@@ -67,11 +68,13 @@ def send_bot_data_file_aws(id, bot_data):
     return confmat_url
 
 
-def unique_slug_generator(validated_data, Repository, new_slug=None):
+def unique_slug_generator(validated_data, new_slug=None):
     """
     This is for a Django project and it assumes your instance
     has a model with a slug field and a title character (char) field.
     """
+    from bothub.common.models import Repository
+
     if new_slug is not None:
         slug = new_slug
     else:
@@ -85,7 +88,31 @@ def unique_slug_generator(validated_data, Repository, new_slug=None):
                 random.choice(string.ascii_letters + string.digits) for _ in range(6)
             ).lower(),
         )
-        return unique_slug_generator(validated_data, Repository, new_slug=new_slug)
+        return unique_slug_generator(validated_data, new_slug=new_slug)
+    return slug
+
+
+def organization_unique_slug_generator(org_name, new_slug=None):
+    """
+    This is for a Django project and it assumes your instance
+    has a model with a slug field and a title character (char) field.
+    """
+    from bothub.authentication.models import RepositoryOwner
+
+    if new_slug is not None:
+        slug = new_slug
+    else:
+        slug = slugify(org_name)[:9:]
+
+    qs_exists = RepositoryOwner.objects.filter(nickname=slug).exists()
+    if qs_exists:
+        new_slug = "{slug}-{randstr}".format(
+            slug=slug,
+            randstr="".join(
+                random.choice(string.ascii_letters + string.digits) for _ in range(6)
+            ).lower(),
+        )
+        return organization_unique_slug_generator(org_name, new_slug=new_slug)
     return slug
 
 
@@ -324,3 +351,23 @@ class CountSubquery(Subquery):
 
     def __init__(self, queryset, output_field=None, **extra):
         super().__init__(queryset, output_field, **extra)
+
+
+def get_user(request, user_email: str):
+    from bothub.authentication.models import User
+
+    try:
+        return User.objects.get(email=user_email)
+    except User.DoesNotExist:
+        request.context.abort(grpc.StatusCode.NOT_FOUND, f"{user_email} not found!")
+
+
+def get_organization(request, organization_id: int):
+    from bothub.common.models import Organization
+
+    try:
+        return Organization.objects.get(pk=organization_id)
+    except Organization.DoesNotExist:
+        request.context.abort(
+            grpc.StatusCode.NOT_FOUND, f"{organization_id} not found!"
+        )
