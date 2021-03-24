@@ -93,6 +93,14 @@ class CreateRepositoryAPITestCase(TestCase):
         self.owner, self.owner_token = create_user_and_token("owner")
         self.user, self.user_token = create_user_and_token("user")
         self.category = RepositoryCategory.objects.create(name="Category 1")
+        self.organization = Organization.objects.create(
+            name="Organization 1", nickname="organization1"
+        )
+        OrganizationAuthorization.objects.create(
+            user=self.owner,
+            organization=self.organization,
+            role=OrganizationAuthorization.ROLE_ADMIN,
+        )
 
     def request(self, data, token=None):
         authorization_header = (
@@ -108,13 +116,22 @@ class CreateRepositoryAPITestCase(TestCase):
         content_data = json.loads(response.content)
         return (response, content_data)
 
-    def test_okay(self):
+    def test_create_with_user(self):
         for mockup in get_valid_mockups([self.category]):
+            response, content_data = self.request(mockup, self.owner_token)
+
+            self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_create_with_organization(self):
+        for mockup in get_valid_mockups([self.category]):
+            mockup["organization"] = self.organization.pk
             response, content_data = self.request(mockup, self.owner_token)
 
             self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-            repository = self.owner.repositories.get(uuid=content_data.get("uuid"))
+            repository = self.organization.repositories.get(
+                uuid=content_data.get("uuid")
+            )
 
             self.assertEqual(repository.name, mockup.get("name"))
             self.assertEqual(repository.language, mockup.get("language"))

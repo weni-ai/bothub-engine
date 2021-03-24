@@ -4,7 +4,7 @@ from django.conf import settings
 from django.shortcuts import get_object_or_404
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import PermissionDenied, ValidationError
 
 from bothub import utils
 from bothub.api.v2.example.serializers import RepositoryExampleEntitySerializer
@@ -1012,12 +1012,9 @@ class RepositorySerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         organization = validated_data.pop("organization", None)
 
-        if organization:
-            owner = get_object_or_404(RepositoryOwner, pk=organization)
-            validated_data.update({"owner": owner})
-        else:
-            validated_data.update({"owner": self.context["request"].user})
-            owner = self.context["request"].user
+        owner = get_object_or_404(RepositoryOwner, pk=organization)
+        if not owner.is_organization:
+            raise ValidationError(_("It's necessary to pass an organization."))
 
         validated_data.update({"slug": utils.unique_slug_generator(validated_data)})
 
