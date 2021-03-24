@@ -1016,7 +1016,12 @@ class RepositorySerializer(serializers.ModelSerializer):
         if not owner.is_organization:
             raise ValidationError(_("It's necessary to pass an organization."))
 
-        validated_data.update({"slug": utils.unique_slug_generator(validated_data)})
+        validated_data.update(
+            {
+                "slug": utils.unique_slug_generator(validated_data),
+                "owner": owner
+            }
+        )
 
         repository = super().create(validated_data)
 
