@@ -8,7 +8,7 @@ from bothub.api.grpc.organization.serializers import (
     OrgCreateProtoSerializer,
     OrgUpdateProtoSerializer,
 )
-from bothub.authentication.models import User, RepositoryOwner
+from bothub.authentication.models import User
 from bothub.common.models import Organization, OrganizationAuthorization
 
 
