@@ -185,7 +185,6 @@ class AuthorizationInfoTestCase(TestCase):
         )
 
     def request(self, token, repository_version=""):
-        ##
         authorization_header = {"HTTP_AUTHORIZATION": "Bearer {}".format(token)}
         request = self.factory.get(
             "/v2/repository/nlp/authorization/info/{}/".format(token),
