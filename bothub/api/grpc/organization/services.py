@@ -12,21 +12,19 @@ from bothub.authentication.models import User, RepositoryOwner
 from bothub.common.models import Organization, OrganizationAuthorization
 
 
-class OrgService(generics.GenericService, mixins.ListModelMixin):
+class OrgService(mixins.ListModelMixin, generics.GenericService):
     def List(self, request, context):
 
-        user = self.get_user(request)
-        orgs = self.get_orgs(user)
+        user = utils.get_user(self, request.user_email)
 
-        serializer = OrgProtoSerializer(orgs, many=True)
+        serializer = OrgProtoSerializer(user.get_user_organizations, many=True)
 
         for msg in serializer.message:
             yield msg
 
     def Create(self, request, context):
         user, created = User.objects.get_or_create(
-            email=request.user_email,
-            defaults={'nickname': request.user_nickname},
+            email=request.user_email, defaults={"nickname": request.user_nickname}
         )
 
         serializer = OrgCreateProtoSerializer(message=request)
@@ -52,8 +50,8 @@ class OrgService(generics.GenericService, mixins.ListModelMixin):
         return org_serializer.message
 
     def Destroy(self, request, context):
-        org = self.get_org_object(request.id)
-        user = self.get_user_object(request.user_email)
+        org = utils.get_organization(self, request.id)
+        user = utils.get_user(self, request.user_email)
 
         perm = org.organization_authorizations.get(user=user)
         if perm.is_admin:
@@ -68,38 +66,5 @@ class OrgService(generics.GenericService, mixins.ListModelMixin):
 
         return serializer.message
 
-    def get_org_object(self, pk: int) -> Organization:
-        try:
-            return Organization.objects.get(pk=pk)
-        except Organization.DoesNotExist:
-            self.context.abort(
-                grpc.StatusCode.NOT_FOUND, f"{Organization.__name__}: {pk} not found!"
-            )
-
-    def get_user_object(self, email: str) -> User:
-        try:
-            return User.objects.get(email=email)
-        except User.DoesNotExist:
-            self.context.abort(
-                grpc.StatusCode.NOT_FOUND, f"{User.__name__}: {str} not found!"
-            )
-
-    def get_user(self, request):
-        user_email = request.user_email
-
-        if not user_email:
-            self.context.abort(grpc.StatusCode.NOT_FOUND, "Email cannot be null")
-
-        try:
-            return User.objects.get(email=request.user_email)
-        except User.DoesNotExist:
-            self.context.abort(
-                grpc.StatusCode.NOT_FOUND, f"User:{request.user_email} not found!"
-            )
-
     def get_orgs(self, user: User):
-        return Organization.objects.filter(
-            pk__in=user.organization_user_authorization.exclude(
-                role=OrganizationAuthorization.LEVEL_NOTHING
-            ).values_list("organization", flat=True)
-        )
+        return user.get_user_organizations

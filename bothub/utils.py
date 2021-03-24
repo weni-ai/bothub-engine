@@ -4,21 +4,20 @@ import random
 import re
 import string
 import uuid
+from collections import OrderedDict
+
 import boto3
+import grpc
 import matplotlib.pyplot as plt
 import numpy as np
 import requests
-import grpc
-from collections import OrderedDict
 from botocore.exceptions import ClientError
 from django.conf import settings
 from django.db.models import IntegerField, Subquery
 from django.utils.text import slugify
 from django.utils.translation import ugettext_lazy as _
-from django.core import exceptions
 from rest_framework import status
 from rest_framework.exceptions import APIException, ValidationError
-from django_grpc_framework import generics
 
 entity_regex = re.compile(
     r"\[(?P<entity_text>[^\]]+)" r"\]\((?P<entity>[^:)]*?)" r"(?:\:(?P<value>[^)]+))?\)"
@@ -353,52 +352,21 @@ class CountSubquery(Subquery):
         super().__init__(queryset, output_field, **extra)
 
 
-class AbstractService:
-    def get_org_object_pk(self, pk: int):
-        return self.get_org_object(pk)
+def get_user(request, user_email: str):
+    from bothub.authentication.models import User
 
-    def get_org_object(self, value: str, query_parameter: str = "pk"):
-        from bothub.common.models import Organization
+    try:
+        return User.objects.get(email=user_email)
+    except User.DoesNotExist:
+        request.context.abort(grpc.StatusCode.NOT_FOUND, f"{user_email} not found!")
 
-        return self._get_object(Organization, value, query_parameter)
 
-    def _get_object(self, model, value: str, query_parameter: str = "pk"):
+def get_organization(request, organization_id: int):
+    from bothub.common.models import Organization
 
-        query = {query_parameter: value}
-
-        try:
-            return model.objects.get(**query)
-        except model.DoesNotExist:
-            self.raises_not_fount(model.__name__, value)
-        except exceptions.ValidationError:
-            self.raises_not_fount(model.__name__, value)
-
-    def raises_not_fount(self, model_name, value):
-        if not value:
-            value = "None"
-        self.context.abort(
-            grpc.StatusCode.NOT_FOUND, f"{model_name}: {value} not found!"
+    try:
+        return Organization.objects.get(pk=organization_id)
+    except Organization.DoesNotExist:
+        request.context.abort(
+            grpc.StatusCode.NOT_FOUND, f"{organization_id} not found!"
         )
-
-
-class AbstractUserService(generics.GenericService):
-    def get_org_object(self, pk: int):
-        from bothub.common.models import Organization
-
-        return self._get_object(Organization, pk)
-
-    def get_user_object(self, email: str):
-        from bothub.authentication.models import User
-
-        return self._get_object(User, email, query_parameter="email")
-
-    def _get_object(self, model, value: str, query_parameter: str = "pk"):
-
-        query = {query_parameter: value}
-
-        try:
-            return model.objects.get(**query)
-        except model.DoesNotExist:
-            self.context.abort(
-                grpc.StatusCode.NOT_FOUND, f"{model.__name__}: {value} not found!"
-            )

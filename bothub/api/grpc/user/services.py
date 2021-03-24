@@ -1,40 +1,33 @@
-from django_grpc_framework import mixins
+from django_grpc_framework import mixins, generics
 
+from bothub import utils
 from bothub.api.grpc.user.serializers import (
     UserProtoSerializer,
     UserPermissionProtoSerializer,
 )
 from bothub.authentication.models import User
 from bothub.common.models import Organization
-from bothub.utils import AbstractUserService
-
-
-class UserService(AbstractUserService, mixins.RetrieveModelMixin):
-    serializer_class = UserProtoSerializer
-
-    def get_user_object(self, email: str) -> User:
-        return self._get_object(User, email, query_parameter="email")
-
-    def get_object(self):
-        return self.get_user_object(self.request.email)
 
 
 class UserPermissionService(
-    AbstractUserService, mixins.RetrieveModelMixin, mixins.UpdateModelMixin
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    generics.GenericService,
 ):
     def Retrieve(self, request, context):
-        org = self.get_org_object(request.org_id)
-        user = self.get_user_object(request.org_user_email)
-
-        permissions = self.get_user_permissions(org, user)
+        permissions = self.get_user_permissions(
+            utils.get_organization(self, request.org_id),
+            utils.get_user(self, request.org_user_email),
+        )
 
         serializer = UserPermissionProtoSerializer(permissions)
 
         return serializer.message
 
     def Update(self, request, context):
-        org = self.get_org_object(request.org_id)
-        user = self.get_user_object(request.user_email)
+        org = utils.get_organization(self, request.org_id)
+        user = utils.get_user(self, request.user_email)
 
         self.set_user_permission(org, user, request.permission)
 
@@ -44,19 +37,15 @@ class UserPermissionService(
         return serializer.message
 
     def Remove(self, request, context):
-        org = self.get_org_object(request.org_id)
-        user = self.get_user_object(request.user_email)
+        org = utils.get_organization(self, request.org_id)
+        user = utils.get_user(self, request.user_email)
 
-        self.remove_user_permission(org, user, request.permission)
+        self.get_user_permissions(org, user).delete()
 
         permissions = self.get_user_permissions(org, user)
         serializer = UserPermissionProtoSerializer(permissions)
 
         return serializer.message
-
-    def remove_user_permission(self, org: Organization, user: User, permission: str):
-        permissions = self.get_user_permissions(org, user)
-        permissions.delete()
 
     def set_user_permission(self, org: Organization, user: User, permission: int):
         perm, created = org.organization_authorizations.get_or_create(
@@ -67,3 +56,9 @@ class UserPermissionService(
 
     def get_user_permissions(self, org: Organization, user: User) -> dict:
         return org.organization_authorizations.filter(user=user).first()
+
+
+class UserService(mixins.RetrieveModelMixin, generics.GenericService):
+    serializer_class = UserProtoSerializer
+    queryset = User.objects
+    lookup_field = "email"

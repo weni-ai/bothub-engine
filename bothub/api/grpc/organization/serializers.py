@@ -7,26 +7,6 @@ from bothub.common.models import Organization, OrganizationAuthorization
 from bothub.protos import organization_pb2
 
 
-class SerializerUtils(object):
-    @classmethod
-    def get_object(cls, model, pk: int):
-        try:
-            return model.objects.get(pk=pk)
-        except model.DoesNotExist:
-            raise proto_serializers.ValidationError(
-                f"{model.__name__}: {pk} not found!"
-            )
-
-    @classmethod
-    def get_user_object(cls, model, email: str):
-        try:
-            return model.objects.get(email=email)
-        except model.DoesNotExist:
-            raise proto_serializers.ValidationError(
-                f"{model.__name__}: {email} not found!"
-            )
-
-
 class OrgProtoSerializer(proto_serializers.ModelProtoSerializer):
 
     users = serializers.SerializerMethodField()
@@ -59,14 +39,17 @@ class OrgCreateProtoSerializer(proto_serializers.ModelProtoSerializer):
     user_nickname = serializers.CharField()
 
     def validate_user_email(self, value: str) -> str:
-        SerializerUtils.get_user_object(User, value)
+        try:
+            User.objects.get(email=value)
+        except User.DoesNotExist:
+            raise proto_serializers.ValidationError(f"{value} not found!")
 
         return value
 
     class Meta:
         model = Organization
         proto_class = organization_pb2.Org
-        fields = ["name", "user_email", 'user_nickname']
+        fields = ["name", "user_email", "user_nickname"]
 
 
 class OrgUpdateProtoSerializer(proto_serializers.ModelProtoSerializer):
@@ -75,7 +58,10 @@ class OrgUpdateProtoSerializer(proto_serializers.ModelProtoSerializer):
     name = serializers.CharField(required=False)
 
     def validate_id(self, value):
-        SerializerUtils.get_object(Organization, value)
+        try:
+            Organization.objects.get(pk=value)
+        except Organization.DoesNotExist:
+            raise proto_serializers.ValidationError(f"{value} not found!")
 
         return value
 
@@ -90,9 +76,7 @@ class OrgUpdateProtoSerializer(proto_serializers.ModelProtoSerializer):
             org.__dict__.update(**updated_fields)
 
     def get_updated_fields(self, data):
-        return {
-            key: value for key, value in data.items() if key not in ["id"]
-        }
+        return {key: value for key, value in data.items() if key not in ["id"]}
 
     class Meta:
         model = Organization
