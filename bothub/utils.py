@@ -68,11 +68,13 @@ def send_bot_data_file_aws(id, bot_data):
     return confmat_url
 
 
-def unique_slug_generator(validated_data, Repository, new_slug=None):
+def unique_slug_generator(validated_data, new_slug=None):
     """
     This is for a Django project and it assumes your instance
     has a model with a slug field and a title character (char) field.
     """
+    from bothub.common.models import Repository
+
     if new_slug is not None:
         slug = new_slug
     else:
@@ -86,15 +88,17 @@ def unique_slug_generator(validated_data, Repository, new_slug=None):
                 random.choice(string.ascii_letters + string.digits) for _ in range(6)
             ).lower(),
         )
-        return unique_slug_generator(validated_data, Repository, new_slug=new_slug)
+        return unique_slug_generator(validated_data, new_slug=new_slug)
     return slug
 
 
-def organization_unique_slug_generator(org_name, RepositoryOwner, new_slug=None):
+def organization_unique_slug_generator(org_name, new_slug=None):
     """
     This is for a Django project and it assumes your instance
     has a model with a slug field and a title character (char) field.
     """
+    from bothub.authentication.models import RepositoryOwner
+
     if new_slug is not None:
         slug = new_slug
     else:
@@ -108,9 +112,7 @@ def organization_unique_slug_generator(org_name, RepositoryOwner, new_slug=None)
                 random.choice(string.ascii_letters + string.digits) for _ in range(6)
             ).lower(),
         )
-        return organization_unique_slug_generator(
-            org_name, RepositoryOwner, new_slug=new_slug
-        )
+        return organization_unique_slug_generator(org_name, new_slug=new_slug)
     return slug
 
 

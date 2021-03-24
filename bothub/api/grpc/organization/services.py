@@ -33,7 +33,7 @@ class OrgService(mixins.ListModelMixin, generics.GenericService):
         validated_data = {
             "name": serializer.validated_data.get("name"),
             "nickname": utils.organization_unique_slug_generator(
-                serializer.validated_data.get("name"), RepositoryOwner
+                serializer.validated_data.get("name")
             ),
             "description": "",
             "locale": "",
