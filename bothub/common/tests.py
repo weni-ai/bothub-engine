@@ -13,6 +13,8 @@ from .models import (
     RepositoryIntent,
     RepositoryEvaluate,
     RepositoryQueueTask,
+    QAKnowledgeBase,
+    QAContext,
 )
 from .models import RepositoryAuthorization
 from .models import RepositoryEntity
@@ -472,6 +474,36 @@ class RepositoryTestCase(TestCase):
             data={
                 "language": languages.LANGUAGE_EN,
                 "repository_version": self.repository_version.pk,
+            },
+        )
+        self.assertEqual(json, response.json())
+
+    @requests_mock.Mocker()
+    def test_request_nlp_qa(self, request_mock):
+        qa_knowledge_base = QAKnowledgeBase.objects.create(
+            repository=self.repository, title="teste"
+        )
+        qa_context = QAContext.objects.create(
+            knowledge_base=qa_knowledge_base,
+            text="texto teste",
+            language=languages.LANGUAGE_PT_BR,
+        )
+        url = f"{self.repository.nlp_server if self.repository.nlp_server else settings.BOTHUB_NLP_BASE_URL}"
+        url = f"{url}question-answering/"
+        json = {
+            "answers": [
+                {"text": "teste 1", "confidence": "0.8423367973327138"},
+                {"text": "teste 2", "confidence": "0.07927308637792603"},
+            ]
+        }
+        request_mock.post(url=url, json=json)
+
+        response = self.repository.request_nlp_qa(
+            user_authorization=self.repository.get_user_authorization(self.owner),
+            data={
+                "knowledge_base_id": qa_knowledge_base.pk,
+                "question": "question teste?",
+                "language": qa_context.language,
             },
         )
         self.assertEqual(json, response.json())
@@ -1458,6 +1490,50 @@ class RepositorySupportedLanguageQueryTestCase(TestCase):
         example.delete()
         q = Repository.objects.all().supported_language(e_language)
         self.assertEqual(q.count(), 0)
+
+
+class QAKnowledgeBaseTest(TestCase):
+    def setUp(self):
+        self.owner = User.objects.create_user("owner@user.com", "user")
+
+        self.repository = Repository.objects.create(
+            owner=self.owner.repository_owner,
+            name="Test",
+            slug="test",
+            language=languages.LANGUAGE_EN,
+        )
+
+    def test_ok(self):
+        qa_knowledge_base = QAKnowledgeBase.objects.create(
+            repository=self.repository, title="teste"
+        )
+        self.assertEqual("teste", qa_knowledge_base.title)
+        self.assertEqual(self.repository.knowledge_bases.last(), qa_knowledge_base)
+
+
+class QAContextTest(TestCase):
+    def setUp(self):
+        self.owner = User.objects.create_user("owner@user.com", "user")
+
+        self.repository = Repository.objects.create(
+            owner=self.owner.repository_owner,
+            name="Test",
+            slug="test",
+            language=languages.LANGUAGE_EN,
+        )
+
+        self.knowledge_base = QAKnowledgeBase.objects.create(
+            repository=self.repository, title="teste"
+        )
+
+    def test_ok(self):
+        qa_context = QAContext.objects.create(
+            knowledge_base=self.knowledge_base,
+            text="teste text",
+            language=languages.LANGUAGE_PT,
+        )
+        self.assertEqual("teste text", qa_context.text)
+        self.assertEqual(self.knowledge_base.contexts.last(), qa_context)
 
 
 class RepositoryFormattedIntentsTestCase(TestCase):

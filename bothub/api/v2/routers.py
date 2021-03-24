@@ -2,6 +2,7 @@ from rest_framework import routers
 
 from bothub.api.v2.versionning.views import RepositoryVersionViewSet
 from .groups.views import RepositoryEntityGroupViewSet
+from .knowledge_base.views import QAKnowledgeBaseViewSet, QAContextViewSet
 from .organization.views import (
     OrganizationViewSet,
     OrganizationProfileViewSet,
@@ -30,7 +31,11 @@ from .repository.views import SearchRepositoriesViewSet
 from .repository.views import RepositoryAuthorizationViewSet
 from .repository.views import RepositoryAuthorizationRequestsViewSet
 from .repository.views import RepositoryExampleViewSet
-from .nlp.views import RepositoryAuthorizationTrainViewSet, RepositoryNLPLogsViewSet
+from .nlp.views import (
+    RepositoryAuthorizationTrainViewSet,
+    RepositoryNLPLogsViewSet,
+    RepositoryAuthorizationKnowledgeBaseViewSet,
+)
 from .nlp.views import RepositoryAuthorizationParseViewSet
 from .nlp.views import RepositoryAuthorizationInfoViewSet
 from .nlp.views import RepositoryAuthorizationEvaluateViewSet
@@ -172,6 +177,8 @@ router.register("repository/version", RepositoryVersionViewSet)
 router.register("repository/log", RepositoryNLPLogViewSet)
 router.register("repository/entities", RepositoryEntitiesViewSet)
 router.register("repository/task-queue", RepositoryTaskQueueViewSet)
+router.register("repository/qa/knowledge-base", QAKnowledgeBaseViewSet)
+router.register("repository/qa/context", QAContextViewSet)
 router.register("repository/upload-rasa-file", RasaUploadViewSet)
 router.register("repository/entity/group", RepositoryEntityGroupViewSet)
 router.register("repository/repository-migrate", RepositoryMigrateViewSet)
@@ -188,6 +195,10 @@ router.register(
 router.register("repository/nlp/authorization/langs", NLPLangsViewSet)
 router.register(
     "repository/nlp/update_interpreters", RepositoryUpdateInterpretersViewSet
+)
+router.register(
+    "repository/nlp/authorization/knowledge-base",
+    RepositoryAuthorizationKnowledgeBaseViewSet,
 )
 router.register("repository/nlp/log", RepositoryNLPLogsViewSet)
 router.register("account/login", LoginViewSet)

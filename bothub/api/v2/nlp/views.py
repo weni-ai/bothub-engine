@@ -593,3 +593,38 @@ class RepositoryNLPLogsViewSet(mixins.CreateModelMixin, GenericViewSet):
     serializer_class = RepositoryNLPLogSerializer
     permission_classes = [AllowAny]
     authentication_classes = [NLPAuthentication]
+
+
+class RepositoryAuthorizationKnowledgeBaseViewSet(
+    mixins.RetrieveModelMixin, GenericViewSet
+):
+    queryset = RepositoryAuthorization.objects
+    serializer_class = NLPSerializer
+    permission_classes = [AllowAny]
+    authentication_classes = [NLPAuthentication]
+
+    def retrieve(self, request, *args, **kwargs):
+        check_auth(request)
+        repository_authorization = self.get_object()
+
+        if not repository_authorization.can_contribute:
+            raise PermissionDenied()
+
+        repository = repository_authorization.repository
+
+        knowledge_base_pk = request.query_params.get("knowledge_base_id")
+        language = request.query_params.get("language")
+
+        knowledge_base = get_object_or_404(
+            repository.knowledge_bases.all(), pk=knowledge_base_pk
+        )
+
+        context = get_object_or_404(knowledge_base.contexts.all(), language=language)
+
+        return Response(
+            {
+                "knowledge_base_id": knowledge_base.pk,
+                "text": context.text,
+                "language": context.language,
+            }
+        )

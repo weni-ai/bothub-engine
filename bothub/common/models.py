@@ -585,6 +585,24 @@ class Repository(models.Model):
                 code=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
 
+    def request_nlp_qa(self, user_authorization, data):
+        try:  # pragma: no cover
+            url = f"{self.nlp_server if self.nlp_server else settings.BOTHUB_NLP_BASE_URL}question-answering/"
+            data = {
+                "knowledge_base_id": data.get("knowledge_base_id"),
+                "question": data.get("question"),
+                "language": data.get("language"),
+            }
+            headers = {"Authorization": f"Bearer {user_authorization.uuid}"}
+            r = requests.post(url, data=json.dumps(data), headers=headers)
+
+            return r  # pragma: no cover
+        except requests.exceptions.ConnectionError:  # pragma: no cover
+            raise APIException(  # pragma: no cover
+                {"status_code": status.HTTP_503_SERVICE_UNAVAILABLE},
+                code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
     def available_languages(self, language=None, queryset=None, version_default=True):
         examples = self.examples(
             language=language, queryset=queryset, version_default=version_default
@@ -2229,6 +2247,35 @@ class RepositoryScore(models.Model):
     intents_size_recommended = models.TextField(null=True)
     evaluate_size_score = models.FloatField(default=0.0)
     evaluate_size_recommended = models.TextField(null=True)
+
+
+class QAKnowledgeBase(models.Model):
+    repository = models.ForeignKey(
+        Repository, models.CASCADE, related_name="knowledge_bases"
+    )
+    title = models.CharField(
+        _("title"), max_length=64, help_text=_("Knowledge Base title")
+    )
+    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
+    last_update = models.DateTimeField(_("last update"), auto_now=True)
+
+
+class QAContext(models.Model):
+    knowledge_base = models.ForeignKey(
+        QAKnowledgeBase, on_delete=models.CASCADE, related_name="contexts"
+    )
+    text = models.TextField(_("text"), help_text=_("QA context text"), max_length=25000)
+    language = models.CharField(
+        _("language"),
+        max_length=5,
+        help_text=_("Knowledge Base language"),
+        validators=[languages.validate_language],
+    )
+    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
+    last_update = models.DateTimeField(_("last update"), auto_now=True)
+
+    class Meta:
+        unique_together = ("knowledge_base", "language")
 
 
 @receiver(models.signals.pre_save, sender=RequestRepositoryAuthorization)
