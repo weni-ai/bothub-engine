@@ -35,19 +35,22 @@ class RepositoriesFilter(filters.FilterSet):
     )
 
     def __filter_by_owner(self, queryset, owner):
-        if owner.is_organization:
-            auth_org = OrganizationAuthorization.objects.filter(
-                organization=owner, user=self.request.user
-            ).first()
-            if auth_org.can_read:
-                return queryset.filter(owner=owner).distinct()
-        return queryset.filter(owner=owner, is_private=False).distinct()
+        try:
+            if owner.is_organization:
+                auth_org = OrganizationAuthorization.objects.filter(
+                    organization=owner, user=self.request.user
+                ).first()
+                if auth_org.can_read:
+                    return queryset.filter(owner=owner).distinct()
+            return queryset.filter(owner=owner, is_private=False).distinct()
+        except TypeError:
+            return queryset.none()
 
     def filter_language(self, queryset, name, value):
         return queryset.supported_language(value)
 
     def filter_org_id(self, queryset, name, value):
-        owner = get_object_or_404(RepositoryOwner, org_id=value)
+        owner = get_object_or_404(RepositoryOwner, pk=value)
         return self.__filter_by_owner(queryset, owner)
 
     def filter_nickname(self, queryset, name, value):
