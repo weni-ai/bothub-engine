@@ -1,16 +1,19 @@
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db.models import Q
+from django.shortcuts import get_object_or_404
 from django.utils.translation import ugettext_lazy as _
 from django_filters import rest_framework as filters
 from rest_framework.exceptions import NotFound
 from rest_framework.exceptions import PermissionDenied
 
+from bothub.authentication.models import RepositoryOwner
 from bothub.common.models import (
     Repository,
     RepositoryNLPLog,
     RepositoryEntity,
     RepositoryQueueTask,
     RepositoryIntent,
+    OrganizationAuthorization,
 )
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RequestRepositoryAuthorization
@@ -19,14 +22,37 @@ from bothub.common.models import RequestRepositoryAuthorization
 class RepositoriesFilter(filters.FilterSet):
     class Meta:
         model = Repository
-        fields = ["name", "categories"]
+        fields = ["name", "categories", "org_id", "nickname"]
 
     language = filters.CharFilter(
         field_name="language", method="filter_language", help_text=_("Language")
     )
+    org_id = filters.CharFilter(
+        method="filter_org_id", help_text=_("Repository Owner Id")
+    )
+    nickname = filters.CharFilter(
+        method="filter_nickname", help_text=_("Repository Owner Nickname")
+    )
+
+    def __filter_by_owner(self, queryset, owner):
+        if owner.is_organization:
+            auth_org = OrganizationAuthorization.objects.filter(
+                organization=owner, user=self.request.user
+            ).first()
+            if auth_org.can_read:
+                return queryset.filter(owner=owner).distinct()
+        return queryset.filter(owner=owner, is_private=False).distinct()
 
     def filter_language(self, queryset, name, value):
         return queryset.supported_language(value)
+
+    def filter_org_id(self, queryset, name, value):
+        owner = get_object_or_404(RepositoryOwner, org_id=value)
+        return self.__filter_by_owner(queryset, owner)
+
+    def filter_nickname(self, queryset, name, value):
+        owner = get_object_or_404(RepositoryOwner, nickname=value)
+        return self.__filter_by_owner(queryset, owner)
 
 
 class RepositoryAuthorizationFilter(filters.FilterSet):
