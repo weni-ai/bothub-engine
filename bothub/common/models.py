@@ -270,6 +270,13 @@ class Repository(models.Model):
         ),
     ]
 
+    TYPE_CLASSIFIER = "classifier"
+    TYPE_CONTENT = "content"
+    TYPE_CHOICES = [
+        (TYPE_CLASSIFIER, _("Classifier")),
+        (TYPE_CONTENT, _("Content"))
+    ]
+
     uuid = models.UUIDField(
         _("UUID"), primary_key=True, default=uuid.uuid4, editable=False
     )
@@ -283,6 +290,12 @@ class Repository(models.Model):
         _("slug"),
         max_length=32,
         help_text=_("Easy way to found and share repositories"),
+    )
+    type = models.CharField(
+        _("type"),
+        max_length=50,
+        choices=TYPE_CHOICES,
+        default=TYPE_CLASSIFIER,
     )
     language = models.CharField(
         _("language"),
