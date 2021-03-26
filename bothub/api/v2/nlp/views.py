@@ -500,7 +500,9 @@ class RepositoryAuthorizationEvaluateViewSet(mixins.RetrieveModelMixin, GenericV
         return Response({})
 
 
-class RepositoryAuthorizationAutomaticEvaluateViewSet(mixins.RetrieveModelMixin, GenericViewSet):
+class RepositoryAuthorizationAutomaticEvaluateViewSet(
+    mixins.RetrieveModelMixin, GenericViewSet
+):
     queryset = RepositoryAuthorization.objects
     serializer_class = NLPSerializer
     permission_classes = [AllowAny]
@@ -520,8 +522,7 @@ class RepositoryAuthorizationAutomaticEvaluateViewSet(mixins.RetrieveModelMixin,
 
         if repository_version:
             repository_version_language = repository.get_specific_version_id(
-                repository_version=repository_version,
-                language=language
+                repository_version=repository_version, language=language
             )
         else:
             repository_version_language = repository.get_specific_version_language(
@@ -529,9 +530,7 @@ class RepositoryAuthorizationAutomaticEvaluateViewSet(mixins.RetrieveModelMixin,
             )
 
         try:
-            repository.validate_if_can_run_automatic_evaluate(
-                language=language
-            )
+            repository.validate_if_can_run_automatic_evaluate(language=language)
             can_run_automatic_evaluate = True
         except ValidationError:
             can_run_automatic_evaluate = False
@@ -545,7 +544,7 @@ class RepositoryAuthorizationAutomaticEvaluateViewSet(mixins.RetrieveModelMixin,
                 "use_name_entities": repository.use_name_entities,
                 "use_competing_intents": repository.use_competing_intents,
                 "use_analyze_char": repository.use_analyze_char,
-                "can_run_automatic_evaluate": can_run_automatic_evaluate
+                "can_run_automatic_evaluate": can_run_automatic_evaluate,
             }
         )
 
