@@ -500,6 +500,55 @@ class RepositoryAuthorizationEvaluateViewSet(mixins.RetrieveModelMixin, GenericV
         return Response({})
 
 
+class RepositoryAuthorizationAutomaticEvaluateViewSet(
+    mixins.RetrieveModelMixin, GenericViewSet
+):
+    queryset = RepositoryAuthorization.objects
+    serializer_class = NLPSerializer
+    permission_classes = [AllowAny]
+    authentication_classes = [NLPAuthentication]
+
+    def retrieve(self, request, *args, **kwargs):
+        check_auth(request)
+        repository_authorization = self.get_object()
+
+        if not repository_authorization.can_contribute:
+            raise PermissionDenied()
+
+        language = request.query_params.get("language")
+        repository_version = request.query_params.get("repository_version")
+
+        repository = repository_authorization.repository
+
+        if repository_version:
+            repository_version_language = repository.get_specific_version_id(
+                repository_version=repository_version, language=language
+            )
+        else:
+            repository_version_language = repository.get_specific_version_language(
+                language=language
+            )
+
+        try:
+            repository.validate_if_can_run_automatic_evaluate(language=language)
+            can_run_automatic_evaluate = True
+        except ValidationError:
+            can_run_automatic_evaluate = False
+
+        return Response(
+            {
+                "language": repository.language,
+                "repository_version_language_id": repository_version_language.pk,
+                "user_id": repository_authorization.user.pk,
+                "algorithm": repository.algorithm,
+                "use_name_entities": repository.use_name_entities,
+                "use_competing_intents": repository.use_competing_intents,
+                "use_analyze_char": repository.use_analyze_char,
+                "can_run_automatic_evaluate": can_run_automatic_evaluate,
+            }
+        )
+
+
 class NLPLangsViewSet(mixins.ListModelMixin, GenericViewSet):
     queryset = RepositoryAuthorization.objects
     serializer_class = NLPSerializer
