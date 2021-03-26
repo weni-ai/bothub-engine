@@ -9,6 +9,7 @@ from bothub.api.v2.nlp.views import (
     RepositoryAuthorizationTrainViewSet,
     RepositoryAuthorizationKnowledgeBaseViewSet,
     RepositoryAuthorizationExamplesViewSet,
+    RepositoryAuthorizationAutomaticEvaluateViewSet,
 )
 from bothub.api.v2.nlp.views import RepositoryAuthorizationInfoViewSet
 from bothub.common import languages
@@ -524,3 +525,73 @@ class AuthorizationExamplesTestCase(TestCase):
         )
         self.assertEqual(response.data.get("count"), 3)
         self.assertEqual(response.data.get("results")[0].get("text"), "goodbye")
+
+
+class RepositoryAuthorizationAutomaticEvaluateTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.owner, self.owner_token = create_user_and_token("owner")
+        self.user, self.user_token = create_user_and_token()
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name="Testing",
+            slug="test",
+            language=languages.LANGUAGE_EN,
+        )
+
+        self.repository_authorization = RepositoryAuthorization.objects.create(
+            user=self.user, repository=self.repository, role=3
+        )
+
+        self.repository_version = RepositoryVersion.objects.create(
+            repository=self.repository, name="test"
+        )
+
+        self.repository_version_language = RepositoryVersionLanguage.objects.create(
+            repository_version=self.repository_version,
+            language=languages.LANGUAGE_EN,
+            algorithm="neural_network_internal",
+        )
+
+    def request(self, token, repository_version=""):
+        authorization_header = {"HTTP_AUTHORIZATION": "Bearer {}".format(token)}
+        request = self.factory.get(
+            "/v2/repository/nlp/authorization/automatic-evaluate/{}/".format(token),
+            {
+                "repository_version": repository_version,
+                "language": languages.LANGUAGE_EN,
+            },
+            **authorization_header
+        )
+        response = RepositoryAuthorizationAutomaticEvaluateViewSet.as_view(
+            {"get": "retrieve"}
+        )(request, pk=token)
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data)
+
+    def test_ok(self):
+        response, content_data = self.request(
+            str(self.repository_authorization.uuid),
+            repository_version=self.repository_version.pk,
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_not_auth(self):
+        response, content_data = self.request(
+            str(uuid.uuid4()), repository_version=self.repository_version.pk
+        )
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_route(self):
+        response, content_data = self.request(
+            str(self.repository_authorization.uuid),
+            repository_version=self.repository_version.pk,
+        )
+        self.assertFalse(content_data.get("can_run_automatic_evaluate"))
+        self.assertEqual(
+            content_data.get("repository_version_language_id"),
+            self.repository_version_language.pk,
+        )
