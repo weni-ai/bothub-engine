@@ -628,3 +628,49 @@ class RepositoryAuthorizationKnowledgeBaseViewSet(
                 "language": context.language,
             }
         )
+
+
+class RepositoryAuthorizationExamplesViewSet(mixins.RetrieveModelMixin, GenericViewSet):
+    queryset = RepositoryAuthorization.objects
+    serializer_class = NLPSerializer
+    permission_classes = [AllowAny]
+    pagination_class = NLPPagination
+    authentication_classes = [NLPAuthentication]
+
+    def retrieve(self, request, *args, **kwargs):
+        check_auth(request)
+        repository_authorization = self.get_object()
+
+        if not repository_authorization.can_contribute:
+            raise PermissionDenied()
+
+        repository_version = request.query_params.get("repository_version")
+        if repository_version:
+            current_version = repository_authorization.repository.get_specific_version_id(
+                repository_version, str(request.query_params.get("language"))
+            )
+        else:
+            current_version = repository_authorization.repository.current_version(
+                str(request.query_params.get("language"))
+            )
+
+        examples = current_version.examples.all()
+
+        page = self.paginate_queryset(examples)
+
+        examples_return = []
+
+        for example in page:
+            get_entities = example.get_entities(current_version.language)
+
+            get_text = example.get_text(current_version.language)
+
+            examples_return.append(
+                {
+                    "text": get_text,
+                    "intent": example.intent.text,
+                    "entities": [entit.rasa_nlu_data for entit in get_entities],
+                }
+            )
+
+        return self.get_paginated_response(examples_return)
