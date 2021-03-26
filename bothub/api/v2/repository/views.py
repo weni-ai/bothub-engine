@@ -626,27 +626,12 @@ class SearchRepositoriesViewSet(mixins.ListModelMixin, GenericViewSet):
     search_fields = ["$name", "^name", "=name"]
 
     def get_queryset(self, *args, **kwargs):
-        owner_filters = {}
-        owner_nickname = self.request.query_params.get("nickname", None)
-        owner_pk = self.request.query_params.get("org_id", None)
-
-        if owner_nickname:
-            owner_filters["nickname"] = owner_nickname
-        if owner_pk:
-            owner_filters["pk"] = owner_pk
-
         try:
-            if owner_filters:
-                owner = get_object_or_404(RepositoryOwner, **owner_filters)
-                if owner.is_organization:
-                    auth_org = OrganizationAuthorization.objects.filter(
-                        organization=owner, user=self.request.user
-                    ).first()
-                    if auth_org.can_read:
-                        return self.queryset.filter(owner=owner).distinct()
-                return self.queryset.filter(owner=owner, is_private=False).distinct()
-            else:
+            if not self.request.query_params.get(
+                "nickname", None
+            ) and not self.request.query_params.get("org_id", None):
                 return self.queryset.filter(owner=self.request.user).distinct()
+            return super().get_queryset()
         except TypeError:
             return self.queryset.none()
 
