@@ -291,8 +291,8 @@ class Repository(models.Model):
         max_length=32,
         help_text=_("Easy way to found and share repositories"),
     )
-    type = models.CharField(
-        _("type"),
+    repository_type = models.CharField(
+        _("repository type"),
         max_length=50,
         choices=TYPE_CHOICES,
         default=TYPE_CLASSIFIER,
