@@ -22,32 +22,35 @@ from bothub.common.models import RequestRepositoryAuthorization
 class RepositoriesFilter(filters.FilterSet):
     class Meta:
         model = Repository
-        fields = ["name", "categories", "org_id", "nickname"]
+        fields = ["name", "categories", "owner_id", "nickname"]
 
     language = filters.CharFilter(
         field_name="language", method="filter_language", help_text=_("Language")
     )
-    org_id = filters.CharFilter(
-        method="filter_org_id", help_text=_("Repository Owner Id")
+    owner_id = filters.CharFilter(
+        method="filter_owner_id", help_text=_("Repository Owner Id")
     )
     nickname = filters.CharFilter(
         method="filter_nickname", help_text=_("Repository Owner Nickname")
     )
 
     def __filter_by_owner(self, queryset, owner):
-        if owner.is_organization:
-            auth_org = OrganizationAuthorization.objects.filter(
-                organization=owner, user=self.request.user
-            ).first()
-            if auth_org.can_read:
-                return queryset.filter(owner=owner).distinct()
-        return queryset.filter(owner=owner, is_private=False).distinct()
+        try:
+            if owner.is_organization:
+                auth_org = OrganizationAuthorization.objects.filter(
+                    organization=owner, user=self.request.user
+                ).first()
+                if auth_org.can_read:
+                    return queryset.filter(owner=owner).distinct()
+            return queryset.filter(owner=owner, is_private=False).distinct()
+        except TypeError:
+            return queryset.none()
 
     def filter_language(self, queryset, name, value):
         return queryset.supported_language(value)
 
-    def filter_org_id(self, queryset, name, value):
-        owner = get_object_or_404(RepositoryOwner, org_id=value)
+    def filter_owner_id(self, queryset, name, value):
+        owner = get_object_or_404(RepositoryOwner, pk=value)
         return self.__filter_by_owner(queryset, owner)
 
     def filter_nickname(self, queryset, name, value):
