@@ -933,6 +933,7 @@ class RepositorySerializer(serializers.ModelSerializer):
             "is_private",
             "created_at",
             "language",
+            "repository_type",
             "available_languages",
             "intents",
             "owner",
@@ -950,6 +951,12 @@ class RepositorySerializer(serializers.ModelSerializer):
 
     uuid = serializers.UUIDField(style={"show": False}, read_only=True)
     slug = serializers.SlugField(style={"show": False}, read_only=True)
+    repository_type = serializers.ChoiceField(
+        style={"show": False, "only_settings": True},
+        choices=Repository.TYPE_CHOICES,
+        default=Repository.TYPE_CLASSIFIER,
+        label=_("Repository Type"),
+    )
     algorithm = serializers.ChoiceField(
         style={"show": False, "only_settings": True},
         choices=Repository.ALGORITHM_CHOICES,
@@ -1122,6 +1129,7 @@ class ShortRepositorySerializer(serializers.ModelSerializer):
             "is_private",
             "categories",
             "categories_list",
+            "repository_type",
             "language",
             "available_languages",
             "intents",
