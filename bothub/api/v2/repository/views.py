@@ -629,7 +629,7 @@ class SearchRepositoriesViewSet(mixins.ListModelMixin, GenericViewSet):
         try:
             if not self.request.query_params.get(
                 "nickname", None
-            ) and not self.request.query_params.get("org_id", None):
+            ) and not self.request.query_params.get("owner_id", None):
                 return self.queryset.filter(owner=self.request.user).distinct()
             return super().get_queryset()
         except TypeError:
