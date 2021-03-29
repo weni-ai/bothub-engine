@@ -290,7 +290,7 @@ class Repository(models.Model):
     )
     repository_type = models.CharField(
         _("repository type"),
-        max_length=50,
+        max_length=10,
         choices=TYPE_CHOICES,
         default=TYPE_CLASSIFIER,
     )
