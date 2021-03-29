@@ -22,13 +22,13 @@ from bothub.common.models import RequestRepositoryAuthorization
 class RepositoriesFilter(filters.FilterSet):
     class Meta:
         model = Repository
-        fields = ["name", "categories", "org_id", "nickname"]
+        fields = ["name", "categories", "owner_id", "nickname"]
 
     language = filters.CharFilter(
         field_name="language", method="filter_language", help_text=_("Language")
     )
-    org_id = filters.CharFilter(
-        method="filter_org_id", help_text=_("Repository Owner Id")
+    owner_id = filters.CharFilter(
+        method="filter_owner_id", help_text=_("Repository Owner Id")
     )
     nickname = filters.CharFilter(
         method="filter_nickname", help_text=_("Repository Owner Nickname")
@@ -49,7 +49,7 @@ class RepositoriesFilter(filters.FilterSet):
     def filter_language(self, queryset, name, value):
         return queryset.supported_language(value)
 
-    def filter_org_id(self, queryset, name, value):
+    def filter_owner_id(self, queryset, name, value):
         owner = get_object_or_404(RepositoryOwner, pk=value)
         return self.__filter_by_owner(queryset, owner)
 
