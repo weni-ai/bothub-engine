@@ -272,10 +272,7 @@ class Repository(models.Model):
 
     TYPE_CLASSIFIER = "classifier"
     TYPE_CONTENT = "content"
-    TYPE_CHOICES = [
-        (TYPE_CLASSIFIER, _("Classifier")),
-        (TYPE_CONTENT, _("Content"))
-    ]
+    TYPE_CHOICES = [(TYPE_CLASSIFIER, _("Classifier")), (TYPE_CONTENT, _("Content"))]
 
     uuid = models.UUIDField(
         _("UUID"), primary_key=True, default=uuid.uuid4, editable=False
