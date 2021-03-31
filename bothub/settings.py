@@ -128,6 +128,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "bothub.api.v2.middleware.UserLanguageMiddleware",
 ]
 
 ROOT_URLCONF = "bothub.urls"
