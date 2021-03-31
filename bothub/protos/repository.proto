@@ -6,10 +6,6 @@ import "google/protobuf/empty.proto";
 
 service RepositoryController {
     rpc List(RepositoryListRequest) returns (stream Repository) {}
-    rpc Create(Repository) returns (Repository) {}
-    rpc Retrieve(RepositoryRetrieveRequest) returns (Repository) {}
-    rpc Update(Repository) returns (Repository) {}
-    rpc Destroy(Repository) returns (google.protobuf.Empty) {}
 }
 
 message Repository {
@@ -47,8 +43,4 @@ message Category {
 
 message RepositoryListRequest {
     optional int32 owner_id = 1;
-}
-
-message RepositoryRetrieveRequest {
-    string uuid = 1;
 }

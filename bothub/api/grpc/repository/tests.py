@@ -44,7 +44,7 @@ class RepositoryServiceTestCase(RPCTransactionTestCase):
         self.assertTrue(repositories_from_response_grpc[0].name, self.repository.name)
 
         response_grpc = self.stub.List(
-            repository_pb2.RepositoryListRequest(owner_id=100)
+            repository_pb2.RepositoryListRequest(owner_id=100)  # random id
         )
         repositories_from_response_grpc = [repository_ for repository_ in response_grpc]
 
