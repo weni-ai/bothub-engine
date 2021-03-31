@@ -22,7 +22,7 @@ class RepositoryServiceTestCase(RPCTransactionTestCase):
         self.repository = Repository.objects.create(
             name="Repository",
             language=languages.LANGUAGE_PT,
-            owner=self.organization.repository_owner
+            owner=self.organization.repository_owner,
         )
 
     def test_list(self):
@@ -33,17 +33,19 @@ class RepositoryServiceTestCase(RPCTransactionTestCase):
         self.assertTrue(repositories_from_response_grpc[0].name, self.repository.name)
 
     def test_list_with_filter_by_owner_id(self):
-        response_grpc = self.stub.List(repository_pb2.RepositoryListRequest(
-            owner_id=self.organization.repository_owner.pk
-        ))
+        response_grpc = self.stub.List(
+            repository_pb2.RepositoryListRequest(
+                owner_id=self.organization.repository_owner.pk
+            )
+        )
         repositories_from_response_grpc = [repository_ for repository_ in response_grpc]
 
         self.assertEqual(len(repositories_from_response_grpc), 1)
         self.assertTrue(repositories_from_response_grpc[0].name, self.repository.name)
 
-        response_grpc = self.stub.List(repository_pb2.RepositoryListRequest(
-            owner_id=100
-        ))
+        response_grpc = self.stub.List(
+            repository_pb2.RepositoryListRequest(owner_id=100)
+        )
         repositories_from_response_grpc = [repository_ for repository_ in response_grpc]
 
         self.assertEqual(len(repositories_from_response_grpc), 0)

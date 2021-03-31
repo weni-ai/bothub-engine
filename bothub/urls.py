@@ -13,7 +13,9 @@ from bothub.health.views import r200
 from bothub.common.views import download_bot_data
 from bothub.api.grpc.user.handlers import grpc_handlers as grpc_authentication_handlers
 from bothub.api.grpc.organization.handlers import grpc_handlers as grpc_common_handlers
-from bothub.api.grpc.repository.handlers import grpc_handlers as grpc_repository_handlers
+from bothub.api.grpc.repository.handlers import (
+    grpc_handlers as grpc_repository_handlers,
+)
 
 
 schema_view = get_schema_view(

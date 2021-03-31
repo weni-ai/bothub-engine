@@ -32,7 +32,7 @@ class RepositoryProtoSerializer(proto_serializers.ModelProtoSerializer):
             "intents",
             "categories",
             "available_languages",
-            "categories_list"
+            "categories_list",
         ]
 
     def get_owner__nickname(self, repository: Repository):
