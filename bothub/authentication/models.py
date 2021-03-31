@@ -126,7 +126,9 @@ class User(AbstractBaseUser, RepositoryOwner, PermissionsMixin):
         parent_link=True,
         related_name="user_owner",
     )
-    language = models.CharField(max_length=5, choices=settings.LANGUAGES, null=True, blank=True)
+    language = models.CharField(
+        max_length=5, choices=settings.LANGUAGES, null=True, blank=True
+    )
 
     objects = UserManager()
 

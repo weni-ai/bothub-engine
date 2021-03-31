@@ -5,14 +5,17 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('authentication', '0007_auto_20210323_0035'),
-    ]
+    dependencies = [("authentication", "0007_auto_20210323_0035")]
 
     operations = [
         migrations.AddField(
-            model_name='user',
-            name='language',
-            field=models.CharField(blank=True, choices=[('en', 'English'), ('pt-br', 'Brazilian Portuguese')], max_length=5, null=True),
-        ),
+            model_name="user",
+            name="language",
+            field=models.CharField(
+                blank=True,
+                choices=[("en", "English"), ("pt-br", "Brazilian Portuguese")],
+                max_length=5,
+                null=True,
+            ),
+        )
     ]
