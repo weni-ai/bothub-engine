@@ -10,8 +10,8 @@ class RepositoryService(mixins.ListModelMixin, generics.GenericService):
     serializer_class = RepositoryProtoSerializer
 
     def filter_queryset(self, queryset):
-        owner_id = self.request.owner_id
-        if owner_id:
-            queryset = queryset.filter(owner__pk=owner_id)
+        org_id = self.request.org_id
+        if org_id:
+            queryset = queryset.filter(authorizations__user__pk=org_id)
 
         return queryset

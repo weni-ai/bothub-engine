@@ -42,5 +42,5 @@ message Category {
 }
 
 message RepositoryListRequest {
-    optional int32 owner_id = 1;
+    optional int32 org_id = 1;
 }
