@@ -26,7 +26,7 @@ class RegisterUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ["email", "name", "nickname", "password"]
+        fields = ["email", "name", "nickname", "password", "language"]
         ref_name = None
 
     @staticmethod
