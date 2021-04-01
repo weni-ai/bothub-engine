@@ -14,6 +14,10 @@ service UserController {
     rpc Retrieve(UserRetrieveRequest) returns (User) {}
 }
 
+service UserLanguageController {
+    rpc Update(UserLanguageUpdateRequest) returns (User) {}
+}
+
 message UserPermissionRetrieveRequest {
     string org_user_email = 1;
     int32 org_id = 2;
@@ -29,6 +33,11 @@ message UserPermissionRemoveRequest {
     int32 org_id = 1;
     string user_email = 2;
     int32 permission = 3;
+}
+
+message UserLanguageUpdateRequest {
+    string user_email = 1;
+    string language = 2;
 }
 
 message Permission {
