@@ -14,6 +14,7 @@ class UserProtoSerializer(proto_serializers.ModelProtoSerializer):
             "email",
             "nickname",
             "name",
+            "language",
             "joined_at",
             "is_active",
             "is_superuser",

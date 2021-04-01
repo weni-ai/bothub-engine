@@ -44,6 +44,7 @@ message User {
     string email = 2;
     string nickname = 3;
     string name = 4;
+    string language = 5;
     string joined_at = 6;
     bool is_active = 7;
     bool is_superuser = 8;
