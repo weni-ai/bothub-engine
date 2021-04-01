@@ -36,7 +36,7 @@ message UserPermissionRemoveRequest {
 }
 
 message UserLanguageUpdateRequest {
-    string user_email = 1;
+    string email = 1;
     string language = 2;
 }
 

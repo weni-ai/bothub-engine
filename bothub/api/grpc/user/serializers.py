@@ -26,3 +26,19 @@ class UserPermissionProtoSerializer(proto_serializers.ProtoSerializer):
 
     class Meta:
         proto_class = authentication_pb2.Permission
+
+
+class UserLanguageProtoSerializer(proto_serializers.ModelProtoSerializer):
+    class Meta:
+        model = User
+        proto_class = authentication_pb2.User
+        fields = ["language"]
+        read_only = [
+            "id",
+            "email",
+            "nickname",
+            "name",
+            "joined_at",
+            "is_active",
+            "is_superuser",
+        ]

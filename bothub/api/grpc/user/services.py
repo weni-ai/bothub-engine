@@ -4,6 +4,7 @@ from bothub import utils
 from bothub.api.grpc.user.serializers import (
     UserProtoSerializer,
     UserPermissionProtoSerializer,
+    UserLanguageProtoSerializer,
 )
 from bothub.authentication.models import User
 from bothub.common.models import Organization
@@ -53,5 +54,11 @@ class UserPermissionService(
 
 class UserService(mixins.RetrieveModelMixin, generics.GenericService):
     serializer_class = UserProtoSerializer
+    queryset = User.objects
+    lookup_field = "email"
+
+
+class UserLanguageService(mixins.UpdateModelMixin, generics.GenericService):
+    serializer_class = UserLanguageProtoSerializer
     queryset = User.objects
     lookup_field = "email"
