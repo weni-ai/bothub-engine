@@ -1,9 +1,11 @@
 from django.utils import translation
-from django.utils.deprecation import MiddlewareMixin
 
 
-class UserLanguageMiddleware(MiddlewareMixin):
-    def process_response(self, request, response):
+class UserLanguageMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
         user = getattr(request, "user", None)
         if not user or user.is_anonymous:
             return self.get_response(request)
@@ -15,4 +17,5 @@ class UserLanguageMiddleware(MiddlewareMixin):
         translation.activate(user_language)
 
         response = self.get_response(request)
+
         return response
