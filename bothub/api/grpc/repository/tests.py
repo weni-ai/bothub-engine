@@ -2,7 +2,12 @@ from django_grpc_framework.test import RPCTransactionTestCase
 
 from bothub.api.v2.tests.utils import create_user_and_token
 from bothub.common import languages
-from bothub.common.models import Repository, Organization, OrganizationAuthorization
+from bothub.common.models import (
+    Repository,
+    Organization,
+    OrganizationAuthorization,
+    RepositoryAuthorization,
+)
 from bothub.protos import repository_pb2_grpc, repository_pb2
 
 
@@ -25,8 +30,16 @@ class RepositoryServiceTestCase(RPCTransactionTestCase):
             owner=self.organization.repository_owner,
         )
 
+        self.repository_authorization = RepositoryAuthorization.objects.create(
+            user=self.organization.repository_owner,
+            repository=self.repository,
+            role=RepositoryAuthorization.LEVEL_ADMIN,
+        )
+
     def test_list(self):
-        response_grpc = self.stub.List(repository_pb2.RepositoryListRequest())
+        response_grpc = self.stub.List(
+            repository_pb2.RepositoryListRequest(name=self.repository.name)
+        )
         repositories_from_response_grpc = [repository_ for repository_ in response_grpc]
 
         self.assertEqual(len(repositories_from_response_grpc), 1)
@@ -35,7 +48,7 @@ class RepositoryServiceTestCase(RPCTransactionTestCase):
     def test_list_with_filter_by_owner_id(self):
         response_grpc = self.stub.List(
             repository_pb2.RepositoryListRequest(
-                owner_id=self.organization.repository_owner.pk
+                name=self.repository.name, org_id=self.organization.repository_owner.pk
             )
         )
         repositories_from_response_grpc = [repository_ for repository_ in response_grpc]
@@ -44,7 +57,9 @@ class RepositoryServiceTestCase(RPCTransactionTestCase):
         self.assertTrue(repositories_from_response_grpc[0].name, self.repository.name)
 
         response_grpc = self.stub.List(
-            repository_pb2.RepositoryListRequest(owner_id=100)  # random id
+            repository_pb2.RepositoryListRequest(
+                name=self.repository.name, org_id=100
+            )  # random id
         )
         repositories_from_response_grpc = [repository_ for repository_ in response_grpc]
 
