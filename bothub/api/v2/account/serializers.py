@@ -27,7 +27,7 @@ class RegisterUserSerializer(serializers.ModelSerializer):
     )
 
     def create(self, validated_data):
-        validated_data.pop('recaptcha')
+        validated_data.pop("recaptcha")
         return super().create(validated_data)
 
     class Meta:

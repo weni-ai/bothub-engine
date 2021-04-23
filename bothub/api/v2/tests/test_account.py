@@ -3,6 +3,7 @@ import json
 from django.test import RequestFactory
 from django.test import TestCase, override_settings
 from django.test.client import MULTIPART_CONTENT
+from django.utils.translation import ugettext_lazy as _
 from rest_framework import status
 
 from bothub.authentication.models import User
@@ -90,7 +91,7 @@ class RegisterUserTestCase(TestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("recaptcha", content_data.keys())
-        self.assertIn("The response parameter is invalid or malformed.", content_data.get("recaptcha"))
+        self.assertIn(_("The response parameter is invalid or malformed."), content_data.get("recaptcha"))
 
     def test_invalid_password(self):
         response, content_data = self.request(
