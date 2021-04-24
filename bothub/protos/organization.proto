@@ -46,7 +46,7 @@ message OrgUpdateRequest {
 }
 
 message OrgStatisticRetrieveRequest {
-    string org_id = 1;
+    int32 org_id = 1;
 }
 
 message OrgStatistic {
