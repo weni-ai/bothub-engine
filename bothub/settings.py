@@ -73,6 +73,7 @@ env = environ.Env(
     DJANGO_REDIS_URL=(str, "redis://localhost:6379/1"),
     OIDC_ENABLED=(bool, False),
     SECRET_KEY_CHECK_LEGACY_USER=(str, None),
+    CONNECT_GRPC_SERVER_URL=(str, "localhost:8002"),
 )
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -477,3 +478,7 @@ if OIDC_ENABLED:
         "OIDC_DRF_AUTH_BACKEND",
         default="bothub.authentication.authorization.WeniOIDCAuthenticationBackend",
     )
+
+
+# gRPC Connect Server
+CONNECT_GRPC_SERVER_URL = env.str("CONNECT_GRPC_SERVER_URL")
