@@ -197,4 +197,4 @@ class AuthorizationInfoTestCase(TestCase):
 
     def test_not_auth(self):
         response, content_data = self.request(str(uuid.uuid4()))
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
