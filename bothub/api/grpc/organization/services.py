@@ -1,4 +1,5 @@
 import grpc
+from django.db import models
 from django_grpc_framework import generics, mixins
 from google.protobuf import empty_pb2
 
@@ -9,10 +10,18 @@ from bothub.api.grpc.organization.serializers import (
     OrgUpdateProtoSerializer,
 )
 from bothub.authentication.models import User
-from bothub.common.models import Organization, OrganizationAuthorization
+from bothub.common.models import (
+    Organization,
+    OrganizationAuthorization,
+    RepositoryAuthorization,
+    Repository,
+)
+from bothub.protos.organization_pb2 import OrgStatistic
 
 
-class OrgService(mixins.ListModelMixin, generics.GenericService):
+class OrgService(
+    mixins.ListModelMixin, mixins.RetrieveModelMixin, generics.GenericService
+):
     def List(self, request, context):
 
         user = utils.get_user(self, request.user_email)
@@ -65,3 +74,22 @@ class OrgService(mixins.ListModelMixin, generics.GenericService):
         serializer.save()
 
         return serializer.message
+
+    def Retrieve(self, request, context):
+        org = utils.get_organization(self, request.org_id)
+
+        auths = (
+            RepositoryAuthorization.objects.exclude(repository__owner=org)
+            .exclude(role=RepositoryAuthorization.ROLE_NOT_SETTED)
+            .filter(user=org)
+        )
+
+        response = {
+            "repositories_count": int(
+                Repository.objects.filter(
+                    models.Q(uuid__in=auths) | models.Q(owner=org)
+                ).count()
+            )
+        }
+
+        return OrgStatistic(**response)

@@ -6,6 +6,7 @@ import "google/protobuf/empty.proto";
 
 service OrgController {
     rpc List(OrgListRequest) returns (stream Org) {}
+    rpc Retrieve(OrgStatisticRetrieveRequest) returns (OrgStatistic) {}
     rpc Create(OrgCreateRequest) returns (Org) {}
     rpc Update(OrgUpdateRequest) returns (OrgUpdateRequest) {}
     rpc Destroy(OrgDestroyRequest) returns (google.protobuf.Empty) {}
@@ -42,4 +43,12 @@ message OrgDestroyRequest {
 message OrgUpdateRequest {
     int32 id = 1;
     optional string name = 2;
+}
+
+message OrgStatisticRetrieveRequest {
+    int32 org_id = 1;
+}
+
+message OrgStatistic {
+    int32 repositories_count = 1;
 }
