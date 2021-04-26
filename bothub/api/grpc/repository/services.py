@@ -12,7 +12,7 @@ class RepositoryService(mixins.ListModelMixin, generics.GenericService):
     def filter_queryset(self, queryset):
         org_id = self.request.org_id
 
-        queryset = queryset.filter(name=self.request.name)
+        queryset = queryset.filter(name__icontains=self.request.name)
 
         if org_id:
             queryset = queryset.filter(authorizations__user__pk=org_id)

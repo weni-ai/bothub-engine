@@ -71,11 +71,19 @@ class RequestResetPasswordSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = RepositoryOwner
-        fields = ["nickname", "name", "locale", "is_organization", "biography"]
+        fields = [
+            "nickname",
+            "name",
+            "locale",
+            "is_organization",
+            "biography",
+            "language",
+        ]
         ref_name = None
 
     is_organization = serializers.BooleanField(style={"show": False}, read_only=True)
     biography = TextField(min_length=0, max_length=350, required=False)
+    language = serializers.CharField(read_only=True)
 
 
 class ResetPasswordSerializer(serializers.ModelSerializer):
