@@ -101,6 +101,7 @@ INSTALLED_APPS = [
     "django.contrib.postgres",
     "rest_framework",
     "rest_framework.authtoken",
+    "rest_framework_recaptcha",
     "drf_yasg2",
     "django_filters",
     "corsheaders",
@@ -162,6 +163,9 @@ DATABASES = {"default": env.db(var="DEFAULT_DATABASE", default="sqlite:///db.sql
 
 AUTH_USER_MODEL = "authentication.User"
 
+DRF_RECAPTCHA_SECRET_KEY = env.str("RECAPTCHA_SECRET_KEY", default="")
+
+DRF_RECAPTCHA_VERIFY_ENDPOINT = "https://www.google.com/recaptcha/api/siteverify"
 
 # Password validation
 
