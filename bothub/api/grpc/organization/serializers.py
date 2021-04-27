@@ -35,6 +35,7 @@ class OrgProtoSerializer(proto_serializers.ModelProtoSerializer):
 
 class OrgCreateProtoSerializer(proto_serializers.ModelProtoSerializer):
 
+    organization_name = serializers.CharField()
     user_email = serializers.CharField()
     user_nickname = serializers.CharField()
 
@@ -49,7 +50,7 @@ class OrgCreateProtoSerializer(proto_serializers.ModelProtoSerializer):
     class Meta:
         model = Organization
         proto_class = organization_pb2.Org
-        fields = ["name", "user_email", "user_nickname"]
+        fields = ["organization_name", "user_email", "user_nickname"]
 
 
 class OrgUpdateProtoSerializer(proto_serializers.ModelProtoSerializer):

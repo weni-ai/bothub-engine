@@ -20,7 +20,12 @@ from bothub.protos.organization_pb2 import OrgStatistic
 
 
 class OrgService(
-    mixins.ListModelMixin, mixins.RetrieveModelMixin, generics.GenericService
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.CreateModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    generics.GenericService,
 ):
     def List(self, request, context):
 
@@ -40,9 +45,9 @@ class OrgService(
         serializer.is_valid(raise_exception=True)
 
         validated_data = {
-            "name": serializer.validated_data.get("name"),
+            "name": serializer.validated_data.get("organization_name"),
             "nickname": utils.organization_unique_slug_generator(
-                serializer.validated_data.get("name")
+                serializer.validated_data.get("organization_name")
             ),
             "description": "",
             "locale": "",
