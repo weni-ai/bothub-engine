@@ -57,6 +57,30 @@ msgstr "Token"
 msgid "Invalid token for this user"
 msgstr "Token inválido para esse usuário"
 
+#: bothub/api/v2/account/serializers.py:24
+msgid "The request is invalid or malformed."
+msgstr "A solicitação está inválida ou malformada."
+
+#: bothub/api/v2/account/serializers.py:24
+msgid "The response parameter is invalid or malformed."
+msgstr "O parâmetro response está inválido ou malformado."
+
+#: bothub/api/v2/account/serializers.py:24
+msgid "The secret parameter is invalid or malformed."
+msgstr "O parâmetro secret está inválido ou malformado."
+
+#: bothub/api/v2/account/serializers.py:24
+msgid "The response parameter is missing."
+msgstr "O parâmetro response precisa ser enviado."
+
+#: bothub/api/v2/account/serializers.py:24
+msgid "The secret parameter is missing."
+msgstr "O parâmetro secret precisa ser enviado."
+
+#: bothub/api/v2/account/serializers.py:24
+msgid "The response parameter has timed out or has already been used."
+msgstr "O parâmetro de resposta expirou ou já foi usado."
+
 #: bothub/api/v2/evaluate/filters.py:24 bothub/api/v2/evaluate/filters.py:98
 #: bothub/api/v2/evaluate/filters.py:151 bothub/api/v2/examples/filters.py:22
 #: bothub/api/v2/repository/filters.py:39
