@@ -95,6 +95,7 @@ from .serializers import (
     TrainSerializer,
     WordDistributionSerializer,
 )
+from ...grpc.connect_grpc_client import ConnectGRPCClient
 
 
 class NewRepositoryViewSet(
@@ -555,6 +556,28 @@ class RepositoriesViewSet(mixins.ListModelMixin, GenericViewSet):
     filter_class = RepositoriesFilter
     filter_backends = [DjangoFilterBackend, SearchFilter]
     search_fields = ["$name", "^name", "=name"]
+
+    @action(
+        detail=True,
+        methods=["GET"],
+        url_name="list-project-organizatiton",
+        # lookup_fields=[],
+    )
+    def list_project_organizatiton(self, request, **kwargs):
+        project_uuid = request.query_params.get("project_uuid")
+
+        if not project_uuid:
+            raise ValidationError(_("Need to pass 'project_uuid' in query params"))
+
+        grpc_client = ConnectGRPCClient()
+        authorizations = grpc_client.list_authorizations(project_uuid=project_uuid)
+
+        repositories = Repository.objects.filter(
+            authorizations__uuid__in=authorizations
+        )
+
+        serialized_data = RepositorySerializer(repositories, many=True)
+        return Response(serialized_data.data)
 
 
 @method_decorator(
