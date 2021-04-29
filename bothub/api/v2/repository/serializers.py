@@ -845,6 +845,7 @@ class NewRepositorySerializer(serializers.ModelSerializer):
     def get_version_default(self, obj):
         return {
             "id": obj.repository.current_version().repository_version.pk,
+            "repository_version_language_id": obj.repository.current_version().pk,
             "name": obj.repository.current_version().repository_version.name,
         }
 

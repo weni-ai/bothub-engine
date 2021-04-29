@@ -104,6 +104,12 @@ class RepositoryNLPLogFilter(filters.FilterSet):
         help_text=_("Filter for examples with version id."),
     )
 
+    repository_version_language = filters.CharFilter(
+        field_name="repository_version_language",
+        method="filter_repository_version_language",
+        help_text=_("Filter for examples with version language id."),
+    )
+
     intent = filters.CharFilter(
         field_name="repository_version_language",
         method="filter_intent",
@@ -135,6 +141,9 @@ class RepositoryNLPLogFilter(filters.FilterSet):
     def filter_repository_version(self, queryset, name, value):
         return queryset.filter(repository_version_language__repository_version=value)
 
+    def filter_repository_version_language(self, queryset, name, value):
+        return queryset.filter(repository_version_language=value)
+
     def filter_intent(self, queryset, name, value):
         return queryset.filter(
             repository_nlp_log__intent=value, repository_nlp_log__is_default=True
@@ -145,7 +154,6 @@ class RepositoryNLPLogFilter(filters.FilterSet):
             Q(repository_nlp_log__confidence__gte=int(value.start) / 100),
             Q(repository_nlp_log__confidence__lte=int(value.stop) / 100),
         )
-        print(query.query)
         return query
 
 
