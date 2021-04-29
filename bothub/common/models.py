@@ -379,14 +379,31 @@ class Repository(models.Model):
 
     def request_nlp_train(self, user_authorization, data):
         try:  # pragma: no cover
-            url = f"{self.nlp_server if self.nlp_server else settings.BOTHUB_NLP_BASE_URL}train/"
-            data = {"repository_version": data.get("repository_version")}
-            headers = {"Authorization": f"Bearer {user_authorization.uuid}"}
-
-            r = requests.post(url, data=json.dumps(data), headers=headers)
-
+            if data.get("repository_version"):
+                r = requests.post(  # pragma: no cover
+                    "{}train/".format(
+                        self.nlp_server
+                        if self.nlp_server
+                        else settings.BOTHUB_NLP_BASE_URL
+                    ),
+                    data={"repository_version": data.get("repository_version")},
+                    headers={
+                        "Authorization": "Bearer {}".format(user_authorization.uuid)
+                    },
+                )
+            else:
+                r = requests.post(  # pragma: no cover
+                    "{}train/".format(
+                        self.nlp_server
+                        if self.nlp_server
+                        else settings.BOTHUB_NLP_BASE_URL
+                    ),
+                    data={},
+                    headers={
+                        "Authorization": "Bearer {}".format(user_authorization.uuid)
+                    },
+                )
             return r  # pragma: no cover
-
         except requests.exceptions.ConnectionError:  # pragma: no cover
             raise APIException(  # pragma: no cover
                 {"status_code": status.HTTP_503_SERVICE_UNAVAILABLE},
