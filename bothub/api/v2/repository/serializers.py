@@ -41,7 +41,6 @@ from bothub.common.models import (
     RepositoryVersion,
     RepositoryVote,
     RequestRepositoryAuthorization,
-    RepositoryVersionLanguage,
 )
 from bothub.utils import classifier_choice
 
@@ -858,9 +857,7 @@ class NewRepositorySerializer(serializers.ModelSerializer):
         return RepositoryScoreSerializer(score).data
 
     def get_repository_version_language(self, obj):
-
-        return RepositoryVersionLanguage.objects.filter(
-            repository_version__repository=obj.repository).values("id", "language")
+        return obj.repositoryversionlanguage_set.all().values("id", "language")
 
 
 class RepositoryTrainInfoSerializer(serializers.ModelSerializer):
