@@ -11,6 +11,8 @@ from bothub.common.models import (
     RepositoryEntity,
     RepositoryQueueTask,
     RepositoryIntent,
+    RepositoryVersion,
+    RepositoryVersionLanguage,
 )
 from bothub.common.models import RepositoryAuthorization
 from bothub.common.models import RequestRepositoryAuthorization
@@ -88,7 +90,6 @@ class RepositoryNLPLogFilter(filters.FilterSet):
     repository_uuid = filters.CharFilter(
         field_name="repository_uuid",
         method="filter_repository_uuid",
-        required=True,
         help_text=_("Repository's UUID"),
     )
 
@@ -107,6 +108,7 @@ class RepositoryNLPLogFilter(filters.FilterSet):
     repository_version_language = filters.CharFilter(
         field_name="repository_version_language",
         method="filter_repository_version_language",
+        required=True,
         help_text=_("Filter for examples with version language id."),
     )
 
@@ -139,10 +141,36 @@ class RepositoryNLPLogFilter(filters.FilterSet):
         return queryset.filter(repository_version_language__language=value)
 
     def filter_repository_version(self, queryset, name, value):
-        return queryset.filter(repository_version_language__repository_version=value)
+        request = self.request
+        try:
+            repository = RepositoryVersion.objects.get(pk=value).repository
+            authorization = repository.get_user_authorization(request.user)
+            if not authorization.can_contribute:
+                raise PermissionDenied()
+            return queryset.filter(
+                repository_version_language__repository_version=value
+            )
+        except RepositoryVersion.DoesNotExist:
+            raise NotFound(_("RepositoryVersion {} does not exist").format(value))
+        except DjangoValidationError:
+            raise NotFound(_("Invalid repository_version"))
 
     def filter_repository_version_language(self, queryset, name, value):
-        return queryset.filter(repository_version_language=value)
+        request = self.request
+        try:
+            repository = RepositoryVersionLanguage.objects.get(
+                pk=value
+            ).repository_version.repository
+            authorization = repository.get_user_authorization(request.user)
+            if not authorization.can_contribute:
+                raise PermissionDenied()
+            return queryset.filter(repository_version_language=value)
+        except RepositoryVersionLanguage.DoesNotExist:
+            raise NotFound(
+                _("RepositoryVersionLanguage {} does not exist").format(value)
+            )
+        except DjangoValidationError:
+            raise NotFound(_("Invalid repository_version_language"))
 
     def filter_intent(self, queryset, name, value):
         return queryset.filter(
