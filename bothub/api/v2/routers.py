@@ -37,6 +37,7 @@ from .nlp.views import (
     RepositoryAuthorizationKnowledgeBaseViewSet,
     RepositoryAuthorizationExamplesViewSet,
     RepositoryAuthorizationAutomaticEvaluateViewSet,
+    RepositoryAuthorizationTrainLanguagesViewSet,
 )
 from .nlp.views import RepositoryAuthorizationParseViewSet
 from .nlp.views import RepositoryAuthorizationInfoViewSet
@@ -186,6 +187,9 @@ router.register("repository/entity/group", RepositoryEntityGroupViewSet)
 router.register("repository/repository-migrate", RepositoryMigrateViewSet)
 router.register(
     "repository/nlp/authorization/train", RepositoryAuthorizationTrainViewSet
+)
+router.register(
+    "repository/nlp/authorization/train-languages", RepositoryAuthorizationTrainLanguagesViewSet
 )
 router.register(
     "repository/nlp/authorization/parse", RepositoryAuthorizationParseViewSet
