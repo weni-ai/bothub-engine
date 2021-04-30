@@ -179,7 +179,8 @@ class ListRepositoryNLPLogTestCase(TestCase):
 
     def test_okay(self):
         response, content_data = self.request(
-            {"repository_uuid": str(self.repository.uuid)}, self.owner_token
+            {"repository_version_language": int(self.repository.current_version().pk)},
+            self.owner_token,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(content_data.get("count"), 1)
