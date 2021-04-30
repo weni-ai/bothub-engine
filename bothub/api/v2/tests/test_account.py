@@ -62,15 +62,22 @@ class RegisterUserTestCase(TestCase):
         content_data = json.loads(response.content)
         return (response, content_data)
 
-    @override_settings(DRF_RECAPTCHA_SECRET_KEY="6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe")
+    @override_settings(
+        DRF_RECAPTCHA_SECRET_KEY="6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe"
+    )
     def test_okay(self):
         email = "fake@user.com"
         password = "abc!1234"
 
-        response, content_data = self.request({
-            "email": email, "name": "Fake", "nickname": "fake",
-            "password": password, "recaptcha": "RECAPTCHA-TOKEN"
-        })
+        response, content_data = self.request(
+            {
+                "email": email,
+                "name": "Fake",
+                "nickname": "fake",
+                "password": password,
+                "recaptcha": "RECAPTCHA-TOKEN",
+            }
+        )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         user = User.objects.get(email=email)
         self.assertTrue(user.check_password(password))
@@ -84,14 +91,22 @@ class RegisterUserTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("recaptcha", content_data.keys())
 
-        response, content_data = self.request({
-            "email": email, "name": "Fake", "nickname": "fake",
-            "password": password, "recaptcha": "WRONG-RECAPTCHA-TOKEN"
-        })
+        response, content_data = self.request(
+            {
+                "email": email,
+                "name": "Fake",
+                "nickname": "fake",
+                "password": password,
+                "recaptcha": "WRONG-RECAPTCHA-TOKEN",
+            }
+        )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("recaptcha", content_data.keys())
-        self.assertIn(_("The response parameter is invalid or malformed."), content_data.get("recaptcha"))
+        self.assertIn(
+            _("The response parameter is invalid or malformed."),
+            content_data.get("recaptcha"),
+        )
 
     def test_invalid_password(self):
         response, content_data = self.request(
