@@ -1,4 +1,3 @@
-import json
 import uuid
 from functools import reduce
 
@@ -404,7 +403,7 @@ class Repository(models.Model):
                     },
                 )
             return r  # pragma: no cover
-            
+
         except requests.exceptions.ConnectionError:  # pragma: no cover
             raise APIException(  # pragma: no cover
                 {"status_code": status.HTTP_503_SERVICE_UNAVAILABLE},
