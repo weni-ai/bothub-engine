@@ -65,8 +65,10 @@ class RepositoryAuthorizationTrainViewSet(
 
         repository_version = request.query_params.get("repository_version")
         if repository_version:
-            current_version = repository_authorization.repository.get_specific_version_id(
-                repository_version, str(request.query_params.get("language"))
+            current_version = (
+                repository_authorization.repository.get_specific_version_id(
+                    repository_version, str(request.query_params.get("language"))
+                )
             )
         else:
             current_version = repository_authorization.repository.current_version(
@@ -191,6 +193,55 @@ class RepositoryAuthorizationTrainViewSet(
         repository.training_log = request.data.get("training_log")
         repository.save(update_fields=["training_log"])
         return Response({})
+
+
+class RepositoryAuthorizationTrainLanguagesViewSet(
+    mixins.RetrieveModelMixin, GenericViewSet
+):
+    queryset = RepositoryAuthorization.objects
+    serializer_class = NLPSerializer
+    permission_classes = [AllowAny]
+    pagination_class = NLPPagination
+    authentication_classes = [NLPAuthentication]
+
+    def retrieve(self, request, *args, **kwargs):
+        check_auth(request)
+        repository_authorization = self.get_object()
+
+        if not repository_authorization.can_contribute:
+            raise PermissionDenied()
+
+        repository_version = request.query_params.get("repository_version")
+
+        response = []
+
+        for language in settings.SUPPORTED_LANGUAGES:
+
+            if repository_version:
+                current_version = (
+                    repository_authorization.repository.get_specific_version_id(
+                        repository_version, language
+                    )
+                )
+            else:
+                current_version = repository_authorization.repository.current_version(
+                    language
+                )
+
+            if not current_version.ready_for_train:
+                response.append(
+                    {
+                        "current_version_id": current_version.id,
+                        "repository_authorization_user_id": repository_authorization.user.id,
+                        "language": current_version.language,
+                        "algorithm": current_version.repository_version.repository.algorithm,
+                        "use_name_entities": current_version.repository_version.repository.use_name_entities,
+                        "use_competing_intents": current_version.repository_version.repository.use_competing_intents,
+                        "use_analyze_char": current_version.repository_version.repository.use_analyze_char,
+                    }
+                )
+
+        return Response(response)
 
 
 class RepositoryAuthorizationParseViewSet(mixins.RetrieveModelMixin, GenericViewSet):
