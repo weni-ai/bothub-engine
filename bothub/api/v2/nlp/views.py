@@ -228,7 +228,7 @@ class RepositoryAuthorizationTrainLanguagesViewSet(
                     language
                 )
 
-            if not current_version.ready_for_train:
+            if current_version.ready_for_train:
                 response.append(
                     {
                         "current_version_id": current_version.id,
