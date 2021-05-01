@@ -2,7 +2,6 @@ from django.urls import path, include
 
 from . import views
 from .routers import router
-from .grpc import urls as grpc_urls
 
 
 urlpatterns = [
@@ -17,5 +16,4 @@ urlpatterns = [
         name="check-user-legacy",
     ),
     path("", include(router.urls)),
-    path("grpc/", include(grpc_urls)),
 ]
