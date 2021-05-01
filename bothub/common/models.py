@@ -1,4 +1,3 @@
-import json
 import uuid
 from functools import reduce
 
@@ -479,7 +478,7 @@ class Repository(models.Model):
             repository_version = data.get("repository_version")
 
             if repository_version:
-                payload["repository_version"] = repository_version 
+                payload["repository_version"] = repository_version
 
             r = requests.post(  # pragma: no cover
                 "{}v2/debug_parse/".format(self.nlp_base_url),
