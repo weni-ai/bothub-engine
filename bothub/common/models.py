@@ -473,7 +473,7 @@ class Repository(models.Model):
         try:  # pragma: no cover
             payload = {
                 "text": data.get("text"),
-                "language": data.get("language"),                
+                "language": data.get("language"),
             }
 
             repository_version = data.get("repository_version")
@@ -498,34 +498,24 @@ class Repository(models.Model):
 
     def request_nlp_words_distribution(self, user_authorization, data):
         try:  # pragma: no cover
-            if data.get("repository_version"):
-                r = requests.post(  # pragma: no cover
-                    "{}words_distribution/".format(
-                        self.nlp_server
-                        if self.nlp_server
-                        else settings.BOTHUB_NLP_BASE_URL
-                    ),
-                    data={
-                        "language": data.get("language"),
-                        "repository_version": data.get("repository_version"),
-                    },
-                    headers={
-                        "Authorization": "Bearer {}".format(user_authorization.uuid)
-                    },
-                )
-            else:
-                r = requests.post(  # pragma: no cover
-                    "{}words_distribution/".format(
-                        self.nlp_server
-                        if self.nlp_server
-                        else settings.BOTHUB_NLP_BASE_URL
-                    ),
-                    data={"language": data.get("language")},
-                    headers={
-                        "Authorization": "Bearer {}".format(user_authorization.uuid)
-                    },
-                )
+            payload = {
+                "language": data.get("language"),
+            }
+
+            repository_version = data.get("repository_version")
+
+            if repository_version:
+                payload["repository_version"] = repository_version
+
+            r = requests.post(  # pragma: no cover
+                "{}v2/words_distribution/".format(self.nlp_base_url),
+                json=payload,
+                headers={
+                    "Authorization": "Bearer {}".format(user_authorization.uuid)
+                },
+            )
             return r  # pragma: no cover
+
         except requests.exceptions.ConnectionError:  # pragma: no cover
             raise APIException(  # pragma: no cover
                 {"status_code": status.HTTP_503_SERVICE_UNAVAILABLE},
@@ -536,14 +526,18 @@ class Repository(models.Model):
         self.validate_if_can_run_manual_evaluate(language=data.get("language"))
 
         try:  # pragma: no cover
-            url = f"{self.nlp_server if self.nlp_server else settings.BOTHUB_NLP_BASE_URL}evaluate/"
-            data = {
+            payload = {
                 "language": data.get("language"),
                 "repository_version": data.get("repository_version"),
                 "cross_validation": False,
             }
-            headers = {"Authorization": f"Bearer {user_authorization.uuid}"}
-            r = requests.post(url, data=json.dumps(data), headers=headers)
+            r = requests.post(
+                "{}v2/evaluate/".format(self.nlp_base_url),
+                json=payload,
+                headers={
+                    "Authorization": f"Bearer {user_authorization.uuid}"
+                },
+            )
 
             return r  # pragma: no cover
         except requests.exceptions.ConnectionError:  # pragma: no cover
@@ -556,14 +550,18 @@ class Repository(models.Model):
         self.validate_if_can_run_automatic_evaluate(language=data.get("language"))
 
         try:  # pragma: no cover
-            url = f"{self.nlp_server if self.nlp_server else settings.BOTHUB_NLP_BASE_URL}evaluate/"
-            data = {
+            payload = {
                 "language": data.get("language"),
                 "repository_version": data.get("repository_version"),
                 "cross_validation": True,
             }
-            headers = {"Authorization": f"Bearer {user_authorization.uuid}"}
-            r = requests.post(url, data=json.dumps(data), headers=headers)
+            r = requests.post(
+                "{}v2/evaluate/".format(self.nlp_base_url),
+                json=payload,
+                headers={
+                    "Authorization": f"Bearer {user_authorization.uuid}"
+                },
+            )
 
             return r  # pragma: no cover
         except requests.exceptions.ConnectionError:  # pragma: no cover
@@ -574,14 +572,14 @@ class Repository(models.Model):
 
     def request_nlp_qa(self, user_authorization, data):
         try:  # pragma: no cover
-            url = f"{self.nlp_server if self.nlp_server else settings.BOTHUB_NLP_BASE_URL}question-answering/"
-            data = {
+            url = f"{self.nlp_base_url}v2/question-answering/"
+            payload = {
                 "knowledge_base_id": data.get("knowledge_base_id"),
                 "question": data.get("question"),
                 "language": data.get("language"),
             }
             headers = {"Authorization": f"Bearer {user_authorization.uuid}"}
-            r = requests.post(url, data=json.dumps(data), headers=headers)
+            r = requests.post(url, json=payload, headers=headers)
 
             return r  # pragma: no cover
         except requests.exceptions.ConnectionError:  # pragma: no cover
