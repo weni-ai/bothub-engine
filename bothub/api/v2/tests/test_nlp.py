@@ -300,7 +300,7 @@ class AuthorizationTrainGetExamplesTestCase(TestCase):
 
     def test_not_auth(self):
         response, content_data = self.request(str(uuid.uuid4()))
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_get_examples_without_filter(self):
         response, content_data = self.request(str(self.repository_authorization.uuid))

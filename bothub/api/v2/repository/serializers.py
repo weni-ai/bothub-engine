@@ -477,6 +477,7 @@ class NewRepositorySerializer(serializers.ModelSerializer):
             "ready_for_parse",
             "count_authorizations",
             "repository_score",
+            "repository_version_language",
         ]
         read_only = [
             "uuid",
@@ -493,6 +494,7 @@ class NewRepositorySerializer(serializers.ModelSerializer):
             "is_organization",
             "ready_for_parse",
             "count_authorizations",
+            "repository_version_language",
         ]
         ref_name = None
 
@@ -600,6 +602,7 @@ class NewRepositorySerializer(serializers.ModelSerializer):
         style={"show": False}, read_only=True, source="repository.count_authorizations"
     )
     repository_score = serializers.SerializerMethodField(style={"show": False})
+    repository_version_language = serializers.SerializerMethodField(style={"show": False})
 
     def get_authorizations(self, obj):
         auths = RepositoryAuthorization.objects.filter(
@@ -845,12 +848,16 @@ class NewRepositorySerializer(serializers.ModelSerializer):
     def get_version_default(self, obj):
         return {
             "id": obj.repository.current_version().repository_version.pk,
+            "repository_version_language_id": obj.repository.current_version().pk,
             "name": obj.repository.current_version().repository_version.name,
         }
 
     def get_repository_score(self, obj):
         score, created = obj.repository.repository_score.get_or_create()
         return RepositoryScoreSerializer(score).data
+
+    def get_repository_version_language(self, obj):
+        return obj.repositoryversionlanguage_set.all().values("id", "language")
 
 
 class RepositoryTrainInfoSerializer(serializers.ModelSerializer):

@@ -57,6 +57,7 @@ services:
       - BOTHUB_ENGINE_AWS_REGION_NAME=${BOTHUB_ENGINE_AWS_REGION_NAME}
       - BOTHUB_ENGINE_CELERY_BROKER_URL=${BOTHUB_ENGINE_CELERY_BROKER_URL:-redis://bothub-engine-celery-redis:6379/0}
       - BOTHUB_ENGINE_CELERY_BACKEND_URL=${BOTHUB_ENGINE_CELERY_BACKEND_URL:-redis://bothub-engine-celery-redis:6379/0}
+      - RECAPTCHA_SECRET_KEY=${RECAPTCHA_SECRET_KEY}
   celery:
     build:
       context: .
