@@ -41,9 +41,6 @@ class NLPAuthentication(TokenAuthentication):
     model = RepositoryAuthorization
 
     def authenticate(self, request):
-        from bothub.api.v2.nlp.views import RepositoryAuthorizationParseViewSet
-        from bothub.api.v2.nlp.views import RepositoryUpdateInterpretersViewSet
-
         auth = get_authorization_header(request).split()
 
         if not auth or auth[0].lower() != self.keyword.lower().encode():
@@ -64,20 +61,13 @@ class NLPAuthentication(TokenAuthentication):
             )
             raise exceptions.AuthenticationFailed(msg)
 
-        if isinstance(
-            request.parser_context.get("view"), RepositoryAuthorizationParseViewSet
-        ) or isinstance(
-            request.parser_context.get("view"), RepositoryUpdateInterpretersViewSet
-        ):
-            return self.authenticate_credentials(token, validation=False)
+        return self.authenticate_credentials(token)
 
-        return self.authenticate_credentials(token, validation=True)
-
-    def authenticate_credentials(self, key, **kwargs):
+    def authenticate_credentials(self, key):
         model = self.get_model()
         try:
             authorization = model.objects.get(uuid=key)
-            if not authorization.can_translate and kwargs.get("validation"):
+            if not authorization.can_translate:
                 raise exceptions.PermissionDenied()
 
             return (authorization.user, authorization)

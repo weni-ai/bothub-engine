@@ -203,7 +203,7 @@ class RepositoryAuthorizationParseViewSet(mixins.RetrieveModelMixin, GenericView
     queryset = RepositoryAuthorization.objects
     serializer_class = NLPSerializer
     permission_classes = [AllowAny]
-    authentication_classes = [NLPAuthentication]
+    authentication_classes = []
 
     def retrieve(self, request, *args, **kwargs):
         check_auth(request)
@@ -573,7 +573,7 @@ class RepositoryUpdateInterpretersViewSet(
     queryset = RepositoryVersionLanguage.objects
     serializer_class = NLPSerializer
     permission_classes = [AllowAny]
-    authentication_classes = [NLPAuthentication]
+    authentication_classes = []
 
     def retrieve(self, request, *args, **kwargs):
         check_auth(request)
