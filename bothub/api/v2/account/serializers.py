@@ -4,6 +4,7 @@ from django.contrib.auth.hashers import make_password
 from rest_framework.authtoken.serializers import AuthTokenSerializer
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
+from rest_framework_recaptcha.fields import ReCaptchaField
 
 from bothub.authentication.models import User, RepositoryOwner
 from ..fields import PasswordField, TextField
@@ -20,13 +21,18 @@ class LoginSerializer(AuthTokenSerializer, serializers.ModelSerializer):
 
 
 class RegisterUserSerializer(serializers.ModelSerializer):
+    recaptcha = ReCaptchaField()
     password = PasswordField(
         write_only=True, validators=[validate_password], label=_("Password")
     )
 
+    def create(self, validated_data):
+        validated_data.pop("recaptcha")
+        return super().create(validated_data)
+
     class Meta:
         model = User
-        fields = ["email", "name", "nickname", "password"]
+        fields = ["email", "name", "nickname", "password", "recaptcha"]
         ref_name = None
 
     @staticmethod
