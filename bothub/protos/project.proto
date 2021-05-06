@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package weni.connect.project;
+
+service ProjectController {
+    rpc Classifier(ClassifierListRequest) returns (stream ClassifierResponse) {}
+}
+
+message ClassifierResponse {
+    string authorization_uuid = 1;
+    string classifier_type = 2;
+    string name = 3;
+}
+
+message ClassifierListRequest {
+    string project_uuid = 1;
+}

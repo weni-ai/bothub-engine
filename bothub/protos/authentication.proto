@@ -1,0 +1,60 @@
+syntax = "proto3";
+
+package weni.bothub.authentication;
+
+import "google/protobuf/empty.proto";
+
+service UserPermissionController {
+    rpc Retrieve(UserPermissionRetrieveRequest) returns (Permission) {}
+    rpc Update(UserPermissionUpdateRequest) returns (Permission) {}
+    rpc Remove(UserPermissionRemoveRequest) returns (google.protobuf.Empty) {}
+}
+
+service UserController {
+    rpc Retrieve(UserRetrieveRequest) returns (User) {}
+}
+
+service UserLanguageController {
+    rpc Update(UserLanguageUpdateRequest) returns (User) {}
+}
+
+message UserPermissionRetrieveRequest {
+    string org_user_email = 1;
+    int32 org_id = 2;
+}
+
+message UserPermissionUpdateRequest {
+    int32 org_id = 1;
+    string user_email = 2;
+    int32 permission = 3;
+}
+
+message UserPermissionRemoveRequest {
+    int32 org_id = 1;
+    string user_email = 2;
+    int32 permission = 3;
+}
+
+message UserLanguageUpdateRequest {
+    string email = 1;
+    string language = 2;
+}
+
+message Permission {
+    int32 role = 1;
+}
+
+message UserRetrieveRequest {
+    string email = 1;
+}
+
+message User {
+    int32 id = 1;
+    string email = 2;
+    string nickname = 3;
+    string name = 4;
+    string language = 5;
+    string joined_at = 6;
+    bool is_active = 7;
+    bool is_superuser = 8;
+}

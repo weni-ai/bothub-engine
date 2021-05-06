@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+package weni.bothub.repository;
+
+service RepositoryController {
+    rpc List(RepositoryListRequest) returns (stream Repository) {}
+}
+
+message Repository {
+    string uuid = 1;
+    string name = 2;
+    string slug = 3;
+    string description = 4;
+    bool is_private = 5;
+    string created_at = 6;
+    string language = 7;
+    int32 owner = 8;
+    string algorithm = 9;
+    bool use_competing_intents = 10;
+    bool use_name_entities = 11;
+    bool use_analyze_char = 12;
+    string repository_type = 13;
+    string owner__nickname = 14;
+    repeated Intent intents = 15;
+    repeated int32 categories = 16;
+    repeated string available_languages = 17;
+    repeated Category categories_list = 18;
+}
+
+message Intent {
+    int32 id = 1;
+    string value = 2;
+    int32 examples__count = 3;
+}
+
+message Category {
+    int32 id = 1;
+    string name = 2;
+    string icon = 3;
+}
+
+message RepositoryListRequest {
+    optional int32 org_id = 1;
+    string name = 2;
+}
