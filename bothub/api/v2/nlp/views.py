@@ -23,7 +23,6 @@ from bothub.common.models import (
     RepositoryNLPLog,
     RepositoryExample,
     RepositoryEvaluate,
-    RepositoryQueueTask,
 )
 from bothub.common.models import RepositoryEntity
 from bothub.common.models import RepositoryEvaluateResult
@@ -99,7 +98,14 @@ class RepositoryAuthorizationTrainViewSet(
             RepositoryVersionLanguage, pk=request.query_params.get("repository_version")
         )
 
-        page = self.paginate_queryset(queryset.examples)
+        intent = request.query_params.get("intent")
+        examples = (
+            queryset.examples.filter(intent__text=intent)
+            if intent
+            else queryset.examples
+        )
+
+        page = self.paginate_queryset(examples)
 
         examples_return = []
 
@@ -131,10 +137,10 @@ class RepositoryAuthorizationTrainViewSet(
 
         id_queue = request.data.get("task_id")
         from_queue = request.data.get("from_queue")
+        type_processing = request.data.get("type_processing")
+
         repository.create_task(
-            id_queue=id_queue,
-            from_queue=from_queue,
-            type_processing=RepositoryQueueTask.TYPE_PROCESSING_TRAINING,
+            id_queue=id_queue, from_queue=from_queue, type_processing=type_processing
         )
         return Response({})
 
@@ -320,13 +326,35 @@ class RepositoryAuthorizationInfoViewSet(mixins.RetrieveModelMixin, GenericViewS
         repository_authorization = self.get_object()
         repository = repository_authorization.repository
 
+        repository_version = request.query_params.get("repository_version")
+
         queryset = RepositoryExample.objects.filter(
-            repository_version_language__repository_version__repository=repository,
-            repository_version_language__repository_version__is_default=True,
+            repository_version_language__repository_version__repository=repository
         )
-        serializer = repository.intents(queryset=queryset, version_default=True)
+        serializer = repository.intents(
+            queryset=queryset,
+            version_default=False,
+            repository_version=repository_version,
+        )
 
         return Response({"intents": serializer})
+
+    @action(detail=True, methods=["GET"], url_name="get_current_configuration")
+    def get_current_configuration(self, request, **kwargs):
+        check_auth(request)
+        repository_authorization = self.get_object()
+        repository = repository_authorization.repository
+
+        return Response(
+            {
+                "language": repository.language,
+                "user_id": repository_authorization.user.pk,
+                "algorithm": repository.algorithm,
+                "use_name_entities": repository.use_name_entities,
+                "use_competing_intents": repository.use_competing_intents,
+                "use_analyze_char": repository.use_analyze_char,
+            }
+        )
 
 
 class RepositoryAuthorizationEvaluateViewSet(mixins.RetrieveModelMixin, GenericViewSet):
@@ -523,6 +551,55 @@ class RepositoryAuthorizationEvaluateViewSet(mixins.RetrieveModelMixin, GenericV
         return Response({})
 
 
+class RepositoryAuthorizationAutomaticEvaluateViewSet(
+    mixins.RetrieveModelMixin, GenericViewSet
+):
+    queryset = RepositoryAuthorization.objects
+    serializer_class = NLPSerializer
+    permission_classes = [AllowAny]
+    authentication_classes = [NLPAuthentication]
+
+    def retrieve(self, request, *args, **kwargs):
+        check_auth(request)
+        repository_authorization = self.get_object()
+
+        if not repository_authorization.can_contribute:
+            raise PermissionDenied()
+
+        language = request.query_params.get("language")
+        repository_version = request.query_params.get("repository_version")
+
+        repository = repository_authorization.repository
+
+        if repository_version:
+            repository_version_language = repository.get_specific_version_id(
+                repository_version=repository_version, language=language
+            )
+        else:
+            repository_version_language = repository.get_specific_version_language(
+                language=language
+            )
+
+        try:
+            repository.validate_if_can_run_automatic_evaluate(language=language)
+            can_run_automatic_evaluate = True
+        except ValidationError:
+            can_run_automatic_evaluate = False
+
+        return Response(
+            {
+                "language": repository.language,
+                "repository_version_language_id": repository_version_language.pk,
+                "user_id": repository_authorization.user.pk,
+                "algorithm": repository.algorithm,
+                "use_name_entities": repository.use_name_entities,
+                "use_competing_intents": repository.use_competing_intents,
+                "use_analyze_char": repository.use_analyze_char,
+                "can_run_automatic_evaluate": can_run_automatic_evaluate,
+            }
+        )
+
+
 class NLPLangsViewSet(mixins.ListModelMixin, GenericViewSet):
     queryset = RepositoryAuthorization.objects
     serializer_class = NLPSerializer
@@ -616,3 +693,84 @@ class RepositoryNLPLogsViewSet(mixins.CreateModelMixin, GenericViewSet):
     serializer_class = RepositoryNLPLogSerializer
     permission_classes = [AllowAny]
     authentication_classes = [NLPAuthentication]
+
+
+class RepositoryAuthorizationKnowledgeBaseViewSet(
+    mixins.RetrieveModelMixin, GenericViewSet
+):
+    queryset = RepositoryAuthorization.objects
+    serializer_class = NLPSerializer
+    permission_classes = [AllowAny]
+    authentication_classes = [NLPAuthentication]
+
+    def retrieve(self, request, *args, **kwargs):
+        check_auth(request)
+        repository_authorization = self.get_object()
+
+        if not repository_authorization.can_contribute:
+            raise PermissionDenied()
+
+        repository = repository_authorization.repository
+
+        knowledge_base_pk = request.query_params.get("knowledge_base_id")
+        language = request.query_params.get("language")
+
+        knowledge_base = get_object_or_404(
+            repository.knowledge_bases.all(), pk=knowledge_base_pk
+        )
+
+        context = get_object_or_404(knowledge_base.contexts.all(), language=language)
+
+        return Response(
+            {
+                "knowledge_base_id": knowledge_base.pk,
+                "text": context.text,
+                "language": context.language,
+            }
+        )
+
+
+class RepositoryAuthorizationExamplesViewSet(mixins.RetrieveModelMixin, GenericViewSet):
+    queryset = RepositoryAuthorization.objects
+    serializer_class = NLPSerializer
+    permission_classes = [AllowAny]
+    pagination_class = NLPPagination
+    authentication_classes = [NLPAuthentication]
+
+    def retrieve(self, request, *args, **kwargs):
+        check_auth(request)
+        repository_authorization = self.get_object()
+
+        if not repository_authorization.can_contribute:
+            raise PermissionDenied()
+
+        repository_version = request.query_params.get("repository_version")
+        if repository_version:
+            current_version = repository_authorization.repository.get_specific_version_id(
+                repository_version, str(request.query_params.get("language"))
+            )
+        else:
+            current_version = repository_authorization.repository.current_version(
+                str(request.query_params.get("language"))
+            )
+
+        examples = current_version.examples.all()
+
+        page = self.paginate_queryset(examples)
+
+        examples_return = []
+
+        for example in page:
+            get_entities = example.get_entities(current_version.language)
+
+            get_text = example.get_text(current_version.language)
+
+            examples_return.append(
+                {
+                    "text": get_text,
+                    "intent": example.intent.text,
+                    "entities": [entit.rasa_nlu_data for entit in get_entities],
+                }
+            )
+
+        return self.get_paginated_response(examples_return)

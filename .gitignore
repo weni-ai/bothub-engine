@@ -116,5 +116,8 @@ staticfiles/
 #Pycharm
 .idea/
 
+# gRPC Protobuff
+bothub/protos/*.py
+
 #ASDF
 .tool-versions

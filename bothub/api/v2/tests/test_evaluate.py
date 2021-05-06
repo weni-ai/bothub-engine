@@ -860,3 +860,156 @@ class ListEvaluateResultTestFilterCase(TestCase):
         self.assertEqual(content_data["cross_validation"], True)
         self.assertEqual(len(content_data["log"]["results"]), 0)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+
+class CompareEvaluateResultsTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        self.owner, self.owner_token = create_user_and_token("owner")
+        self.user, self.token = create_user_and_token()
+
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            name="Testing",
+            slug="test",
+            language=languages.LANGUAGE_EN,
+        )
+
+        for x in range(0, 2):
+            intent_results = RepositoryEvaluateResultScore.objects.create(
+                f1_score=0.976, precision=0.978, accuracy=0.976
+            )
+
+            entity_results = RepositoryEvaluateResultScore.objects.create(
+                f1_score=0.977, precision=0.978, accuracy=0.978
+            )
+
+            evaluate_log = [
+                {
+                    "text": "hey",
+                    "intent": "greet",
+                    "intent_prediction": {
+                        "name": "greet",
+                        "confidence": 0.9263743763408538,
+                    },
+                    "status": "success",
+                },
+                {
+                    "text": "howdy",
+                    "intent": "greet",
+                    "intent_prediction": {
+                        "name": "greet",
+                        "confidence": 0.8099720606047796,
+                    },
+                    "status": "success",
+                },
+                {
+                    "text": "hey there",
+                    "intent": "greet",
+                    "intent_prediction": {
+                        "name": "greet",
+                        "confidence": 0.8227075176309955,
+                    },
+                    "status": "success",
+                },
+                {
+                    "text": "test with nlu",
+                    "intent": "restaurant_search",
+                    "intent_prediction": {
+                        "name": "goodbye",
+                        "confidence": 0.3875259420712092,
+                    },
+                    "status": "error",
+                },
+            ]
+
+            sample_url = "https://s3.amazonaws.com/bothub-sample"
+            evaluate_result = RepositoryEvaluateResult.objects.create(
+                repository_version_language=self.repository.current_version(),
+                intent_results=intent_results,
+                entity_results=entity_results,
+                matrix_chart="{}/confmat.png".format(sample_url),
+                confidence_chart="{}/hist.png".format(sample_url),
+                log=json.dumps(evaluate_log),
+            )
+
+            intent_score_1 = RepositoryEvaluateResultScore.objects.create(
+                precision=1.0, recall=1.0, f1_score=1.0, support=11
+            )
+
+            intent_score_2 = RepositoryEvaluateResultScore.objects.create(
+                precision=0.89, recall=1.0, f1_score=0.94, support=8
+            )
+
+            intent_score_3 = RepositoryEvaluateResultScore.objects.create(
+                precision=1.0, recall=1.0, f1_score=1.0, support=8
+            )
+
+            intent_score_4 = RepositoryEvaluateResultScore.objects.create(
+                precision=1.0, recall=0.93, f1_score=0.97, support=15
+            )
+
+            RepositoryEvaluateResultIntent.objects.create(
+                evaluate_result=evaluate_result, intent="affirm", score=intent_score_1
+            )
+
+            RepositoryEvaluateResultIntent.objects.create(
+                evaluate_result=evaluate_result, intent="goodbye", score=intent_score_2
+            )
+
+            RepositoryEvaluateResultIntent.objects.create(
+                evaluate_result=evaluate_result, intent="greet", score=intent_score_3
+            )
+
+            RepositoryEvaluateResultIntent.objects.create(
+                evaluate_result=evaluate_result,
+                intent="restaurant_search",
+                score=intent_score_4,
+            )
+
+            entity_score_1 = RepositoryEvaluateResultScore.objects.create(
+                precision=1.0, recall=0.90, f1_score=0.95, support=10
+            )
+
+            entity_score_2 = RepositoryEvaluateResultScore.objects.create(
+                precision=1.0, recall=0.75, f1_score=0.86, support=8
+            )
+
+            RepositoryEvaluateResultEntity.objects.create(
+                evaluate_result=evaluate_result, entity="cuisine", score=entity_score_1
+            )
+
+            RepositoryEvaluateResultEntity.objects.create(
+                evaluate_result=evaluate_result, entity="greet", score=entity_score_2
+            )
+
+    def request(self, token):
+        ids = f"{RepositoryEvaluateResult.objects.first().pk},{RepositoryEvaluateResult.objects.last().pk}"
+        authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
+        request = self.factory.get(
+            "/v2/evaluate/results/compare_results/?repository_uuid={}&ids={}".format(
+                self.repository.uuid, ids
+            ),
+            **authorization_header,
+        )
+        response = ResultsListViewSet.as_view({"get": "compare_results"})(
+            request, repository_uuid=self.repository.uuid
+        )
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data)
+
+    def test_okay(self):
+        response, content_data = self.request(self.owner_token)
+        self.assertEqual(len(response.data), 2)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_compare_two_results(self):
+        response, content_data = self.request(self.owner_token)
+        self.assertEqual(
+            RepositoryEvaluateResult.objects.last().pk, response.data[1].get("id")
+        )
+        self.assertEqual(
+            RepositoryEvaluateResult.objects.first().pk, response.data[0].get("id")
+        )
