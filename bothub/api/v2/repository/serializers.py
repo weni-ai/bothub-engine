@@ -602,7 +602,9 @@ class NewRepositorySerializer(serializers.ModelSerializer):
         style={"show": False}, read_only=True, source="repository.count_authorizations"
     )
     repository_score = serializers.SerializerMethodField(style={"show": False})
-    repository_version_language = serializers.SerializerMethodField(style={"show": False})
+    repository_version_language = serializers.SerializerMethodField(
+        style={"show": False}
+    )
 
     def get_authorizations(self, obj):
         auths = RepositoryAuthorization.objects.filter(
