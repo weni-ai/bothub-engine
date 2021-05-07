@@ -102,6 +102,7 @@ INSTALLED_APPS = [
     "django.contrib.postgres",
     "rest_framework",
     "rest_framework.authtoken",
+    "rest_framework_recaptcha",
     "drf_yasg2",
     "django_filters",
     "corsheaders",
@@ -165,6 +166,9 @@ DATABASES = {"default": env.db(var="DEFAULT_DATABASE", default="sqlite:///db.sql
 
 AUTH_USER_MODEL = "authentication.User"
 
+DRF_RECAPTCHA_SECRET_KEY = env.str("RECAPTCHA_SECRET_KEY", default="")
+
+DRF_RECAPTCHA_VERIFY_ENDPOINT = "https://www.google.com/recaptcha/api/siteverify"
 
 # Password validation
 
@@ -186,7 +190,7 @@ DEFAULT_ERROR_MESSAGE = _("An error has occurred")
 LANGUAGE_CODE = env.str("LANGUAGE_CODE")
 
 
-LANGUAGES = (("en", _("English")), ("pt-br", _("Brazilian Portuguese")))
+LANGUAGES = (("en-us", _("English")), ("pt-br", _("Brazilian Portuguese")))
 
 MODELTRANSLATION_DEFAULT_LANGUAGE = "en-us"
 

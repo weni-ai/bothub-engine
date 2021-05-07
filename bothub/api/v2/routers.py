@@ -1,13 +1,44 @@
 from rest_framework import routers
 
 from bothub.api.v2.versionning.views import RepositoryVersionViewSet
+from .account.views import ChangePasswordViewSet
+from .account.views import LoginViewSet
+from .account.views import MyUserProfileViewSet
+from .account.views import RegisterUserViewSet
+from .account.views import RequestResetPasswordViewSet
+from .account.views import ResetPasswordViewSet
+from .account.views import SearchUserViewSet
+from .account.views import UserProfileViewSet
+from .evaluate.views import EvaluateViewSet
+from .evaluate.views import ResultsListViewSet
+from .examples.views import ExamplesViewSet
 from .groups.views import RepositoryEntityGroupViewSet
 from .knowledge_base.views import QAKnowledgeBaseViewSet, QAContextViewSet
+from .nlp.views import NLPLangsViewSet
+from .nlp.views import RepositoryAuthorizationEvaluateViewSet
+from .nlp.views import RepositoryAuthorizationInfoViewSet
+from .nlp.views import RepositoryAuthorizationParseViewSet
+from .nlp.views import (
+    RepositoryAuthorizationTrainViewSet,
+    RepositoryNLPLogsViewSet,
+    RepositoryAuthorizationKnowledgeBaseViewSet,
+    RepositoryAuthorizationExamplesViewSet,
+    RepositoryAuthorizationAutomaticEvaluateViewSet,
+    RepositoryAuthorizationTrainLanguagesViewSet,
+)
+from .nlp.views import RepositoryUpdateInterpretersViewSet
 from .organization.views import (
     OrganizationViewSet,
     OrganizationProfileViewSet,
     OrganizationAuthorizationViewSet,
 )
+from .repository.views import RepositoriesContributionsViewSet
+from .repository.views import RepositoriesViewSet
+from .repository.views import RepositoryAuthorizationRequestsViewSet
+from .repository.views import RepositoryAuthorizationViewSet
+from .repository.views import RepositoryCategoriesView
+from .repository.views import RepositoryExampleViewSet
+from .repository.views import RepositoryMigrateViewSet
 from .repository.views import (
     RepositoryViewSet,
     RepositoryNLPLogViewSet,
@@ -23,38 +54,7 @@ from .repository.views import (
     RepositoryExamplesBulkViewSet,
 )
 from .repository.views import RepositoryVotesViewSet
-from .repository.views import RepositoryMigrateViewSet
-from .repository.views import RepositoriesViewSet
-from .repository.views import RepositoriesContributionsViewSet
-from .repository.views import RepositoryCategoriesView
 from .repository.views import SearchRepositoriesViewSet
-from .repository.views import RepositoryAuthorizationViewSet
-from .repository.views import RepositoryAuthorizationRequestsViewSet
-from .repository.views import RepositoryExampleViewSet
-from .nlp.views import (
-    RepositoryAuthorizationTrainViewSet,
-    RepositoryNLPLogsViewSet,
-    RepositoryAuthorizationKnowledgeBaseViewSet,
-    RepositoryAuthorizationExamplesViewSet,
-    RepositoryAuthorizationAutomaticEvaluateViewSet,
-    RepositoryAuthorizationTrainLanguagesViewSet,
-)
-from .nlp.views import RepositoryAuthorizationParseViewSet
-from .nlp.views import RepositoryAuthorizationInfoViewSet
-from .nlp.views import RepositoryAuthorizationEvaluateViewSet
-from .nlp.views import NLPLangsViewSet
-from .nlp.views import RepositoryUpdateInterpretersViewSet
-from .examples.views import ExamplesViewSet
-from .evaluate.views import EvaluateViewSet
-from .evaluate.views import ResultsListViewSet
-from .account.views import LoginViewSet
-from .account.views import RegisterUserViewSet
-from .account.views import ChangePasswordViewSet
-from .account.views import RequestResetPasswordViewSet
-from .account.views import UserProfileViewSet
-from .account.views import MyUserProfileViewSet
-from .account.views import SearchUserViewSet
-from .account.views import ResetPasswordViewSet
 from .translation.views import RepositoryTranslatedExampleViewSet
 from .translation.views import RepositoryTranslatedExporterViewSet
 from .translator.views import (
@@ -189,7 +189,8 @@ router.register(
     "repository/nlp/authorization/train", RepositoryAuthorizationTrainViewSet
 )
 router.register(
-    "repository/nlp/authorization/train-languages", RepositoryAuthorizationTrainLanguagesViewSet
+    "repository/nlp/authorization/train-languages",
+    RepositoryAuthorizationTrainLanguagesViewSet,
 )
 router.register(
     "repository/nlp/authorization/parse", RepositoryAuthorizationParseViewSet

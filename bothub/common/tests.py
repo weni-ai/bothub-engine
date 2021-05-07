@@ -416,7 +416,7 @@ class RepositoryTestCase(TestCase):
         )
 
         url = f"{self.repository.nlp_server if self.repository.nlp_server else settings.BOTHUB_NLP_BASE_URL}"
-        url = f"{url}evaluate/"
+        url = f"{url}v2/evaluate/"
         json = {
             "language": languages.LANGUAGE_EN,
             "status": RepositoryQueueTask.STATUS_PROCESSING,
@@ -458,7 +458,7 @@ class RepositoryTestCase(TestCase):
                 intent=self.example_intent_1,
             )
         url = f"{self.repository.nlp_server if self.repository.nlp_server else settings.BOTHUB_NLP_BASE_URL}"
-        url = f"{url}evaluate/"
+        url = f"{url}v2/evaluate/"
         json = {
             "language": languages.LANGUAGE_EN,
             "status": RepositoryQueueTask.STATUS_PROCESSING,
@@ -489,7 +489,7 @@ class RepositoryTestCase(TestCase):
             language=languages.LANGUAGE_PT_BR,
         )
         url = f"{self.repository.nlp_server if self.repository.nlp_server else settings.BOTHUB_NLP_BASE_URL}"
-        url = f"{url}question-answering/"
+        url = f"{url}v2/question-answering/"
         json = {
             "answers": [
                 {"text": "teste 1", "confidence": "0.8423367973327138"},

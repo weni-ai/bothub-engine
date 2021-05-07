@@ -64,10 +64,8 @@ class RepositoryAuthorizationTrainViewSet(
 
         repository_version = request.query_params.get("repository_version")
         if repository_version:
-            current_version = (
-                repository_authorization.repository.get_specific_version_id(
-                    repository_version, str(request.query_params.get("language"))
-                )
+            current_version = repository_authorization.repository.get_specific_version_id(
+                repository_version, str(request.query_params.get("language"))
             )
         else:
             current_version = repository_authorization.repository.current_version(
@@ -224,10 +222,8 @@ class RepositoryAuthorizationTrainLanguagesViewSet(
         for language in settings.SUPPORTED_LANGUAGES:
 
             if repository_version:
-                current_version = (
-                    repository_authorization.repository.get_specific_version_id(
-                        repository_version, language
-                    )
+                current_version = repository_authorization.repository.get_specific_version_id(
+                    repository_version, language
                 )
             else:
                 current_version = repository_authorization.repository.current_version(
@@ -254,7 +250,7 @@ class RepositoryAuthorizationParseViewSet(mixins.RetrieveModelMixin, GenericView
     queryset = RepositoryAuthorization.objects
     serializer_class = NLPSerializer
     permission_classes = [AllowAny]
-    authentication_classes = [NLPAuthentication]
+    authentication_classes = []
 
     def retrieve(self, request, *args, **kwargs):
         check_auth(request)
@@ -624,7 +620,7 @@ class RepositoryUpdateInterpretersViewSet(
     queryset = RepositoryVersionLanguage.objects
     serializer_class = NLPSerializer
     permission_classes = [AllowAny]
-    authentication_classes = [NLPAuthentication]
+    authentication_classes = []
 
     def retrieve(self, request, *args, **kwargs):
         check_auth(request)
