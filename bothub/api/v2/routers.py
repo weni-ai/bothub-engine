@@ -18,13 +18,13 @@ from .nlp.views import NLPLangsViewSet
 from .nlp.views import RepositoryAuthorizationEvaluateViewSet
 from .nlp.views import RepositoryAuthorizationInfoViewSet
 from .nlp.views import RepositoryAuthorizationParseViewSet
-from .nlp.views import RepositoryAuthorizationTrainLanguagesViewSet
 from .nlp.views import (
     RepositoryAuthorizationTrainViewSet,
     RepositoryNLPLogsViewSet,
     RepositoryAuthorizationKnowledgeBaseViewSet,
     RepositoryAuthorizationExamplesViewSet,
     RepositoryAuthorizationAutomaticEvaluateViewSet,
+    RepositoryAuthorizationTrainLanguagesViewSet,
 )
 from .nlp.views import RepositoryUpdateInterpretersViewSet
 from .organization.views import (
