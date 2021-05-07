@@ -470,10 +470,7 @@ class Repository(models.Model):
 
     def request_nlp_debug_parse(self, user_authorization, data):
         try:  # pragma: no cover
-            payload = {
-                "text": data.get("text"),
-                "language": data.get("language"),
-            }
+            payload = {"text": data.get("text"), "language": data.get("language")}
 
             repository_version = data.get("repository_version")
 
@@ -483,9 +480,7 @@ class Repository(models.Model):
             r = requests.post(  # pragma: no cover
                 "{}v2/debug_parse/".format(self.nlp_base_url),
                 json=payload,
-                headers={
-                    "Authorization": "Bearer {}".format(user_authorization.uuid)
-                }
+                headers={"Authorization": "Bearer {}".format(user_authorization.uuid)},
             )
 
             return r  # pragma: no cover
@@ -497,9 +492,7 @@ class Repository(models.Model):
 
     def request_nlp_words_distribution(self, user_authorization, data):
         try:  # pragma: no cover
-            payload = {
-                "language": data.get("language"),
-            }
+            payload = {"language": data.get("language")}
 
             repository_version = data.get("repository_version")
 
@@ -509,9 +502,7 @@ class Repository(models.Model):
             r = requests.post(  # pragma: no cover
                 "{}v2/words_distribution/".format(self.nlp_base_url),
                 json=payload,
-                headers={
-                    "Authorization": "Bearer {}".format(user_authorization.uuid)
-                },
+                headers={"Authorization": "Bearer {}".format(user_authorization.uuid)},
             )
             return r  # pragma: no cover
 
@@ -533,9 +524,7 @@ class Repository(models.Model):
             r = requests.post(
                 "{}v2/evaluate/".format(self.nlp_base_url),
                 json=payload,
-                headers={
-                    "Authorization": f"Bearer {user_authorization.uuid}"
-                },
+                headers={"Authorization": f"Bearer {user_authorization.uuid}"},
             )
 
             return r  # pragma: no cover
@@ -557,9 +546,7 @@ class Repository(models.Model):
             r = requests.post(
                 "{}v2/evaluate/".format(self.nlp_base_url),
                 json=payload,
-                headers={
-                    "Authorization": f"Bearer {user_authorization.uuid}"
-                },
+                headers={"Authorization": f"Bearer {user_authorization.uuid}"},
             )
 
             return r  # pragma: no cover
