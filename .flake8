@@ -6,4 +6,4 @@ exclude =
   ./bothub/common/migrations
   ./manage.py
   ./bothub/common/languages.py
-  ./bothub/protos
+  ./bothub/protos/
