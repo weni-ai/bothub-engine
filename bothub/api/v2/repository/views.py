@@ -922,7 +922,6 @@ class RepositoryExampleViewSet(
 class RepositoryNLPLogViewSet(
     mixins.ListModelMixin,
     mixins.RetrieveModelMixin,
-    mixins.DestroyModelMixin,
     GenericViewSet,
 ):
     queryset = RepositoryNLPLog.objects
