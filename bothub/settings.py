@@ -223,6 +223,7 @@ REST_FRAMEWORK = {
     "DEFAULT_METADATA_CLASS": "bothub.api.v2.metadata.Metadata",
 }
 
+REPOSITORY_NLP_LOG_LIMIT = env.int("REPOSITORY_NLP_LOG_LIMIT", default=10000)
 
 # cors headers
 
