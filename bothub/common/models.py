@@ -1227,7 +1227,7 @@ class RepositoryNLPLog(models.Model):
                 condition=Q(from_backend=False),
             )
         ]
-        ordering = ["-created_at"]
+        ordering = ["-id"]
 
     text = models.TextField(help_text=_("Text"))
     user_agent = models.TextField(help_text=_("User Agent"))
