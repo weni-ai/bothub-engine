@@ -1,7 +1,5 @@
 import grpc
 from concurrent import futures
-
-from django.conf import settings
 from django_grpc_framework.management.commands.grpcrunserver import (
     Command as BaseCommand,
 )
@@ -32,10 +30,8 @@ class Command(BaseCommand):
 
         if self.server_crt and self.server_key:
             # read in key and certificate
-            private_key = open(f"{settings.BASE_DIR}/{self.server_key}", "rb").read()
-            certificate_chain = open(
-                f"{settings.BASE_DIR}/{self.server_crt}", "rb"
-            ).read()
+            private_key = open(self.server_key, "rb").read()
+            certificate_chain = open(self.server_crt, "rb").read()
 
             # create server credentials
             server_credentials = grpc.ssl_server_credentials(
