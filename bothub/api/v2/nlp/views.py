@@ -344,7 +344,7 @@ class RepositoryAuthorizationInfoViewSet(mixins.RetrieveModelMixin, GenericViewS
             serializer = repository.intents(
                 queryset=queryset,
                 version_default=repository_version.is_default,
-                repository_version=repository_version,
+                repository_version=repository_version.pk,
             )
         else:
             queryset = RepositoryExample.objects.filter(
