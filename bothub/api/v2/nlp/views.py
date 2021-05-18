@@ -23,6 +23,7 @@ from bothub.common.models import (
     RepositoryNLPLog,
     RepositoryExample,
     RepositoryEvaluate,
+    RepositoryVersion,
 )
 from bothub.common.models import RepositoryEntity
 from bothub.common.models import RepositoryEvaluateResult
@@ -322,16 +323,35 @@ class RepositoryAuthorizationInfoViewSet(mixins.RetrieveModelMixin, GenericViewS
         repository_authorization = self.get_object()
         repository = repository_authorization.repository
 
-        repository_version = request.query_params.get("repository_version")
+        repository_version = request.query_params.get("repository_version", None)
+        repository_version_language = request.query_params.get(
+            "repository_version_language", None
+        )
 
-        queryset = RepositoryExample.objects.filter(
-            repository_version_language__repository_version__repository=repository
-        )
-        serializer = repository.intents(
-            queryset=queryset,
-            version_default=False,
-            repository_version=repository_version,
-        )
+        if repository_version:
+            repository_version = get_object_or_404(
+                RepositoryVersion, pk=repository_version
+            )
+        elif repository_version_language:
+            repository_version = get_object_or_404(
+                RepositoryVersionLanguage, pk=repository_version_language
+            ).repository_version
+
+        if repository_version or repository_version_language:
+            queryset = RepositoryExample.objects.filter(
+                repository_version_language__repository_version__repository=repository
+            )
+            serializer = repository.intents(
+                queryset=queryset,
+                version_default=repository_version.is_default,
+                repository_version=repository_version,
+            )
+        else:
+            queryset = RepositoryExample.objects.filter(
+                repository_version_language__repository_version__repository=repository,
+                repository_version_language__repository_version__is_default=True,
+            )
+            serializer = repository.intents(queryset=queryset, version_default=True)
 
         return Response({"intents": serializer})
 
