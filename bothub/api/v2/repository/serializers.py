@@ -961,7 +961,7 @@ class RepositorySerializer(serializers.ModelSerializer):
     uuid = serializers.UUIDField(style={"show": False}, read_only=True)
     slug = serializers.SlugField(style={"show": False}, read_only=True)
     repository_type = serializers.ChoiceField(
-        style={"show": False, "only_settings": True},
+        style={"show": False, "only_settings": False},
         choices=Repository.TYPE_CHOICES,
         default=Repository.TYPE_CLASSIFIER,
         label=_("Repository Type"),
