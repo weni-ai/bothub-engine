@@ -38,7 +38,7 @@ class OrgService(
 
     def Create(self, request, context):
         user, created = User.objects.get_or_create(
-            email=request.user_email, defaults={"nickname": request.user_nickname}
+            email=request.user_email, defaults={"nickname": request.user_email}
         )
 
         serializer = OrgCreateProtoSerializer(message=request)
