@@ -152,6 +152,7 @@ You can set environment variables in your OS, write on ```.env``` file or pass v
 | OIDC_RP_SIGN_ALGO | ```string``` | ```RS256``` | Sets the algorithm the IdP uses to sign ID tokens.
 | OIDC_DRF_AUTH_BACKEND | ```string``` | ```bothub.authentication.authorization.WeniOIDCAuthenticationBackend``` | Define the authentication middleware for the django rest framework.
 | CONNECT_GRPC_SERVER_URL | ```string``` | ```localhost:8002``` | Define grpc connect server url
+| CONNECT_CERTIFICATE_GRPC_CRT | ```string``` | ```None``` | Absolute certificate path for secure grpc communication
 | RECAPTCHA_SECRET_KEY | ```string``` | ```''``` | Token of the recaptcha used in the validation of a user's registration.
 
 
