@@ -11,6 +11,10 @@ class ConnectGRPCClient:
         self.channel = self.get_channel()
 
     def get_channel(self):
+        if settings.CONNECT_CERTIFICATE_GRPC_CRT:
+            with open(settings.CONNECT_CERTIFICATE_GRPC_CRT, "rb") as f:
+                credentials = grpc.ssl_channel_credentials(f.read())
+            return grpc.secure_channel(settings.CONNECT_GRPC_SERVER_URL, credentials)
         return grpc.insecure_channel(settings.CONNECT_GRPC_SERVER_URL)
 
     def list_classifiers(self, project_uuid: str) -> List[Dict[str, str]]:

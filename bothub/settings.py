@@ -74,6 +74,7 @@ env = environ.Env(
     OIDC_ENABLED=(bool, False),
     SECRET_KEY_CHECK_LEGACY_USER=(str, None),
     CONNECT_GRPC_SERVER_URL=(str, "localhost:8002"),
+    CONNECT_CERTIFICATE_GRPC_CRT=(str, None),
 )
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -486,3 +487,5 @@ if OIDC_ENABLED:
 
 # gRPC Connect Server
 CONNECT_GRPC_SERVER_URL = env.str("CONNECT_GRPC_SERVER_URL")
+
+CONNECT_CERTIFICATE_GRPC_CRT = env.str("CONNECT_CERTIFICATE_GRPC_CRT")
