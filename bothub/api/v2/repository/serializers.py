@@ -4,7 +4,7 @@ from django.conf import settings
 from django.shortcuts import get_object_or_404
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import PermissionDenied, ValidationError
 
 from bothub import utils
 from bothub.api.v2.example.serializers import RepositoryExampleEntitySerializer
@@ -602,7 +602,9 @@ class NewRepositorySerializer(serializers.ModelSerializer):
         style={"show": False}, read_only=True, source="repository.count_authorizations"
     )
     repository_score = serializers.SerializerMethodField(style={"show": False})
-    repository_version_language = serializers.SerializerMethodField(style={"show": False})
+    repository_version_language = serializers.SerializerMethodField(
+        style={"show": False}
+    )
 
     def get_authorizations(self, obj):
         auths = RepositoryAuthorization.objects.filter(
@@ -940,6 +942,9 @@ class RepositorySerializer(serializers.ModelSerializer):
             "is_private",
             "created_at",
             "language",
+            "repository_type",
+            "available_languages",
+            "intents",
             "owner",
             "owner__nickname",
             "categories",
@@ -955,12 +960,19 @@ class RepositorySerializer(serializers.ModelSerializer):
 
     uuid = serializers.UUIDField(style={"show": False}, read_only=True)
     slug = serializers.SlugField(style={"show": False}, read_only=True)
+    repository_type = serializers.ChoiceField(
+        style={"show": False, "only_settings": False},
+        choices=Repository.TYPE_CHOICES,
+        default=Repository.TYPE_CLASSIFIER,
+        label=_("Repository Type"),
+    )
     algorithm = serializers.ChoiceField(
         style={"show": False, "only_settings": True},
         choices=Repository.ALGORITHM_CHOICES,
         default=Repository.ALGORITHM_TRANSFORMER_NETWORK_DIET_BERT,
         label=_("Algorithm"),
     )
+    intents = serializers.SerializerMethodField(style={"show": False})
     use_competing_intents = serializers.BooleanField(
         style={"show": False, "only_settings": True},
         help_text=_(
@@ -1016,15 +1028,12 @@ class RepositorySerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         organization = validated_data.pop("organization", None)
 
-        if organization:
-            owner = get_object_or_404(RepositoryOwner, pk=organization)
-            validated_data.update({"owner": owner})
-        else:
-            validated_data.update({"owner": self.context["request"].user})
-            owner = self.context["request"].user
+        owner = get_object_or_404(RepositoryOwner, pk=organization)
+        if not owner.is_organization:
+            raise ValidationError(_("It's necessary to pass an organization."))
 
         validated_data.update(
-            {"slug": utils.unique_slug_generator(validated_data, Repository)}
+            {"slug": utils.unique_slug_generator(validated_data), "owner": owner}
         )
 
         repository = super().create(validated_data)
@@ -1039,6 +1048,9 @@ class RepositorySerializer(serializers.ModelSerializer):
         )
 
         return repository
+
+    def get_intents(self, obj):
+        return obj.get_formatted_intents()
 
     def get_categories_list(self, obj):
         return RepositoryCategorySerializer(obj.categories, many=True).data
@@ -1126,8 +1138,10 @@ class ShortRepositorySerializer(serializers.ModelSerializer):
             "is_private",
             "categories",
             "categories_list",
+            "repository_type",
             "language",
             "available_languages",
+            "intents",
             "created_at",
             "owner",
             "owner__nickname",
@@ -1145,8 +1159,11 @@ class ShortRepositorySerializer(serializers.ModelSerializer):
         source="owner", slug_field="nickname", read_only=True
     )
     absolute_url = serializers.SerializerMethodField()
-
+    intents = serializers.SerializerMethodField(style={"show": False})
     votes = RepositoryVotesSerializer(many=True, read_only=True)
+
+    def get_intents(self, obj):
+        return obj.get_formatted_intents()
 
     def get_absolute_url(self, obj):
         return obj.get_absolute_url()

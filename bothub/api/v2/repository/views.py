@@ -96,6 +96,7 @@ from .serializers import (
     TrainSerializer,
     WordDistributionSerializer,
 )
+from ...grpc.connect_grpc_client import ConnectGRPCClient
 
 
 class NewRepositoryViewSet(
@@ -397,7 +398,7 @@ class RepositoryViewSet(
     )
     def evaluate(self, request, **kwargs):
         """
-        Evaluate repository using Bothub NLP service
+        Manual evaluate repository using Bothub NLP service
         """
         repository = self.get_object()
         user_authorization = repository.get_user_authorization(request.user)
@@ -406,19 +407,13 @@ class RepositoryViewSet(
         serializer = EvaluateSerializer(data=request.data)  # pragma: no cover
         serializer.is_valid(raise_exception=True)  # pragma: no cover
 
-        if not repository.evaluations(language=request.data.get("language")).count():
-            raise APIException(
-                detail=_("You need to have at least " + "one registered test phrase")
-            )  # pragma: no cover
+        try:
+            request = repository.request_nlp_manual_evaluate(  # pragma: no cover
+                user_authorization, serializer.data
+            )
+        except DjangoValidationError as e:
+            raise APIException(e.message, code=400)
 
-        if len(repository.intents()) <= 1:
-            raise APIException(
-                detail=_("You need to have at least " + "two registered intents")
-            )  # pragma: no cover
-
-        request = repository.request_nlp_evaluate(  # pragma: no cover
-            user_authorization, serializer.data
-        )
         if request.status_code != status.HTTP_200_OK:  # pragma: no cover
             raise APIException(
                 {"status_code": request.status_code}, code=request.status_code
@@ -428,27 +423,59 @@ class RepositoryViewSet(
     @action(
         detail=True,
         methods=["POST"],
-        url_name="repository-evaluate-crossvalidation",
+        url_name="repository-automatic-evaluate",
         lookup_fields=["uuid"],
         serializer_class=EvaluateSerializer,
     )
-    def evaluate_crossvalidation(self, request, **kwargs):
+    def automatic_evaluate(self, request, **kwargs):
         """
-        Cross validation evaluate repository using Bothub NLP service
+        Automatic evaluate repository using Bothub NLP service
         """
         repository = self.get_object()
         user_authorization = repository.get_user_authorization(request.user)
         if not user_authorization.can_write:
-            raise PermissionDenied()  # pragma: no cover
-        serializer = EvaluateSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+            raise PermissionDenied()
+        serializer = EvaluateSerializer(data=request.data)  # pragma: no cover
+        serializer.is_valid(raise_exception=True)  # pragma: no cover
 
-        task = celery_app.send_task(  # pragma: no cover
-            name="evaluate_crossvalidation",
-            args=[serializer.data, str(user_authorization)],
-        )
-        task.wait()  # pragma: no cover
-        return Response(task.result)  # pragma: nocover
+        try:
+            request = repository.request_nlp_automatic_evaluate(  # pragma: no cover
+                user_authorization, serializer.data
+            )
+        except DjangoValidationError as e:
+            raise APIException(e.message, code=400)
+
+        if request.status_code != status.HTTP_200_OK:  # pragma: no cover
+            raise APIException(
+                {"status_code": request.status_code}, code=request.status_code
+            )  # pragma: no cover
+        return Response(request.json())  # pragma: no cover
+
+    @action(
+        detail=True,
+        methods=["GET"],
+        url_name="check-can-repository-automatic-evaluate",
+        lookup_fields=["uuid"],
+    )
+    def check_can_automatic_evaluate(self, request, **kwargs):
+        """
+        Check if repository can run automatic evaluate.
+        """
+        repository = self.get_object()
+        user_authorization = repository.get_user_authorization(request.user)
+        if not user_authorization.can_write:
+            raise PermissionDenied()
+
+        language = request.query_params.get("language")
+        if not language:
+            raise ValidationError(_("Need to pass 'language' in query params"))
+
+        try:
+            repository.validate_if_can_run_automatic_evaluate(language=language)
+            response = {"can_run_evaluate_automatic": True, "messages": []}
+        except DjangoValidationError as e:
+            response = {"can_run_evaluate_automatic": False, "messages": e}
+        return Response(response)  # pragma: no cover
 
 
 @method_decorator(
@@ -531,6 +558,28 @@ class RepositoriesViewSet(mixins.ListModelMixin, GenericViewSet):
     filter_backends = [DjangoFilterBackend, SearchFilter]
     search_fields = ["$name", "^name", "=name"]
 
+    @action(
+        detail=True,
+        methods=["GET"],
+        url_name="list-project-organizatiton",
+        # lookup_fields=[],
+    )
+    def list_project_organizatiton(self, request, **kwargs):
+        project_uuid = request.query_params.get("project_uuid")
+
+        if not project_uuid:
+            raise ValidationError(_("Need to pass 'project_uuid' in query params"))
+
+        grpc_client = ConnectGRPCClient()
+        authorizations = grpc_client.list_authorizations(project_uuid=project_uuid)
+
+        repositories = Repository.objects.filter(
+            authorizations__uuid__in=authorizations
+        )
+
+        serialized_data = RepositorySerializer(repositories, many=True)
+        return Response(serialized_data.data)
+
 
 @method_decorator(
     name="list",
@@ -602,29 +651,11 @@ class SearchRepositoriesViewSet(mixins.ListModelMixin, GenericViewSet):
 
     def get_queryset(self, *args, **kwargs):
         try:
-            if self.request.query_params.get("nickname", None):
-                owner = get_object_or_404(
-                    RepositoryOwner,
-                    nickname=self.request.query_params.get("nickname", None),
-                )
-                if owner.is_organization:
-                    auth_org = OrganizationAuthorization.objects.filter(
-                        organization=owner, user=self.request.user
-                    ).first()
-                    if auth_org.can_read:
-                        return self.queryset.filter(
-                            owner__nickname=self.request.query_params.get(
-                                "nickname", self.request.user
-                            )
-                        ).distinct()
-                return self.queryset.filter(
-                    owner__nickname=self.request.query_params.get(
-                        "nickname", self.request.user
-                    ),
-                    is_private=False,
-                ).distinct()
-            else:
+            if not self.request.query_params.get(
+                "nickname", None
+            ) and not self.request.query_params.get("owner_id", None):
                 return self.queryset.filter(owner=self.request.user).distinct()
+            return super().get_queryset()
         except TypeError:
             return self.queryset.none()
 

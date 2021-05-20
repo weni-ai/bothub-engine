@@ -73,6 +73,8 @@ env = environ.Env(
     DJANGO_REDIS_URL=(str, "redis://localhost:6379/1"),
     OIDC_ENABLED=(bool, False),
     SECRET_KEY_CHECK_LEGACY_USER=(str, None),
+    CONNECT_GRPC_SERVER_URL=(str, "localhost:8002"),
+    CONNECT_CERTIFICATE_GRPC_CRT=(str, None),
 )
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -113,6 +115,7 @@ INSTALLED_APPS = [
     "django_celery_results",
     "django_celery_beat",
     "django_redis",
+    "django_grpc_framework",
 ]
 
 MIDDLEWARE = [
@@ -128,6 +131,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "bothub.api.v2.middleware.UserLanguageMiddleware",
 ]
 
 ROOT_URLCONF = "bothub.urls"
@@ -187,7 +191,7 @@ DEFAULT_ERROR_MESSAGE = _("An error has occurred")
 LANGUAGE_CODE = env.str("LANGUAGE_CODE")
 
 
-LANGUAGES = (("en", _("English")), ("pt-br", _("Brazilian Portuguese")))
+LANGUAGES = (("en-us", _("English")), ("pt-br", _("Brazilian Portuguese")))
 
 MODELTRANSLATION_DEFAULT_LANGUAGE = "en-us"
 
@@ -480,3 +484,9 @@ if OIDC_ENABLED:
         "OIDC_DRF_AUTH_BACKEND",
         default="bothub.authentication.authorization.WeniOIDCAuthenticationBackend",
     )
+
+
+# gRPC Connect Server
+CONNECT_GRPC_SERVER_URL = env.str("CONNECT_GRPC_SERVER_URL")
+
+CONNECT_CERTIFICATE_GRPC_CRT = env.str("CONNECT_CERTIFICATE_GRPC_CRT")
