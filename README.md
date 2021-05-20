@@ -154,6 +154,7 @@ You can set environment variables in your OS, write on ```.env``` file or pass v
 | CONNECT_GRPC_SERVER_URL | ```string``` | ```localhost:8002``` | Define grpc connect server url
 | CONNECT_CERTIFICATE_GRPC_CRT | ```string``` | ```None``` | Absolute certificate path for secure grpc communication
 | RECAPTCHA_SECRET_KEY | ```string``` | ```''``` | Token of the recaptcha used in the validation of a user's registration.
+| REPOSITORY_NLP_LOG_LIMIT | ```int``` | ```10000``` | Limit of query size to repository log
 
 
 ## Roadmap

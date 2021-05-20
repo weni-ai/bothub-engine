@@ -6,6 +6,7 @@ from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django.utils.translation import ugettext_lazy as _
 from django_filters.rest_framework import DjangoFilterBackend
+from django.conf import settings
 from drf_yasg2 import openapi
 from drf_yasg2.utils import swagger_auto_schema
 from rest_framework import mixins, parsers, permissions, status
@@ -931,6 +932,12 @@ class RepositoryNLPLogViewSet(
     filter_class = RepositoryNLPLogFilter
     filter_backends = [SearchFilter, DjangoFilterBackend]
     search_fields = ["$text", "^text", "=text"]
+    limit = settings.REPOSITORY_NLP_LOG_LIMIT
+
+    def filter_queryset(self, queryset):
+        queryset = super().filter_queryset(queryset)
+
+        return queryset[:self.limit]
 
 
 class RepositoryEntitiesViewSet(
