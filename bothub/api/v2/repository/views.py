@@ -576,7 +576,7 @@ class RepositoriesViewSet(mixins.ListModelMixin, GenericViewSet):
             authorizations__uuid__in=authorizations
         )
 
-        serialized_data = RepositorySerializer(repositories, many=True)
+        serialized_data = ShortRepositorySerializer(repositories, many=True)
         return Response(serialized_data.data)
 
 
