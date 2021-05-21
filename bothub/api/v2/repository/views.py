@@ -570,12 +570,12 @@ class RepositoriesViewSet(mixins.ListModelMixin, GenericViewSet):
         if not project_uuid:
             raise ValidationError(_("Need to pass 'project_uuid' in query params"))
 
-        grpc_client = ConnectGRPCClient()
-        authorizations = grpc_client.list_authorizations(project_uuid=project_uuid)
-
-        repositories = Repository.objects.filter(
-            authorizations__uuid__in=authorizations
+        task = celery_app.send_task(
+            name="get_project_organization", args=[project_uuid]
         )
+        task.wait()
+
+        repositories = Repository.objects.filter(authorizations__uuid__in=task.result)
 
         serialized_data = ShortRepositorySerializer(repositories, many=True)
         return Response(serialized_data.data)
@@ -937,7 +937,7 @@ class RepositoryNLPLogViewSet(
     def filter_queryset(self, queryset):
         queryset = super().filter_queryset(queryset)
 
-        return queryset[:self.limit]
+        return queryset[: self.limit]
 
 
 class RepositoryEntitiesViewSet(
