@@ -9,6 +9,7 @@ from django.db.models import Q, Count
 from django.utils import timezone
 
 from bothub import translate
+from bothub.api.grpc.connect_grpc_client import ConnectGRPCClient
 from bothub.celery import app
 from bothub.common.models import (
     RepositoryQueueTask,
@@ -532,3 +533,10 @@ def evaluate_crossvalidation(data, authorization_token):  # pragma: no cover
         return False
     except json.JSONDecodeError:
         return False
+
+
+@app.task(name="get_project_organization")
+def get_project_organization(project_uuid: str):  # pragma: no cover
+    grpc_client = ConnectGRPCClient()
+    authorizations = grpc_client.list_authorizations(project_uuid=project_uuid)
+    return authorizations
