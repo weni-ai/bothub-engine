@@ -21,7 +21,7 @@ from bothub.api.grpc.repository.handlers import (
 schema_view = get_schema_view(
     openapi.Info(
         title="API Documentation",
-        default_version="v2.1.24",
+        default_version="v2.1.25",
         description="Documentation",
         terms_of_service="https://bothub.it/terms",
         contact=openapi.Contact(email="bothub@ilhasoft.com.br"),
