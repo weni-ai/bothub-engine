@@ -96,7 +96,6 @@ from .serializers import (
     TrainSerializer,
     WordDistributionSerializer,
 )
-from ...grpc.connect_grpc_client import ConnectGRPCClient
 
 
 class NewRepositoryViewSet(
