@@ -1,4 +1,4 @@
-from django_grpc_framework.test import FakeRpcError, RPCTransactionTestCase
+from django_grpc_framework.test import RPCTransactionTestCase
 
 from bothub.api.v2.tests.utils import create_user_and_token
 from bothub.authentication.models import User
@@ -28,11 +28,6 @@ class UserServiceTest(RPCTransactionTestCase):
         self.user_stub = authentication_pb2_grpc.UserControllerStub(self.channel)
 
     def test_user_retrieve(self):
-        wrong_email = "wrong@email.com"
-
-        with self.assertRaisesMessage(FakeRpcError, f"User: {wrong_email} not found!"):
-            self.user_retrieve_request(email=wrong_email)
-
         response = self.user_retrieve_request(email=self.user.email)
 
         self.assertEquals(response.id, self.user.id)
