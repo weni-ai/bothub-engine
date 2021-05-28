@@ -17,7 +17,7 @@ class RepositoryService(mixins.ListModelMixin, generics.GenericService):
         if org_id:
             queryset = queryset.filter(authorizations__user__pk=org_id)
 
-        return queryset
+        return queryset[:20]
 
     def RetrieveAuthorization(self, request, context):
         repository = Repository.objects.get(
