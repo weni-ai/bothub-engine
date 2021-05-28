@@ -4,6 +4,7 @@ package weni.bothub.repository;
 
 service RepositoryController {
     rpc List(RepositoryListRequest) returns (stream Repository) {}
+    rpc RetrieveAuthorization(RepositoryAuthorizationRetrieveRequest) returns (Repository) {}
 }
 
 message Repository {
@@ -42,4 +43,8 @@ message Category {
 message RepositoryListRequest {
     optional int32 org_id = 1;
     string name = 2;
+}
+
+message RepositoryAuthorizationRetrieveRequest {
+    string repository_authorization = 1;
 }

@@ -557,12 +557,7 @@ class RepositoriesViewSet(mixins.ListModelMixin, GenericViewSet):
     filter_backends = [DjangoFilterBackend, SearchFilter]
     search_fields = ["$name", "^name", "=name"]
 
-    @action(
-        detail=True,
-        methods=["GET"],
-        url_name="list-project-organizatiton",
-        # lookup_fields=[],
-    )
+    @action(detail=True, methods=["GET"], url_name="list-project-organizatiton")
     def list_project_organizatiton(self, request, **kwargs):
         project_uuid = request.query_params.get("project_uuid")
 
