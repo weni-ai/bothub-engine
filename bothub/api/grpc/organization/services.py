@@ -29,7 +29,7 @@ class OrgService(
 ):
     def List(self, request, context):
 
-        user = utils.get_user(self, request.user_email)
+        user = utils.get_user(request.user_email)
 
         serializer = OrgProtoSerializer(user.get_user_organizations, many=True)
 
@@ -65,7 +65,7 @@ class OrgService(
 
     def Destroy(self, request, context):
         org = utils.get_organization(self, request.id)
-        user = utils.get_user(self, request.user_email)
+        user = utils.get_user(request.user_email)
 
         perm = org.organization_authorizations.get(user=user)
         if perm.is_admin:

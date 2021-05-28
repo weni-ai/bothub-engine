@@ -353,7 +353,7 @@ class CountSubquery(Subquery):
         super().__init__(queryset, output_field, **extra)
 
 
-def get_user(request, user_email: str):
+def get_user(user_email: str):
     from bothub.authentication.models import User
 
     user, created = User.objects.get_or_create(
