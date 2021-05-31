@@ -2275,7 +2275,7 @@ def send_new_request_email_to_admins_on_created(instance, created, **kwargs):
         instance.send_new_request_email_to_admins()
 
 
-@receiver(models.signals.post_delete, sender=RequestRepositoryAuthorization)
+@receiver(models.signals.pre_delete, sender=RequestRepositoryAuthorization)
 def send_request_rejected_email(instance, **kwargs):
     user_authorization = instance.repository.get_user_authorization(instance.user)
     user_authorization.delete()
