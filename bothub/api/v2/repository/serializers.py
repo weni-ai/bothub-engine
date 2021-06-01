@@ -890,7 +890,7 @@ class RepositoryTrainInfoSerializer(serializers.ModelSerializer):
             repository_version_language__repository_version=obj
         )
         return obj.repository.ready_for_train(
-            queryset=queryset, repository_version=obj.pk
+            queryset=queryset, repository_version=obj.pk, version_default=obj.is_default
         )
 
     def get_requirements_to_train(self, obj):
