@@ -19,7 +19,7 @@ class UserPermissionService(
     def Retrieve(self, request, context):
         permissions = self.get_user_permissions(
             utils.get_organization(self, request.org_id),
-            utils.get_user(self, request.org_user_email),
+            utils.get_user(request.org_user_email),
         )
 
         serializer = UserPermissionProtoSerializer(permissions)
@@ -28,7 +28,7 @@ class UserPermissionService(
 
     def Update(self, request, context):
         org = utils.get_organization(self, request.org_id)
-        user = utils.get_user(self, request.user_email)
+        user = utils.get_user(request.user_email)
 
         org.set_user_permission(user=user, permission=request.permission)
 
@@ -39,7 +39,7 @@ class UserPermissionService(
 
     def Remove(self, request, context):
         org = utils.get_organization(self, request.org_id)
-        user = utils.get_user(self, request.user_email)
+        user = utils.get_user(request.user_email)
 
         self.get_user_permissions(org, user).delete()
 
@@ -57,8 +57,14 @@ class UserService(mixins.RetrieveModelMixin, generics.GenericService):
     queryset = User.objects
     lookup_field = "email"
 
+    def get_object(self):
+        return utils.get_user(self.request.email)
+
 
 class UserLanguageService(mixins.UpdateModelMixin, generics.GenericService):
     serializer_class = UserLanguageProtoSerializer
     queryset = User.objects
     lookup_field = "email"
+
+    def get_object(self):
+        return utils.get_user(self.request.email)

@@ -353,13 +353,13 @@ class CountSubquery(Subquery):
         super().__init__(queryset, output_field, **extra)
 
 
-def get_user(request, user_email: str):
+def get_user(user_email: str):
     from bothub.authentication.models import User
 
-    try:
-        return User.objects.get(email=user_email)
-    except User.DoesNotExist:
-        request.context.abort(grpc.StatusCode.NOT_FOUND, f"{user_email} not found!")
+    user, created = User.objects.get_or_create(
+        email=user_email, defaults={"nickname": user_email}
+    )
+    return user
 
 
 def get_organization(request, organization_id: int):

@@ -1,8 +1,8 @@
-from django_grpc_framework import mixins
 from django_grpc_framework import generics
+from django_grpc_framework import mixins
 
-from .serializers import RepositoryProtoSerializer
 from bothub.common.models import Repository
+from .serializers import RepositoryProtoSerializer
 
 
 class RepositoryService(mixins.ListModelMixin, generics.GenericService):
@@ -17,4 +17,11 @@ class RepositoryService(mixins.ListModelMixin, generics.GenericService):
         if org_id:
             queryset = queryset.filter(authorizations__user__pk=org_id)
 
-        return queryset
+        return queryset[:20]
+
+    def RetrieveAuthorization(self, request, context):
+        repository = Repository.objects.get(
+            authorizations__uuid=self.request.repository_authorization
+        )
+
+        return RepositoryProtoSerializer(repository).message
