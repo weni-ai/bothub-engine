@@ -40,7 +40,7 @@ from bothub.common.models import (
     RepositoryTranslator,
     RepositoryVersion,
     RepositoryVote,
-    RequestRepositoryAuthorization,
+    RequestRepositoryAuthorization, RepositoryVersionLanguage,
 )
 from bothub.utils import classifier_choice
 
@@ -864,7 +864,7 @@ class NewRepositorySerializer(serializers.ModelSerializer):
 
 class RepositoryTrainInfoSerializer(serializers.ModelSerializer):
     class Meta:
-        model = RepositoryVersion
+        model = RepositoryVersionLanguage
         fields = [
             "repository_version_id",
             "uuid",
@@ -876,59 +876,12 @@ class RepositoryTrainInfoSerializer(serializers.ModelSerializer):
         ref_name = None
 
     repository_version_id = serializers.PrimaryKeyRelatedField(
-        read_only=True, style={"show": False}, source="pk"
+        read_only=True, style={"show": False}, source="repository_version.pk"
     )
     uuid = serializers.UUIDField(
-        style={"show": False}, read_only=True, source="repository.uuid"
+        style={"show": False}, read_only=True, source="repository_version.repository.uuid"
     )
-    ready_for_train = serializers.SerializerMethodField(style={"show": False})
-    requirements_to_train = serializers.SerializerMethodField(style={"show": False})
-    languages_warnings = serializers.SerializerMethodField(style={"show": False})
-
-    def get_ready_for_train(self, obj):
-        queryset = RepositoryExample.objects.filter(
-            repository_version_language__repository_version=obj
-        )
-        return obj.repository.ready_for_train(
-            queryset=queryset, repository_version=obj.pk, version_default=obj.is_default
-        )
-
-    def get_requirements_to_train(self, obj):
-        queryset = RepositoryExample.objects.filter(
-            repository_version_language__repository_version=obj
-        )
-        return dict(
-            filter(
-                lambda l: l[1],
-                map(
-                    lambda u: (u.language, u.requirements_to_train),
-                    obj.repository.current_versions(
-                        queryset=queryset,
-                        repository_version=obj.pk,
-                        version_default=obj.is_default,
-                    ),
-                ),
-            )
-        )
-
-    def get_languages_warnings(self, obj):
-        queryset = RepositoryExample.objects.filter(
-            repository_version_language__repository_version=obj
-        )
-
-        return dict(
-            filter(
-                lambda w: len(w[1]) > 0,
-                map(
-                    lambda u: (u.language, u.warnings),
-                    obj.repository.current_versions(
-                        queryset=queryset,
-                        version_default=obj.is_default,
-                        repository_version=obj.pk,
-                    ),
-                ),
-            )
-        )
+    languages_warnings = serializers.ListField(source='warnings')
 
 
 class RepositorySerializer(serializers.ModelSerializer):
