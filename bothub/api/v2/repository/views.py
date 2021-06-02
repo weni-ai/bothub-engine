@@ -42,7 +42,8 @@ from bothub.common.models import (
     RepositoryTranslator,
     RepositoryVersion,
     RepositoryVote,
-    RequestRepositoryAuthorization, RepositoryVersionLanguage,
+    RequestRepositoryAuthorization,
+    RepositoryVersionLanguage,
 )
 
 from ..metadata import Metadata
@@ -63,7 +64,8 @@ from .permissions import (
     RepositoryInfoPermission,
     RepositoryIntentPermission,
     RepositoryMigratePermission,
-    RepositoryPermission, RepositoryTrainInfoPermission,
+    RepositoryPermission,
+    RepositoryTrainInfoPermission,
 )
 from .serializers import (
     AnalyzeTextSerializer,
@@ -206,7 +208,11 @@ class RepositoryTrainInfoViewSet(
 
     queryset = RepositoryVersionLanguage.objects
     lookup_field = "repository__uuid"
-    lookup_fields = ["repository_version__repository__uuid", "repository_version__pk", 'language']
+    lookup_fields = [
+        "repository_version__repository__uuid",
+        "repository_version__pk",
+        "language",
+    ]
     serializer_class = RepositoryTrainInfoSerializer
     permission_classes = [IsAuthenticatedOrReadOnly, RepositoryTrainInfoPermission]
     metadata_class = Metadata

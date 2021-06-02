@@ -36,7 +36,9 @@ class RepositoryInfoPermission(permissions.BasePermission):
 
 class RepositoryTrainInfoPermission(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
-        authorization = obj.repository_version.repository.get_user_authorization(request.user)
+        authorization = obj.repository_version.repository.get_user_authorization(
+            request.user
+        )
         if request.method in READ_METHODS and not request.user.is_authenticated:
             return authorization.can_read
 

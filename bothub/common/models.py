@@ -438,6 +438,9 @@ class Repository(models.Model):
             payload = {"repository_version": data.get("repository_version")}
             headers = {"Authorization": f"Bearer {user_authorization.uuid}"}
 
+            if "language" in data:
+                payload.update({"language": data.get("language")})
+
             r = requests.post(url, json=payload, headers=headers)
 
             return r  # pragma: no cover
@@ -1051,6 +1054,11 @@ class RepositoryVersionLanguage(models.Model):
             return [_("This bot version is being trained.")]
 
         r = []
+
+        intents = self.examples.values_list("intent__text", flat=True)
+
+        if "" in intents:
+            r.append(_("All examples need have a intent."))
 
         weak_intents = (
             self.examples.values("intent__text")

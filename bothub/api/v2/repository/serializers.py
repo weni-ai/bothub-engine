@@ -40,7 +40,8 @@ from bothub.common.models import (
     RepositoryTranslator,
     RepositoryVersion,
     RepositoryVote,
-    RequestRepositoryAuthorization, RepositoryVersionLanguage,
+    RequestRepositoryAuthorization,
+    RepositoryVersionLanguage,
 )
 from bothub.utils import classifier_choice
 
@@ -879,9 +880,11 @@ class RepositoryTrainInfoSerializer(serializers.ModelSerializer):
         read_only=True, style={"show": False}, source="repository_version.pk"
     )
     uuid = serializers.UUIDField(
-        style={"show": False}, read_only=True, source="repository_version.repository.uuid"
+        style={"show": False},
+        read_only=True,
+        source="repository_version.repository.uuid",
     )
-    languages_warnings = serializers.ListField(source='warnings')
+    languages_warnings = serializers.ListField(source="warnings")
 
 
 class RepositorySerializer(serializers.ModelSerializer):
@@ -1396,6 +1399,7 @@ class WordDistributionSerializer(serializers.Serializer):
 
 class TrainSerializer(serializers.Serializer):
     repository_version = serializers.IntegerField(required=False)
+    language = serializers.ChoiceField(LANGUAGE_CHOICES, required=False)
 
 
 class EvaluateSerializer(serializers.Serializer):
