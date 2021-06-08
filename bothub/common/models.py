@@ -589,8 +589,8 @@ class Repository(models.Model):
         return list(
             set(
                 [self.language]
-                + list(examples_languages)
-                + list(translations_languages)
+                + list(set(examples_languages))
+                + list(set(translations_languages))
             )
         )
 
@@ -990,6 +990,11 @@ class RepositoryVersionLanguage(models.Model):
         verbose_name = _("repository version language")
         verbose_name_plural = _("repository version languages")
         ordering = ["-created_at"]
+        indexes = [
+            models.Index(
+                name="vs_repository_version_idx", fields=("repository_version",)
+            )
+        ]
 
     MIN_EXAMPLES_PER_INTENT = 2
     MIN_EXAMPLES_PER_ENTITY = 2
@@ -1055,9 +1060,9 @@ class RepositoryVersionLanguage(models.Model):
         weak_intents = (
             self.examples.values("intent__text")
             .annotate(intent_count=models.Count("id"))
-            .order_by()
             .exclude(intent_count__gte=self.MIN_EXAMPLES_PER_INTENT)
         )
+
         if weak_intents.exists():
             for i in weak_intents:
                 r.append(
@@ -1075,9 +1080,9 @@ class RepositoryVersionLanguage(models.Model):
             .filter(es_count__gte=1)
             .values("entities__entity__value")
             .annotate(entities_count=models.Count("id"))
-            .order_by()
             .exclude(entities_count__gte=self.MIN_EXAMPLES_PER_ENTITY)
         )
+
         if weak_entities.exists():
             for e in weak_entities:
                 r.append(
@@ -1094,7 +1099,9 @@ class RepositoryVersionLanguage(models.Model):
 
     @property
     def ready_for_train(self):
-        if len(self.requirements_to_train) > 0:
+        requirements = self.requirements_to_train
+
+        if len(requirements) > 0:
             return False
 
         if self.training_end_at is not None and self.last_update is not None:
@@ -1107,7 +1114,7 @@ class RepositoryVersionLanguage(models.Model):
         if self.examples.count() == 0:
             return False
 
-        return len(self.requirements_to_train) == 0
+        return len(requirements) == 0
 
     @property
     def intents(self):
@@ -1358,11 +1365,19 @@ class RepositoryExample(models.Model):
         verbose_name = _("repository example")
         verbose_name_plural = _("repository examples")
         ordering = ["-created_at"]
+        indexes = [
+            models.Index(
+                name="common_repository_example_idx",
+                fields=("repository_version_language",),
+            )
+        ]
 
     repository_version_language = models.ForeignKey(
         RepositoryVersionLanguage, models.CASCADE, related_name="added", editable=False
     )
-    text = models.TextField(_("text"), help_text=_("Example text"))
+    text = models.TextField(
+        _("text"), help_text=_("Example text"), blank=False, null=False
+    )
     intent = models.ForeignKey(RepositoryIntent, models.CASCADE)
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
     last_update = models.DateTimeField(_("last update"))
@@ -1447,6 +1462,12 @@ class RepositoryTranslatedExample(models.Model):
         verbose_name_plural = _("repository translated examples")
         unique_together = ["original_example", "language"]
         ordering = ["-created_at"]
+        indexes = [
+            models.Index(
+                name="repository_version_idx",
+                fields=("repository_version_language", "language"),
+            )
+        ]
 
     repository_version_language = models.ForeignKey(
         RepositoryVersionLanguage,
