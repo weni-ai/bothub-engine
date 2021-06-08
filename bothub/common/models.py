@@ -1052,6 +1052,11 @@ class RepositoryVersionLanguage(models.Model):
 
         r = []
 
+        intents = self.examples.values_list("intent__text", flat=True)
+
+        if "" in intents:
+            r.append(_("All examples need have a intent."))
+
         weak_intents = (
             self.examples.values("intent__text")
             .annotate(intent_count=models.Count("id"))
