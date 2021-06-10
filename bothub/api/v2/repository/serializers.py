@@ -478,6 +478,7 @@ class NewRepositorySerializer(serializers.ModelSerializer):
             "count_authorizations",
             "repository_score",
             "repository_version_language",
+            "repository_type",
         ]
         read_only = [
             "uuid",
@@ -495,6 +496,7 @@ class NewRepositorySerializer(serializers.ModelSerializer):
             "ready_for_parse",
             "count_authorizations",
             "repository_version_language",
+            "repository_type",
         ]
         ref_name = None
 
@@ -604,6 +606,9 @@ class NewRepositorySerializer(serializers.ModelSerializer):
     repository_score = serializers.SerializerMethodField(style={"show": False})
     repository_version_language = serializers.SerializerMethodField(
         style={"show": False}
+    )
+    repository_type = serializers.CharField(
+        style={"show": False}, read_only=True, source="repository.repository_type"
     )
 
     def get_authorizations(self, obj):
