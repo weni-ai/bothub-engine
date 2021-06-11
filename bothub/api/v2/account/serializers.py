@@ -26,14 +26,16 @@ class RegisterUserSerializer(serializers.ModelSerializer):
         write_only=True, validators=[validate_password], label=_("Password")
     )
 
-    def create(self, validated_data):
-        validated_data.pop("recaptcha")
-        return super().create(validated_data)
-
     class Meta:
         model = User
         fields = ["email", "name", "nickname", "password", "recaptcha"]
         ref_name = None
+
+    def create(self, validated_data):
+        validated_data.pop("recaptcha")
+        instance = super().create(validated_data)
+        instance.send_welcome_email()
+        return instance
 
     @staticmethod
     def validate_password(value):
