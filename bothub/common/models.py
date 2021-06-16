@@ -438,6 +438,9 @@ class Repository(models.Model):
             payload = {"repository_version": data.get("repository_version")}
             headers = {"Authorization": f"Bearer {user_authorization.uuid}"}
 
+            if "language" in data:
+                payload.update({"language": data.get("language")})
+
             r = requests.post(url, json=payload, headers=headers)
 
             return r  # pragma: no cover
