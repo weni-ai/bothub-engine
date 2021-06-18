@@ -97,6 +97,7 @@ from .serializers import (
     ShortRepositorySerializer,
     TrainSerializer,
     WordDistributionSerializer,
+    RemoveRepositoryProject,
 )
 
 
@@ -197,6 +198,36 @@ class NewRepositoryViewSet(
         )
 
         return Response({"id_queue": task.task_id})
+
+    @action(
+        detail=True, methods=["POST"],
+        url_name="remove-repository-project",
+        serializer_class=RemoveRepositoryProject, # TODO: change later
+    )
+    def remove_repository_project(self, request, **kwargs):
+        repository = self.get_object().repository
+
+        project_uuid = request.data.get("project_uuid")
+
+        if not project_uuid:
+            raise ValidationError(_("Need to pass 'project_uuid' in query params"))
+        
+        project_organization = celery_app.send_task(
+            name="get_project_organization", args=[project_uuid]
+        )
+        project_organization.wait()
+        
+        repositories = repository.authorizations.filter(uuid__in=project_organization.result)
+        
+        if not repositories.exists():
+            raise ValidationError(_("Repository is not be included on project"))
+
+        # task = celery_app.send_task(
+        #     name="remove_classifier_project", args=[project_uuid, classifier_uuid]
+        # )
+        # task.wait()
+        
+        return Response()
 
 
 class RepositoryTrainInfoViewSet(

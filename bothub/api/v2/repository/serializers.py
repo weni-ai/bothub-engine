@@ -1612,3 +1612,7 @@ class RepositoryScoreSerializer(serializers.ModelSerializer):
 
 class RepositoryExampleSuggestionSerializer(serializers.Serializer):
     pass
+
+
+class RemoveRepositoryProject(serializers.Serializer):
+    pass
