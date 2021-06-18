@@ -254,8 +254,6 @@ class NewRepositoryViewSet(
         )
         authorization_classifier.wait()
 
-        print(authorization_classifier.result)
-
         task = celery_app.send_task(
             name="remove_classifier_project", args=[authorization_classifier.result]
         )
