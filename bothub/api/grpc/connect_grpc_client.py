@@ -30,6 +30,8 @@ class ConnectGRPCClient:
                         "authorization_uuid": project.authorization_uuid,
                         "classifier_type": project.classifier_type,
                         "name": project.name,
+                        "is_active": project.is_active,
+                        "uuid": project.uuid,
                     }
                 )
         except grpc.RpcError as e:
@@ -41,3 +43,26 @@ class ConnectGRPCClient:
         classifiers = self.list_classifiers(project_uuid=project_uuid)
 
         return [classifier.get("authorization_uuid") for classifier in classifiers]
+
+    def get_authorization_classifier(
+        self, project_uuid: str, authorization_uuid: str
+    ) -> str:
+        """
+        Recives a authorization UUID and returns the respective classifier UUID
+        """
+        classifiers = self.list_classifiers(project_uuid)
+        classifier = filter(
+            lambda classifier: classifier["authorization_uuid"] == authorization_uuid,
+            classifiers,
+        )
+
+        return next(classifier).get("uuid")
+
+    def destroy_classifier(self, classifier_uuid: str):
+
+        stub = project_pb2_grpc.ProjectControllerStub(self.channel)
+        response = stub.DestroyClassifier(
+            project_pb2.ClassifierDestroyRequest(uuid=classifier_uuid)
+        )
+
+        return response

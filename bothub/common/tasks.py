@@ -540,3 +540,15 @@ def get_project_organization(project_uuid: str):  # pragma: no cover
     grpc_client = ConnectGRPCClient()
     authorizations = grpc_client.list_authorizations(project_uuid=project_uuid)
     return authorizations
+
+
+@app.task(name="get_authorization_classifier")
+def get_authorization_classifier(project_uuid: str, authorization_uuid=str) -> str:
+    grpc_client = ConnectGRPCClient()
+    return grpc_client.get_authorization_classifier(project_uuid, authorization_uuid)
+
+
+@app.task(name="remove_classifier_project")
+def remove_classifier_project(classifier_uuid=str):
+    grpc_client = ConnectGRPCClient()
+    grpc_client.destroy_classifier(classifier_uuid)
