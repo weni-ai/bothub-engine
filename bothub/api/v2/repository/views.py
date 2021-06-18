@@ -133,6 +133,29 @@ class NewRepositoryViewSet(
 
     @action(
         detail=True,
+        methods=["GET"],
+        url_name="project-repository",
+        lookup_fields=["repository__uuid", "pk"],
+    )
+    def projectrepository(self, request, **kwargs):
+        project_uuid = request.query_params.get("project_uuid")
+        repository = self.get_object().repository
+
+        if not project_uuid:
+            raise ValidationError(_("Need to pass 'project_uuid' in query params"))
+
+        task = celery_app.send_task(
+            name="get_project_organization", args=[project_uuid]
+        )
+        task.wait()
+
+        repositories = repository.authorizations.filter(uuid__in=task.result)
+        data = dict(in_project=repositories.exists())
+
+        return Response(data)
+
+    @action(
+        detail=True,
         methods=["POST"],
         url_name="repository-auto-translation",
         permission_classes=[],
