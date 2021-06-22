@@ -1616,3 +1616,26 @@ class RepositoryExampleSuggestionSerializer(serializers.Serializer):
 
 class RemoveRepositoryProject(serializers.Serializer):
     pass
+
+
+class AddRepositoryProjectSerializer(serializers.Serializer):
+    
+    name = serializers.CharField(required=True)
+    user = serializers.EmailField(required=True)
+    authorization_uuid = serializers.UUIDField(required=True)
+    project_uuid = serializers.CharField(required=True)
+
+    def validate_authorization_uuid(self, value):
+        if not RepositoryAuthorization.objects.filter(uuid=value).exists():
+            raise ValidationError("Authorization token not found")
+        
+        return value
+
+    def create(self, validated_data):
+        
+        task = celery_app.send_task(
+            name="create_repository_project", kwargs=validated_data
+        )
+        task.wait()
+        
+        return validated_data

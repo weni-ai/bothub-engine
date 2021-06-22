@@ -98,6 +98,7 @@ from .serializers import (
     TrainSerializer,
     WordDistributionSerializer,
     RemoveRepositoryProject,
+    AddRepositoryProjectSerializer,
 )
 
 
@@ -114,6 +115,29 @@ class NewRepositoryViewSet(
     serializer_class = NewRepositorySerializer
     permission_classes = [IsAuthenticatedOrReadOnly, RepositoryInfoPermission]
     metadata_class = Metadata
+
+    def repository_in_project(self, project_uuid: str) -> tuple:
+        repository = self.get_object().repository
+
+        project_organization = celery_app.send_task(
+            name="get_project_organization", args=[project_uuid]
+        )
+        project_organization.wait()
+
+        authorizations = repository.authorizations.filter(
+            uuid__in=project_organization.result
+        )
+
+        return authorizations.first(), authorizations.exists()
+
+    def get_authorization_classifier(self, project_uuid: str, authorization_uuid: str) -> str:
+        authorization_classifier = celery_app.send_task(
+            name="get_authorization_classifier",
+            args=[project_uuid, authorization_uuid],
+        )
+        authorization_classifier.wait()
+        
+        return authorization_classifier.result
 
     @action(
         detail=True,
@@ -241,19 +265,19 @@ class NewRepositoryViewSet(
         )
         project_organization.wait()
 
-        repositories = repository.authorizations.filter(
+        authorizations = repository.authorizations.filter(
             uuid__in=project_organization.result
         )
 
-        if not repositories.exists():
+        if not authorizations.exists():
             raise ValidationError(_("Repository is not be included on project"))
 
         authorization_classifier = celery_app.send_task(
             name="get_authorization_classifier",
-            args=[project_uuid, repositories.first().uuid],
+            args=[project_uuid, authorizations.first().uuid],
         )
         authorization_classifier.wait()
-
+    
         task = celery_app.send_task(
             name="remove_classifier_project", args=[authorization_classifier.result]
         )
@@ -261,6 +285,27 @@ class NewRepositoryViewSet(
 
         return Response()
 
+    @action(
+        detail=True,
+        methods=["POST"],
+        url_name="add-repository-project",
+        serializer_class=AddRepositoryProjectSerializer,
+    )
+    def add_repository_project(self, request, **kwargs):
+        repository = self.get_object().repository
+
+        serializer = AddRepositoryProjectSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        project_uuid = serializer.validated_data.get("project_uuid")
+        authorization, exists = self.repository_in_project(project_uuid)
+
+        if exists:
+            raise ValidationError(_("Repository already added"))
+        
+        serializer.save()
+
+        return Response()
 
 class RepositoryTrainInfoViewSet(
     MultipleFieldLookupMixin, mixins.RetrieveModelMixin, GenericViewSet

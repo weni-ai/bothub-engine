@@ -552,3 +552,10 @@ def get_authorization_classifier(project_uuid: str, authorization_uuid=str) -> s
 def remove_classifier_project(classifier_uuid=str):
     grpc_client = ConnectGRPCClient()
     grpc_client.destroy_classifier(classifier_uuid)
+    
+
+@app.task(name="create_repository_project")
+def create_repository_project(authorization_uuid=None, **kwargs):
+    grpc_client = ConnectGRPCClient()
+    grpc_client.create_classifier(access_token=authorization_uuid, **kwargs)
+    return kwargs
