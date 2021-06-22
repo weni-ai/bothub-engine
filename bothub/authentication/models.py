@@ -195,9 +195,3 @@ class User(AbstractBaseUser, RepositoryOwner, PermissionsMixin):
                 role=OrganizationAuthorization.LEVEL_NOTHING
             ).values_list("organization", flat=True)
         )
-
-
-@receiver(models.signals.post_save, sender=User)
-def send_welcome_email(instance, created, **kwargs):
-    if created:
-        instance.send_welcome_email()
