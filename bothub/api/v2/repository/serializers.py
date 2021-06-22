@@ -41,6 +41,7 @@ from bothub.common.models import (
     RepositoryVersion,
     RepositoryVote,
     RequestRepositoryAuthorization,
+    RepositoryVersionLanguage,
 )
 from bothub.utils import classifier_choice
 
@@ -478,6 +479,7 @@ class NewRepositorySerializer(serializers.ModelSerializer):
             "count_authorizations",
             "repository_score",
             "repository_version_language",
+            "repository_type",
         ]
         read_only = [
             "uuid",
@@ -495,6 +497,7 @@ class NewRepositorySerializer(serializers.ModelSerializer):
             "ready_for_parse",
             "count_authorizations",
             "repository_version_language",
+            "repository_type",
         ]
         ref_name = None
 
@@ -604,6 +607,9 @@ class NewRepositorySerializer(serializers.ModelSerializer):
     repository_score = serializers.SerializerMethodField(style={"show": False})
     repository_version_language = serializers.SerializerMethodField(
         style={"show": False}
+    )
+    repository_type = serializers.CharField(
+        style={"show": False}, read_only=True, source="repository.repository_type"
     )
 
     def get_authorizations(self, obj):
@@ -864,7 +870,7 @@ class NewRepositorySerializer(serializers.ModelSerializer):
 
 class RepositoryTrainInfoSerializer(serializers.ModelSerializer):
     class Meta:
-        model = RepositoryVersion
+        model = RepositoryVersionLanguage
         fields = [
             "repository_version_id",
             "uuid",
@@ -876,59 +882,14 @@ class RepositoryTrainInfoSerializer(serializers.ModelSerializer):
         ref_name = None
 
     repository_version_id = serializers.PrimaryKeyRelatedField(
-        read_only=True, style={"show": False}, source="pk"
+        read_only=True, style={"show": False}, source="repository_version.pk"
     )
     uuid = serializers.UUIDField(
-        style={"show": False}, read_only=True, source="repository.uuid"
+        style={"show": False},
+        read_only=True,
+        source="repository_version.repository.uuid",
     )
-    ready_for_train = serializers.SerializerMethodField(style={"show": False})
-    requirements_to_train = serializers.SerializerMethodField(style={"show": False})
-    languages_warnings = serializers.SerializerMethodField(style={"show": False})
-
-    def get_ready_for_train(self, obj):
-        queryset = RepositoryExample.objects.filter(
-            repository_version_language__repository_version=obj
-        )
-        return obj.repository.ready_for_train(
-            queryset=queryset, repository_version=obj.pk, version_default=obj.is_default
-        )
-
-    def get_requirements_to_train(self, obj):
-        queryset = RepositoryExample.objects.filter(
-            repository_version_language__repository_version=obj
-        )
-        return dict(
-            filter(
-                lambda l: l[1],
-                map(
-                    lambda u: (u.language, u.requirements_to_train),
-                    obj.repository.current_versions(
-                        queryset=queryset,
-                        repository_version=obj.pk,
-                        version_default=obj.is_default,
-                    ),
-                ),
-            )
-        )
-
-    def get_languages_warnings(self, obj):
-        queryset = RepositoryExample.objects.filter(
-            repository_version_language__repository_version=obj
-        )
-
-        return dict(
-            filter(
-                lambda w: len(w[1]) > 0,
-                map(
-                    lambda u: (u.language, u.warnings),
-                    obj.repository.current_versions(
-                        queryset=queryset,
-                        version_default=obj.is_default,
-                        repository_version=obj.pk,
-                    ),
-                ),
-            )
-        )
+    languages_warnings = serializers.ListField(source="warnings")
 
 
 class RepositorySerializer(serializers.ModelSerializer):
@@ -1443,6 +1404,7 @@ class WordDistributionSerializer(serializers.Serializer):
 
 class TrainSerializer(serializers.Serializer):
     repository_version = serializers.IntegerField(required=False)
+    language = serializers.ChoiceField(LANGUAGE_CHOICES, required=False)
 
 
 class EvaluateSerializer(serializers.Serializer):
