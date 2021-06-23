@@ -1627,9 +1627,15 @@ class AddRepositoryProjectSerializer(serializers.Serializer):
     project_uuid = serializers.CharField(required=True)
 
     def create(self, validated_data):
-        
+        print(validated_data)
         task = celery_app.send_task(
             name="create_repository_project", kwargs=validated_data
         )
         task.wait()
         return validated_data
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        if data.get('organization'):
+            data.pop('organization')
+        return data
