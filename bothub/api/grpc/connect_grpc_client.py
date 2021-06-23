@@ -55,13 +55,13 @@ class ConnectGRPCClient:
 
         return next(classifier).get("uuid")
 
-    def destroy_classifier(self, classifier_uuid: str):
-
+    def remove_authorization(self, project_uuid: str, authorization_uuid: str):
+        classifier_uuid = self.get_authorization_classifier(project_uuid, authorization_uuid)
+        
         stub = project_pb2_grpc.ProjectControllerStub(self.channel)
-        response = stub.DestroyClassifier(
-            project_pb2.ClassifierDestroyRequest(uuid=classifier_uuid)
-        )
+        stub.DestroyClassifier(project_pb2.ClassifierDestroyRequest(uuid=classifier_uuid))
 
     def create_classifier(self, **kwargs):
         stub = project_pb2_grpc.ProjectControllerStub(self.channel)
+        print(dict(**kwargs, classifier_type="bothub"))
         return stub.CreateClassifier(project_pb2.ClassifierCreateRequest(**kwargs, classifier_type="bothub"))

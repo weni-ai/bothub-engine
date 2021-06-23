@@ -1,4 +1,5 @@
 import json
+from os import access
 
 from django.conf import settings
 from django.shortcuts import get_object_or_404
@@ -1622,14 +1623,8 @@ class AddRepositoryProjectSerializer(serializers.Serializer):
     
     name = serializers.CharField(required=True)
     user = serializers.EmailField(required=True)
-    authorization_uuid = serializers.UUIDField(required=True)
+    access_token = serializers.CharField(required=True)
     project_uuid = serializers.CharField(required=True)
-
-    def validate_authorization_uuid(self, value):
-        if not RepositoryAuthorization.objects.filter(uuid=value).exists():
-            raise ValidationError("Authorization token not found")
-        
-        return value
 
     def create(self, validated_data):
         
@@ -1637,5 +1632,4 @@ class AddRepositoryProjectSerializer(serializers.Serializer):
             name="create_repository_project", kwargs=validated_data
         )
         task.wait()
-        
         return validated_data

@@ -159,9 +159,12 @@ class NewRepositoryViewSet(
         detail=True,
         methods=["GET"],
         url_name="project-repository",
+        permission_classes = [IsAuthenticatedOrReadOnly],
         lookup_fields=["repository__uuid", "pk"],
     )
     def projectrepository(self, request, **kwargs):
+        # Precisa estar logado para ver
+
         project_uuid = request.query_params.get("project_uuid")
         repository = self.get_object().repository
 
@@ -253,7 +256,17 @@ class NewRepositoryViewSet(
         serializer_class=RemoveRepositoryProject,
     )
     def remove_repository_project(self, request, **kwargs):
-        repository = self.get_object().repository
+        # Remover Admin
+
+        repository_version = self.get_object()
+        repository = repository_version.repository
+        
+        user_authorization = repository_version.repository.get_user_authorization(
+            request.user
+        )
+        
+        if not user_authorization.is_admin:
+            raise PermissionDenied()
 
         project_uuid = request.data.get("project_uuid")
 
@@ -272,14 +285,10 @@ class NewRepositoryViewSet(
         if not authorizations.exists():
             raise ValidationError(_("Repository is not be included on project"))
 
-        authorization_classifier = celery_app.send_task(
-            name="get_authorization_classifier",
-            args=[project_uuid, authorizations.first().uuid],
-        )
-        authorization_classifier.wait()
+        authorizations_uuids = map(lambda authorization: str(authorization.uuid), authorizations)
     
         task = celery_app.send_task(
-            name="remove_classifier_project", args=[authorization_classifier.result]
+            name="remove_authorizations_project", args=[project_uuid, list(authorizations_uuids)]
         )
         task.wait()
 
@@ -292,9 +301,25 @@ class NewRepositoryViewSet(
         serializer_class=AddRepositoryProjectSerializer,
     )
     def add_repository_project(self, request, **kwargs):
-        repository = self.get_object().repository
+        # Adicionar Admin ou contribuidor
 
-        serializer = AddRepositoryProjectSerializer(data=request.data)
+        repository_version = self.get_object()
+        print(type(repository_version))
+
+        user_authorization = repository_version.repository.get_user_authorization(
+            request.user
+        )
+
+        if not user_authorization.can_contribute:
+            raise PermissionDenied()
+
+        serializer_data = dict(
+            user=request.user.email,
+            access_token=str(user_authorization.uuid),
+            **request.data,
+        )
+        
+        serializer = AddRepositoryProjectSerializer(data=serializer_data)
         serializer.is_valid(raise_exception=True)
 
         project_uuid = serializer.validated_data.get("project_uuid")
@@ -302,10 +327,10 @@ class NewRepositoryViewSet(
 
         if exists:
             raise ValidationError(_("Repository already added"))
-        
-        serializer.save()
 
-        return Response()
+        data = serializer.save()
+
+        return Response(data)
 
 class RepositoryTrainInfoViewSet(
     MultipleFieldLookupMixin, mixins.RetrieveModelMixin, GenericViewSet

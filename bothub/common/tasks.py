@@ -548,14 +548,22 @@ def get_authorization_classifier(project_uuid: str, authorization_uuid=str) -> s
     return grpc_client.get_authorization_classifier(project_uuid, authorization_uuid)
 
 
-@app.task(name="remove_classifier_project")
-def remove_classifier_project(classifier_uuid=str):
-    grpc_client = ConnectGRPCClient()
-    grpc_client.destroy_classifier(classifier_uuid)
+# @app.task(name="remove_classifier_project")
+# def remove_classifiers_project(classifiers_uuid: list):
+#     for classifier_uuid in classifiers_uuid:
+#         grpc_client = ConnectGRPCClient()
+#         grpc_client.destroy_classifier(classifier_uuid)
+
+
+@app.task(name="remove_authorizations_project")
+def remove_authorizations_project(project_uuid: str, authorizations_uuids: list):
+    for authorization_uuid in authorizations_uuids:
+        grpc_client = ConnectGRPCClient()
+        grpc_client.remove_authorization(project_uuid, authorization_uuid)
     
 
 @app.task(name="create_repository_project")
-def create_repository_project(authorization_uuid=None, **kwargs):
+def create_repository_project(**kwargs):
     grpc_client = ConnectGRPCClient()
-    grpc_client.create_classifier(access_token=authorization_uuid, **kwargs)
+    grpc_client.create_classifier(**kwargs)
     return kwargs
