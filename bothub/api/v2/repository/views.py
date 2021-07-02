@@ -247,7 +247,7 @@ class NewRepositoryViewSet(
     )
     def projectrepository(self, request, **kwargs):
         repository = self.get_object().repository
-        
+
         project_uuid = request.query_params.get("project_uuid")
         organization_pk = request.query_params.get("organization")
 
@@ -288,7 +288,6 @@ class NewRepositoryViewSet(
         serializer_class=RemoveRepositoryProject,
     )
     def remove_repository_project(self, request, **kwargs):
-        # Remover Admin
 
         repository_version = self.get_object()
         repository = repository_version.repository
@@ -301,23 +300,36 @@ class NewRepositoryViewSet(
             raise PermissionDenied()
 
         project_uuid = request.data.get("project_uuid")
+        organization_pk = request.data.get("organization")
 
         if not project_uuid:
             raise ValidationError(_("Need to pass 'project_uuid' in query params"))
+
+        try:
+            organization = Organization.objects.get(pk=organization_pk) if organization_pk else None
+        except Organization.DoesNotExist:
+            raise ValidationError(_("Organization not found"))
 
         project_organization = celery_app.send_task(
             name="get_project_organization", args=[project_uuid]
         )
         project_organization.wait()
 
-        authorizations = repository.authorizations.filter(
+        authorizations = list(repository.authorizations.filter(
             uuid__in=project_organization.result
-        )
+        ).values_list("uuid", flat=True))
 
-        if not authorizations.exists():
-            raise ValidationError(_("Repository is not be included on project"))
+        if organization:
+            organization_authorization = organization.get_organization_authorization(request.user)
+            if not organization_authorization.is_admin:
+                raise PermissionDenied()
+            
+            authorizations += list(organization.organization_authorizations.filter(uuid__in=project_organization.result).values_list("uuid", flat=True))
+        
+        if not len(authorizations):
+            raise ValidationError(_("Repository or organization is not be included on project"))
 
-        authorizations_uuids = map(lambda authorization: str(authorization.uuid), authorizations)
+        authorizations_uuids = map(lambda authorization: str(authorization), authorizations)
 
         task = celery_app.send_task(
             name="remove_authorizations_project", args=[project_uuid, list(authorizations_uuids)]
