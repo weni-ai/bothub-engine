@@ -117,29 +117,6 @@ class NewRepositoryViewSet(
     permission_classes = [IsAuthenticatedOrReadOnly, RepositoryInfoPermission]
     metadata_class = Metadata
 
-    def repository_in_project(self, project_uuid: str) -> tuple:
-        repository = self.get_object().repository
-
-        project_organization = celery_app.send_task(
-            name="get_project_organization", args=[project_uuid]
-        )
-        project_organization.wait()
-
-        authorizations = repository.authorizations.filter(
-            uuid__in=project_organization.result
-        )
-
-        return authorizations.first(), authorizations.exists()
-
-    def get_authorization_classifier(self, project_uuid: str, authorization_uuid: str) -> str:
-        authorization_classifier = celery_app.send_task(
-            name="get_authorization_classifier",
-            args=[project_uuid, authorization_uuid],
-        )
-        authorization_classifier.wait()
-        
-        return authorization_classifier.result
-
     @action(
         detail=True,
         methods=["GET"],
@@ -155,7 +132,6 @@ class NewRepositoryViewSet(
 
         repository_version = self.get_object()
         return Response({"languages_status": repository_version.languages_status})
-
 
     @action(
         detail=True,
@@ -224,20 +200,6 @@ class NewRepositoryViewSet(
         )
 
         return Response({"id_queue": task.task_id})
-    
-    # def get_project_authorizations(self, project_uuid: str):
-    #     repository = self.get_object().repository
-
-    #     project_organization = celery_app.send_task(
-    #         name="get_project_organization", args=[project_uuid]
-    #     )
-    #     project_organization.wait()
-
-    #     repository_authorizations = repository.authorizations.filter(
-    #         uuid__in=project_organization.result
-    #     )
-
-    #     return authorizations.first(), authorizations.exists()
 
     @action(
         detail=True,
@@ -345,7 +307,6 @@ class NewRepositoryViewSet(
         serializer_class=AddRepositoryProjectSerializer,
     )
     def add_repository_project(self, request, **kwargs):
-        # Adicionar Admin ou contribuidor
 
         repository = self.get_object().repository
         organization_pk = request.data.get("organization")
