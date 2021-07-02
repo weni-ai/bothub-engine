@@ -547,7 +547,7 @@ def remove_authorizations_project(project_uuid: str, authorizations_uuids: list)
     for authorization_uuid in authorizations_uuids:
         grpc_client = ConnectGRPCClient()
         grpc_client.remove_authorization(project_uuid, authorization_uuid)
-    
+
 
 @app.task(name="create_repository_project")
 def create_repository_project(**kwargs):

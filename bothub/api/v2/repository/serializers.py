@@ -1620,14 +1620,13 @@ class RemoveRepositoryProject(serializers.Serializer):
 
 
 class AddRepositoryProjectSerializer(serializers.Serializer):
-    
+
     name = serializers.CharField(required=True)
     user = serializers.EmailField(required=True)
     access_token = serializers.CharField(required=True)
     project_uuid = serializers.CharField(required=True)
 
     def create(self, validated_data):
-        print(validated_data)
         task = celery_app.send_task(
             name="create_repository_project", kwargs=validated_data
         )
@@ -1636,6 +1635,6 @@ class AddRepositoryProjectSerializer(serializers.Serializer):
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
-        if data.get('organization'):
-            data.pop('organization')
+        if data.get("organization"):
+            data.pop("organization")
         return data
