@@ -2,16 +2,39 @@ syntax = "proto3";
 
 package weni.connect.project;
 
+import "google/protobuf/empty.proto";
+
 service ProjectController {
     rpc Classifier(ClassifierListRequest) returns (stream ClassifierResponse) {}
+    rpc CreateClassifier(ClassifierCreateRequest) returns (ClassifierResponse) {}
+    rpc RetrieveClassifier(ClassifierRetrieveRequest) returns (ClassifierResponse) {}
+    rpc DestroyClassifier(ClassifierDestroyRequest) returns (google.protobuf.Empty) {}
 }
 
 message ClassifierResponse {
     string authorization_uuid = 1;
     string classifier_type = 2;
     string name = 3;
+    bool is_active = 4;
+    string uuid = 5;
 }
 
 message ClassifierListRequest {
     string project_uuid = 1;
+}
+
+message ClassifierCreateRequest {
+    string project_uuid = 1;
+    string user = 2;
+    string classifier_type = 3;
+    string name = 4;
+    string access_token = 5;
+}
+
+message ClassifierRetrieveRequest {
+    string uuid = 1;
+}
+
+message ClassifierDestroyRequest {
+    string uuid = 1;
 }
