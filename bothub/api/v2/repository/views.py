@@ -44,6 +44,7 @@ from bothub.common.models import (
     RepositoryVote,
     RequestRepositoryAuthorization,
     RepositoryVersionLanguage,
+    Organization,
 )
 
 from ..metadata import Metadata
@@ -97,6 +98,8 @@ from .serializers import (
     ShortRepositorySerializer,
     TrainSerializer,
     WordDistributionSerializer,
+    RemoveRepositoryProject,
+    AddRepositoryProjectSerializer,
 )
 
 
@@ -197,6 +200,184 @@ class NewRepositoryViewSet(
         )
 
         return Response({"id_queue": task.task_id})
+
+    @action(
+        detail=True,
+        methods=["GET"],
+        url_name="project-repository",
+        lookup_fields=["repository__uuid", "pk"],
+    )
+    def projectrepository(self, request, **kwargs):
+        repository = self.get_object().repository
+
+        project_uuid = request.query_params.get("project_uuid")
+        organization_pk = request.query_params.get("organization")
+
+        try:
+            organization = (
+                Organization.objects.get(pk=organization_pk)
+                if organization_pk
+                else None
+            )
+        except Organization.DoesNotExist:
+            raise ValidationError(_("Organization not found"))
+
+        if not project_uuid:
+            raise ValidationError(_("Need to pass 'project_uuid' in query params"))
+
+        authorization = repository.get_user_authorization(request.user)
+
+        if not authorization.can_contribute:
+            raise PermissionDenied()
+
+        task = celery_app.send_task(
+            name="get_project_organization", args=[project_uuid]
+        )
+        task.wait()
+
+        repositories = repository.authorizations.filter(uuid__in=task.result)
+
+        data = dict(in_project=repositories.exists())
+
+        if organization:
+
+            organization_authorization = organization.organization_authorizations.filter(
+                uuid__in=task.result
+            )
+            data["in_project"] = (
+                data["in_project"] or organization_authorization.exists()
+            )
+
+        return Response(data)
+
+    @action(
+        detail=True,
+        methods=["POST"],
+        permission_classes=[RepositoryAdminManagerAuthorization],
+        url_name="remove-repository-project",
+        serializer_class=RemoveRepositoryProject,
+    )
+    def remove_repository_project(self, request, **kwargs):
+
+        repository_version = self.get_object()
+        repository = repository_version.repository
+
+        user_authorization = repository_version.repository.get_user_authorization(
+            request.user
+        )
+
+        if not user_authorization.is_admin:
+            raise PermissionDenied()
+
+        project_uuid = request.data.get("project_uuid")
+        organization_pk = request.data.get("organization")
+
+        if not project_uuid:
+            raise ValidationError(_("Need to pass 'project_uuid' in query params"))
+
+        try:
+            organization = (
+                Organization.objects.get(pk=organization_pk)
+                if organization_pk
+                else None
+            )
+        except Organization.DoesNotExist:
+            raise ValidationError(_("Organization not found"))
+
+        project_organization = celery_app.send_task(
+            name="get_project_organization", args=[project_uuid]
+        )
+        project_organization.wait()
+
+        authorizations = list(
+            repository.authorizations.filter(
+                uuid__in=project_organization.result
+            ).values_list("uuid", flat=True)
+        )
+
+        if organization:
+            organization_authorization = organization.get_organization_authorization(
+                request.user
+            )
+            if not organization_authorization.is_admin:
+                raise PermissionDenied()
+
+            authorizations += list(
+                organization.organization_authorizations.filter(
+                    uuid__in=project_organization.result
+                ).values_list("uuid", flat=True)
+            )
+
+        if not len(authorizations):
+            raise ValidationError(
+                _("Repository or organization is not be included on project")
+            )
+
+        authorizations_uuids = map(
+            lambda authorization: str(authorization), authorizations
+        )
+
+        task = celery_app.send_task(
+            name="remove_authorizations_project",
+            args=[project_uuid, list(authorizations_uuids)],
+        )
+        task.wait()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(
+        detail=True,
+        methods=["POST"],
+        url_name="add-repository-project",
+        serializer_class=AddRepositoryProjectSerializer,
+    )
+    def add_repository_project(self, request, **kwargs):
+
+        repository = self.get_object().repository
+        organization_pk = request.data.get("organization")
+
+        try:
+            organization = Organization.objects.get(pk=organization_pk)
+        except Organization.DoesNotExist:
+            raise ValidationError(_("Organization not found"))
+
+        organization_authorization = organization.get_organization_authorization(
+            request.user
+        )
+        user_authorization = repository.get_user_authorization(request.user)
+
+        if (
+            not organization_authorization.can_contribute
+            or not user_authorization.can_contribute
+        ):
+            raise PermissionDenied()
+
+        serializer_data = dict(
+            user=request.user.email,
+            access_token=str(organization_authorization.uuid),
+            **request.data,
+        )
+
+        serializer = AddRepositoryProjectSerializer(data=serializer_data)
+        serializer.is_valid(raise_exception=True)
+
+        project_uuid = serializer.validated_data.get("project_uuid")
+
+        task = celery_app.send_task(
+            name="get_project_organization", args=[project_uuid]
+        )
+        task.wait()
+
+        organization_authorization = organization.organization_authorizations.filter(
+            uuid__in=task.result
+        )
+
+        if organization_authorization.exists():
+            raise ValidationError(_("Repository already added"))
+
+        data = serializer.save()
+
+        return Response(data)
 
 
 class RepositoryTrainInfoViewSet(

@@ -1,4 +1,5 @@
 import json
+from os import access
 
 from django.conf import settings
 from django.shortcuts import get_object_or_404
@@ -1612,3 +1613,28 @@ class RepositoryScoreSerializer(serializers.ModelSerializer):
 
 class RepositoryExampleSuggestionSerializer(serializers.Serializer):
     pass
+
+
+class RemoveRepositoryProject(serializers.Serializer):
+    pass
+
+
+class AddRepositoryProjectSerializer(serializers.Serializer):
+
+    name = serializers.CharField(required=True)
+    user = serializers.EmailField(required=True)
+    access_token = serializers.CharField(required=True)
+    project_uuid = serializers.CharField(required=True)
+
+    def create(self, validated_data):
+        task = celery_app.send_task(
+            name="create_repository_project", kwargs=validated_data
+        )
+        task.wait()
+        return validated_data
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        if data.get("organization"):
+            data.pop("organization")
+        return data
