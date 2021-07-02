@@ -69,7 +69,6 @@ class ConnectGRPCClient:
 
     def create_classifier(self, **kwargs):
         stub = project_pb2_grpc.ProjectControllerStub(self.channel)
-        print(dict(**kwargs, classifier_type="bothub"))
         return stub.CreateClassifier(
             project_pb2.ClassifierCreateRequest(**kwargs, classifier_type="bothub")
         )

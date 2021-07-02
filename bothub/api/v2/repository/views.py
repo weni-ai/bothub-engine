@@ -323,7 +323,7 @@ class NewRepositoryViewSet(
         )
         task.wait()
 
-        return Response()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(
         detail=True,

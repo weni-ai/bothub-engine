@@ -544,8 +544,8 @@ def get_project_organization(project_uuid: str):  # pragma: no cover
 
 @app.task(name="remove_authorizations_project")
 def remove_authorizations_project(project_uuid: str, authorizations_uuids: list):
+    grpc_client = ConnectGRPCClient()
     for authorization_uuid in authorizations_uuids:
-        grpc_client = ConnectGRPCClient()
         grpc_client.remove_authorization(project_uuid, authorization_uuid)
 
 
