@@ -1,15 +1,14 @@
-from django.db import models
-from django.utils.translation import ugettext_lazy as _
-from django.contrib.auth.base_user import BaseUserManager
-from django.contrib.auth.base_user import AbstractBaseUser
-from django.contrib.auth.models import PermissionsMixin
-from django.core.validators import RegexValidator, _lazy_re_compile
-from django.contrib.auth.tokens import PasswordResetTokenGenerator
-from django.core.mail import send_mail
-from django.template.loader import render_to_string
 from django.conf import settings
+from django.contrib.auth.base_user import AbstractBaseUser
+from django.contrib.auth.base_user import BaseUserManager
+from django.contrib.auth.models import PermissionsMixin
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.core.exceptions import ValidationError
-from django.dispatch import receiver
+from django.core.mail import send_mail
+from django.core.validators import RegexValidator, _lazy_re_compile
+from django.db import models
+from django.template.loader import render_to_string
+from django.utils.translation import ugettext_lazy as _
 
 user_nickname_re = _lazy_re_compile(r"^[-a-zA-Z0-9_]+\Z")
 validate_user_nickname_format = RegexValidator(
