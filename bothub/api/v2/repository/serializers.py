@@ -916,6 +916,7 @@ class RepositorySerializer(serializers.ModelSerializer):
             "use_name_entities",
             "use_analyze_char",
             "organization",
+            "version_default",
         ]
         read_only = ["uuid", "created_at"]
         ref_name = None
@@ -986,6 +987,7 @@ class RepositorySerializer(serializers.ModelSerializer):
         style={"show": False},
     )
     categories_list = serializers.SerializerMethodField(style={"show": False})
+    version_default = serializers.SerializerMethodField(style={"show": False})
 
     def create(self, validated_data):
         organization = validated_data.pop("organization", None)
@@ -1016,6 +1018,13 @@ class RepositorySerializer(serializers.ModelSerializer):
 
     def get_categories_list(self, obj):
         return RepositoryCategorySerializer(obj.categories, many=True).data
+
+    def get_version_default(self, obj):
+        return {
+            "id": obj.current_version().repository_version.pk,
+            "repository_version_language_id": obj.current_version().pk,
+            "name": obj.current_version().repository_version.name,
+        }
 
 
 class RepositoryPermissionSerializer(serializers.ModelSerializer):
@@ -1109,6 +1118,7 @@ class ShortRepositorySerializer(serializers.ModelSerializer):
             "owner__nickname",
             "absolute_url",
             "votes",
+            "version_default",
         ]
         read_only = fields
         ref_name = None
@@ -1123,12 +1133,20 @@ class ShortRepositorySerializer(serializers.ModelSerializer):
     absolute_url = serializers.SerializerMethodField()
     intents = serializers.SerializerMethodField(style={"show": False})
     votes = RepositoryVotesSerializer(many=True, read_only=True)
+    version_default = serializers.SerializerMethodField(style={"show": False})
 
     def get_intents(self, obj):
         return obj.get_formatted_intents()
 
     def get_absolute_url(self, obj):
         return obj.get_absolute_url()
+
+    def get_version_default(self, obj):
+        return {
+            "id": obj.current_version().repository_version.pk,
+            "repository_version_language_id": obj.current_version().pk,
+            "name": obj.current_version().repository_version.name,
+        }
 
 
 class RepositoryContributionsSerializer(serializers.ModelSerializer):
