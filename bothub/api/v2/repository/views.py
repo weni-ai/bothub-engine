@@ -354,7 +354,11 @@ class NewRepositoryViewSet(
 
         serializer_data = dict(
             user=request.user.email,
-            access_token=str(organization_authorization.uuid),
+            access_token=str(
+                repository.get_user_authorization(
+                    organization_authorization.organization
+                ).uuid
+            ),
             **request.data,
         )
 
