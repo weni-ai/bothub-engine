@@ -225,7 +225,7 @@ class NewRepositoryViewSet(
         if not project_uuid:
             raise ValidationError(_("Need to pass 'project_uuid' in query params"))
 
-        authorization = repository.get_user_authorization(request.user)
+        authorization = organization.get_organization_authorization(request.user)
 
         if not authorization.can_contribute:
             raise PermissionDenied()
@@ -262,13 +262,6 @@ class NewRepositoryViewSet(
         repository_version = self.get_object()
         repository = repository_version.repository
 
-        user_authorization = repository_version.repository.get_user_authorization(
-            request.user
-        )
-
-        if not user_authorization.is_admin:
-            raise PermissionDenied()
-
         project_uuid = request.data.get("project_uuid")
         organization_pk = request.data.get("organization")
 
@@ -283,6 +276,11 @@ class NewRepositoryViewSet(
             )
         except Organization.DoesNotExist:
             raise ValidationError(_("Organization not found"))
+
+        user_authorization = organization.get_organization_authorization(request.user)
+
+        if not user_authorization.is_admin:
+            raise PermissionDenied()
 
         project_organization = celery_app.send_task(
             name="get_project_organization", args=[project_uuid]
@@ -344,12 +342,8 @@ class NewRepositoryViewSet(
         organization_authorization = organization.get_organization_authorization(
             request.user
         )
-        user_authorization = repository.get_user_authorization(request.user)
 
-        if (
-            not organization_authorization.can_contribute
-            or not user_authorization.can_contribute
-        ):
+        if not organization_authorization.can_contribute:
             raise PermissionDenied()
 
         serializer_data = dict(

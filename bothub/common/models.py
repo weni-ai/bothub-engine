@@ -118,11 +118,11 @@ class Organization(RepositoryOwner):
         related_name="organization_owner",
     )
 
-    def get_organization_authorization(self, org):
-        if org.is_anonymous:
+    def get_organization_authorization(self, user):
+        if user.is_anonymous:
             return OrganizationAuthorization(organization=self)
         get, created = OrganizationAuthorization.objects.get_or_create(
-            user=org.repository_owner, organization=self
+            user=user.repository_owner, organization=self
         )
         return get
 
