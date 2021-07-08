@@ -206,6 +206,7 @@ class NewRepositoryViewSet(
         methods=["GET"],
         url_name="project-repository",
         lookup_fields=["repository__uuid", "pk"],
+        permission_classes=[IsAuthenticated],
     )
     def projectrepository(self, request, **kwargs):
         repository = self.get_object().repository
@@ -328,6 +329,7 @@ class NewRepositoryViewSet(
         methods=["POST"],
         url_name="add-repository-project",
         serializer_class=AddRepositoryProjectSerializer,
+        permission_classes=[IsAuthenticated],
     )
     def add_repository_project(self, request, **kwargs):
 
