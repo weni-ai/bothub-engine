@@ -21,7 +21,6 @@ class ConnectGRPCClient:
         result = []
         try:
             stub = project_pb2_grpc.ProjectControllerStub(self.channel)
-
             for project in stub.Classifier(
                 project_pb2.ClassifierListRequest(project_uuid=project_uuid)
             ):
@@ -30,6 +29,8 @@ class ConnectGRPCClient:
                         "authorization_uuid": project.authorization_uuid,
                         "classifier_type": project.classifier_type,
                         "name": project.name,
+                        "is_active": project.is_active,
+                        "uuid": project.uuid,
                     }
                 )
         except grpc.RpcError as e:
@@ -41,3 +42,33 @@ class ConnectGRPCClient:
         classifiers = self.list_classifiers(project_uuid=project_uuid)
 
         return [classifier.get("authorization_uuid") for classifier in classifiers]
+
+    def get_authorization_classifier(
+        self, project_uuid: str, authorization_uuid: str
+    ) -> str:
+        """
+        Recives a authorization UUID and returns the respective classifier UUID
+        """
+        classifiers = self.list_classifiers(project_uuid)
+        classifier = filter(
+            lambda classifier: classifier["authorization_uuid"] == authorization_uuid,
+            classifiers,
+        )
+
+        return next(classifier).get("uuid")
+
+    def remove_authorization(self, project_uuid: str, authorization_uuid: str):
+        classifier_uuid = self.get_authorization_classifier(
+            project_uuid, authorization_uuid
+        )
+
+        stub = project_pb2_grpc.ProjectControllerStub(self.channel)
+        stub.DestroyClassifier(
+            project_pb2.ClassifierDestroyRequest(uuid=classifier_uuid)
+        )
+
+    def create_classifier(self, **kwargs):
+        stub = project_pb2_grpc.ProjectControllerStub(self.channel)
+        return stub.CreateClassifier(
+            project_pb2.ClassifierCreateRequest(**kwargs, classifier_type="bothub")
+        )

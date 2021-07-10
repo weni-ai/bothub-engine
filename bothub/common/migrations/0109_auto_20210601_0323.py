@@ -5,13 +5,11 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('common', '0108_repository_repository_type'),
-    ]
+    dependencies = [("common", "0108_repository_repository_type")]
 
     operations = [
         migrations.AlterModelOptions(
-            name='repositorynlplog',
-            options={'ordering': ['-id'], 'verbose_name': 'repository nlp logs'},
-        ),
+            name="repositorynlplog",
+            options={"ordering": ["-id"], "verbose_name": "repository nlp logs"},
+        )
     ]

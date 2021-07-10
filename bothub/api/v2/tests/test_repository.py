@@ -219,8 +219,9 @@ class RetriveRepositoryTrainInfoTestCase(TestCase):
 
         response = RepositoryTrainInfoViewSet.as_view({"get": "retrieve"})(
             request,
-            repository__uuid=repository.uuid,
-            pk=repository.current_version().repository_version.pk,
+            repository_version__repository__uuid=repository.uuid,
+            repository_version__pk=repository.current_version().repository_version.pk,
+            language=repository.language,
         )
         response.render()
         content_data = json.loads(response.content)

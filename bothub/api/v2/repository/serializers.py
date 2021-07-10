@@ -41,13 +41,9 @@ from bothub.common.models import (
     RepositoryVersion,
     RepositoryVote,
     RequestRepositoryAuthorization,
+    RepositoryVersionLanguage,
 )
 from bothub.utils import classifier_choice
-
-from ..translation.validators import (
-    CanContributeInRepositoryExampleValidator,
-    CanContributeInRepositoryTranslatedExampleValidator,
-)
 from .validators import (
     APIExceptionCustom,
     CanContributeInRepositoryValidator,
@@ -55,6 +51,10 @@ from .validators import (
     CanCreateRepositoryInOrganizationValidator,
     ExampleWithIntentOrEntityValidator,
     IntentValidator,
+)
+from ..translation.validators import (
+    CanContributeInRepositoryExampleValidator,
+    CanContributeInRepositoryTranslatedExampleValidator,
 )
 
 
@@ -478,6 +478,7 @@ class NewRepositorySerializer(serializers.ModelSerializer):
             "count_authorizations",
             "repository_score",
             "repository_version_language",
+            "repository_type",
         ]
         read_only = [
             "uuid",
@@ -495,6 +496,7 @@ class NewRepositorySerializer(serializers.ModelSerializer):
             "ready_for_parse",
             "count_authorizations",
             "repository_version_language",
+            "repository_type",
         ]
         ref_name = None
 
@@ -604,6 +606,9 @@ class NewRepositorySerializer(serializers.ModelSerializer):
     repository_score = serializers.SerializerMethodField(style={"show": False})
     repository_version_language = serializers.SerializerMethodField(
         style={"show": False}
+    )
+    repository_type = serializers.CharField(
+        style={"show": False}, read_only=True, source="repository.repository_type"
     )
 
     def get_authorizations(self, obj):
@@ -864,7 +869,7 @@ class NewRepositorySerializer(serializers.ModelSerializer):
 
 class RepositoryTrainInfoSerializer(serializers.ModelSerializer):
     class Meta:
-        model = RepositoryVersion
+        model = RepositoryVersionLanguage
         fields = [
             "repository_version_id",
             "uuid",
@@ -876,59 +881,14 @@ class RepositoryTrainInfoSerializer(serializers.ModelSerializer):
         ref_name = None
 
     repository_version_id = serializers.PrimaryKeyRelatedField(
-        read_only=True, style={"show": False}, source="pk"
+        read_only=True, style={"show": False}, source="repository_version.pk"
     )
     uuid = serializers.UUIDField(
-        style={"show": False}, read_only=True, source="repository.uuid"
+        style={"show": False},
+        read_only=True,
+        source="repository_version.repository.uuid",
     )
-    ready_for_train = serializers.SerializerMethodField(style={"show": False})
-    requirements_to_train = serializers.SerializerMethodField(style={"show": False})
-    languages_warnings = serializers.SerializerMethodField(style={"show": False})
-
-    def get_ready_for_train(self, obj):
-        queryset = RepositoryExample.objects.filter(
-            repository_version_language__repository_version=obj
-        )
-        return obj.repository.ready_for_train(
-            queryset=queryset, repository_version=obj.pk
-        )
-
-    def get_requirements_to_train(self, obj):
-        queryset = RepositoryExample.objects.filter(
-            repository_version_language__repository_version=obj
-        )
-        return dict(
-            filter(
-                lambda l: l[1],
-                map(
-                    lambda u: (u.language, u.requirements_to_train),
-                    obj.repository.current_versions(
-                        queryset=queryset,
-                        repository_version=obj.pk,
-                        version_default=obj.is_default,
-                    ),
-                ),
-            )
-        )
-
-    def get_languages_warnings(self, obj):
-        queryset = RepositoryExample.objects.filter(
-            repository_version_language__repository_version=obj
-        )
-
-        return dict(
-            filter(
-                lambda w: len(w[1]) > 0,
-                map(
-                    lambda u: (u.language, u.warnings),
-                    obj.repository.current_versions(
-                        queryset=queryset,
-                        version_default=obj.is_default,
-                        repository_version=obj.pk,
-                    ),
-                ),
-            )
-        )
+    languages_warnings = serializers.ListField(source="warnings")
 
 
 class RepositorySerializer(serializers.ModelSerializer):
@@ -954,6 +914,7 @@ class RepositorySerializer(serializers.ModelSerializer):
             "use_name_entities",
             "use_analyze_char",
             "organization",
+            "version_default",
         ]
         read_only = ["uuid", "created_at"]
         ref_name = None
@@ -1024,6 +985,7 @@ class RepositorySerializer(serializers.ModelSerializer):
         style={"show": False},
     )
     categories_list = serializers.SerializerMethodField(style={"show": False})
+    version_default = serializers.SerializerMethodField(style={"show": False})
 
     def create(self, validated_data):
         organization = validated_data.pop("organization", None)
@@ -1054,6 +1016,13 @@ class RepositorySerializer(serializers.ModelSerializer):
 
     def get_categories_list(self, obj):
         return RepositoryCategorySerializer(obj.categories, many=True).data
+
+    def get_version_default(self, obj):
+        return {
+            "id": obj.current_version().repository_version.pk,
+            "repository_version_language_id": obj.current_version().pk,
+            "name": obj.current_version().repository_version.name,
+        }
 
 
 class RepositoryPermissionSerializer(serializers.ModelSerializer):
@@ -1147,6 +1116,7 @@ class ShortRepositorySerializer(serializers.ModelSerializer):
             "owner__nickname",
             "absolute_url",
             "votes",
+            "version_default",
         ]
         read_only = fields
         ref_name = None
@@ -1161,12 +1131,20 @@ class ShortRepositorySerializer(serializers.ModelSerializer):
     absolute_url = serializers.SerializerMethodField()
     intents = serializers.SerializerMethodField(style={"show": False})
     votes = RepositoryVotesSerializer(many=True, read_only=True)
+    version_default = serializers.SerializerMethodField(style={"show": False})
 
     def get_intents(self, obj):
         return obj.get_formatted_intents()
 
     def get_absolute_url(self, obj):
         return obj.get_absolute_url()
+
+    def get_version_default(self, obj):
+        return {
+            "id": obj.current_version().repository_version.pk,
+            "repository_version_language_id": obj.current_version().pk,
+            "name": obj.current_version().repository_version.name,
+        }
 
 
 class RepositoryContributionsSerializer(serializers.ModelSerializer):
@@ -1443,6 +1421,7 @@ class WordDistributionSerializer(serializers.Serializer):
 
 class TrainSerializer(serializers.Serializer):
     repository_version = serializers.IntegerField(required=False)
+    language = serializers.ChoiceField(LANGUAGE_CHOICES, required=False)
 
 
 class EvaluateSerializer(serializers.Serializer):
@@ -1650,3 +1629,28 @@ class RepositoryScoreSerializer(serializers.ModelSerializer):
 
 class RepositoryExampleSuggestionSerializer(serializers.Serializer):
     pass
+
+
+class RemoveRepositoryProject(serializers.Serializer):
+    pass
+
+
+class AddRepositoryProjectSerializer(serializers.Serializer):
+
+    name = serializers.CharField(required=True)
+    user = serializers.EmailField(required=True)
+    access_token = serializers.CharField(required=True)
+    project_uuid = serializers.CharField(required=True)
+
+    def create(self, validated_data):
+        task = celery_app.send_task(
+            name="create_repository_project", kwargs=validated_data
+        )
+        task.wait()
+        return validated_data
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        if data.get("organization"):
+            data.pop("organization")
+        return data

@@ -484,6 +484,7 @@ if OIDC_ENABLED:
         "OIDC_DRF_AUTH_BACKEND",
         default="bothub.authentication.authorization.WeniOIDCAuthenticationBackend",
     )
+    OIDC_RP_SCOPES = env.str("OIDC_RP_SCOPES", default="openid email")
 
 
 # gRPC Connect Server
