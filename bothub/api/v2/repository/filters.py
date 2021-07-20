@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
@@ -173,8 +174,6 @@ class RepositoryNLPLogFilter(filters.FilterSet):
         request = self.request
         try:
             repository = RepositoryVersion.objects.get(pk=value).repository
-            if str(repository.uuid) != "1e8848b2-bdf9-40a1-b4c1-a79882e970e7":
-                raise PermissionDenied()
             authorization = repository.get_user_authorization(request.user)
             if not authorization.can_contribute:
                 raise PermissionDenied()
@@ -192,7 +191,8 @@ class RepositoryNLPLogFilter(filters.FilterSet):
             repository = RepositoryVersionLanguage.objects.get(
                 pk=value
             ).repository_version.repository
-            if str(repository.uuid) != "1e8848b2-bdf9-40a1-b4c1-a79882e970e7":
+            if str(repository.uuid) not in settings.REPOSITORY_RESTRICT_ACCESS_NLP_LOGS:
+                # Restricts log access to a particular or multiple intelligences
                 raise PermissionDenied()
             authorization = repository.get_user_authorization(request.user)
             if not authorization.can_contribute:
