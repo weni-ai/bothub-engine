@@ -19,6 +19,15 @@ before_install:
   # give PG some time to finish setup
   - sleep 10
 
+  # Install the chosen ES version
+  - curl https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.13.3-amd64.deb -o elasticsearch.deb
+  - sudo dpkg -i --force-confnew elasticsearch.deb
+  - sudo chown -R elasticsearch:elasticsearch /etc/default/elasticsearch
+  - sudo service elasticsearch restart
+
+  # give ES some time to finish setup
+  - sleep 10
+
   # stop any running postgres versions
   - sudo -E service postgresql stop 10
   - sudo -E ps axuwww | grep -i postg
@@ -40,13 +49,6 @@ before_script:
   - python -m grpc_tools.protoc --experimental_allow_proto3_optional --proto_path=./ --python_out=./ --grpc_python_out=./ ./bothub/protos/repository.proto
   - python -m grpc_tools.protoc --experimental_allow_proto3_optional --proto_path=./ --python_out=./ --grpc_python_out=./ ./bothub/protos/project.proto
   - curl -s -O https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.13.3-amd64.deb
-  - sudo dpkg -i --force-confnew elasticsearch-7.13.3-amd64.deb
-  - sudo sed -i.old 's/-Xms1g/-Xms128m/' /etc/elasticsearch/jvm.options
-  - sudo sed -i.old 's/-Xmx1g/-Xmx128m/' /etc/elasticsearch/jvm.options
-  - echo -e '-XX:+DisableExplicitGC\n-Djdk.io.permissionsUseCanonicalPath=true\n-Dlog4j.skipJansi=true\n-server\n' | sudo tee -a /etc/elasticsearch/jvm.options
-  - sudo chown -R elasticsearch:elasticsearch /etc/default/elasticsearch
-  - sudo systemctl start elasticsearch
-  - sleep 10
 
 install:
   - pip install pipenv
