@@ -12,6 +12,7 @@ from django.dispatch import receiver
 from django.template.loader import render_to_string
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
+from django_elasticsearch_dsl_drf.wrappers import dict_to_obj
 from rest_framework import status
 from rest_framework.exceptions import APIException
 
@@ -809,7 +810,10 @@ class Repository(models.Model):
             repository_version.created_by = self.owner
             repository_version.save()
 
-        repository_version_language, created = RepositoryVersionLanguage.objects.get_or_create(
+        (
+            repository_version_language,
+            created,
+        ) = RepositoryVersionLanguage.objects.get_or_create(
             repository_version=repository_version, language=language
         )
         return repository_version_language
@@ -1307,6 +1311,35 @@ class RepositoryNLPLog(models.Model):
             repository_nlp_log=repository_nlp_log
         ).order_by("-is_default")
 
+    @property
+    def log_intent_field_indexing(self):
+        intents = self.intents(self)
+        intent_reduced_list = []
+        for intent in intents:
+            reduced_intent_obj = dict_to_obj(
+                {
+                    "intent": intent.intent,
+                    "confidence": intent.confidence,
+                    "is_default": intent.is_default,
+                }
+            )
+            intent_reduced_list.append(reduced_intent_obj)
+
+        return intent_reduced_list
+
+    @property
+    def repository_version_language_field_indexing(self):
+        return dict_to_obj(
+            {
+                "repository": str(
+                    self.repository_version_language.repository_version.repository.uuid
+                ),
+                "language": self.repository_version_language.language,
+                "repository_version_language": self.repository_version_language.repository_version.pk,
+                "version": self.repository_version_language.repository_version.id,
+            }
+        )
+
 
 class RepositoryNLPLogIntent(models.Model):
     class Meta:
@@ -1571,8 +1604,8 @@ class RepositoryEntityGroup(models.Model):
 
     def delete(self, using=None, keep_parents=False):
         """
-            Before deleting the group it updates all the entities and places
-            it as not grouped so that they are not deleted
+        Before deleting the group it updates all the entities and places
+        it as not grouped so that they are not deleted
         """
         self.entities.filter(
             repository_version=self.repository_version, group=self

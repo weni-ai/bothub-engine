@@ -116,6 +116,8 @@ INSTALLED_APPS = [
     "django_celery_beat",
     "django_redis",
     "django_grpc_framework",
+    "django_elasticsearch_dsl",
+    "django_elasticsearch_dsl_drf",
 ]
 
 MIDDLEWARE = [
@@ -491,3 +493,29 @@ if OIDC_ENABLED:
 CONNECT_GRPC_SERVER_URL = env.str("CONNECT_GRPC_SERVER_URL")
 
 CONNECT_CERTIFICATE_GRPC_CRT = env.str("CONNECT_CERTIFICATE_GRPC_CRT")
+
+
+# ElasticSearch
+ELASTICSEARCH_DSL = {
+    "default": {"hosts": env.str("ELASTICSEARCH_DSL", default="es:9200")}
+}
+
+ELASTICSEARCH_DSL_INDEX_SETTINGS = {
+    "number_of_shards": env.int("ELASTICSEARCH_NUMBER_OF_SHARDS", default=1),
+    "number_of_replicas": env.int("ELASTICSEARCH_NUMBER_OF_REPLICAS", default=1),
+}
+
+ELASTICSEARCH_INDEX_NAMES = {
+    "bothub.common.documents.repositorynlplog": env.str(
+        "ELASTICSEARCH_REPOSITORYNLPLOG_INDEX", default="repositorynlplog"
+    )
+}
+
+ELASTICSEARCH_SIGNAL_PROCESSOR_CLASSES = {
+    "realtime": "django_elasticsearch_dsl.signals.RealTimeSignalProcessor",
+    "celery": "bothub.common.signals.CelerySignalProcessor",
+}
+
+ELASTICSEARCH_DSL_SIGNAL_PROCESSOR = ELASTICSEARCH_SIGNAL_PROCESSOR_CLASSES[
+    env.str("ELASTICSEARCH_SIGNAL_PROCESSOR", default="celery")
+]
