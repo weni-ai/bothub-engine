@@ -59,6 +59,7 @@ env:
     - ELASTICSEARCH_DSL="localhost:9200"
 script:
   - python manage.py migrate
+  - python manage.py search_index --rebuild -f
   - python manage.py collectstatic
   - flake8
   - travis_wait coverage run manage.py test
