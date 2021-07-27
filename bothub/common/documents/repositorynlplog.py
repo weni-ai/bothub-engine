@@ -80,9 +80,6 @@ class RepositoryNLPLogDocument(Document):
         attr="repository_version_language_field_indexing.version"
     )
 
-    class Meta:
-        parallel_indexing = True
-
     class Django:
         model = RepositoryNLPLog
         fields = [
