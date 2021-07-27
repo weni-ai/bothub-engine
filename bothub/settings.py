@@ -81,7 +81,7 @@ env = environ.Env(
     ELASTICSEARCH_INDEX_NAMES=(int, 1),
     ELASTICSEARCH_DSL_SIGNAL_PROCESSOR=(
         str,
-        "bothub.common.signals.CelerySignalProcessor",
+        "django_elasticsearch_dsl.signals.RealTimeSignalProcessor",
     ),
 )
 
@@ -528,5 +528,5 @@ ELASTICSEARCH_SIGNAL_PROCESSOR_CLASSES = {
 }
 
 ELASTICSEARCH_DSL_SIGNAL_PROCESSOR = ELASTICSEARCH_SIGNAL_PROCESSOR_CLASSES[
-    env.str("ELASTICSEARCH_SIGNAL_PROCESSOR", default="celery")
+    env.str("ELASTICSEARCH_SIGNAL_PROCESSOR", default="realtime")
 ]

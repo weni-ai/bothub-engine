@@ -3,6 +3,7 @@ import json
 from django.test import RequestFactory
 from django.test import TestCase
 from rest_framework import status
+from django_elasticsearch_dsl.registries import registry
 
 from bothub.api.v2.nlp.views import RepositoryNLPLogsViewSet
 from bothub.api.v2.repository.views import RepositoryNLPLogViewSet
@@ -138,6 +139,7 @@ class ListRepositoryNLPLogTestCase(TestCase):
             ),
             user=self.owner,
         )
+        self.log = nlp_log
 
         RepositoryNLPLogIntent.objects.create(
             intent="bias",
@@ -178,6 +180,7 @@ class ListRepositoryNLPLogTestCase(TestCase):
         return (response, content_data)
 
     def test_okay(self):
+        registry.update(self.log)
         response, content_data = self.request(
             {"repository_version_language": int(self.repository.current_version().pk)},
             self.owner_token,
