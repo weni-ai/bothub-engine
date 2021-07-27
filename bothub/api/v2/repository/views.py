@@ -750,7 +750,7 @@ class RepositoriesViewSet(mixins.ListModelMixin, GenericViewSet):
 
     serializer_class = ShortRepositorySerializer
     queryset = Repository.objects.all().publics().order_by_relevance()
-    # filter_class = RepositoriesFilter
+    filter_class = RepositoriesFilter
     filter_backends = [DjangoFilterBackend, SearchFilter]
     search_fields = ["$name", "^name", "=name"]
 
