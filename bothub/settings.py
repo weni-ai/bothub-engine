@@ -76,6 +76,10 @@ env = environ.Env(
     CONNECT_GRPC_SERVER_URL=(str, "localhost:8002"),
     CONNECT_CERTIFICATE_GRPC_CRT=(str, None),
     REPOSITORY_RESTRICT_ACCESS_NLP_LOGS=(list, []),
+    ELASTICSEARCH_DSL=(str, "localhost:9200"),
+    ELASTICSEARCH_DSL_INDEX_SETTINGS=(int, 1),
+    ELASTICSEARCH_INDEX_NAMES=(int, 1),
+    ELASTICSEARCH_DSL_SIGNAL_PROCESSOR=(str, "bothub.common.signals.CelerySignalProcessor"),
 )
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
