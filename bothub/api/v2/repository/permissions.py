@@ -8,7 +8,9 @@ from .. import WRITE_METHODS
 class RepositoryLogPermission(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         value = self.request.query_params.get("repository_version_language", None)
-        obj = RepositoryVersionLanguage.objects.get(pk=value).repository_version.repository
+        obj = RepositoryVersionLanguage.objects.get(
+            pk=value
+        ).repository_version.repository
         authorization = obj.get_user_authorization(request.user)
         if request.method in READ_METHODS and not request.user.is_authenticated:
             return authorization.can_read

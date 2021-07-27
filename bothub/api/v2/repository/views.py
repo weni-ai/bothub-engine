@@ -252,8 +252,8 @@ class NewRepositoryViewSet(
 
         if organization:
 
-            organization_authorization = (
-                organization.organization_authorizations.filter(uuid__in=task.result)
+            organization_authorization = organization.organization_authorizations.filter(
+                uuid__in=task.result
             )
             data["in_project"] = (
                 data["in_project"] or organization_authorization.exists()
@@ -1140,10 +1140,7 @@ class RepositoryNLPLogViewSet(DocumentViewSet):
         "intent": "log_intent.intent",
         "confidence": {
             "field": "log_intent.confidence",
-            "lookups": [
-                LOOKUP_QUERY_LTE,
-                LOOKUP_QUERY_GTE,
-            ],
+            "lookups": [LOOKUP_QUERY_LTE, LOOKUP_QUERY_GTE],
         },
     }
 

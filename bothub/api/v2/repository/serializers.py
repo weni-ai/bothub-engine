@@ -1470,7 +1470,7 @@ class RepositoryNLPLogSerializer(DocumentSerializer):
             "created_at",
         ]
         extra_kwargs = {
-            'repository_version_language': {'required': True, 'write_only': True}
+            "repository_version_language": {"required": True, "write_only": True}
         }
 
 

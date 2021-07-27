@@ -15,11 +15,7 @@ class RepositoryNLPLogDocument(Document):
     log_intent = fields.NestedField(
         attr="log_intent_field_indexing",
         properties={
-            "intent": fields.TextField(
-                fields={
-                    "raw": fields.KeywordField(),
-                }
-            ),
+            "intent": fields.TextField(fields={"raw": fields.KeywordField()}),
             "confidence": fields.FloatField(),
             "is_default": fields.BooleanField(),
         },
@@ -29,21 +25,13 @@ class RepositoryNLPLogDocument(Document):
         properties={
             "intent": fields.ObjectField(
                 properties={
-                    "name": fields.TextField(
-                        fields={
-                            "raw": fields.KeywordField(),
-                        }
-                    ),
+                    "name": fields.TextField(fields={"raw": fields.KeywordField()}),
                     "confidence": fields.FloatField(),
                 }
             ),
             "intent_ranking": fields.NestedField(
                 properties={
-                    "name": fields.TextField(
-                        fields={
-                            "raw": fields.KeywordField(),
-                        }
-                    ),
+                    "name": fields.TextField(fields={"raw": fields.KeywordField()}),
                     "confidence": fields.FloatField(),
                 }
             ),
@@ -53,25 +41,17 @@ class RepositoryNLPLogDocument(Document):
             "text": fields.TextField(),
             "language": fields.TextField(),
             "repository_version": fields.IntegerField(),
-        },
-    )
-
-    version_name = fields.TextField(
-        fields={
-            "raw": fields.KeywordField(),
         }
     )
+
+    version_name = fields.TextField(fields={"raw": fields.KeywordField()})
     repository_uuid = fields.TextField(
         attr="repository_version_language_field_indexing.repository",
-        fields={
-            "raw": fields.KeywordField(),
-        },
+        fields={"raw": fields.KeywordField()},
     )
     language = fields.TextField(
         attr="repository_version_language_field_indexing.language",
-        fields={
-            "raw": fields.KeywordField(),
-        },
+        fields={"raw": fields.KeywordField()},
     )
     repository_version_language = fields.IntegerField(
         attr="repository_version_language_field_indexing.repository_version_language"
@@ -82,13 +62,7 @@ class RepositoryNLPLogDocument(Document):
 
     class Django:
         model = RepositoryNLPLog
-        fields = [
-            "id",
-            "text",
-            "from_backend",
-            "user_agent",
-            "created_at",
-        ]
+        fields = ["id", "text", "from_backend", "user_agent", "created_at"]
 
     def prepare_nlp_log(self, obj):
         return json.loads(obj.nlp_log)
