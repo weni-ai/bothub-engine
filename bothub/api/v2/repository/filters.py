@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.shortcuts import get_object_or_404
 from django.utils.translation import ugettext_lazy as _
@@ -150,6 +151,10 @@ class RepositoryNLPLogFilter:
             repository = RepositoryVersionLanguage.objects.get(
                 pk=value
             ).repository_version.repository
+            restrict_access_list = settings.REPOSITORY_RESTRICT_ACCESS_NLP_LOGS
+            if restrict_access_list != [] and str(repository.uuid) not in restrict_access_list:
+                # Restricts log access to a particular or multiple intelligences
+                raise PermissionDenied()
             authorization = repository.get_user_authorization(self.user)
             if not authorization.can_contribute:
                 raise PermissionDenied()

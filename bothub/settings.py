@@ -75,6 +75,7 @@ env = environ.Env(
     SECRET_KEY_CHECK_LEGACY_USER=(str, None),
     CONNECT_GRPC_SERVER_URL=(str, "localhost:8002"),
     CONNECT_CERTIFICATE_GRPC_CRT=(str, None),
+    REPOSITORY_RESTRICT_ACCESS_NLP_LOGS=(list, []),
 )
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -424,6 +425,10 @@ N_WORDS_TO_GENERATE = env.int("N_WORDS_TO_GENERATE")
 N_SENTENCES_TO_GENERATE = env.int("N_SENTENCES_TO_GENERATE")
 
 
+# Restrict access to the nlp logs by a list of repository uuids
+REPOSITORY_RESTRICT_ACCESS_NLP_LOGS = env.list("REPOSITORY_RESTRICT_ACCESS_NLP_LOGS")
+
+
 # django_redis
 CACHES = {
     "default": {
@@ -493,7 +498,6 @@ if OIDC_ENABLED:
 CONNECT_GRPC_SERVER_URL = env.str("CONNECT_GRPC_SERVER_URL")
 
 CONNECT_CERTIFICATE_GRPC_CRT = env.str("CONNECT_CERTIFICATE_GRPC_CRT")
-
 
 # ElasticSearch
 ELASTICSEARCH_DSL = {

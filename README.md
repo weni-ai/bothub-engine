@@ -156,11 +156,13 @@ You can set environment variables in your OS, write on ```.env``` file or pass v
 | CONNECT_CERTIFICATE_GRPC_CRT | ```string``` | ```None``` | Absolute certificate path for secure grpc communication
 | RECAPTCHA_SECRET_KEY | ```string``` | ```''``` | Token of the recaptcha used in the validation of a user's registration.
 | REPOSITORY_NLP_LOG_LIMIT | ```int``` | ```10000``` | Limit of query size to repository log.
+| REPOSITORY_RESTRICT_ACCESS_NLP_LOGS | ```list``` | ```[]``` | Restricts log access to a particular or multiple intelligences
 | ELASTICSEARCH_DSL | ```string``` | ```es:9200``` | URL Elasticsearch.
 | ELASTICSEARCH_NUMBER_OF_SHARDS | ```int``` | ```1``` | Specify the number of shards for the indexes.
 | ELASTICSEARCH_NUMBER_OF_REPLICAS | ```int``` | ```1``` | Specify the number of replicas for the indexes.
 | ELASTICSEARCH_REPOSITORYNLPLOG_INDEX | ```string``` | ```repositorynlplog``` | Specify the index title for the RepositoryNlpLog document.
 | ELASTICSEARCH_SIGNAL_PROCESSOR | ```string``` | ```celery``` | Specify the signal processor responsible for updating the Elasticsearch data.
+
 
 ## Roadmap
 
