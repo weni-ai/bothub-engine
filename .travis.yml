@@ -22,7 +22,7 @@ before_install:
   - sudo chown -R elasticsearch:elasticsearch /etc/default/elasticsearch
 
   # give PG and ES some time to finish setup
-  - sleep 20
+  - sleep 10
 
   - sudo service elasticsearch restart
 
@@ -46,7 +46,7 @@ before_script:
   - python -m grpc_tools.protoc --experimental_allow_proto3_optional --proto_path=./ --python_out=./ --grpc_python_out=./ ./bothub/protos/organization.proto
   - python -m grpc_tools.protoc --experimental_allow_proto3_optional --proto_path=./ --python_out=./ --grpc_python_out=./ ./bothub/protos/repository.proto
   - python -m grpc_tools.protoc --experimental_allow_proto3_optional --proto_path=./ --python_out=./ --grpc_python_out=./ ./bothub/protos/project.proto
-  - curl -s -O https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.13.3-amd64.deb
+  - sleep 10
 
 install:
   - pip install pipenv
