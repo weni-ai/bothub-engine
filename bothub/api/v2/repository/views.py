@@ -1119,18 +1119,7 @@ class RepositoryNLPLogViewSet(DocumentViewSet):
     filter_backends = [CompoundSearchFilterBackend, FilteringFilterBackend]
     pagination_class = LimitOffsetPagination
     limit = settings.REPOSITORY_NLP_LOG_LIMIT
-    search_fields = [
-        "version_name",
-        "text",
-        "user_agent",
-        "nlp_log.intent.name",
-        "nlp_log.intent_ranking.name",
-        "nlp_log.label_list",
-        "nlp_log.entities_list",
-        "nlp_log.language",
-        "log_intent.intent",
-        "language",
-    ]
+    search_fields = ["text",]
 
     filter_fields = {
         "repository_uuid": "repository_uuid",

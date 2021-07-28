@@ -1454,8 +1454,6 @@ class RepositoryUpload(serializers.Serializer):
 
 
 class RepositoryNLPLogSerializer(DocumentSerializer):
-    # repository_version_language = serializers.IntegerField()
-
     class Meta:
         document = RepositoryNLPLogDocument
         fields = [

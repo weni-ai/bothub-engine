@@ -45,7 +45,7 @@ class RepositoryNLPLogDocument(Document):
     )
 
     version_name = fields.TextField(
-        attr="repository_version_language.repository_version.name",
+        attr="repository_version_language_field_indexing.version_name",
         fields={"raw": fields.KeywordField()},
     )
     repository_uuid = fields.TextField(

@@ -801,7 +801,7 @@ class Repository(models.Model):
             },
         }
 
-    def current_version(self, language=None, is_default=True):
+    def current_version(self, language=None, is_default=True):  # pragma: no cover
         language = language or self.language
 
         repository_version, created = self.versions.get_or_create(is_default=is_default)
@@ -1331,6 +1331,7 @@ class RepositoryNLPLog(models.Model):
     def repository_version_language_field_indexing(self):
         return dict_to_obj(
             {
+                "version_name": self.repository_version_language.repository_version.name,
                 "repository": str(
                     self.repository_version_language.repository_version.repository.uuid
                 ),

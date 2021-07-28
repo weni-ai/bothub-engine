@@ -6,7 +6,7 @@ from .. import WRITE_METHODS
 
 
 class RepositoryLogPermission(permissions.BasePermission):
-    def has_object_permission(self, request, view, obj):
+    def has_object_permission(self, request, view):
         value = self.request.query_params.get("repository_version_language", None)
         obj = RepositoryVersionLanguage.objects.get(
             pk=value
