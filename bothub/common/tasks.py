@@ -1,12 +1,16 @@
 import json
 import random
 import requests
+from celery import shared_task
 from datetime import timedelta
 from urllib.parse import urlencode
+from django.apps import apps
 from django.conf import settings
 from django.db import transaction
 from django.db.models import Q, Count
 from django.utils import timezone
+
+from django_elasticsearch_dsl.registries import registry
 
 from bothub import translate
 from bothub.api.grpc.connect_grpc_client import ConnectGRPCClient
@@ -34,6 +38,28 @@ from bothub.utils import (
     evaluate_size_score,
     request_nlp,
 )
+
+
+@shared_task
+def handle_save(pk, app_label, model_name):
+    sender = apps.get_model(app_label, model_name)
+    instance = sender.objects.get(pk=pk)
+    registry.update(instance)
+    registry.update_related(instance)
+
+
+@shared_task
+def handle_pre_delete(pk, app_label, model_name):
+    sender = apps.get_model(app_label, model_name)
+    instance = sender.objects.get(pk=pk)
+    registry.delete_related(instance)
+
+
+@shared_task
+def handle_delete(pk, app_label, model_name):
+    sender = apps.get_model(app_label, model_name)
+    instance = sender.objects.get(pk=pk)
+    registry.delete(instance, raise_on_error=False)
 
 
 @app.task()

@@ -1,30 +1,7 @@
-from celery import shared_task
-from django.apps import apps
 from django.db import transaction
+from bothub.common.tasks import handle_save, handle_pre_delete, handle_delete
 from django_elasticsearch_dsl.registries import registry
 from django_elasticsearch_dsl.signals import RealTimeSignalProcessor
-
-
-@shared_task
-def handle_save(pk, app_label, model_name):
-    sender = apps.get_model(app_label, model_name)
-    instance = sender.objects.get(pk=pk)
-    registry.update(instance)
-    registry.update_related(instance)
-
-
-@shared_task
-def handle_pre_delete(pk, app_label, model_name):
-    sender = apps.get_model(app_label, model_name)
-    instance = sender.objects.get(pk=pk)
-    registry.delete_related(instance)
-
-
-@shared_task
-def handle_delete(pk, app_label, model_name):
-    sender = apps.get_model(app_label, model_name)
-    instance = sender.objects.get(pk=pk)
-    registry.delete(instance, raise_on_error=False)
 
 
 class CelerySignalProcessor(RealTimeSignalProcessor):
