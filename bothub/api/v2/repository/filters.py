@@ -117,8 +117,6 @@ class RepositoryNLPLogFilter:
 
     def check_params(self):
         validate_param = False
-        # import pdb; pdb.set_trace()
-
         for param, value in self.params.items():
             if value is not None:
                 validate_param = getattr(self, f"check_{param}")(value)
