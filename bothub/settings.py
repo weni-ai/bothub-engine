@@ -81,7 +81,7 @@ env = environ.Env(
     ELASTICSEARCH_INDEX_NAMES=(int, 1),
     ELASTICSEARCH_DSL_SIGNAL_PROCESSOR=(
         str,
-        "django_elasticsearch_dsl.signals.RealTimeSignalProcessor",
+        "realtime",
     ),
 )
 

@@ -1,5 +1,5 @@
 # use container-based Ubuntu Trusty
-dist: bionic
+dist: xenial
 sudo: true
 
 language: python
@@ -20,12 +20,10 @@ before_install:
   - curl https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.13.3-amd64.deb -o elasticsearch.deb
   - sudo dpkg -i --force-confnew elasticsearch.deb
   - sudo chown -R elasticsearch:elasticsearch /etc/default/elasticsearch
+  - sudo service elasticsearch restart
 
   # give PG and ES some time to finish setup
   - sleep 10
-
-  - sudo -E systemctl -l restart elasticsearch
-  - sudo -E systemctl -l status elasticsearch
 
   # stop any running postgres versions
   - sudo -E service postgresql stop 10
@@ -63,7 +61,6 @@ env:
 script:
   - python manage.py migrate
   - python manage.py search_index --rebuild -f
-  - sleep 10
   - python manage.py collectstatic
   - flake8
   - travis_wait coverage run manage.py test
