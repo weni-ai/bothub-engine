@@ -168,7 +168,6 @@ class ListRepositoryNLPLogTestCase(TestCase):
             is_default=False,
             repository_nlp_log=nlp_log,
         )
-        print(RepositoryNLPLog.objects.all())
         call_command("search_index", "--rebuild", "-f")
         time.sleep(10)
 
