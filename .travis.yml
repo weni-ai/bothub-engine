@@ -1,5 +1,5 @@
 # use container-based Ubuntu Trusty
-dist: xenial
+dist: bionic
 sudo: true
 
 language: python
@@ -12,7 +12,7 @@ services:
 addons:
   apt:
     packages:
-      - oracle-java8-set-default
+      - oracle-java8-installer
 
 before_install:
   # install the chosen PG version
