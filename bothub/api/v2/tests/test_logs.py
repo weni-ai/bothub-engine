@@ -169,9 +169,9 @@ class ListRepositoryNLPLogTestCase(TestCase):
             repository_nlp_log=nlp_log,
         )
         print(RepositoryNLPLog.objects.all())
-        call_command('search_index', '--rebuild', '-f')
+        call_command("search_index", "--rebuild", "-f")
         time.sleep(10)
-    
+
     def request(self, data, token=None):
         authorization_header = (
             {"HTTP_AUTHORIZATION": "Token {}".format(token.key)} if token else {}
