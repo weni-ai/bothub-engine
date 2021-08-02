@@ -65,6 +65,6 @@ script:
   - python manage.py search_index --rebuild -f
   - python manage.py collectstatic
   - flake8
-  - travis_wait coverage run manage.py test bothub.api.v2.tests.test_logs.ListRepositoryNLPLogTestCase
+  - travis_wait coverage run manage.py test
 after_success:
   - coveralls
