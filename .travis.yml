@@ -8,7 +8,6 @@ python:
 
 services:
   - docker
-  - elasticsearch
 
 before_install:
   # install the chosen PG version
@@ -16,11 +15,15 @@ before_install:
   - sudo -E sed -i -e '/local.*peer/s/postgres/all/' -e 's/peer\|md5/trust/g' /etc/postgresql/*/main/pg_hba.conf
   - sudo -E sed -i 's/port = 5433/port = 5432/' /etc/postgresql/*/main/postgresql.conf
 
-  # Restart the ES
+  # Install the chosen ES version
+  - curl https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.13.3-amd64.deb -o elasticsearch.deb
+  - sudo dpkg -i --force-confnew elasticsearch.deb
+  - sudo chown -R elasticsearch:elasticsearch /etc/default/elasticsearch
   - sudo service elasticsearch restart
+  - until curl --silent -XGET --fail http://localhost:9200; do printf '.'; sleep 1; done
 
   # give PG and ES some time to finish setup
-  - sleep 30
+  - sleep 20
 
   # stop any running postgres versions
   - sudo -E service postgresql stop 10
@@ -59,6 +62,7 @@ script:
   - python manage.py migrate
   - python manage.py search_index --rebuild -f
   - python manage.py collectstatic
+  - curl -XGET http://localhost:9200/repositorynlplog/_search
   - flake8
   - travis_wait coverage run manage.py test
 after_success:
