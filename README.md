@@ -37,6 +37,7 @@ Use ```make``` commands to ```check_environment```, ```install_requirements```, 
 | make lint | Show lint warnings and errors
 | make test | Run unit tests and show coverage report
 | make migrate | Update DB shema, apply migrations
+| make search_index | (Re)create and (re)populate the indices in Elasticsearch
 | make start | Start development web server
 | make start_celery | Start celery service
 | make migrations | Create DB migrations files

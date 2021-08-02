@@ -63,6 +63,8 @@ class RepositoryNLPLogDocument(Document):
         attr="repository_version_language_field_indexing.version"
     )
 
+    pk = fields.IntegerField()
+
     class Django:
         model = RepositoryNLPLog
         fields = ["id", "text", "from_backend", "user_agent", "created_at"]

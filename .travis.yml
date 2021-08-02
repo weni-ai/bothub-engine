@@ -9,6 +9,10 @@ python:
 services:
   - docker
 
+addons:
+  apt:
+    packages:
+      - oracle-java8-set-default
 
 before_install:
   # install the chosen PG version
@@ -17,13 +21,13 @@ before_install:
   - sudo -E sed -i 's/port = 5433/port = 5432/' /etc/postgresql/*/main/postgresql.conf
 
   # Install the chosen ES version
-  - curl https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.13.3-amd64.deb -o elasticsearch.deb
+  - curl https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.13.3.deb -o elasticsearch.deb
   - sudo dpkg -i --force-confnew elasticsearch.deb
   - sudo chown -R elasticsearch:elasticsearch /etc/default/elasticsearch
   - sudo service elasticsearch restart
 
   # give PG and ES some time to finish setup
-  - sleep 10
+  - sleep 30
 
   # stop any running postgres versions
   - sudo -E service postgresql stop 10

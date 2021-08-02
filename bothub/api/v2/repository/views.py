@@ -1097,13 +1097,13 @@ class RepositoryExampleViewSet(
     decorator=swagger_auto_schema(
         manual_parameters=[
             openapi.Parameter(
-                "confidence__lte",
+                "confidence__gte",
                 openapi.IN_QUERY,
                 description="Specify the entire percentage of the minimum confidentiality",
                 type=openapi.TYPE_INTEGER,
             ),
             openapi.Parameter(
-                "confidence__gte",
+                "confidence__lte",
                 openapi.IN_QUERY,
                 description="Specify the entire percentage of the maximum confidentiality",
                 type=openapi.TYPE_INTEGER,
@@ -1114,7 +1114,7 @@ class RepositoryExampleViewSet(
 class RepositoryNLPLogViewSet(DocumentViewSet):
     document = RepositoryNLPLogDocument
     serializer_class = RepositoryNLPLogSerializer
-    lookup_field = "id"
+    lookup_field = "pk"
     permission_classes = [permissions.IsAuthenticated, RepositoryLogPermission]
     filter_backends = [CompoundSearchFilterBackend, FilteringFilterBackend]
     pagination_class = LimitOffsetPagination
