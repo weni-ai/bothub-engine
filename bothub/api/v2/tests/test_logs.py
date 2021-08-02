@@ -1,4 +1,5 @@
 import json
+import time
 
 from django.test import RequestFactory
 from django.test import TestCase
@@ -139,7 +140,6 @@ class ListRepositoryNLPLogTestCase(TestCase):
             ),
             user=self.owner,
         )
-        self.log = nlp_log
 
         RepositoryNLPLogIntent.objects.create(
             intent="bias",
@@ -168,7 +168,9 @@ class ListRepositoryNLPLogTestCase(TestCase):
             is_default=False,
             repository_nlp_log=nlp_log,
         )
-
+        registry.update(nlp_log)
+        time.sleep(10)
+    
     def request(self, data, token=None):
         authorization_header = (
             {"HTTP_AUTHORIZATION": "Token {}".format(token.key)} if token else {}
@@ -180,7 +182,6 @@ class ListRepositoryNLPLogTestCase(TestCase):
         return (response, content_data)
 
     def test_okay(self):
-        registry.update(self.log)
         response, content_data = self.request(
             {"repository_version_language": int(self.repository.current_version().pk)},
             self.owner_token,

@@ -23,7 +23,7 @@ before_install:
   - until curl --silent -XGET --fail http://localhost:9200; do printf '.'; sleep 1; done
 
   # give PG and ES some time to finish setup
-  - sleep 20
+  - sleep 10
 
   # stop any running postgres versions
   - sudo -E service postgresql stop 10
@@ -45,7 +45,6 @@ before_script:
   - python -m grpc_tools.protoc --experimental_allow_proto3_optional --proto_path=./ --python_out=./ --grpc_python_out=./ ./bothub/protos/organization.proto
   - python -m grpc_tools.protoc --experimental_allow_proto3_optional --proto_path=./ --python_out=./ --grpc_python_out=./ ./bothub/protos/repository.proto
   - python -m grpc_tools.protoc --experimental_allow_proto3_optional --proto_path=./ --python_out=./ --grpc_python_out=./ ./bothub/protos/project.proto
-  - sleep 10
 
 install:
   - pip install pipenv
@@ -58,11 +57,13 @@ env:
     - DEFAULT_DATABASE="postgres://bothub:bothub@localhost:5432/bothub"
     - ELASTICSEARCH_DSL="localhost:9200"
     - ELASTICSEARCH_SIGNAL_PROCESSOR="realtime"
+    - ELASTICSEARCH_REPOSITORYNLPLOG_INDEX="repositorynlplog"
+    - ELASTICSEARCH_NUMBER_OF_SHARDS=1
+    - ELASTICSEARCH_NUMBER_OF_REPLICAS=1
 script:
   - python manage.py migrate
   - python manage.py search_index --rebuild -f
   - python manage.py collectstatic
-  - curl -XGET http://localhost:9200/repositorynlplog/_search
   - flake8
   - travis_wait coverage run manage.py test
 after_success:
