@@ -9,11 +9,6 @@ python:
 services:
   - docker
 
-addons:
-  apt:
-    packages:
-      - oracle-java8-installer
-
 before_install:
   # install the chosen PG version
   - sudo -E apt-get -yq --no-install-suggests --no-install-recommends install postgresql-11 postgresql-client-11
