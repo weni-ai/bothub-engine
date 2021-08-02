@@ -1,10 +1,10 @@
 import json
 import time
 
+from django.core.management import call_command
 from django.test import RequestFactory
 from django.test import TestCase
 from rest_framework import status
-from django_elasticsearch_dsl.registries import registry
 
 from bothub.api.v2.nlp.views import RepositoryNLPLogsViewSet
 from bothub.api.v2.repository.views import RepositoryNLPLogViewSet
@@ -168,7 +168,8 @@ class ListRepositoryNLPLogTestCase(TestCase):
             is_default=False,
             repository_nlp_log=nlp_log,
         )
-        registry.update(nlp_log)
+        print(RepositoryNLPLog.objects.all())
+        call_command('search_index', '--rebuild', '-f')
         time.sleep(10)
     
     def request(self, data, token=None):
