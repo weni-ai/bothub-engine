@@ -80,10 +80,7 @@ env = environ.Env(
     ELASTICSEARCH_REPOSITORYNLPLOG_INDEX=(str, "repositorynlplog"),
     ELASTICSEARCH_NUMBER_OF_SHARDS=(int, 1),
     ELASTICSEARCH_NUMBER_OF_REPLICAS=(int, 1),
-    ELASTICSEARCH_SIGNAL_PROCESSOR=(
-        str,
-        "realtime",
-    ),
+    ELASTICSEARCH_SIGNAL_PROCESSOR=(str, "realtime"),
 )
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)

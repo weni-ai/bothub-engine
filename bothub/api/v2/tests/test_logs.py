@@ -4,6 +4,7 @@ import time
 from django.core.management import call_command
 from django.test import RequestFactory
 from django.test import TestCase
+from django.contrib.contenttypes.models import ContentType
 from rest_framework import status
 
 from bothub.api.v2.nlp.views import RepositoryNLPLogsViewSet
@@ -21,6 +22,7 @@ from bothub.common.models import RepositoryExample
 
 
 class RepositoryNLPLogTestCase(TestCase):
+    @classmethod
     def setUp(self):
         self.factory = RequestFactory()
 
@@ -93,47 +95,52 @@ class RepositoryNLPLogTestCase(TestCase):
         )
         self.assertEqual(data.get("language"), content_data.get("language"))
 
+    def tearDown(self):
+        ContentType.objects.clear_cache()
+        return super().tearDown()
+
 
 class ListRepositoryNLPLogTestCase(TestCase):
+    @classmethod
     def setUp(self):
         self.factory = RequestFactory()
 
-        self.owner, self.owner_token = create_user_and_token("owner")
+        self.owner, self.owner_token = create_user_and_token("owneres")
 
         self.repository = Repository.objects.create(
             owner=self.owner,
-            name="Testing",
-            slug="test",
+            name="Testing Elasticsearch",
+            slug="testinges",
             language=languages.LANGUAGE_EN,
         )
         self.example_intent_1 = RepositoryIntent.objects.create(
-            text="bias",
+            text="biases",
             repository_version=self.repository.current_version().repository_version,
         )
         self.example = RepositoryExample.objects.create(
             repository_version_language=self.repository.current_version(),
-            text="hi",
+            text="hies",
             intent=self.example_intent_1,
         )
 
         nlp_log = RepositoryNLPLog.objects.create(
-            text="test",
+            text="testes",
             user_agent="python-requests/2.20.1",
             from_backend=True,
             repository_version_language=self.repository.current_version(),
             nlp_log=json.dumps(
                 {
-                    "intent": {"name": "bias", "confidence": 0.9994810819625854},
+                    "intent": {"name": "biases", "confidence": 0.9994810819625854},
                     "intent_ranking": [
-                        {"name": "bias", "confidence": 0.9994810819625854},
-                        {"name": "doubt", "confidence": 0.039212167263031006},
-                        {"name": "negative", "confidence": 0.0},
-                        {"name": "affirmative", "confidence": 0.0},
+                        {"name": "biases", "confidence": 0.9994810819625854},
+                        {"name": "doubtes", "confidence": 0.039212167263031006},
+                        {"name": "negativees", "confidence": 0.0},
+                        {"name": "affirmativees", "confidence": 0.0},
                     ],
                     "labels_list": [],
                     "entities_list": [],
                     "entities": {},
-                    "text": "test",
+                    "text": "testes",
                     "repository_version": int(self.repository.current_version().pk),
                     "language": str(self.repository.language),
                 }
@@ -142,28 +149,28 @@ class ListRepositoryNLPLogTestCase(TestCase):
         )
 
         RepositoryNLPLogIntent.objects.create(
-            intent="bias",
+            intent="biases",
             confidence=0.9994810819625854,
             is_default=True,
             repository_nlp_log=nlp_log,
         )
 
         RepositoryNLPLogIntent.objects.create(
-            intent="doubt",
+            intent="doubtes",
             confidence=0.039212167263031006,
             is_default=False,
             repository_nlp_log=nlp_log,
         )
 
         RepositoryNLPLogIntent.objects.create(
-            intent="negative",
+            intent="negativees",
             confidence=0.0,
             is_default=False,
             repository_nlp_log=nlp_log,
         )
 
         RepositoryNLPLogIntent.objects.create(
-            intent="affirmative",
+            intent="affirmativees",
             confidence=0.0,
             is_default=False,
             repository_nlp_log=nlp_log,
@@ -171,6 +178,11 @@ class ListRepositoryNLPLogTestCase(TestCase):
         print(RepositoryNLPLog.objects.all())
         call_command("search_index", "--rebuild", "-f")
         time.sleep(10)
+
+    @classmethod
+    def tearDown(self):
+        ContentType.objects.clear_cache()
+        return super().tearDown()
 
     def request(self, data, token=None):
         authorization_header = (
@@ -187,7 +199,9 @@ class ListRepositoryNLPLogTestCase(TestCase):
             {"repository_version_language": int(self.repository.current_version().pk)},
             self.owner_token,
         )
+        import pdb
+
+        pdb.set_trace()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(content_data.get("count"), 1)
         self.assertEqual(len(content_data.get("results")[0].get("log_intent")), 4)
-        
