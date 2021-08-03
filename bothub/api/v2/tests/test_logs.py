@@ -101,7 +101,6 @@ class RepositoryNLPLogTestCase(TestCase):
 
 
 class ListRepositoryNLPLogTestCase(TestCase):
-    @classmethod
     def setUp(self):
         self.factory = RequestFactory()
 
@@ -175,14 +174,8 @@ class ListRepositoryNLPLogTestCase(TestCase):
             is_default=False,
             repository_nlp_log=nlp_log,
         )
-        print(RepositoryNLPLog.objects.all())
         call_command("search_index", "--rebuild", "-f")
         time.sleep(10)
-
-    @classmethod
-    def tearDown(self):
-        ContentType.objects.clear_cache()
-        return super().tearDown()
 
     def request(self, data, token=None):
         authorization_header = (
@@ -199,9 +192,6 @@ class ListRepositoryNLPLogTestCase(TestCase):
             {"repository_version_language": int(self.repository.current_version().pk)},
             self.owner_token,
         )
-        import pdb
-
-        pdb.set_trace()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(content_data.get("count"), 1)
         self.assertEqual(len(content_data.get("results")[0].get("log_intent")), 4)
