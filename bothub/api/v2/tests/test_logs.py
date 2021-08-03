@@ -5,7 +5,6 @@ from django.core.management import call_command
 from django.test import RequestFactory
 from django.test import tag
 from django.test import TestCase
-from django.contrib.contenttypes.models import ContentType
 from rest_framework import status
 
 from bothub.api.v2.nlp.views import RepositoryNLPLogsViewSet
@@ -23,7 +22,6 @@ from bothub.common.models import RepositoryExample
 
 
 class RepositoryNLPLogTestCase(TestCase):
-    @classmethod
     def setUp(self):
         self.factory = RequestFactory()
 
@@ -97,7 +95,9 @@ class RepositoryNLPLogTestCase(TestCase):
         self.assertEqual(data.get("language"), content_data.get("language"))
 
 
-@tag('elastic')
+@tag(
+    "elastic"
+)  # Need to run separately, running with the other tests was making this test fail
 class ListRepositoryNLPLogTestCase(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
