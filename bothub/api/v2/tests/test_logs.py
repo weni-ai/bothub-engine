@@ -3,6 +3,7 @@ import time
 
 from django.core.management import call_command
 from django.test import RequestFactory
+from django.test import tag
 from django.test import TestCase
 from django.contrib.contenttypes.models import ContentType
 from rest_framework import status
@@ -95,11 +96,8 @@ class RepositoryNLPLogTestCase(TestCase):
         )
         self.assertEqual(data.get("language"), content_data.get("language"))
 
-    def tearDown(self):
-        ContentType.objects.clear_cache()
-        return super().tearDown()
 
-
+@tag('elastic')
 class ListRepositoryNLPLogTestCase(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
