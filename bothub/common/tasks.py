@@ -40,7 +40,7 @@ from bothub.utils import (
 )
 
 
-@shared_task
+@app.task(name="es_handle_save")
 def handle_save(pk, app_label, model_name):
     sender = apps.get_model(app_label, model_name)
     instance = sender.objects.get(pk=pk)
@@ -48,14 +48,14 @@ def handle_save(pk, app_label, model_name):
     registry.update_related(instance)
 
 
-@shared_task
+@app.task(name="es_handle_pre_delete")
 def handle_pre_delete(pk, app_label, model_name):
     sender = apps.get_model(app_label, model_name)
     instance = sender.objects.get(pk=pk)
     registry.delete_related(instance)
 
 
-@shared_task
+@app.task(name="es_handle_delete")
 def handle_delete(pk, app_label, model_name):
     sender = apps.get_model(app_label, model_name)
     instance = sender.objects.get(pk=pk)

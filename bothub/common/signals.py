@@ -1,5 +1,5 @@
 from django.db import transaction
-from bothub.common.tasks import handle_save, handle_pre_delete, handle_delete
+from bothub.celery import app as celery_app
 from django_elasticsearch_dsl.registries import registry
 from django_elasticsearch_dsl.signals import RealTimeSignalProcessor
 
@@ -11,7 +11,9 @@ class CelerySignalProcessor(RealTimeSignalProcessor):
         model = instance._meta.concrete_model
         if model in registry._models or model in registry._related_models:
             transaction.on_commit(
-                lambda: handle_save.delay(instance.pk, app_label, model_name)
+                lambda: celery_app.send_task(
+                    "es_handle_save", args=[instance.pk, app_label, model_name]
+                )
             )
 
     def handle_pre_delete(self, sender, instance, **kwargs):
@@ -19,11 +21,15 @@ class CelerySignalProcessor(RealTimeSignalProcessor):
         model_name = instance._meta.model_name
         model = instance._meta.concrete_model
         if model in registry._models or model in registry._related_models:
-            handle_pre_delete.delay(instance.pk, app_label, model_name)
+            celery_app.send_task(
+                "es_handle_pre_delete", args=[instance.pk, app_label, model_name]
+            )
 
     def handle_delete(self, sender, instance, **kwargs):
         app_label = instance._meta.app_label
         model_name = instance._meta.model_name
         model = instance._meta.concrete_model
         if model in registry._models or model in registry._related_models:
-            handle_delete.delay(instance.pk, app_label, model_name)
+            celery_app.send_task(
+                "es_handle_delete", args=[instance.pk, app_label, model_name]
+            )
