@@ -9,7 +9,7 @@ RUN apt-get update \
     libgdal-dev python3-cffi python3-gdal vim
 
 RUN pip install -U pip==20.2.2 setuptools==49.6.0
-RUN pip install pipenv==2018.11.26
+RUN pip install pipenv==2021.5.29
 RUN pip install gunicorn==19.9.0
 RUN pip install gevent==1.4.0
 RUN pip install psycopg2-binary

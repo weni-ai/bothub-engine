@@ -33,7 +33,10 @@ def migrate(apps, schema_editor):  # pragma: no cover
                 repository=repository, is_default=False
             ):
                 if entity_version.group:
-                    group_version, created = RepositoryEntityGroup.objects.get_or_create(
+                    (
+                        group_version,
+                        created,
+                    ) = RepositoryEntityGroup.objects.get_or_create(
                         repository_version=version, value=entity_version.group.value
                     )
                     RepositoryEntity.objects.create(

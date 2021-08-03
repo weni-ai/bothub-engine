@@ -76,6 +76,11 @@ env = environ.Env(
     CONNECT_GRPC_SERVER_URL=(str, "localhost:8002"),
     CONNECT_CERTIFICATE_GRPC_CRT=(str, None),
     REPOSITORY_RESTRICT_ACCESS_NLP_LOGS=(list, []),
+    ELASTICSEARCH_DSL=(str, "localhost:9200"),
+    ELASTICSEARCH_REPOSITORYNLPLOG_INDEX=(str, "repositorynlplog"),
+    ELASTICSEARCH_NUMBER_OF_SHARDS=(int, 1),
+    ELASTICSEARCH_NUMBER_OF_REPLICAS=(int, 1),
+    ELASTICSEARCH_SIGNAL_PROCESSOR=(str, "realtime"),
 )
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -117,6 +122,8 @@ INSTALLED_APPS = [
     "django_celery_beat",
     "django_redis",
     "django_grpc_framework",
+    "django_elasticsearch_dsl",
+    "django_elasticsearch_dsl_drf",
 ]
 
 MIDDLEWARE = [
@@ -423,6 +430,10 @@ N_WORDS_TO_GENERATE = env.int("N_WORDS_TO_GENERATE")
 N_SENTENCES_TO_GENERATE = env.int("N_SENTENCES_TO_GENERATE")
 
 
+# Restrict access to the nlp logs by a list of repository uuids
+REPOSITORY_RESTRICT_ACCESS_NLP_LOGS = env.list("REPOSITORY_RESTRICT_ACCESS_NLP_LOGS")
+
+
 # django_redis
 CACHES = {
     "default": {
@@ -493,4 +504,27 @@ CONNECT_GRPC_SERVER_URL = env.str("CONNECT_GRPC_SERVER_URL")
 
 CONNECT_CERTIFICATE_GRPC_CRT = env.str("CONNECT_CERTIFICATE_GRPC_CRT")
 
-REPOSITORY_RESTRICT_ACCESS_NLP_LOGS = env.list("REPOSITORY_RESTRICT_ACCESS_NLP_LOGS")
+# ElasticSearch
+ELASTICSEARCH_DSL = {
+    "default": {"hosts": env.str("ELASTICSEARCH_DSL", default="es:9200")}
+}
+
+ELASTICSEARCH_DSL_INDEX_SETTINGS = {
+    "number_of_shards": env.int("ELASTICSEARCH_NUMBER_OF_SHARDS", default=1),
+    "number_of_replicas": env.int("ELASTICSEARCH_NUMBER_OF_REPLICAS", default=1),
+}
+
+ELASTICSEARCH_INDEX_NAMES = {
+    "bothub.common.documents.repositorynlplog": env.str(
+        "ELASTICSEARCH_REPOSITORYNLPLOG_INDEX", default="repositorynlplog"
+    )
+}
+
+ELASTICSEARCH_SIGNAL_PROCESSOR_CLASSES = {
+    "realtime": "django_elasticsearch_dsl.signals.RealTimeSignalProcessor",
+    "celery": "bothub.common.signals.CelerySignalProcessor",
+}
+
+ELASTICSEARCH_DSL_SIGNAL_PROCESSOR = ELASTICSEARCH_SIGNAL_PROCESSOR_CLASSES[
+    env.str("ELASTICSEARCH_SIGNAL_PROCESSOR", default="realtime")
+]

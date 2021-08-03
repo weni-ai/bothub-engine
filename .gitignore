@@ -121,3 +121,6 @@ bothub/protos/*.py
 
 #ASDF
 .tool-versions
+
+#Local Docker Compose file
+dev-docker-compose.yml

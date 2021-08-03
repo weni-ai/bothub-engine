@@ -5,7 +5,16 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django.utils.translation import ugettext_lazy as _
+from django_elasticsearch_dsl_drf.constants import LOOKUP_QUERY_GTE, LOOKUP_QUERY_LTE
+from django_elasticsearch_dsl_drf.filter_backends import (
+    CompoundSearchFilterBackend,
+    FilteringFilterBackend,
+)
+from django_elasticsearch_dsl_drf.pagination import LimitOffsetPagination
+from django_elasticsearch_dsl_drf.viewsets import DocumentViewSet
+
 from django_filters.rest_framework import DjangoFilterBackend
+
 from django.conf import settings
 from drf_yasg2 import openapi
 from drf_yasg2.utils import swagger_auto_schema
@@ -28,6 +37,7 @@ from bothub.authentication.authorization import TranslatorAuthentication
 from bothub.authentication.models import RepositoryOwner
 from bothub.celery import app as celery_app
 from bothub.common import languages
+from bothub.common.documents.repositorynlplog import RepositoryNLPLogDocument
 from bothub.common.models import (
     OrganizationAuthorization,
     Repository,
@@ -37,7 +47,6 @@ from bothub.common.models import (
     RepositoryExample,
     RepositoryIntent,
     RepositoryMigrate,
-    RepositoryNLPLog,
     RepositoryQueueTask,
     RepositoryTranslator,
     RepositoryVersion,
@@ -64,6 +73,7 @@ from .permissions import (
     RepositoryExamplePermission,
     RepositoryInfoPermission,
     RepositoryIntentPermission,
+    RepositoryLogPermission,
     RepositoryMigratePermission,
     RepositoryPermission,
     RepositoryTrainInfoPermission,
@@ -1087,13 +1097,13 @@ class RepositoryExampleViewSet(
     decorator=swagger_auto_schema(
         manual_parameters=[
             openapi.Parameter(
-                "confidence_min",
+                "confidence__gte",
                 openapi.IN_QUERY,
                 description="Specify the entire percentage of the minimum confidentiality",
                 type=openapi.TYPE_INTEGER,
             ),
             openapi.Parameter(
-                "confidence_max",
+                "confidence__lte",
                 openapi.IN_QUERY,
                 description="Specify the entire percentage of the maximum confidentiality",
                 type=openapi.TYPE_INTEGER,
@@ -1101,24 +1111,44 @@ class RepositoryExampleViewSet(
         ]
     ),
 )
-class RepositoryNLPLogViewSet(
-    mixins.ListModelMixin,
-    mixins.RetrieveModelMixin,
-    mixins.DestroyModelMixin,
-    GenericViewSet,
-):
-    queryset = RepositoryNLPLog.objects
+class RepositoryNLPLogViewSet(DocumentViewSet):
+    document = RepositoryNLPLogDocument
     serializer_class = RepositoryNLPLogSerializer
-    permission_classes = [permissions.IsAuthenticated, RepositoryPermission]
-    filter_class = RepositoryNLPLogFilter
-    filter_backends = [SearchFilter, DjangoFilterBackend]
-    search_fields = ["$text", "^text", "=text"]
+    lookup_field = "pk"
+    permission_classes = [permissions.IsAuthenticated, RepositoryLogPermission]
+    filter_backends = [CompoundSearchFilterBackend, FilteringFilterBackend]
+    pagination_class = LimitOffsetPagination
     limit = settings.REPOSITORY_NLP_LOG_LIMIT
+    search_fields = ["text"]
+
+    filter_fields = {
+        "repository_uuid": "repository_uuid",
+        "language": "language",
+        "repository_version": "repository_version",
+        "repository_version_language": "repository_version_language",
+        "intent": "log_intent.intent",
+        "confidence": {
+            "field": "log_intent.confidence",
+            "lookups": [LOOKUP_QUERY_LTE, LOOKUP_QUERY_GTE],
+        },
+    }
 
     def filter_queryset(self, queryset):
         queryset = super().filter_queryset(queryset)
-
         return queryset[: self.limit]
+
+    def get_queryset(self):
+        params = {
+            "repository_uuid": self.request.query_params.get("repository_uuid", None),
+            "repository_version": self.request.query_params.get(
+                "repository_version", None
+            ),
+            "repository_version_language": self.request.query_params.get(
+                "repository_version_language", None
+            ),
+        }
+        RepositoryNLPLogFilter(params=params, user=self.request.user)
+        return super().get_queryset()
 
 
 class RepositoryEntitiesViewSet(
