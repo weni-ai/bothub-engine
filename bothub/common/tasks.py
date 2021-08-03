@@ -1,7 +1,6 @@
 import json
 import random
 import requests
-from celery import shared_task
 from datetime import timedelta
 from urllib.parse import urlencode
 from django.apps import apps
