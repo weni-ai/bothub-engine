@@ -1336,7 +1336,7 @@ class RepositoryNLPLog(models.Model):
                     self.repository_version_language.repository_version.repository.uuid
                 ),
                 "language": self.repository_version_language.language,
-                "repository_version_language": self.repository_version_language.repository_version.pk,
+                "repository_version_language": self.repository_version_language.pk,
                 "version": self.repository_version_language.repository_version.id,
             }
         )
