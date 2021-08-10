@@ -222,6 +222,10 @@ STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
+# Default primary key field type
+# https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
+
+DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
 # rest framework
 
@@ -455,14 +459,13 @@ ELASTIC_APM = {
     "SERVER_URL": env("APM_SERVER_URL"),
     "ENVIRONMENT": env("APM_SERVICE_ENVIRONMENT"),
     "DJANGO_TRANSACTION_NAME_FROM_ROUTE": True,
-    "PROCESSORS": (
+    "PROCESSORS": [
         "elasticapm.processors.sanitize_stacktrace_locals",
         "elasticapm.processors.sanitize_http_request_cookies",
         "elasticapm.processors.sanitize_http_headers",
         "elasticapm.processors.sanitize_http_wsgi_env",
-        "elasticapm.processors.sanitize_http_request_querystring",
         "elasticapm.processors.sanitize_http_request_body",
-    ),
+    ],
 }
 
 SECRET_KEY_CHECK_LEGACY_USER = env.str("SECRET_KEY_CHECK_LEGACY_USER")
