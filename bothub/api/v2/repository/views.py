@@ -1120,7 +1120,6 @@ class RepositoryNLPLogViewSet(DocumentViewSet):
     pagination_class = LimitOffsetPagination
     limit = settings.REPOSITORY_NLP_LOG_LIMIT
     search_fields = ["text"]
-
     filter_fields = {
         "repository_uuid": "repository_uuid",
         "language": "language",
@@ -1132,6 +1131,7 @@ class RepositoryNLPLogViewSet(DocumentViewSet):
             "lookups": [LOOKUP_QUERY_LTE, LOOKUP_QUERY_GTE],
         },
     }
+    ordering = ('-created_at',)
 
     def filter_queryset(self, queryset):
         queryset = super().filter_queryset(queryset)
