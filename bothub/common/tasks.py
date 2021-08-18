@@ -264,12 +264,14 @@ def delete_nlp_logs():
 def repositories_count_authorizations():
     for repository in Repository.objects.all():
         count = repository.authorizations.filter(
-			user__in=RepositoryReports.objects.filter(
-				repository_version_language__repository_version__repository=repository,
-				report_date__year=timezone.now().year,
-				report_date__month=timezone.now().month
-			).distinct().values_list("user", flat=True)
-		).count()
+            user__in=RepositoryReports.objects.filter(
+                repository_version_language__repository_version__repository=repository,
+                report_date__year=timezone.now().year,
+                report_date__month=timezone.now().month,
+            )
+            .distinct()
+            .values_list("user", flat=True)
+        ).count()
         repository.count_authorizations = count
         repository.save(update_fields=["count_authorizations"])
 
