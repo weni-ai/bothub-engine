@@ -1131,7 +1131,6 @@ class RepositoryNLPLogViewSet(DocumentViewSet):
             "lookups": [LOOKUP_QUERY_LTE, LOOKUP_QUERY_GTE],
         },
     }
-    ordering = ('-created_at',)
 
     def filter_queryset(self, queryset):
         queryset = super().filter_queryset(queryset)
@@ -1148,7 +1147,7 @@ class RepositoryNLPLogViewSet(DocumentViewSet):
             ),
         }
         RepositoryNLPLogFilter(params=params, user=self.request.user)
-        return super().get_queryset()
+        return super().get_queryset().sort("-created_at")
 
 
 class RepositoryEntitiesViewSet(
