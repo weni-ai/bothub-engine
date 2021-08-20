@@ -26,7 +26,10 @@ def current_version(
         repository_version.created_by = created_by
         repository_version.save(update_fields=["created_by"])
 
-    repository_version_language, created = repositoryversionlanguage.objects.get_or_create(
+    (
+        repository_version_language,
+        created,
+    ) = repositoryversionlanguage.objects.get_or_create(
         repository_version=repository_version, language=language
     )
     return repository_version_language

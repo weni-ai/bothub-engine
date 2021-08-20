@@ -1,7 +1,9 @@
 import json
 
 from django.test import RequestFactory
+from django.test import tag
 from django.test import TestCase
+from django_elasticsearch_dsl.registries import registry
 from rest_framework import status
 
 from bothub.api.v2.nlp.views import RepositoryNLPLogsViewSet
@@ -92,46 +94,49 @@ class RepositoryNLPLogTestCase(TestCase):
         self.assertEqual(data.get("language"), content_data.get("language"))
 
 
+@tag(
+    "elastic"
+)  # Need to run separately, running with the other tests was making this test fail
 class ListRepositoryNLPLogTestCase(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
 
-        self.owner, self.owner_token = create_user_and_token("owner")
+        self.owner, self.owner_token = create_user_and_token("owneres")
 
         self.repository = Repository.objects.create(
             owner=self.owner,
-            name="Testing",
-            slug="test",
+            name="Testing Elasticsearch",
+            slug="testinges",
             language=languages.LANGUAGE_EN,
         )
         self.example_intent_1 = RepositoryIntent.objects.create(
-            text="bias",
+            text="biases",
             repository_version=self.repository.current_version().repository_version,
         )
         self.example = RepositoryExample.objects.create(
             repository_version_language=self.repository.current_version(),
-            text="hi",
+            text="hies",
             intent=self.example_intent_1,
         )
 
         nlp_log = RepositoryNLPLog.objects.create(
-            text="test",
+            text="testes",
             user_agent="python-requests/2.20.1",
             from_backend=True,
             repository_version_language=self.repository.current_version(),
             nlp_log=json.dumps(
                 {
-                    "intent": {"name": "bias", "confidence": 0.9994810819625854},
+                    "intent": {"name": "biases", "confidence": 0.9994810819625854},
                     "intent_ranking": [
-                        {"name": "bias", "confidence": 0.9994810819625854},
-                        {"name": "doubt", "confidence": 0.039212167263031006},
-                        {"name": "negative", "confidence": 0.0},
-                        {"name": "affirmative", "confidence": 0.0},
+                        {"name": "biases", "confidence": 0.9994810819625854},
+                        {"name": "doubtes", "confidence": 0.039212167263031006},
+                        {"name": "negativees", "confidence": 0.0},
+                        {"name": "affirmativees", "confidence": 0.0},
                     ],
                     "labels_list": [],
                     "entities_list": [],
                     "entities": {},
-                    "text": "test",
+                    "text": "testes",
                     "repository_version": int(self.repository.current_version().pk),
                     "language": str(self.repository.language),
                 }
@@ -140,32 +145,33 @@ class ListRepositoryNLPLogTestCase(TestCase):
         )
 
         RepositoryNLPLogIntent.objects.create(
-            intent="bias",
+            intent="biases",
             confidence=0.9994810819625854,
             is_default=True,
             repository_nlp_log=nlp_log,
         )
 
         RepositoryNLPLogIntent.objects.create(
-            intent="doubt",
+            intent="doubtes",
             confidence=0.039212167263031006,
             is_default=False,
             repository_nlp_log=nlp_log,
         )
 
         RepositoryNLPLogIntent.objects.create(
-            intent="negative",
+            intent="negativees",
             confidence=0.0,
             is_default=False,
             repository_nlp_log=nlp_log,
         )
 
         RepositoryNLPLogIntent.objects.create(
-            intent="affirmative",
+            intent="affirmativees",
             confidence=0.0,
             is_default=False,
             repository_nlp_log=nlp_log,
         )
+        registry.update(nlp_log)
 
     def request(self, data, token=None):
         authorization_header = (

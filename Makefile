@@ -66,6 +66,12 @@ collectstatic:
 		then python manage.py collectstatic --no-input; \
 		else pipenv run python manage.py collectstatic --no-input; fi
 		
+search_index:
+	@make check_environment
+	@if [ ${IS_PRODUCTION} = true ]; \
+		then python manage.py search_index --rebuild -f; \
+		else pipenv run python manage.py search_index --rebuild -f; fi
+
 createproto:
 	@rm -rf ./bothub/protos/*.py
 	@python -m grpc_tools.protoc --experimental_allow_proto3_optional --proto_path=./ --python_out=./ --grpc_python_out=./ ./bothub/protos/authentication.proto
