@@ -79,6 +79,7 @@ from .permissions import (
     RepositoryTrainInfoPermission,
 )
 from .serializers import (
+    AnalyzeQuestionSerializer,
     AnalyzeTextSerializer,
     DebugParseSerializer,
     EvaluateSerializer,
@@ -512,6 +513,43 @@ class RepositoryViewSet(
         error = response.get("error")  # pragma: no cover
         message = error.get("message")  # pragma: no cover
         raise APIException(detail=message)  # pragma: no cover
+
+@action(
+    detail=True,
+    methods=["POST"],
+    url_name="repository-question-answering",
+    permission_classes=[],
+    lookup_fields=["uuid"],
+    serializer_class=AnalyzeQuestionSerializer,
+)
+def question(self, request, **kwargs):
+    repository = self.get_object()
+    user_authorization = repository.get_user_authorization(request.user)
+    serializer = AnalyzeQuestionSerializer(data=request.data)  # pragma: no cover
+    serializer.is_valid(raise_exception=True)  # pragma: no cover
+    request = repository.request_nlp_qa(
+        user_authorization, serializer.data
+    )  # pragma: no cover
+
+    if request.status_code == status.HTTP_200_OK:  # pragma: no cover
+        return Response(request.json())  # pragma: no cover
+
+    response = None  # pragma: no cover
+    try:  # pragma: no cover
+        response = request.json()  # pragma: no cover
+    except Exception:
+        pass
+
+    if not response:  # pragma: no cover
+        raise APIException(  # pragma: no cover
+            detail=_(
+                "Something unexpected happened! " + "We couldn't analyze your text."
+            )
+        )
+    error = response.get("error")  # pragma: no cover
+    message = error.get("message")  # pragma: no cover
+    raise APIException(detail=message)  # pragma: no cover
+
 
     @action(
         detail=True,

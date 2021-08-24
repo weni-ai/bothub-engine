@@ -9,6 +9,7 @@ from django.core.validators import RegexValidator, _lazy_re_compile
 from django.db import models
 from django.db.models import Sum, Q, IntegerField, Case, When, Count
 from django.dispatch import receiver
+from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
@@ -2287,7 +2288,12 @@ class QAKnowledgeBase(models.Model):
     )
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
     last_update = models.DateTimeField(_("last update"), auto_now=True)
-
+    
+    def get_context_by_language(self, lang):
+        return get_object_or_404(self.contexts.all(), language=lang)
+    
+    def get_user_authorization(self, user):
+        return self.repository.get_user_authorization(user)
 
 class QAContext(models.Model):
     knowledge_base = models.ForeignKey(
@@ -2305,6 +2311,13 @@ class QAContext(models.Model):
 
     class Meta:
         unique_together = ("knowledge_base", "language")
+
+    @property
+    def repository(self):
+        return self.knowledge_base.repository
+    
+    def get_user_authorization(self, user):
+        return self.repository.get_user_authorization(user)
 
 
 @receiver(models.signals.pre_save, sender=RequestRepositoryAuthorization)

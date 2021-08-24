@@ -1407,6 +1407,12 @@ class AnalyzeTextSerializer(serializers.Serializer):
     repository_version = serializers.IntegerField(required=False)
 
 
+class AnalyzeQuestionSerializer(serializers.Serializer):
+    knowledge_base_id = serializers.IntegerField(required=True)
+    question = serializers.CharField(allow_blank=False)
+    language = serializers.ChoiceField(LANGUAGE_CHOICES, required=True)
+
+
 class DebugParseSerializer(serializers.Serializer):
     language = serializers.ChoiceField(LANGUAGE_CHOICES, required=True)
     text = serializers.CharField(allow_blank=False)
