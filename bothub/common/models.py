@@ -2320,6 +2320,45 @@ class QAContext(models.Model):
         return self.repository.get_user_authorization(user)
 
 
+class QALogs(models.Model):
+    class Meta:
+        verbose_name = _("repository qa nlp logs")
+        indexes = [
+            models.Index(
+                name="common_repo_qa_nlp_log_idx",
+                fields=("context", "user"),
+                condition=Q(from_backend=False),
+            )
+        ]
+        ordering = ["-id"]
+
+    question = models.TextField(help_text=_("Question"))
+    user_agent = models.TextField(help_text=_("User Agent"))
+    from_backend = models.BooleanField()
+    context = models.ForeignKey(
+        QAContext,
+        models.CASCADE,
+        related_name="qa_nlp_logs",
+        editable=False,
+        null=True,
+    )
+    nlp_log = models.JSONField(help_text=_("NLP Log"), blank=True)
+    user = models.ForeignKey(RepositoryOwner, models.CASCADE)
+    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
+
+    @property
+    def context_indexing(self):
+        return dict_to_obj(
+            {
+                "knowledge_base": self.context.knowledge_base.id,
+                "repository": str(
+                    self.context.repository.uuid
+                ),
+                "language": self.context.language,
+            }
+        )
+
+
 @receiver(models.signals.pre_save, sender=RequestRepositoryAuthorization)
 def set_user_role_on_approved(instance, **kwargs):
     current = None

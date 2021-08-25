@@ -77,7 +77,8 @@ env = environ.Env(
     CONNECT_CERTIFICATE_GRPC_CRT=(str, None),
     REPOSITORY_RESTRICT_ACCESS_NLP_LOGS=(list, []),
     ELASTICSEARCH_DSL=(str, "localhost:9200"),
-    ELASTICSEARCH_REPOSITORYNLPLOG_INDEX=(str, "repositorynlplog"),
+    ELASTICSEARCH_REPOSITORYNLPLOG_INDEX=(str, "ai_repositorynlplog"),
+    ELASTICSEARCH_REPOSITORYQANLPLOG_INDEX=(str, "ai_repositoryqanlplog"),
     ELASTICSEARCH_NUMBER_OF_SHARDS=(int, 1),
     ELASTICSEARCH_NUMBER_OF_REPLICAS=(int, 1),
     ELASTICSEARCH_SIGNAL_PROCESSOR=(str, "realtime"),
@@ -514,13 +515,16 @@ ELASTICSEARCH_DSL = {
 
 ELASTICSEARCH_DSL_INDEX_SETTINGS = {
     "number_of_shards": env.int("ELASTICSEARCH_NUMBER_OF_SHARDS", default=1),
-    "number_of_replicas": env.int("ELASTICSEARCH_NUMBER_OF_REPLICAS", default=1),
+    "number_of_replicas": env.int("ELASTICSEARCH_NUMBER_OF_REPLICAS", default=0),
 }
 
 ELASTICSEARCH_INDEX_NAMES = {
     "bothub.common.documents.repositorynlplog": env.str(
-        "ELASTICSEARCH_REPOSITORYNLPLOG_INDEX", default="repositorynlplog"
-    )
+        "ELASTICSEARCH_REPOSITORYNLPLOG_INDEX", default="ai_repositorynlplog"
+    ),
+    "bothub.common.documents.repositoryqanlplog": env.str(
+        "ELASTICSEARCH_REPOSITORYQANLPLOG_INDEX", default="ai_repositoryqanlplog"
+    ),
 }
 
 ELASTICSEARCH_SIGNAL_PROCESSOR_CLASSES = {

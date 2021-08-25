@@ -14,7 +14,7 @@ from .evaluate.views import ResultsListViewSet
 from .examples.views import ExamplesViewSet
 from .groups.views import RepositoryEntityGroupViewSet
 from .knowledge_base.views import QAKnowledgeBaseViewSet, QAContextViewSet
-from .nlp.views import NLPLangsViewSet
+from .nlp.views import NLPLangsViewSet, RepositoryQANLPLogsViewSet
 from .nlp.views import RepositoryAuthorizationEvaluateViewSet
 from .nlp.views import RepositoryAuthorizationInfoViewSet
 from .nlp.views import RepositoryAuthorizationParseViewSet
@@ -32,7 +32,7 @@ from .organization.views import (
     OrganizationProfileViewSet,
     OrganizationAuthorizationViewSet,
 )
-from .repository.views import RepositoriesContributionsViewSet
+from .repository.views import RepositoriesContributionsViewSet, RepositoryQANLPLogViewSet
 from .repository.views import RepositoriesViewSet
 from .repository.views import RepositoryAuthorizationRequestsViewSet
 from .repository.views import RepositoryAuthorizationViewSet
@@ -178,6 +178,7 @@ router.register("repository/translation", RepositoryTranslatedExampleViewSet)
 router.register("repository/translation-export", RepositoryTranslatedExporterViewSet)
 router.register("repository/version", RepositoryVersionViewSet)
 router.register("repository/log", RepositoryNLPLogViewSet, basename="es-repository-log")
+router.register("repository/qa/log", RepositoryQANLPLogViewSet, basename="es-repository-qa-log")
 router.register("repository/entities", RepositoryEntitiesViewSet)
 router.register("repository/task-queue", RepositoryTaskQueueViewSet)
 router.register("repository/qa/knowledge-base", QAKnowledgeBaseViewSet)
@@ -215,6 +216,7 @@ router.register(
     RepositoryAuthorizationKnowledgeBaseViewSet,
 )
 router.register("repository/nlp/log", RepositoryNLPLogsViewSet)
+router.register("repository/qa/nlp/log", RepositoryQANLPLogsViewSet)
 router.register("account/login", LoginViewSet)
 router.register("account/register", RegisterUserViewSet)
 router.register("account/change-password", ChangePasswordViewSet)

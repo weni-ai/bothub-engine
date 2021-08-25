@@ -7,6 +7,8 @@ from rest_framework.exceptions import NotFound
 from rest_framework.exceptions import PermissionDenied
 from bothub.authentication.models import RepositoryOwner
 from bothub.common.models import (
+    QAContext,
+    QAKnowledgeBase,
     Repository,
     RepositoryEntity,
     RepositoryQueueTask,
@@ -118,9 +120,33 @@ class RepositoryNLPLogFilter:
     def check_params(self):
         validate_param = False
         for param, value in self.params.items():
-            if value is not None:
+            if value is not None and param != "param":
                 validate_param = getattr(self, f"check_{param}")(value)
         return validate_param
+
+    def check_knowledge_base(self, value):
+        try:
+            knowledge_base = QAKnowledgeBase.objects.get(pk=value)
+            authorization = knowledge_base.get_user_authorization(self.user)
+            if not authorization.can_contribute:
+                raise PermissionDenied()
+            return True
+        except QAContext.DoesNotExist:
+            raise NotFound(_("Knowledge base {} does not exist").format(value))
+        except DjangoValidationError:
+            raise NotFound(_("Invalid Knowledge base"))
+
+    def check_context(self, value):
+        try:
+            context = QAContext.objects.get(pk=value)
+            authorization = context.get_user_authorization(self.user)
+            if not authorization.can_contribute:
+                raise PermissionDenied()
+            return True
+        except QAContext.DoesNotExist:
+            raise NotFound(_("Context {} does not exist").format(value))
+        except DjangoValidationError:
+            raise NotFound(_("Invalid Context"))
 
     def check_repository_uuid(self, value):
         try:

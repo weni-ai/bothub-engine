@@ -5,6 +5,7 @@ from bothub.common.models import (
     RepositoryNLPLogIntent,
     RepositoryVersionLanguage,
     RepositoryAuthorization,
+    QAContext,
 )
 
 
@@ -56,5 +57,35 @@ class RepositoryNLPLogSerializer(serializers.ModelSerializer):
                 is_default=intent.get("is_default"),
                 repository_nlp_log=instance,
             )
+
+        return instance
+
+
+class RepositoryQANLPLogSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RepositoryNLPLog
+        fields = [
+            "id",
+            "question",
+            "user_agent",
+            "context",
+            "nlp_log",
+            "user",
+            "from_backend",
+        ]
+        ref_name = None
+
+    context = serializers.PrimaryKeyRelatedField(
+        queryset=QAContext.objects, write_only=True, required=True
+    )
+    user = serializers.PrimaryKeyRelatedField(
+        queryset=RepositoryAuthorization.objects, write_only=True, required=True
+    )
+
+    def create(self, validated_data):
+        validated_data.update({"user": validated_data.get("user").user})
+
+        instance = self.Meta.model(**validated_data)
+        instance.save()
 
         return instance

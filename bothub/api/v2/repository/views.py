@@ -1,3 +1,5 @@
+from bothub.api.v2.nlp.serializers import RepositoryQANLPLogSerializer
+from bothub.common.documents.repositoryqanlplog import RepositoryQANLPLogDocument
 import json
 
 from django.core.exceptions import ValidationError as DjangoValidationError
@@ -76,6 +78,7 @@ from .permissions import (
     RepositoryLogPermission,
     RepositoryMigratePermission,
     RepositoryPermission,
+    RepositoryQALogPermission,
     RepositoryTrainInfoPermission,
 )
 from .serializers import (
@@ -1182,6 +1185,40 @@ class RepositoryNLPLogViewSet(DocumentViewSet):
             ),
             "repository_version_language": self.request.query_params.get(
                 "repository_version_language", None
+            ),
+        }
+        RepositoryNLPLogFilter(params=params, user=self.request.user)
+        return super().get_queryset().sort("-created_at")
+
+
+class RepositoryQANLPLogViewSet(DocumentViewSet):
+    document = RepositoryQANLPLogDocument
+    serializer_class = RepositoryQANLPLogSerializer
+    lookup_field = "pk"
+    permission_classes = [permissions.IsAuthenticated, RepositoryQALogPermission]
+    filter_backends = [CompoundSearchFilterBackend, FilteringFilterBackend]
+    pagination_class = LimitOffsetPagination
+    limit = settings.REPOSITORY_NLP_LOG_LIMIT
+    search_fields = ["text"]
+    filter_fields = {
+        "context": "context",
+        "language": "language",
+        "knowledge_base": "knowledge_base",
+        "repository_uuid": "repository_uuid",
+    }
+
+    def filter_queryset(self, queryset):
+        queryset = super().filter_queryset(queryset)
+        return queryset[: self.limit]
+
+    def get_queryset(self):
+        params = {
+            "repository_uuid": self.request.query_params.get("repository_uuid", None),
+            "context": self.request.query_params.get(
+                "context", None
+            ),
+            "knowledge_base": self.request.query_params.get(
+                "knowledge_base", None
             ),
         }
         RepositoryNLPLogFilter(params=params, user=self.request.user)

@@ -13,11 +13,12 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from bothub.api.v2.nlp.serializers import NLPSerializer, RepositoryNLPLogSerializer
+from bothub.api.v2.nlp.serializers import NLPSerializer, RepositoryNLPLogSerializer, RepositoryQANLPLogSerializer
 from bothub.authentication.authorization import NLPAuthentication
 from bothub.authentication.models import User
 from bothub.common import languages
 from bothub.common.models import (
+    QALogs,
     RepositoryAuthorization,
     RepositoryVersionLanguage,
     RepositoryNLPLog,
@@ -687,6 +688,13 @@ class RepositoryUpdateInterpretersViewSet(
 class RepositoryNLPLogsViewSet(mixins.CreateModelMixin, GenericViewSet):
     queryset = RepositoryNLPLog.objects
     serializer_class = RepositoryNLPLogSerializer
+    permission_classes = [AllowAny]
+    authentication_classes = [NLPAuthentication]
+
+
+class RepositoryQANLPLogsViewSet(mixins.CreateModelMixin, GenericViewSet):
+    queryset = QALogs.objects
+    serializer_class = RepositoryQANLPLogSerializer
     permission_classes = [AllowAny]
     authentication_classes = [NLPAuthentication]
 
