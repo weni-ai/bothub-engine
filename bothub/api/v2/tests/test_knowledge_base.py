@@ -5,7 +5,7 @@ from django.test import RequestFactory
 from rest_framework import status
 
 from bothub.api.v2.knowledge_base.views import QAKnowledgeBaseViewSet, QAContextViewSet
-from bothub.common.models import Repository, QAKnowledgeBase, QAContext
+from bothub.common.models import Repository, QAKnowledgeBase, QAContext, RepositoryAuthorization
 from bothub.common import languages
 
 from bothub.api.v2.tests.utils import create_user_and_token
@@ -56,6 +56,10 @@ class DefaultSetUpKnowledgeBaseMixin:
             text="teste 3",
             language=languages.LANGUAGE_PT_BR,
         )
+        self.repository_auth = RepositoryAuthorization.objects.create(
+            user=self.owner, repository=self.repository, role=3
+        )
+
 
 
 class ListQAKnowledgeBaseAPITestCase(DefaultSetUpKnowledgeBaseMixin, TestCase):

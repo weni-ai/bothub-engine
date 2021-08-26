@@ -12,19 +12,17 @@ REPOSITORYQANLPLOG_INDEX = Index(settings.ELASTICSEARCH_INDEX_NAMES[__name__])
 class RepositoryQANLPLogDocument(Document):
     user = fields.IntegerField(attr="user.id")
     context = fields.IntegerField(attr="context.id")
-
     nlp_log = fields.NestedField(
         properties={
-            "intent_ranking": fields.NestedField(
+            "answers": fields.NestedField(
                 properties={
                     "text": fields.TextField(fields={"raw": fields.KeywordField()}),
                     "confidence": fields.FloatField(),
                 }
             ),
-            "id": fields.TextField(),
+            "id": fields.IntegerField(),
         }
     )
-
     language = fields.TextField(
         attr="context_indexing.language",
         fields={"raw": fields.KeywordField()},
@@ -41,4 +39,7 @@ class RepositoryQANLPLogDocument(Document):
 
     class Django:
         model = QALogs
-        fields = ["id", "question", "from_backend", "user_agent", "created_at"]
+        fields = ["id", "answer", "confidence", "question", "from_backend", "user_agent", "created_at"]
+
+    def prepare_nlp_log(self, obj):
+        return json.loads(obj.nlp_log)

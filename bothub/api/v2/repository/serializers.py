@@ -1484,6 +1484,8 @@ class RepositoryQANLPLogSerializer(DocumentSerializer):
         document = RepositoryQANLPLogDocument
         fields = [
             "id",
+            "answer",
+            "confidence",
             "user",
             "nlp_log",
             "context",

@@ -1,4 +1,3 @@
-from bothub.api.v2.nlp.serializers import RepositoryQANLPLogSerializer
 from bothub.common.documents.repositoryqanlplog import RepositoryQANLPLogDocument
 import json
 
@@ -101,6 +100,7 @@ from .serializers import (
     RepositoryNLPLogReportsSerializer,
     RepositoryNLPLogSerializer,
     RepositoryPermissionSerializer,
+    RepositoryQANLPLogSerializer,
     RepositoryQueueTaskSerializer,
     RepositorySerializer,
     RepositoryTrainInfoSerializer,
@@ -1199,7 +1199,7 @@ class RepositoryQANLPLogViewSet(DocumentViewSet):
     filter_backends = [CompoundSearchFilterBackend, FilteringFilterBackend]
     pagination_class = LimitOffsetPagination
     limit = settings.REPOSITORY_NLP_LOG_LIMIT
-    search_fields = ["text"]
+    search_fields = ["question"]
     filter_fields = {
         "context": "context",
         "language": "language",

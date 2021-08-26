@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from bothub.common.models import (
+    QALogs,
     RepositoryNLPLog,
     RepositoryNLPLogIntent,
     RepositoryVersionLanguage,
@@ -63,9 +64,11 @@ class RepositoryNLPLogSerializer(serializers.ModelSerializer):
 
 class RepositoryQANLPLogSerializer(serializers.ModelSerializer):
     class Meta:
-        model = RepositoryNLPLog
+        model = QALogs
         fields = [
             "id",
+            "answer",
+            "confidence",
             "question",
             "user_agent",
             "context",

@@ -2331,7 +2331,8 @@ class QALogs(models.Model):
             )
         ]
         ordering = ["-id"]
-
+    answer = models.TextField(help_text=_("Question"))
+    confidence = models.FloatField(help_text=_("Confidence"))
     question = models.TextField(help_text=_("Question"))
     user_agent = models.TextField(help_text=_("User Agent"))
     from_backend = models.BooleanField()
@@ -2342,7 +2343,7 @@ class QALogs(models.Model):
         editable=False,
         null=True,
     )
-    nlp_log = models.JSONField(help_text=_("NLP Log"), blank=True)
+    nlp_log = models.TextField(help_text=_("NLP Log"), blank=True)
     user = models.ForeignKey(RepositoryOwner, models.CASCADE)
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
 
@@ -2402,3 +2403,4 @@ def save_log_nlp(instance, created, **kwargs):
         )
         report.count_reports += 1
         report.save(update_fields=["count_reports"])
+    confidence = models.FloatField(help_text=_("Confidence"))
