@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package weni.rapidpro.channel;
+
+service WeniWebChatController {
+    rpc Create(WeniWebChatCreateRequest) returns (WeniWebChat) {}
+}
+
+message WeniWebChatCreateRequest {
+    string name = 1;
+    string user = 2;
+    string base_url = 3;
+}
+
+message WeniWebChat {
+    string name = 1;
+}
+
