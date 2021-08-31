@@ -41,11 +41,6 @@ before_script:
   - psql -U postgres -c "CREATE USER bothub WITH PASSWORD 'bothub';"
   - psql -U postgres -c "ALTER ROLE bothub WITH SUPERUSER;"
   - psql -U bothub postgres -c "CREATE DATABASE bothub;"
-  - git clone --depth 1 --branch main https://github.com/Ilhasoft/weni-protobuffers ./bothub/protos/
-  - python -m grpc_tools.protoc --experimental_allow_proto3_optional --proto_path=./ --python_out=./ --grpc_python_out=./ ./bothub/protos/inteligence/authentication.proto
-  - python -m grpc_tools.protoc --experimental_allow_proto3_optional --proto_path=./ --python_out=./ --grpc_python_out=./ ./bothub/protos/inteligence/organization.proto
-  - python -m grpc_tools.protoc --experimental_allow_proto3_optional --proto_path=./ --python_out=./ --grpc_python_out=./ ./bothub/protos/inteligence/repository.proto
-  - python -m grpc_tools.protoc --experimental_allow_proto3_optional --proto_path=./ --python_out=./ --grpc_python_out=./ ./bothub/protos/connect/project.proto
 
 install:
   - pip install pipenv
@@ -62,6 +57,7 @@ env:
     - ELASTICSEARCH_NUMBER_OF_SHARDS=1
     - ELASTICSEARCH_NUMBER_OF_REPLICAS=1
 script:
+  - make createproto
   - python manage.py migrate
   - python manage.py search_index --rebuild -f
   - python manage.py collectstatic
