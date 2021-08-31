@@ -1,5 +1,5 @@
 from .services import RepositoryService
-from bothub.protos import repository_pb2_grpc
+from bothub.protos.inteligence import repository_pb2_grpc
 
 
 def grpc_handlers(server):
