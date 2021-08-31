@@ -41,6 +41,7 @@ before_script:
   - psql -U postgres -c "CREATE USER bothub WITH PASSWORD 'bothub';"
   - psql -U postgres -c "ALTER ROLE bothub WITH SUPERUSER;"
   - psql -U bothub postgres -c "CREATE DATABASE bothub;"
+  - git clone --depth 1 --branch main https://github.com/Ilhasoft/weni-protobuffers ./bothub/protos/
   - python -m grpc_tools.protoc --experimental_allow_proto3_optional --proto_path=./ --python_out=./ --grpc_python_out=./ ./bothub/protos/inteligence/authentication.proto
   - python -m grpc_tools.protoc --experimental_allow_proto3_optional --proto_path=./ --python_out=./ --grpc_python_out=./ ./bothub/protos/inteligence/organization.proto
   - python -m grpc_tools.protoc --experimental_allow_proto3_optional --proto_path=./ --python_out=./ --grpc_python_out=./ ./bothub/protos/inteligence/repository.proto
