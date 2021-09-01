@@ -1,10 +1,10 @@
 from rest_framework import mixins, permissions
 from rest_framework.viewsets import GenericViewSet
 
-from .filters import QAKnowledgeBaseFilter, QAContextFilter
-from .permissions import QAKnowledgeBasePermission, QAContextPermission
-from .serializers import QAKnowledgeBaseSerializer, QAContextSerializer
-from bothub.common.models import QAKnowledgeBase, QAContext
+from .filters import QAKnowledgeBaseFilter, QAtextFilter
+from .permissions import QAKnowledgeBasePermission, QAtextPermission
+from .serializers import QAKnowledgeBaseSerializer, QAtextSerializer
+from bothub.common.models import QAKnowledgeBase, QAtext
 
 
 class QAKnowledgeBaseViewSet(
@@ -21,7 +21,7 @@ class QAKnowledgeBaseViewSet(
     permission_classes = [permissions.IsAuthenticated, QAKnowledgeBasePermission]
 
 
-class QAContextViewSet(
+class QAtextViewSet(
     mixins.ListModelMixin,
     mixins.CreateModelMixin,
     mixins.RetrieveModelMixin,
@@ -29,7 +29,7 @@ class QAContextViewSet(
     mixins.UpdateModelMixin,
     GenericViewSet,
 ):
-    queryset = QAContext.objects.all()
-    serializer_class = QAContextSerializer
-    filter_class = QAContextFilter
-    permission_classes = [permissions.IsAuthenticated, QAContextPermission]
+    queryset = QAtext.objects.all()
+    serializer_class = QAtextSerializer
+    filter_class = QAtextFilter
+    permission_classes = [permissions.IsAuthenticated, QAtextPermission]

@@ -14,5 +14,5 @@ class QAKnowledgeBasePermission(QABasePermission):
     pass
 
 
-class QAContextPermission(QABasePermission):
+class QAtextPermission(QABasePermission):
     pass

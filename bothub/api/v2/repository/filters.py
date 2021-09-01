@@ -7,7 +7,7 @@ from rest_framework.exceptions import NotFound
 from rest_framework.exceptions import PermissionDenied
 from bothub.authentication.models import RepositoryOwner
 from bothub.common.models import (
-    QAContext,
+    QAtext,
     QAKnowledgeBase,
     Repository,
     RepositoryEntity,
@@ -131,19 +131,19 @@ class RepositoryNLPLogFilter:
             if not authorization.can_contribute:
                 raise PermissionDenied()
             return True
-        except QAContext.DoesNotExist:
+        except QAtext.DoesNotExist:
             raise NotFound(_("Knowledge base {} does not exist").format(value))
         except DjangoValidationError:
             raise NotFound(_("Invalid Knowledge base"))
 
     def check_context(self, value):
         try:
-            context = QAContext.objects.get(pk=value)
+            context = QAtext.objects.get(pk=value)
             authorization = context.get_user_authorization(self.user)
             if not authorization.can_contribute:
                 raise PermissionDenied()
             return True
-        except QAContext.DoesNotExist:
+        except QAtext.DoesNotExist:
             raise NotFound(_("Context {} does not exist").format(value))
         except DjangoValidationError:
             raise NotFound(_("Invalid Context"))

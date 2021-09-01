@@ -6,7 +6,7 @@ from bothub.common.models import (
     RepositoryNLPLogIntent,
     RepositoryVersionLanguage,
     RepositoryAuthorization,
-    QAContext,
+    QAtext,
 )
 
 
@@ -71,15 +71,15 @@ class RepositoryQANLPLogSerializer(serializers.ModelSerializer):
             "confidence",
             "question",
             "user_agent",
-            "context",
+            "text",
             "nlp_log",
             "user",
             "from_backend",
         ]
         ref_name = None
 
-    context = serializers.PrimaryKeyRelatedField(
-        queryset=QAContext.objects, write_only=True, required=True
+    text = serializers.PrimaryKeyRelatedField(
+        queryset=QAtext.objects, write_only=True, required=True
     )
     user = serializers.PrimaryKeyRelatedField(
         queryset=RepositoryAuthorization.objects, write_only=True, required=True

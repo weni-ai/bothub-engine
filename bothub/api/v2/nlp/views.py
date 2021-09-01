@@ -723,7 +723,7 @@ class RepositoryAuthorizationKnowledgeBaseViewSet(
             repository.knowledge_bases.all(), pk=knowledge_base_pk
         )
 
-        context = get_object_or_404(knowledge_base.contexts.all(), language=language)
+        context = get_object_or_404(knowledge_base.texts.all(), language=language)
 
         return Response(
             {

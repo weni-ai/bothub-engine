@@ -19,7 +19,7 @@ from bothub.common.models import (
     RepositoryVersionLanguage,
     RepositoryIntent,
     QAKnowledgeBase,
-    QAContext,
+    QAtext,
 )
 from bothub.common.models import RepositoryExample
 from bothub.common.models import RepositoryExampleEntity
@@ -345,7 +345,7 @@ class AuthorizationKnowledgeBaseTestCase(TestCase):
             repository=self.repository, title="Testando knowledge"
         )
 
-        self.context_1 = QAContext.objects.create(
+        self.context_1 = QAtext.objects.create(
             knowledge_base=self.knowledge_base_1,
             text="teste",
             language=languages.LANGUAGE_PT_BR,

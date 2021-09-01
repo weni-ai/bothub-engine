@@ -14,7 +14,7 @@ from bothub.api.v2.nlp.views import RepositoryQANLPLogsViewSet
 class QALogsTestCase(DefaultSetUpKnowledgeBaseMixin, TestCase):
     def request(self, data={}, token=None):
         request = self.factory.post(
-            "/v2/repository/qa/nlp/log/", json.dumps(data), content_type="application/json"
+            "/v2/repository/nlp/qa/log/", json.dumps(data), content_type="application/json"
         )
 
         response = RepositoryQANLPLogsViewSet.as_view({"post": "create"})(request)

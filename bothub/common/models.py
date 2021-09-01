@@ -2290,14 +2290,21 @@ class QAKnowledgeBase(models.Model):
     last_update = models.DateTimeField(_("last update"), auto_now=True)
     
     def get_context_by_language(self, lang):
-        return get_object_or_404(self.contexts.all(), language=lang)
+        return get_object_or_404(self.texts.all(), language=lang)
     
     def get_user_authorization(self, user):
         return self.repository.get_user_authorization(user)
 
-class QAContext(models.Model):
+    def get_text_description(self, lang=None):
+        if not lang:
+            return self.texts.first().text[:150]
+        else:
+            return get_object_or_404(self.texts.all(), language=lang).text[:150]
+
+
+class QAtext(models.Model):
     knowledge_base = models.ForeignKey(
-        QAKnowledgeBase, on_delete=models.CASCADE, related_name="contexts"
+        QAKnowledgeBase, on_delete=models.CASCADE, related_name="texts"
     )
     text = models.TextField(_("text"), help_text=_("QA context text"), max_length=25000)
     language = models.CharField(
@@ -2317,7 +2324,7 @@ class QAContext(models.Model):
         return self.knowledge_base.repository
     
     def get_user_authorization(self, user):
-        return self.repository.get_user_authorization(user)
+        return self.knowledge_base.get_user_authorization(user)
 
 
 class QALogs(models.Model):
@@ -2337,7 +2344,7 @@ class QALogs(models.Model):
     user_agent = models.TextField(help_text=_("User Agent"))
     from_backend = models.BooleanField()
     context = models.ForeignKey(
-        QAContext,
+        QAtext,
         models.CASCADE,
         related_name="qa_nlp_logs",
         editable=False,

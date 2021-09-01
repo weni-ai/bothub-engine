@@ -1,6 +1,6 @@
 from rest_framework import permissions
 
-from bothub.common.models import QAContext, RepositoryVersionLanguage
+from bothub.common.models import QAtext, RepositoryVersionLanguage
 from .. import READ_METHODS
 from .. import WRITE_METHODS
 
@@ -27,7 +27,7 @@ class RepositoryLogPermission(permissions.BasePermission):
 class RepositoryQALogPermission(permissions.BasePermission):
     def has_object_permission(self, request, view):
         value = self.request.query_params.get("context", None)
-        obj = QAContext.objects.get(
+        obj = QAtext.objects.get(
             pk=value
         ).repository
         authorization = obj.get_user_authorization(request.user)

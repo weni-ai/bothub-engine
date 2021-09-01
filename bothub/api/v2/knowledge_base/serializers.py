@@ -1,21 +1,25 @@
 from rest_framework import serializers
 
 from bothub.common import languages
-from bothub.common.models import Repository, QAKnowledgeBase, QAContext
+from bothub.common.models import Repository, QAKnowledgeBase, QAtext
 
 
 class QAKnowledgeBaseSerializer(serializers.ModelSerializer):
     class Meta:
         model = QAKnowledgeBase
-        fields = ["id", "repository", "title"]
+        fields = ["id", "repository", "title", "description"]
         read_only_fields = ["created_at", "last_update"]
 
     repository = serializers.PrimaryKeyRelatedField(queryset=Repository.objects)
+    description = serializers.SerializerMethodField('get_description')
+
+    def get_description(self, obj):
+        return obj.get_text_description()
 
 
-class QAContextSerializer(serializers.ModelSerializer):
+class QAtextSerializer(serializers.ModelSerializer):
     class Meta:
-        model = QAContext
+        model = QAtext
         fields = ["id", "text", "language", "knowledge_base"]
         read_only_fields = ["created_at", "last_update"]
 
