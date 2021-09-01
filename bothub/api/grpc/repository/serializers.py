@@ -3,7 +3,7 @@ from rest_framework import serializers
 
 from bothub.api.v2.repository.serializers import RepositoryCategorySerializer
 from bothub.common.models import Repository
-from bothub.protos.inteligence import repository_pb2
+from bothub.protos.src.weni.protobuf.intelligence import repository_pb2
 
 
 class RepositoryProtoSerializer(proto_serializers.ModelProtoSerializer):
