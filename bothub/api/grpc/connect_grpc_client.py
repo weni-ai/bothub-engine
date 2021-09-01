@@ -3,7 +3,7 @@ from typing import List, Dict
 import grpc
 from django.conf import settings
 
-from bothub.protos.inteligence import project_pb2_grpc, project_pb2
+from bothub.protos.src.weni.protobuf.connect import project_pb2_grpc, project_pb2
 
 
 class ConnectGRPCClient:

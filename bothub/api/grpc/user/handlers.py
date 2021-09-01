@@ -3,7 +3,7 @@ from bothub.api.grpc.user.services import (
     UserService,
     UserLanguageService,
 )
-from bothub.protos.inteligence import authentication_pb2_grpc
+from bothub.protos.src.weni.protobuf.intelligence import authentication_pb2_grpc
 
 
 def grpc_handlers(server):
