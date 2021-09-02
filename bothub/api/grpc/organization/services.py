@@ -16,7 +16,7 @@ from bothub.common.models import (
     RepositoryAuthorization,
     Repository,
 )
-from bothub.protos.organization_pb2 import OrgStatistic
+from bothub.protos.src.weni.protobuf.intelligence.organization_pb2 import OrgStatistic
 
 
 class OrgService(
