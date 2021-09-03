@@ -539,4 +539,6 @@ ELASTICSEARCH_DSL_SIGNAL_PROCESSOR = ELASTICSEARCH_SIGNAL_PROCESSOR_CLASSES[
     env.str("ELASTICSEARCH_SIGNAL_PROCESSOR", default="realtime")
 ]
 
-GUNICORN_WORKERS = env.int("GUNICORN_WORKERS", default=multiprocessing.cpu_count() * 2 + 1)
+GUNICORN_WORKERS = env.int(
+    "GUNICORN_WORKERS", default=multiprocessing.cpu_count() * 2 + 1
+)

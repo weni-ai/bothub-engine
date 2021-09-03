@@ -6,7 +6,12 @@ from django.test.utils import tag
 from rest_framework import status
 
 from bothub.api.v2.knowledge_base.views import QAKnowledgeBaseViewSet, QAtextViewSet
-from bothub.common.models import Repository, QAKnowledgeBase, QAtext, RepositoryAuthorization
+from bothub.common.models import (
+    Repository,
+    QAKnowledgeBase,
+    QAtext,
+    RepositoryAuthorization,
+)
 from bothub.common import languages
 
 from bothub.api.v2.tests.utils import create_user_and_token
@@ -60,7 +65,6 @@ class DefaultSetUpKnowledgeBaseMixin:
         self.repository_auth = RepositoryAuthorization.objects.create(
             user=self.owner, repository=self.repository, role=3
         )
-
 
 
 class ListQAKnowledgeBaseAPITestCase(DefaultSetUpKnowledgeBaseMixin, TestCase):
@@ -211,6 +215,7 @@ class CreateQAKnowledgeBaseAPITestCase(DefaultSetUpKnowledgeBaseMixin, TestCase)
         response, content_data = self.request({}, self.owner_token)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
+
 @tag("desc")
 class DetailQAKnowledgeBaseAPITestCase(DefaultSetUpKnowledgeBaseMixin, TestCase):
     def request(self, repository, token=None):
@@ -237,7 +242,6 @@ class DetailQAKnowledgeBaseAPITestCase(DefaultSetUpKnowledgeBaseMixin, TestCase)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(content_data.get("title"), self.knowledge_base_1.title)
         self.assertEqual(content_data.get("description"), self.context_1.text[:150])
-
 
 
 class ListQAtextAPITestCase(DefaultSetUpKnowledgeBaseMixin, TestCase):

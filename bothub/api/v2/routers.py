@@ -32,7 +32,10 @@ from .organization.views import (
     OrganizationProfileViewSet,
     OrganizationAuthorizationViewSet,
 )
-from .repository.views import RepositoriesContributionsViewSet, RepositoryQANLPLogViewSet
+from .repository.views import (
+    RepositoriesContributionsViewSet,
+    RepositoryQANLPLogViewSet,
+)
 from .repository.views import RepositoriesViewSet
 from .repository.views import RepositoryAuthorizationRequestsViewSet
 from .repository.views import RepositoryAuthorizationViewSet
@@ -178,7 +181,9 @@ router.register("repository/translation", RepositoryTranslatedExampleViewSet)
 router.register("repository/translation-export", RepositoryTranslatedExporterViewSet)
 router.register("repository/version", RepositoryVersionViewSet)
 router.register("repository/log", RepositoryNLPLogViewSet, basename="es-repository-log")
-router.register("repository/qalog", RepositoryQANLPLogViewSet, basename="es-repository-qa-log")
+router.register(
+    "repository/qalog", RepositoryQANLPLogViewSet, basename="es-repository-qa-log"
+)
 router.register("repository/entities", RepositoryEntitiesViewSet)
 router.register("repository/task-queue", RepositoryTaskQueueViewSet)
 router.register("repository/qa/knowledge-base", QAKnowledgeBaseViewSet)

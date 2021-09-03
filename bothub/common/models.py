@@ -2288,17 +2288,17 @@ class QAKnowledgeBase(models.Model):
     )
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
     last_update = models.DateTimeField(_("last update"), auto_now=True)
-    
+
     def get_context_by_language(self, lang):
         return get_object_or_404(self.texts.all(), language=lang)
-    
+
     def get_user_authorization(self, user):
         return self.repository.get_user_authorization(user)
 
     def get_text_description(self, lang=None):
         try:
             if not lang:
-                    return self.texts.first().text[:150]
+                return self.texts.first().text[:150]
             else:
                 return get_object_or_404(self.texts.all(), language=lang).text[:150]
         except AttributeError:
@@ -2325,7 +2325,7 @@ class QAtext(models.Model):
     @property
     def repository(self):
         return self.knowledge_base.repository
-    
+
     def get_user_authorization(self, user):
         return self.knowledge_base.get_user_authorization(user)
 
@@ -2341,6 +2341,7 @@ class QALogs(models.Model):
             )
         ]
         ordering = ["-id"]
+
     answer = models.TextField(help_text=_("Question"))
     confidence = models.FloatField(help_text=_("Confidence"))
     question = models.TextField(help_text=_("Question"))
@@ -2406,4 +2407,3 @@ def save_log_nlp(instance, created, **kwargs):
         )
         report.count_reports += 1
         report.save(update_fields=["count_reports"])
-    confidence = models.FloatField(help_text=_("Confidence"))

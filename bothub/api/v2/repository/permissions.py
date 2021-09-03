@@ -27,9 +27,7 @@ class RepositoryLogPermission(permissions.BasePermission):
 class RepositoryQALogPermission(permissions.BasePermission):
     def has_object_permission(self, request, view):
         value = self.request.query_params.get("context", None)
-        obj = QAtext.objects.get(
-            pk=value
-        ).repository
+        obj = QAtext.objects.get(pk=value).repository
         authorization = obj.get_user_authorization(request.user)
         if request.method in READ_METHODS and not request.user.is_authenticated:
             return authorization.can_read

@@ -256,8 +256,8 @@ class NewRepositoryViewSet(
 
         if organization:
 
-            organization_authorization = organization.organization_authorizations.filter(
-                uuid__in=task.result
+            organization_authorization = (
+                organization.organization_authorizations.filter(uuid__in=task.result)
             )
             data["in_project"] = (
                 data["in_project"] or organization_authorization.exists()
@@ -552,7 +552,7 @@ class RepositoryViewSet(
         error = response.get("error")  # pragma: no cover
         message = error.get("message")  # pragma: no cover
         raise APIException(detail=message)  # pragma: no cover
-    
+
     @action(
         detail=True,
         methods=["POST"],
@@ -1213,12 +1213,8 @@ class RepositoryQANLPLogViewSet(DocumentViewSet):
     def get_queryset(self):
         params = {
             "repository_uuid": self.request.query_params.get("repository_uuid", None),
-            "context": self.request.query_params.get(
-                "context", None
-            ),
-            "knowledge_base": self.request.query_params.get(
-                "knowledge_base", None
-            ),
+            "context": self.request.query_params.get("context", None),
+            "knowledge_base": self.request.query_params.get("knowledge_base", None),
         }
         RepositoryNLPLogFilter(params=params, user=self.request.user)
         return super().get_queryset().sort("-created_at")

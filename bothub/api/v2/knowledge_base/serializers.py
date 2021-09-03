@@ -11,7 +11,7 @@ class QAKnowledgeBaseSerializer(serializers.ModelSerializer):
         read_only_fields = ["created_at", "last_update"]
 
     repository = serializers.PrimaryKeyRelatedField(queryset=Repository.objects)
-    description = serializers.SerializerMethodField('get_description')
+    description = serializers.SerializerMethodField("get_description")
 
     def get_description(self, obj):
         return obj.get_text_description()

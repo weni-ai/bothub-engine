@@ -7,13 +7,17 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('common', '0112_rename_qacontext_qatext'),
+        ("common", "0112_rename_qacontext_qatext"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='qatext',
-            name='knowledge_base',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='texts', to='common.qaknowledgebase'),
+            model_name="qatext",
+            name="knowledge_base",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="texts",
+                to="common.qaknowledgebase",
+            ),
         ),
     ]

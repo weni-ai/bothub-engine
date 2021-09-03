@@ -7,32 +7,62 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('authentication', '0009_auto_20210506_1453'),
-        ('common', '0110_auto_20210601_1443'),
+        ("authentication", "0009_auto_20210506_1453"),
+        ("common", "0110_auto_20210601_1443"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='QALogs',
+            name="QALogs",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('answer', models.TextField(help_text='Question')),
-                ('confidence', models.FloatField(help_text='Confidence')),
-                ('question', models.TextField(help_text='Question')),
-                ('user_agent', models.TextField(help_text='User Agent')),
-                ('from_backend', models.BooleanField()),
-                ('nlp_log', models.TextField(blank=True, help_text='NLP Log')),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='created at')),
-                ('context', models.ForeignKey(editable=False, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='qa_nlp_logs', to='common.qacontext')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='authentication.repositoryowner')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("answer", models.TextField(help_text="Question")),
+                ("confidence", models.FloatField(help_text="Confidence")),
+                ("question", models.TextField(help_text="Question")),
+                ("user_agent", models.TextField(help_text="User Agent")),
+                ("from_backend", models.BooleanField()),
+                ("nlp_log", models.TextField(blank=True, help_text="NLP Log")),
+                (
+                    "created_at",
+                    models.DateTimeField(auto_now_add=True, verbose_name="created at"),
+                ),
+                (
+                    "context",
+                    models.ForeignKey(
+                        editable=False,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="qa_nlp_logs",
+                        to="common.qacontext",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="authentication.repositoryowner",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'repository qa nlp logs',
-                'ordering': ['-id'],
+                "verbose_name": "repository qa nlp logs",
+                "ordering": ["-id"],
             },
         ),
         migrations.AddIndex(
-            model_name='qalogs',
-            index=models.Index(condition=models.Q(('from_backend', False)), fields=['context', 'user'], name='common_repo_qa_nlp_log_idx'),
+            model_name="qalogs",
+            index=models.Index(
+                condition=models.Q(("from_backend", False)),
+                fields=["context", "user"],
+                name="common_repo_qa_nlp_log_idx",
+            ),
         ),
     ]

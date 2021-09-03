@@ -10,6 +10,7 @@ class QABasePermission(permissions.BasePermission):
             return authorization.can_read
         return authorization.can_contribute
 
+
 class QAKnowledgeBasePermission(QABasePermission):
     pass
 

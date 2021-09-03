@@ -6,12 +6,12 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('common', '0111_auto_20210826_1743'),
+        ("common", "0111_auto_20210826_1743"),
     ]
 
     operations = [
         migrations.RenameModel(
-            old_name='QAContext',
-            new_name='QAtext',
+            old_name="QAContext",
+            new_name="QAtext",
         ),
     ]

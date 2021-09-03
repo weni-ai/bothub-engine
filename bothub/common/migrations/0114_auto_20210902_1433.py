@@ -8,31 +8,46 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('common', '0113_alter_qatext_knowledge_base'),
+        ("common", "0113_alter_qatext_knowledge_base"),
     ]
 
     operations = [
         migrations.RemoveIndex(
-            model_name='qalogs',
-            name='common_repo_qa_nlp_log_idx',
+            model_name="qalogs",
+            name="common_repo_qa_nlp_log_idx",
         ),
         migrations.RemoveField(
-            model_name='qalogs',
-            name='context',
+            model_name="qalogs",
+            name="context",
         ),
         migrations.AddField(
-            model_name='qalogs',
-            name='knowledge_base',
-            field=models.ForeignKey(editable=False, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='qa_nlp_logs', to='common.qaknowledgebase'),
+            model_name="qalogs",
+            name="knowledge_base",
+            field=models.ForeignKey(
+                editable=False,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="qa_nlp_logs",
+                to="common.qaknowledgebase",
+            ),
         ),
         migrations.AddField(
-            model_name='qalogs',
-            name='language',
-            field=models.CharField(default='en', max_length=5, validators=[bothub.common.languages.validate_language], verbose_name='language'),
+            model_name="qalogs",
+            name="language",
+            field=models.CharField(
+                default="en",
+                max_length=5,
+                validators=[bothub.common.languages.validate_language],
+                verbose_name="language",
+            ),
             preserve_default=False,
         ),
         migrations.AddIndex(
-            model_name='qalogs',
-            index=models.Index(condition=models.Q(('from_backend', False)), fields=['knowledge_base', 'user'], name='common_repo_qa_nlp_log_idx'),
+            model_name="qalogs",
+            index=models.Index(
+                condition=models.Q(("from_backend", False)),
+                fields=["knowledge_base", "user"],
+                name="common_repo_qa_nlp_log_idx",
+            ),
         ),
     ]

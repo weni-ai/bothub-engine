@@ -14,7 +14,9 @@ from bothub.api.v2.nlp.views import RepositoryQANLPLogsViewSet
 class QALogsTestCase(DefaultSetUpKnowledgeBaseMixin, TestCase):
     def request(self, data={}, token=None):
         request = self.factory.post(
-            "/v2/repository/nlp/qa/log/", json.dumps(data), content_type="application/json"
+            "/v2/repository/nlp/qa/log/",
+            json.dumps(data),
+            content_type="application/json",
         )
 
         response = RepositoryQANLPLogsViewSet.as_view({"post": "create"})(request)
@@ -31,16 +33,10 @@ class QALogsTestCase(DefaultSetUpKnowledgeBaseMixin, TestCase):
             "nlp_log": json.dumps(
                 {
                     "answers": [
-                        {
-                        "text": "test",
-                        "confidence": 0.0505176697224809
-                        },
-                        {
-                        "text": "empty",
-                        "confidence": 0.0005176697224809
-                        },
+                        {"text": "test", "confidence": 0.0505176697224809},
+                        {"text": "empty", "confidence": 0.0005176697224809},
                     ],
-                    "id": 0
+                    "id": 0,
                 }
             ),
             "user": str(self.repository_auth.pk),
@@ -54,9 +50,7 @@ class QALogsTestCase(DefaultSetUpKnowledgeBaseMixin, TestCase):
         self.assertEqual(data.get("user_agent"), content_data.get("user_agent"))
         self.assertEqual(data.get("answer"), content_data.get("answer"))
         self.assertEqual(data.get("question"), content_data.get("question"))
-        self.assertEqual(
-            data.get("nlp_log"), content_data.get("nlp_log")
-        )
+        self.assertEqual(data.get("nlp_log"), content_data.get("nlp_log"))
 
 
 @tag(
@@ -66,13 +60,13 @@ class ListQALogTestCase(DefaultSetUpKnowledgeBaseMixin, TestCase):
     def setUp(self):
         super().setUp()
         self.log = QALogs.objects.create(
-            knowledge_base = self.knowledge_base_1,
-            question= "test",
+            knowledge_base=self.knowledge_base_1,
+            question="test",
             answer="test",
             language=self.context_1.language,
-            confidence= 0.0505176697224809,
-            user_agent= "python-requests/2.20.1",
-            from_backend= True,
+            confidence=0.0505176697224809,
+            user_agent="python-requests/2.20.1",
+            from_backend=True,
             nlp_log=json.dumps(
                 {
                     "answers": [
@@ -84,7 +78,7 @@ class ListQALogTestCase(DefaultSetUpKnowledgeBaseMixin, TestCase):
                     "id": 0,
                 }
             ),
-            user= self.owner,
+            user=self.owner,
         )
         registry.update(self.log)
 
@@ -106,4 +100,6 @@ class ListQALogTestCase(DefaultSetUpKnowledgeBaseMixin, TestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(content_data.get("count"), 1)
-        self.assertEqual(content_data.get("results")[0].get("confidence"), 0.0505176697224809)
+        self.assertEqual(
+            content_data.get("results")[0].get("confidence"), 0.0505176697224809
+        )

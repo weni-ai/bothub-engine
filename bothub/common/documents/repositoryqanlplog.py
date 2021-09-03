@@ -11,9 +11,7 @@ REPOSITORYQANLPLOG_INDEX = Index(settings.ELASTICSEARCH_INDEX_NAMES[__name__])
 @REPOSITORYQANLPLOG_INDEX.doc_type
 class RepositoryQANLPLogDocument(Document):
     user = fields.IntegerField(attr="user.id")
-    knowledge_base = fields.IntegerField(
-        attr="knowledge_base.id"
-    )
+    knowledge_base = fields.IntegerField(attr="knowledge_base.id")
     nlp_log = fields.NestedField(
         properties={
             "answers": fields.NestedField(
@@ -34,7 +32,16 @@ class RepositoryQANLPLogDocument(Document):
 
     class Django:
         model = QALogs
-        fields = ["id", "answer", "language", "confidence", "question", "from_backend", "user_agent", "created_at"]
+        fields = [
+            "id",
+            "answer",
+            "language",
+            "confidence",
+            "question",
+            "from_backend",
+            "user_agent",
+            "created_at",
+        ]
 
     def prepare_text(self, obj):
         return obj.knowledge_base.texts.filter(language=obj.language).first().id

@@ -7,7 +7,6 @@ from bothub.common.models import (
     RepositoryNLPLogIntent,
     RepositoryVersionLanguage,
     RepositoryAuthorization,
-    QAtext,
 )
 
 
