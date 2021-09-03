@@ -24,10 +24,9 @@ class QALogsTestCase(DefaultSetUpKnowledgeBaseMixin, TestCase):
 
     def test_okay(self):
         data = {
-            "context": self.context_1.pk,
-            "question": "teste",
             "answer": "teste",
             "confidence": 0.0505176697224809,
+            "question": "teste",
             "user_agent": "python-requests/2.20.1",
             "nlp_log": json.dumps(
                 {
@@ -44,8 +43,10 @@ class QALogsTestCase(DefaultSetUpKnowledgeBaseMixin, TestCase):
                     "id": 0
                 }
             ),
-            "from_backend": True,
             "user": str(self.repository_auth.pk),
+            "knowledge_base": self.knowledge_base_1.pk,
+            "language": self.context_2.language,
+            "from_backend": True,
         }
         response, content_data = self.request(data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -65,9 +66,10 @@ class ListQALogTestCase(DefaultSetUpKnowledgeBaseMixin, TestCase):
     def setUp(self):
         super().setUp()
         self.log = QALogs.objects.create(
-            context= self.context_1,
+            knowledge_base = self.knowledge_base_1,
             question= "test",
             answer="test",
+            language=self.context_1.language,
             confidence= 0.0505176697224809,
             user_agent= "python-requests/2.20.1",
             from_backend= True,
@@ -84,7 +86,6 @@ class ListQALogTestCase(DefaultSetUpKnowledgeBaseMixin, TestCase):
             ),
             user= self.owner,
         )
-        
         registry.update(self.log)
 
     def request(self, data, token=None):

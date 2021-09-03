@@ -1,4 +1,5 @@
 import os
+import multiprocessing
 
 import environ
 import sentry_sdk
@@ -82,7 +83,9 @@ env = environ.Env(
     ELASTICSEARCH_NUMBER_OF_SHARDS=(int, 1),
     ELASTICSEARCH_NUMBER_OF_REPLICAS=(int, 1),
     ELASTICSEARCH_SIGNAL_PROCESSOR=(str, "realtime"),
+    GUNICORN_WORKERS=(int, multiprocessing.cpu_count() * 2 + 1),
 )
+
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -535,3 +538,5 @@ ELASTICSEARCH_SIGNAL_PROCESSOR_CLASSES = {
 ELASTICSEARCH_DSL_SIGNAL_PROCESSOR = ELASTICSEARCH_SIGNAL_PROCESSOR_CLASSES[
     env.str("ELASTICSEARCH_SIGNAL_PROCESSOR", default="realtime")
 ]
+
+GUNICORN_WORKERS = env.int("GUNICORN_WORKERS", default=multiprocessing.cpu_count() * 2 + 1)

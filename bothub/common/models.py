@@ -2296,10 +2296,13 @@ class QAKnowledgeBase(models.Model):
         return self.repository.get_user_authorization(user)
 
     def get_text_description(self, lang=None):
-        if not lang:
-            return self.texts.first().text[:150]
-        else:
-            return get_object_or_404(self.texts.all(), language=lang).text[:150]
+        try:
+            if not lang:
+                    return self.texts.first().text[:150]
+            else:
+                return get_object_or_404(self.texts.all(), language=lang).text[:150]
+        except AttributeError:
+            return ""
 
 
 class QAtext(models.Model):
@@ -2333,7 +2336,7 @@ class QALogs(models.Model):
         indexes = [
             models.Index(
                 name="common_repo_qa_nlp_log_idx",
-                fields=("context", "user"),
+                fields=("knowledge_base", "user"),
                 condition=Q(from_backend=False),
             )
         ]
@@ -2343,28 +2346,21 @@ class QALogs(models.Model):
     question = models.TextField(help_text=_("Question"))
     user_agent = models.TextField(help_text=_("User Agent"))
     from_backend = models.BooleanField()
-    context = models.ForeignKey(
-        QAtext,
+    knowledge_base = models.ForeignKey(
+        QAKnowledgeBase,
         models.CASCADE,
         related_name="qa_nlp_logs",
         editable=False,
         null=True,
     )
+    language = models.CharField(
+        _("language"),
+        max_length=5,
+        validators=[languages.validate_language],
+    )
     nlp_log = models.TextField(help_text=_("NLP Log"), blank=True)
     user = models.ForeignKey(RepositoryOwner, models.CASCADE)
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
-
-    @property
-    def context_indexing(self):
-        return dict_to_obj(
-            {
-                "knowledge_base": self.context.knowledge_base.id,
-                "repository": str(
-                    self.context.repository.uuid
-                ),
-                "language": self.context.language,
-            }
-        )
 
 
 @receiver(models.signals.pre_save, sender=RequestRepositoryAuthorization)

@@ -1488,7 +1488,7 @@ class RepositoryQANLPLogSerializer(DocumentSerializer):
             "confidence",
             "user",
             "nlp_log",
-            "context",
+            "text",
             "language",
             "knowledge_base",
             "question",
