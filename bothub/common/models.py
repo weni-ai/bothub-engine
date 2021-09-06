@@ -2283,6 +2283,9 @@ class QAKnowledgeBase(models.Model):
     repository = models.ForeignKey(
         Repository, models.CASCADE, related_name="knowledge_bases"
     )
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="knowledge_bases", null=True, blank=True,
+    )
     title = models.CharField(
         _("title"), max_length=64, help_text=_("Knowledge Base title")
     )
@@ -2294,6 +2297,9 @@ class QAKnowledgeBase(models.Model):
 
     def get_user_authorization(self, user):
         return self.repository.get_user_authorization(user)
+
+    def get_languages_count(self):
+        return self.texts.all().count()
 
     def get_text_description(self, lang=None):
         try:

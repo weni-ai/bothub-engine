@@ -209,6 +209,7 @@ class CreateQAKnowledgeBaseAPITestCase(DefaultSetUpKnowledgeBaseMixin, TestCase)
             self.owner_token,
         )
         self.assertEqual(content_data.get("title"), "testing")
+        self.assertEqual(content_data.get("user_name"), self.owner.nickname)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_invalid_data(self):
@@ -251,7 +252,7 @@ class ListQAtextAPITestCase(DefaultSetUpKnowledgeBaseMixin, TestCase):
         )
 
         request = self.factory.get(
-            "/v2/repository/qa/context/", data, **authorization_header
+            "/v2/repository/qa/text/", data, **authorization_header
         )
 
         response = QAtextViewSet.as_view({"get": "list"})(request)
@@ -302,7 +303,7 @@ class DestroyQAtextAPITestCase(DefaultSetUpKnowledgeBaseMixin, TestCase):
     def request(self, token):
         authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
         request = self.factory.delete(
-            "/v2/repository/qa/context/{}/?repository_uuid={}".format(
+            "/v2/repository/qa/text/{}/?repository_uuid={}".format(
                 self.context_1.pk, self.repository.uuid
             ),
             **authorization_header,
@@ -324,7 +325,7 @@ class DestroyQAtextAPITestCase(DefaultSetUpKnowledgeBaseMixin, TestCase):
     def test_already_deleted(self):
         self.context_1.delete()
         response = self.request(self.owner_token)
-
+        import pdb; pdb.set_trace()
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 
@@ -332,7 +333,7 @@ class UpdateQAtextAPITestCase(DefaultSetUpKnowledgeBaseMixin, TestCase):
     def request(self, data, token):
         authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
         request = self.factory.put(
-            "/v2/repository/qa/context/{}/?repository_uuid={}".format(
+            "/v2/repository/qa/text/{}/?repository_uuid={}".format(
                 self.context_1.pk, self.repository.uuid
             ),
             json.dumps(data),
@@ -378,7 +379,7 @@ class CreateQAtextAPITestCase(DefaultSetUpKnowledgeBaseMixin, TestCase):
         )
 
         request = self.factory.post(
-            "/v2/repository/qa/context/", data, **authorization_header
+            "/v2/repository/qa/text/", data, **authorization_header
         )
 
         response = QAtextViewSet.as_view({"post": "create"})(request)
@@ -423,7 +424,7 @@ class DetailQAtextAPITestCase(DefaultSetUpKnowledgeBaseMixin, TestCase):
         )
 
         request = self.factory.get(
-            "/v2/repository/qa/context/{}/?repository_uuid={}".format(
+            "/v2/repository/qa/text/{}/?repository_uuid={}".format(
                 self.context_1.pk, self.repository.uuid
             ),
             **authorization_header,
