@@ -2284,7 +2284,11 @@ class QAKnowledgeBase(models.Model):
         Repository, models.CASCADE, related_name="knowledge_bases"
     )
     user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="knowledge_bases", null=True, blank=True,
+        User,
+        on_delete=models.CASCADE,
+        related_name="knowledge_bases",
+        null=True,
+        blank=True,
     )
     title = models.CharField(
         _("title"), max_length=64, help_text=_("Knowledge Base title")

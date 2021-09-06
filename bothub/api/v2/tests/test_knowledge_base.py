@@ -325,7 +325,9 @@ class DestroyQAtextAPITestCase(DefaultSetUpKnowledgeBaseMixin, TestCase):
     def test_already_deleted(self):
         self.context_1.delete()
         response = self.request(self.owner_token)
-        import pdb; pdb.set_trace()
+        import pdb
+
+        pdb.set_trace()
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 

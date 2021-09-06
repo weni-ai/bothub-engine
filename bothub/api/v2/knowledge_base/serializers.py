@@ -7,12 +7,18 @@ from bothub.common.models import Repository, QAKnowledgeBase, QAtext
 class QAKnowledgeBaseSerializer(serializers.ModelSerializer):
     class Meta:
         model = QAKnowledgeBase
-        fields = ["id", "repository", "title", "description", "language_count", "user_name","user"]
+        fields = [
+            "id",
+            "repository",
+            "title",
+            "description",
+            "language_count",
+            "user_name",
+            "user",
+        ]
         read_only_fields = ["created_at", "last_update"]
 
-    user = serializers.HiddenField(
-        default=serializers.CurrentUserDefault()
-    )
+    user = serializers.HiddenField(default=serializers.CurrentUserDefault())
     user_name = serializers.SerializerMethodField("get_user_name")
     repository = serializers.PrimaryKeyRelatedField(queryset=Repository.objects)
     description = serializers.SerializerMethodField("get_description")
@@ -26,7 +32,7 @@ class QAKnowledgeBaseSerializer(serializers.ModelSerializer):
 
     def get_languages_count(self, obj):
         return obj.get_languages_count()
-        
+
 
 class QAtextSerializer(serializers.ModelSerializer):
     class Meta:
