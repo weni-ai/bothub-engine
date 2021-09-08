@@ -1,6 +1,6 @@
-from bothub.common.documents.repositoryqanlplog import RepositoryQANLPLogDocument
 import json
 
+from django.conf import settings
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
@@ -16,7 +16,6 @@ from django_elasticsearch_dsl_drf.viewsets import DocumentViewSet
 
 from django_filters.rest_framework import DjangoFilterBackend
 
-from django.conf import settings
 from drf_yasg2 import openapi
 from drf_yasg2.utils import swagger_auto_schema
 from rest_framework import mixins, parsers, permissions, status
@@ -39,6 +38,7 @@ from bothub.authentication.models import RepositoryOwner
 from bothub.celery import app as celery_app
 from bothub.common import languages
 from bothub.common.documents.repositorynlplog import RepositoryNLPLogDocument
+from bothub.common.documents.repositoryqanlplog import RepositoryQANLPLogDocument
 from bothub.common.models import (
     OrganizationAuthorization,
     Repository,

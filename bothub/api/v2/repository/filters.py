@@ -120,7 +120,7 @@ class RepositoryNLPLogFilter:
     def check_params(self):
         validate_param = False
         for param, value in self.params.items():
-            if value is not None and param != "param":
+            if value is not None:
                 validate_param = getattr(self, f"check_{param}")(value)
         return validate_param
 
