@@ -217,7 +217,6 @@ class CreateQAKnowledgeBaseAPITestCase(DefaultSetUpKnowledgeBaseMixin, TestCase)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
-@tag("desc")
 class DetailQAKnowledgeBaseAPITestCase(DefaultSetUpKnowledgeBaseMixin, TestCase):
     def request(self, repository, token=None):
         authorization_header = (
