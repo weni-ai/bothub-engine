@@ -528,30 +528,30 @@ class RepositoryViewSet(
     def question(self, request, **kwargs):
         repository = self.get_object()
         user_authorization = repository.get_user_authorization(request.user)
-        serializer = AnalyzeQuestionSerializer(data=request.data)  # pragma: no cover
-        serializer.is_valid(raise_exception=True)  # pragma: no cover
+        serializer = AnalyzeQuestionSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
         request = repository.request_nlp_qa(
             user_authorization, serializer.data
-        )  # pragma: no cover
+        )
 
-        if request.status_code == status.HTTP_200_OK:  # pragma: no cover
-            return Response(request.json())  # pragma: no cover
+        if request.status_code == status.HTTP_200_OK:
+            return Response(request.json())
 
-        response = None  # pragma: no cover
-        try:  # pragma: no cover
-            response = request.json()  # pragma: no cover
+        response = None
+        try:
+            response = request.json()
         except Exception:
             pass
 
-        if not response:  # pragma: no cover
-            raise APIException(  # pragma: no cover
+        if not response:
+            raise APIException(
                 detail=_(
                     "Something unexpected happened! " + "We couldn't analyze your text."
                 )
             )
-        error = response.get("error")  # pragma: no cover
-        message = error.get("message")  # pragma: no cover
-        raise APIException(detail=message)  # pragma: no cover
+        error = response.get("error") 
+        message = error.get("message") 
+        raise APIException(detail=message) 
 
     @action(
         detail=True,
