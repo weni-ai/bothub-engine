@@ -2,7 +2,6 @@ import json
 
 from django.test import TestCase
 from django.test import RequestFactory
-from django.test.utils import tag
 from rest_framework import status
 
 from bothub.api.v2.knowledge_base.views import QAKnowledgeBaseViewSet, QAtextViewSet

@@ -716,7 +716,6 @@ class RepositoryAuthorizationKnowledgeBaseViewSet(
     def retrieve(self, request, *args, **kwargs):
         check_auth(request)
         repository_authorization = self.get_object()
-
         if not repository_authorization.can_contribute:
             raise PermissionDenied()
 
