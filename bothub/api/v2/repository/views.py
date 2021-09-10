@@ -549,9 +549,9 @@ class RepositoryViewSet(
                     "Something unexpected happened! " + "We couldn't analyze your text."
                 )
             )
-        error = response.get("error") 
-        message = error.get("message") 
-        raise APIException(detail=message) 
+        error = response.get("error")
+        message = error.get("message")
+        raise APIException(detail=message)
 
     @action(
         detail=True,
