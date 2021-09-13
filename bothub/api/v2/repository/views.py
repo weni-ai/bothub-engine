@@ -224,7 +224,6 @@ class NewRepositoryViewSet(
     )
     def projectrepository(self, request, **kwargs):
         repository = self.get_object().repository
-
         project_uuid = request.query_params.get("project_uuid")
         organization_pk = request.query_params.get("organization")
 
