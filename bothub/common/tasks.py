@@ -194,8 +194,10 @@ def debug_parse_text(instance_id, id_clone, repository, *args, **kwargs):
                     clone_repository=True,
                 )
 
-                translated_entity_examples = RepositoryTranslatedExampleEntity.objects.filter(
-                    repository_translated_example=translated_example
+                translated_entity_examples = (
+                    RepositoryTranslatedExampleEntity.objects.filter(
+                        repository_translated_example=translated_example
+                    )
                 )
 
                 for translated_entity in translated_entity_examples:

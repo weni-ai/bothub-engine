@@ -1,6 +1,8 @@
 from rest_framework import serializers
 
 from bothub.common.models import (
+    QAKnowledgeBase,
+    QALogs,
     RepositoryNLPLog,
     RepositoryNLPLogIntent,
     RepositoryVersionLanguage,
@@ -56,5 +58,38 @@ class RepositoryNLPLogSerializer(serializers.ModelSerializer):
                 is_default=intent.get("is_default"),
                 repository_nlp_log=instance,
             )
+
+        return instance
+
+
+class RepositoryQANLPLogSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = QALogs
+        fields = [
+            "id",
+            "answer",
+            "confidence",
+            "question",
+            "user_agent",
+            "nlp_log",
+            "user",
+            "knowledge_base",
+            "language",
+            "from_backend",
+        ]
+        ref_name = None
+
+    knowledge_base = serializers.PrimaryKeyRelatedField(
+        queryset=QAKnowledgeBase.objects, write_only=True, required=True
+    )
+    user = serializers.PrimaryKeyRelatedField(
+        queryset=RepositoryAuthorization.objects, write_only=True, required=True
+    )
+
+    def create(self, validated_data):
+        validated_data.update({"user": validated_data.get("user").user})
+
+        instance = self.Meta.model(**validated_data)
+        instance.save()
 
         return instance

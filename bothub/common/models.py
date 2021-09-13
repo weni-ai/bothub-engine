@@ -9,6 +9,7 @@ from django.core.validators import RegexValidator, _lazy_re_compile
 from django.db import models
 from django.db.models import Sum, Q, IntegerField, Case, When, Count
 from django.dispatch import receiver
+from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
@@ -2282,16 +2283,41 @@ class QAKnowledgeBase(models.Model):
     repository = models.ForeignKey(
         Repository, models.CASCADE, related_name="knowledge_bases"
     )
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="knowledge_bases",
+        null=True,
+        blank=True,
+    )
     title = models.CharField(
         _("title"), max_length=64, help_text=_("Knowledge Base title")
     )
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
     last_update = models.DateTimeField(_("last update"), auto_now=True)
 
+    def get_context_by_language(self, lang):
+        return get_object_or_404(self.texts.all(), language=lang)
 
-class QAContext(models.Model):
+    def get_user_authorization(self, user):
+        return self.repository.get_user_authorization(user)
+
+    def get_languages_count(self):
+        return self.texts.all().count()
+
+    def get_text_description(self, lang=None):
+        try:
+            if not lang:
+                return self.texts.first().text[:150]
+            else:
+                return get_object_or_404(self.texts.all(), language=lang).text[:150]
+        except AttributeError:
+            return ""
+
+
+class QAtext(models.Model):
     knowledge_base = models.ForeignKey(
-        QAKnowledgeBase, on_delete=models.CASCADE, related_name="contexts"
+        QAKnowledgeBase, on_delete=models.CASCADE, related_name="texts"
     )
     text = models.TextField(_("text"), help_text=_("QA context text"), max_length=25000)
     language = models.CharField(
@@ -2305,6 +2331,47 @@ class QAContext(models.Model):
 
     class Meta:
         unique_together = ("knowledge_base", "language")
+
+    @property
+    def repository(self):
+        return self.knowledge_base.repository
+
+    def get_user_authorization(self, user):
+        return self.knowledge_base.get_user_authorization(user)
+
+
+class QALogs(models.Model):
+    class Meta:
+        verbose_name = _("repository qa nlp logs")
+        indexes = [
+            models.Index(
+                name="common_repo_qa_nlp_log_idx",
+                fields=("knowledge_base", "user"),
+                condition=Q(from_backend=False),
+            )
+        ]
+        ordering = ["-id"]
+
+    answer = models.TextField(help_text=_("Question"))
+    confidence = models.FloatField(help_text=_("Confidence"))
+    question = models.TextField(help_text=_("Question"))
+    user_agent = models.TextField(help_text=_("User Agent"))
+    from_backend = models.BooleanField()
+    knowledge_base = models.ForeignKey(
+        QAKnowledgeBase,
+        models.CASCADE,
+        related_name="qa_nlp_logs",
+        editable=False,
+        null=True,
+    )
+    language = models.CharField(
+        _("language"),
+        max_length=5,
+        validators=[languages.validate_language],
+    )
+    nlp_log = models.TextField(help_text=_("NLP Log"), blank=True)
+    user = models.ForeignKey(RepositoryOwner, models.CASCADE)
+    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
 
 
 @receiver(models.signals.pre_save, sender=RequestRepositoryAuthorization)

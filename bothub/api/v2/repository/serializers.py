@@ -1,3 +1,4 @@
+from bothub.common.documents.repositoryqanlplog import RepositoryQANLPLogDocument
 from django.conf import settings
 from django.shortcuts import get_object_or_404
 from django.utils.translation import ugettext_lazy as _
@@ -1407,6 +1408,12 @@ class AnalyzeTextSerializer(serializers.Serializer):
     repository_version = serializers.IntegerField(required=False)
 
 
+class AnalyzeQuestionSerializer(serializers.Serializer):
+    knowledge_base_id = serializers.IntegerField(required=True)
+    question = serializers.CharField(allow_blank=False)
+    language = serializers.ChoiceField(LANGUAGE_CHOICES, required=True)
+
+
 class DebugParseSerializer(serializers.Serializer):
     language = serializers.ChoiceField(LANGUAGE_CHOICES, required=True)
     text = serializers.CharField(allow_blank=False)
@@ -1470,6 +1477,26 @@ class RepositoryNLPLogSerializer(DocumentSerializer):
         extra_kwargs = {
             "repository_version_language": {"required": True, "write_only": True}
         }
+
+
+class RepositoryQANLPLogSerializer(DocumentSerializer):
+    class Meta:
+        document = RepositoryQANLPLogDocument
+        fields = [
+            "id",
+            "answer",
+            "confidence",
+            "user",
+            "nlp_log",
+            "text",
+            "language",
+            "knowledge_base",
+            "question",
+            "repository_uuid",
+            "from_backend",
+            "user_agent",
+            "created_at",
+        ]
 
 
 class RepositoryEntitySerializer(serializers.ModelSerializer):

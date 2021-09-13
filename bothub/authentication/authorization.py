@@ -80,9 +80,7 @@ class WeniOIDCAuthenticationBackend(OIDCAuthenticationBackend):
         # validação de permissão
         verified = super(WeniOIDCAuthenticationBackend, self).verify_claims(claims)
         # is_admin = "admin" in claims.get("roles", [])
-        return (
-            verified
-        )  # and is_admin # not checking for user roles from keycloak at this time
+        return verified  # and is_admin # not checking for user roles from keycloak at this time
 
     def get_username(self, claims):
         username = claims.get("preferred_username")
