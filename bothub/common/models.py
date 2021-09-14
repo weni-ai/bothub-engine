@@ -1050,17 +1050,16 @@ class RepositoryVersionLanguage(models.Model):
         return examples.distinct()
 
     @property
-    def requirements_to_train(self):
-        try:
-            self.validate_init_train()
-        except RepositoryUpdateAlreadyTrained:  # pragma: no cover
-            return [_("This bot version has already been trained.")]
-        except RepositoryUpdateAlreadyStartedTraining:  # pragma: no cover
-            return [_("This bot version is being trained.")]
-
+    def new_examples(self):
+        queue_task = self.queues.order_by("-created_at").first()
+        if queue_task:
+            return self.examples.filter(created_at__gte=queue_task.created_at, created_at__lte=timezone.now())
+        else: 
+            return None
+    def _requirements_to_train(self, query=None):
         r = []
-
-        intents = self.examples.values_list("intent__text", flat=True)
+        intents = query or self.examples
+        intents = intents.values_list("intent__text", flat=True)
 
         if "" in intents:
             r.append(_("All examples need have a intent."))
@@ -1104,6 +1103,18 @@ class RepositoryVersionLanguage(models.Model):
                 )
 
         return r
+
+    @property
+    def requirements_to_train(self):
+        try:
+            self.validate_init_train()
+        except RepositoryUpdateAlreadyTrained:  # pragma: no cover
+            return [_("This bot version has already been trained.")]
+        except RepositoryUpdateAlreadyStartedTraining:  # pragma: no cover
+            return [_("This bot version is being trained.")]
+        r1 = [] if self.new_examples is None else self._requirements_to_train(self.new_examples)
+        r2 = self._requirements_to_train()
+        return r1+r2
 
     @property
     def ready_for_train(self):

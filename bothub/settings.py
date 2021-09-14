@@ -81,7 +81,7 @@ env = environ.Env(
     ELASTICSEARCH_REPOSITORYNLPLOG_INDEX=(str, "ai_repositorynlplog"),
     ELASTICSEARCH_REPOSITORYQANLPLOG_INDEX=(str, "ai_repositoryqanlplog"),
     ELASTICSEARCH_NUMBER_OF_SHARDS=(int, 1),
-    ELASTICSEARCH_NUMBER_OF_REPLICAS=(int, 1),
+    ELASTICSEARCH_NUMBER_OF_REPLICAS=(int, 0),
     ELASTICSEARCH_SIGNAL_PROCESSOR=(str, "realtime"),
     GUNICORN_WORKERS=(int, multiprocessing.cpu_count() * 2 + 1),
 )
