@@ -15,6 +15,8 @@ class QAKnowledgeBaseSerializer(serializers.ModelSerializer):
             "language_count",
             "user_name",
             "user",
+            "last_update",
+            "created_at",
         ]
         read_only_fields = ["created_at", "last_update"]
 
@@ -37,7 +39,14 @@ class QAKnowledgeBaseSerializer(serializers.ModelSerializer):
 class QAtextSerializer(serializers.ModelSerializer):
     class Meta:
         model = QAtext
-        fields = ["id", "text", "language", "knowledge_base"]
+        fields = [
+            "id", 
+            "text", 
+            "language", 
+            "knowledge_base", 
+            "created_at", 
+            "last_update",
+        ]
         read_only_fields = ["created_at", "last_update"]
 
     knowledge_base = serializers.PrimaryKeyRelatedField(
