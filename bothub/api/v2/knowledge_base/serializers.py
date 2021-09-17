@@ -40,11 +40,11 @@ class QAtextSerializer(serializers.ModelSerializer):
     class Meta:
         model = QAtext
         fields = [
-            "id", 
-            "text", 
-            "language", 
-            "knowledge_base", 
-            "created_at", 
+            "id",
+            "text",
+            "language",
+            "knowledge_base",
+            "created_at",
             "last_update",
         ]
         read_only_fields = ["created_at", "last_update"]
