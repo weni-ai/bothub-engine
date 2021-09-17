@@ -529,9 +529,7 @@ class RepositoryViewSet(
         user_authorization = repository.get_user_authorization(request.user)
         serializer = AnalyzeQuestionSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        request = repository.request_nlp_qa(
-            user_authorization, serializer.data
-        )
+        request = repository.request_nlp_qa(user_authorization, serializer.data)
 
         if request.status_code == status.HTTP_200_OK:
             return Response(request.json())

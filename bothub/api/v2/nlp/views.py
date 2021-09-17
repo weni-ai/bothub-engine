@@ -69,8 +69,10 @@ class RepositoryAuthorizationTrainViewSet(
 
         repository_version = request.query_params.get("repository_version")
         if repository_version:
-            current_version = repository_authorization.repository.get_specific_version_id(
-                repository_version, str(request.query_params.get("language"))
+            current_version = (
+                repository_authorization.repository.get_specific_version_id(
+                    repository_version, str(request.query_params.get("language"))
+                )
             )
         else:
             current_version = repository_authorization.repository.current_version(
