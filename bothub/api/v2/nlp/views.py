@@ -785,4 +785,3 @@ class RepositoryAuthorizationExamplesViewSet(mixins.RetrieveModelMixin, GenericV
             )
 
         return self.get_paginated_response(examples_return)
-        
