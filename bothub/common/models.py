@@ -1067,7 +1067,8 @@ class RepositoryVersionLanguage(models.Model):
 
         weak_intents = (
             self.examples.values("intent__text")
-            .annotate(intent_count=models.Count("id"))
+            .order_by("intent__text")
+            .annotate(intent_count=models.Count("intent__text"))
             .exclude(intent_count__gte=self.MIN_EXAMPLES_PER_INTENT)
         )
 
@@ -1084,10 +1085,10 @@ class RepositoryVersionLanguage(models.Model):
                 )
 
         weak_entities = (
-            self.examples.annotate(es_count=models.Count("entities"))
-            .filter(es_count__gte=1)
+            self.examples.filter(entities__isnull=False)
+            .order_by("entities__entity__value")
             .values("entities__entity__value")
-            .annotate(entities_count=models.Count("id"))
+            .annotate(entities_count=models.Count("entities__entity__value"))
             .exclude(entities_count__gte=self.MIN_EXAMPLES_PER_ENTITY)
         )
 
