@@ -115,7 +115,23 @@ services:
   es:
     image: elasticsearch:7.13.3
     environment:
-      - discovery.type=single-node
+       - discovery.type=single-node
+       - bootstrap.memory_lock=true
+       - "ES_JAVA_OPTS=-Xms128m -Xmx2g"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    deploy:
+      mode: replicated
+      replicas: 1
+      resources:
+        limits:
+          cpus: "2"
+          memory: 4G
+        reservations:
+          cpus: "1"
+          memory: 2G
     ports:
       - 9200:9200
     networks:

@@ -1300,27 +1300,21 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
 
             if RepositoryExample.objects.filter(
                 text=validated_data.get("text"),
-                intent__text=validated_data.get("intent"),
                 repository_version_language__repository_version__repository=repository,
                 repository_version_language__repository_version=version_id,
                 repository_version_language__language=language,
             ):
-                raise APIExceptionCustom(
-                    detail=_("Intention and Sentence already exists")
-                )
+                raise APIExceptionCustom(detail=_("Sentence already exists"))
         else:
             repository_version_language = repository.current_version(language or None)
 
             if RepositoryExample.objects.filter(
                 text=validated_data.get("text"),
-                intent__text=validated_data.get("intent"),
                 repository_version_language=repository_version_language,
                 repository_version_language__repository_version__is_default=True,
                 repository_version_language__language=language,
             ):
-                raise APIExceptionCustom(
-                    detail=_("Intention and Sentence already exists")
-                )
+                raise APIExceptionCustom(detail=_("Sentence already exists"))
 
         validated_data.update(
             {"repository_version_language": repository_version_language}
