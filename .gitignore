@@ -117,7 +117,7 @@ staticfiles/
 .idea/
 
 # gRPC Protobuff
-bothub/protos/*.py
+bothub/protos/
 
 #ASDF
 .tool-versions

@@ -4,7 +4,7 @@ from rest_framework import serializers
 
 from bothub.authentication.models import User
 from bothub.common.models import Organization, OrganizationAuthorization
-from bothub.protos import organization_pb2
+from bothub.protos.src.weni.protobuf.intelligence import organization_pb2
 
 
 class OrgProtoSerializer(proto_serializers.ModelProtoSerializer):

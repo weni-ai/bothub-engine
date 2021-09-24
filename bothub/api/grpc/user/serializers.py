@@ -2,7 +2,7 @@ from django_grpc_framework import proto_serializers
 from rest_framework import serializers
 
 from bothub.authentication.models import User
-from bothub.protos import authentication_pb2
+from bothub.protos.src.weni.protobuf.intelligence import authentication_pb2
 
 
 class UserProtoSerializer(proto_serializers.ModelProtoSerializer):
