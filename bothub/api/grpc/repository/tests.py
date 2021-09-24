@@ -13,6 +13,7 @@ from bothub.protos.src.weni.protobuf.intelligence import (
     repository_pb2,
 )
 
+
 class RepositoryServiceTestCase(RPCTransactionTestCase):
     def setUp(self):
         super().setUp()
