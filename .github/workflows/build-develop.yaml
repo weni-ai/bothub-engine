@@ -1,4 +1,4 @@
-name: Build Develop Image
+name: Build Develop Image Engine
 on:
   push:
     tags:
@@ -9,6 +9,8 @@ jobs:
     steps:
       - name: Check out the repo
         uses: actions/checkout@v2
+        with:
+          ref: develop
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
       - name: Set up Docker Buildx
@@ -29,4 +31,3 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: bothubit/bothub-engine:${{ steps.vars.outputs.tag }}
-          
