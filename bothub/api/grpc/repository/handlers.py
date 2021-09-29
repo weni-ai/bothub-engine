@@ -1,5 +1,5 @@
 from .services import RepositoryService
-from bothub.protos.src.weni.protobuf.intelligence import repository_pb2_grpc
+from weni.protobuf.intelligence import repository_pb2_grpc
 
 
 def grpc_handlers(server):
