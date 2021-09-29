@@ -9,9 +9,11 @@ from django.core.validators import RegexValidator, _lazy_re_compile
 from django.db import models
 from django.db.models import Sum, Q, IntegerField, Case, When, Count
 from django.dispatch import receiver
+from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
+from django_elasticsearch_dsl_drf.wrappers import dict_to_obj
 from rest_framework import status
 from rest_framework.exceptions import APIException
 
@@ -804,7 +806,7 @@ class Repository(models.Model):
             },
         }
 
-    def current_version(self, language=None, is_default=True):
+    def current_version(self, language=None, is_default=True):  # pragma: no cover
         language = language or self.language
 
         repository_version, created = self.versions.get_or_create(is_default=is_default)
@@ -813,7 +815,10 @@ class Repository(models.Model):
             repository_version.created_by = self.owner
             repository_version.save()
 
-        repository_version_language, created = RepositoryVersionLanguage.objects.get_or_create(
+        (
+            repository_version_language,
+            created,
+        ) = RepositoryVersionLanguage.objects.get_or_create(
             repository_version=repository_version, language=language
         )
         return repository_version_language
@@ -1066,7 +1071,8 @@ class RepositoryVersionLanguage(models.Model):
 
         weak_intents = (
             self.examples.values("intent__text")
-            .annotate(intent_count=models.Count("id"))
+            .order_by("intent__text")
+            .annotate(intent_count=models.Count("intent__text"))
             .exclude(intent_count__gte=self.MIN_EXAMPLES_PER_INTENT)
         )
 
@@ -1083,10 +1089,10 @@ class RepositoryVersionLanguage(models.Model):
                 )
 
         weak_entities = (
-            self.examples.annotate(es_count=models.Count("entities"))
-            .filter(es_count__gte=1)
+            self.examples.filter(entities__isnull=False)
+            .order_by("entities__entity__value")
             .values("entities__entity__value")
-            .annotate(entities_count=models.Count("id"))
+            .annotate(entities_count=models.Count("entities__entity__value"))
             .exclude(entities_count__gte=self.MIN_EXAMPLES_PER_ENTITY)
         )
 
@@ -1310,6 +1316,36 @@ class RepositoryNLPLog(models.Model):
         return RepositoryNLPLogIntent.objects.filter(
             repository_nlp_log=repository_nlp_log
         ).order_by("-is_default")
+
+    @property
+    def log_intent_field_indexing(self):
+        intents = self.intents(self)
+        intent_reduced_list = []
+        for intent in intents:
+            reduced_intent_obj = dict_to_obj(
+                {
+                    "intent": intent.intent,
+                    "confidence": intent.confidence,
+                    "is_default": intent.is_default,
+                }
+            )
+            intent_reduced_list.append(reduced_intent_obj)
+
+        return intent_reduced_list
+
+    @property
+    def repository_version_language_field_indexing(self):
+        return dict_to_obj(
+            {
+                "version_name": self.repository_version_language.repository_version.name,
+                "repository": str(
+                    self.repository_version_language.repository_version.repository.uuid
+                ),
+                "language": self.repository_version_language.language,
+                "repository_version_language": self.repository_version_language.pk,
+                "version": self.repository_version_language.repository_version.id,
+            }
+        )
 
 
 class RepositoryNLPLogIntent(models.Model):
@@ -1575,8 +1611,8 @@ class RepositoryEntityGroup(models.Model):
 
     def delete(self, using=None, keep_parents=False):
         """
-            Before deleting the group it updates all the entities and places
-            it as not grouped so that they are not deleted
+        Before deleting the group it updates all the entities and places
+        it as not grouped so that they are not deleted
         """
         self.entities.filter(
             repository_version=self.repository_version, group=self
@@ -2252,16 +2288,41 @@ class QAKnowledgeBase(models.Model):
     repository = models.ForeignKey(
         Repository, models.CASCADE, related_name="knowledge_bases"
     )
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="knowledge_bases",
+        null=True,
+        blank=True,
+    )
     title = models.CharField(
         _("title"), max_length=64, help_text=_("Knowledge Base title")
     )
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
     last_update = models.DateTimeField(_("last update"), auto_now=True)
 
+    def get_context_by_language(self, lang):
+        return get_object_or_404(self.texts.all(), language=lang)
 
-class QAContext(models.Model):
+    def get_user_authorization(self, user):
+        return self.repository.get_user_authorization(user)
+
+    def get_languages_count(self):
+        return self.texts.all().count()
+
+    def get_text_description(self, lang=None):
+        try:
+            if not lang:
+                return self.texts.first().text[:150]
+            else:
+                return get_object_or_404(self.texts.all(), language=lang).text[:150]
+        except AttributeError:
+            return ""
+
+
+class QAtext(models.Model):
     knowledge_base = models.ForeignKey(
-        QAKnowledgeBase, on_delete=models.CASCADE, related_name="contexts"
+        QAKnowledgeBase, on_delete=models.CASCADE, related_name="texts"
     )
     text = models.TextField(_("text"), help_text=_("QA context text"), max_length=25000)
     language = models.CharField(
@@ -2275,6 +2336,47 @@ class QAContext(models.Model):
 
     class Meta:
         unique_together = ("knowledge_base", "language")
+
+    @property
+    def repository(self):
+        return self.knowledge_base.repository
+
+    def get_user_authorization(self, user):
+        return self.knowledge_base.get_user_authorization(user)
+
+
+class QALogs(models.Model):
+    class Meta:
+        verbose_name = _("repository qa nlp logs")
+        indexes = [
+            models.Index(
+                name="common_repo_qa_nlp_log_idx",
+                fields=("knowledge_base", "user"),
+                condition=Q(from_backend=False),
+            )
+        ]
+        ordering = ["-id"]
+
+    answer = models.TextField(help_text=_("Question"))
+    confidence = models.FloatField(help_text=_("Confidence"))
+    question = models.TextField(help_text=_("Question"))
+    user_agent = models.TextField(help_text=_("User Agent"))
+    from_backend = models.BooleanField()
+    knowledge_base = models.ForeignKey(
+        QAKnowledgeBase,
+        models.CASCADE,
+        related_name="qa_nlp_logs",
+        editable=False,
+        null=True,
+    )
+    language = models.CharField(
+        _("language"),
+        max_length=5,
+        validators=[languages.validate_language],
+    )
+    nlp_log = models.TextField(help_text=_("NLP Log"), blank=True)
+    user = models.ForeignKey(RepositoryOwner, models.CASCADE)
+    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
 
 
 @receiver(models.signals.pre_save, sender=RequestRepositoryAuthorization)

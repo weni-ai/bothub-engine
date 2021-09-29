@@ -3,10 +3,13 @@ import random
 import requests
 from datetime import timedelta
 from urllib.parse import urlencode
+from django.apps import apps
 from django.conf import settings
 from django.db import transaction
 from django.db.models import Q, Count
 from django.utils import timezone
+
+from django_elasticsearch_dsl.registries import registry
 
 from bothub import translate
 from bothub.api.grpc.connect_grpc_client import ConnectGRPCClient
@@ -35,6 +38,28 @@ from bothub.utils import (
     evaluate_size_score,
     request_nlp,
 )
+
+
+@app.task(name="es_handle_save")
+def handle_save(pk, app_label, model_name):
+    sender = apps.get_model(app_label, model_name)
+    instance = sender.objects.get(pk=pk)
+    registry.update(instance)
+    registry.update_related(instance)
+
+
+@app.task(name="es_handle_pre_delete")
+def handle_pre_delete(pk, app_label, model_name):
+    sender = apps.get_model(app_label, model_name)
+    instance = sender.objects.get(pk=pk)
+    registry.delete_related(instance)
+
+
+@app.task(name="es_handle_delete")
+def handle_delete(pk, app_label, model_name):
+    sender = apps.get_model(app_label, model_name)
+    instance = sender.objects.get(pk=pk)
+    registry.delete(instance, raise_on_error=False)
 
 
 @app.task()
@@ -170,13 +195,18 @@ def debug_parse_text(instance_id, id_clone, repository, *args, **kwargs):
                     clone_repository=True,
                 )
 
-                translated_entity_examples = RepositoryTranslatedExampleEntity.objects.filter(
-                    repository_translated_example=translated_example
+                translated_entity_examples = (
+                    RepositoryTranslatedExampleEntity.objects.filter(
+                        repository_translated_example=translated_example
+                    )
                 )
 
                 for translated_entity in translated_entity_examples:
                     if translated_entity.entity.group:
-                        group, created_group = RepositoryEntityGroup.objects.get_or_create(
+                        (
+                            group,
+                            created_group,
+                        ) = RepositoryEntityGroup.objects.get_or_create(
                             repository_version=instance,
                             value=translated_entity.entity.group.value,
                         )

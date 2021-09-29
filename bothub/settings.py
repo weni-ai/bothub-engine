@@ -1,4 +1,5 @@
 import os
+import multiprocessing
 
 import environ
 import sentry_sdk
@@ -76,7 +77,15 @@ env = environ.Env(
     CONNECT_GRPC_SERVER_URL=(str, "localhost:8002"),
     CONNECT_CERTIFICATE_GRPC_CRT=(str, None),
     REPOSITORY_RESTRICT_ACCESS_NLP_LOGS=(list, []),
+    ELASTICSEARCH_DSL=(str, "localhost:9200"),
+    ELASTICSEARCH_REPOSITORYNLPLOG_INDEX=(str, "ai_repositorynlplog"),
+    ELASTICSEARCH_REPOSITORYQANLPLOG_INDEX=(str, "ai_repositoryqanlplog"),
+    ELASTICSEARCH_NUMBER_OF_SHARDS=(int, 1),
+    ELASTICSEARCH_NUMBER_OF_REPLICAS=(int, 1),
+    ELASTICSEARCH_SIGNAL_PROCESSOR=(str, "realtime"),
+    GUNICORN_WORKERS=(int, multiprocessing.cpu_count() * 2 + 1),
 )
+
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -117,6 +126,8 @@ INSTALLED_APPS = [
     "django_celery_beat",
     "django_redis",
     "django_grpc_framework",
+    "django_elasticsearch_dsl",
+    "django_elasticsearch_dsl_drf",
 ]
 
 MIDDLEWARE = [
@@ -215,6 +226,10 @@ STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
+# Default primary key field type
+# https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
+
+DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
 # rest framework
 
@@ -423,6 +438,10 @@ N_WORDS_TO_GENERATE = env.int("N_WORDS_TO_GENERATE")
 N_SENTENCES_TO_GENERATE = env.int("N_SENTENCES_TO_GENERATE")
 
 
+# Restrict access to the nlp logs by a list of repository uuids
+REPOSITORY_RESTRICT_ACCESS_NLP_LOGS = env.list("REPOSITORY_RESTRICT_ACCESS_NLP_LOGS")
+
+
 # django_redis
 CACHES = {
     "default": {
@@ -444,14 +463,13 @@ ELASTIC_APM = {
     "SERVER_URL": env("APM_SERVER_URL"),
     "ENVIRONMENT": env("APM_SERVICE_ENVIRONMENT"),
     "DJANGO_TRANSACTION_NAME_FROM_ROUTE": True,
-    "PROCESSORS": (
+    "PROCESSORS": [
         "elasticapm.processors.sanitize_stacktrace_locals",
         "elasticapm.processors.sanitize_http_request_cookies",
         "elasticapm.processors.sanitize_http_headers",
         "elasticapm.processors.sanitize_http_wsgi_env",
-        "elasticapm.processors.sanitize_http_request_querystring",
         "elasticapm.processors.sanitize_http_request_body",
-    ),
+    ],
 }
 
 SECRET_KEY_CHECK_LEGACY_USER = env.str("SECRET_KEY_CHECK_LEGACY_USER")
@@ -493,4 +511,34 @@ CONNECT_GRPC_SERVER_URL = env.str("CONNECT_GRPC_SERVER_URL")
 
 CONNECT_CERTIFICATE_GRPC_CRT = env.str("CONNECT_CERTIFICATE_GRPC_CRT")
 
-REPOSITORY_RESTRICT_ACCESS_NLP_LOGS = env.list("REPOSITORY_RESTRICT_ACCESS_NLP_LOGS")
+# ElasticSearch
+ELASTICSEARCH_DSL = {
+    "default": {"hosts": env.str("ELASTICSEARCH_DSL", default="es:9200")}
+}
+
+ELASTICSEARCH_DSL_INDEX_SETTINGS = {
+    "number_of_shards": env.int("ELASTICSEARCH_NUMBER_OF_SHARDS", default=1),
+    "number_of_replicas": env.int("ELASTICSEARCH_NUMBER_OF_REPLICAS", default=0),
+}
+
+ELASTICSEARCH_INDEX_NAMES = {
+    "bothub.common.documents.repositorynlplog": env.str(
+        "ELASTICSEARCH_REPOSITORYNLPLOG_INDEX", default="ai_repositorynlplog"
+    ),
+    "bothub.common.documents.repositoryqanlplog": env.str(
+        "ELASTICSEARCH_REPOSITORYQANLPLOG_INDEX", default="ai_repositoryqanlplog"
+    ),
+}
+
+ELASTICSEARCH_SIGNAL_PROCESSOR_CLASSES = {
+    "realtime": "django_elasticsearch_dsl.signals.RealTimeSignalProcessor",
+    "celery": "bothub.common.signals.CelerySignalProcessor",
+}
+
+ELASTICSEARCH_DSL_SIGNAL_PROCESSOR = ELASTICSEARCH_SIGNAL_PROCESSOR_CLASSES[
+    env.str("ELASTICSEARCH_SIGNAL_PROCESSOR", default="realtime")
+]
+
+GUNICORN_WORKERS = env.int(
+    "GUNICORN_WORKERS", default=multiprocessing.cpu_count() * 2 + 1
+)

@@ -25,8 +25,8 @@ class UserServiceTest(RPCTransactionTestCase):
 
         super().setUp()
 
-        self.user_permission_stub = authentication_pb2_grpc.UserPermissionControllerStub(
-            self.channel
+        self.user_permission_stub = (
+            authentication_pb2_grpc.UserPermissionControllerStub(self.channel)
         )
         self.user_stub = authentication_pb2_grpc.UserControllerStub(self.channel)
 

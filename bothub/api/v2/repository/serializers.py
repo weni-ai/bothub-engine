@@ -1,10 +1,10 @@
-import json
-
+from bothub.common.documents.repositoryqanlplog import RepositoryQANLPLogDocument
 from django.conf import settings
 from django.shortcuts import get_object_or_404
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied, ValidationError
+from django_elasticsearch_dsl_drf.serializers import DocumentSerializer
 
 from bothub import utils
 from bothub.api.v2.example.serializers import RepositoryExampleEntitySerializer
@@ -17,6 +17,7 @@ from bothub.api.v2.fields import (
 from bothub.authentication.models import RepositoryOwner
 from bothub.celery import app as celery_app
 from bothub.common import languages
+from bothub.common.documents.repositorynlplog import RepositoryNLPLogDocument
 from bothub.common.languages import LANGUAGE_CHOICES
 from bothub.common.models import (
     Organization,
@@ -31,7 +32,6 @@ from bothub.common.models import (
     RepositoryExampleEntity,
     RepositoryIntent,
     RepositoryMigrate,
-    RepositoryNLPLog,
     RepositoryNLPTrain,
     RepositoryQueueTask,
     RepositoryScore,
@@ -1300,27 +1300,21 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
 
             if RepositoryExample.objects.filter(
                 text=validated_data.get("text"),
-                intent__text=validated_data.get("intent"),
                 repository_version_language__repository_version__repository=repository,
                 repository_version_language__repository_version=version_id,
                 repository_version_language__language=language,
             ):
-                raise APIExceptionCustom(
-                    detail=_("Intention and Sentence already exists")
-                )
+                raise APIExceptionCustom(detail=_("Sentence already exists"))
         else:
             repository_version_language = repository.current_version(language or None)
 
             if RepositoryExample.objects.filter(
                 text=validated_data.get("text"),
-                intent__text=validated_data.get("intent"),
                 repository_version_language=repository_version_language,
                 repository_version_language__repository_version__is_default=True,
                 repository_version_language__language=language,
             ):
-                raise APIExceptionCustom(
-                    detail=_("Intention and Sentence already exists")
-                )
+                raise APIExceptionCustom(detail=_("Sentence already exists"))
 
         validated_data.update(
             {"repository_version_language": repository_version_language}
@@ -1408,6 +1402,12 @@ class AnalyzeTextSerializer(serializers.Serializer):
     repository_version = serializers.IntegerField(required=False)
 
 
+class AnalyzeQuestionSerializer(serializers.Serializer):
+    knowledge_base_id = serializers.IntegerField(required=True)
+    question = serializers.CharField(allow_blank=False)
+    language = serializers.ChoiceField(LANGUAGE_CHOICES, required=True)
+
+
 class DebugParseSerializer(serializers.Serializer):
     language = serializers.ChoiceField(LANGUAGE_CHOICES, required=True)
     text = serializers.CharField(allow_blank=False)
@@ -1454,9 +1454,9 @@ class RepositoryUpload(serializers.Serializer):
     pass
 
 
-class RepositoryNLPLogSerializer(serializers.ModelSerializer):
+class RepositoryNLPLogSerializer(DocumentSerializer):
     class Meta:
-        model = RepositoryNLPLog
+        document = RepositoryNLPLogDocument
         fields = [
             "id",
             "version_name",
@@ -1468,28 +1468,29 @@ class RepositoryNLPLogSerializer(serializers.ModelSerializer):
             "log_intent",
             "created_at",
         ]
-        ref_name = None
+        extra_kwargs = {
+            "repository_version_language": {"required": True, "write_only": True}
+        }
 
-    log_intent = serializers.SerializerMethodField()
-    nlp_log = serializers.SerializerMethodField()
-    version_name = serializers.SerializerMethodField()
 
-    def get_log_intent(self, obj):
-        intents = {}
-        for intent in obj.intents(obj):
-            intents[intent.pk] = {
-                "intent": intent.intent,
-                "confidence": intent.confidence,
-                "is_default": intent.is_default,
-            }
-
-        return intents
-
-    def get_nlp_log(self, obj):
-        return json.loads(obj.nlp_log)
-
-    def get_version_name(self, obj):
-        return obj.repository_version_language.repository_version.name
+class RepositoryQANLPLogSerializer(DocumentSerializer):
+    class Meta:
+        document = RepositoryQANLPLogDocument
+        fields = [
+            "id",
+            "answer",
+            "confidence",
+            "user",
+            "nlp_log",
+            "text",
+            "language",
+            "knowledge_base",
+            "question",
+            "repository_uuid",
+            "from_backend",
+            "user_agent",
+            "created_at",
+        ]
 
 
 class RepositoryEntitySerializer(serializers.ModelSerializer):

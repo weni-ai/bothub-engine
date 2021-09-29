@@ -13,11 +13,16 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from bothub.api.v2.nlp.serializers import NLPSerializer, RepositoryNLPLogSerializer
+from bothub.api.v2.nlp.serializers import (
+    NLPSerializer,
+    RepositoryNLPLogSerializer,
+    RepositoryQANLPLogSerializer,
+)
 from bothub.authentication.authorization import NLPAuthentication
 from bothub.authentication.models import User
 from bothub.common import languages
 from bothub.common.models import (
+    QALogs,
     RepositoryAuthorization,
     RepositoryVersionLanguage,
     RepositoryNLPLog,
@@ -222,8 +227,10 @@ class RepositoryAuthorizationTrainLanguagesViewSet(
         for language in settings.SUPPORTED_LANGUAGES:
 
             if repository_version:
-                current_version = repository_authorization.repository.get_specific_version_id(
-                    repository_version, language
+                current_version = (
+                    repository_authorization.repository.get_specific_version_id(
+                        repository_version, language
+                    )
                 )
             else:
                 current_version = repository_authorization.repository.current_version(
@@ -691,6 +698,13 @@ class RepositoryNLPLogsViewSet(mixins.CreateModelMixin, GenericViewSet):
     authentication_classes = [NLPAuthentication]
 
 
+class RepositoryQANLPLogsViewSet(mixins.CreateModelMixin, GenericViewSet):
+    queryset = QALogs.objects
+    serializer_class = RepositoryQANLPLogSerializer
+    permission_classes = [AllowAny]
+    authentication_classes = [NLPAuthentication]
+
+
 class RepositoryAuthorizationKnowledgeBaseViewSet(
     mixins.RetrieveModelMixin, GenericViewSet
 ):
@@ -702,7 +716,6 @@ class RepositoryAuthorizationKnowledgeBaseViewSet(
     def retrieve(self, request, *args, **kwargs):
         check_auth(request)
         repository_authorization = self.get_object()
-
         if not repository_authorization.can_contribute:
             raise PermissionDenied()
 
@@ -715,7 +728,7 @@ class RepositoryAuthorizationKnowledgeBaseViewSet(
             repository.knowledge_bases.all(), pk=knowledge_base_pk
         )
 
-        context = get_object_or_404(knowledge_base.contexts.all(), language=language)
+        context = get_object_or_404(knowledge_base.texts.all(), language=language)
 
         return Response(
             {
@@ -742,8 +755,10 @@ class RepositoryAuthorizationExamplesViewSet(mixins.RetrieveModelMixin, GenericV
 
         repository_version = request.query_params.get("repository_version")
         if repository_version:
-            current_version = repository_authorization.repository.get_specific_version_id(
-                repository_version, str(request.query_params.get("language"))
+            current_version = (
+                repository_authorization.repository.get_specific_version_id(
+                    repository_version, str(request.query_params.get("language"))
+                )
             )
         else:
             current_version = repository_authorization.repository.current_version(
