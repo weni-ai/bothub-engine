@@ -391,8 +391,8 @@ class Repository(models.Model):
         self.__use_name_entities = self.use_name_entities
         self.__use_analyze_char = self.use_analyze_char
 
-    def have_at_least_one_test_phrase_registered(self, language: str) -> bool:
-        return self.evaluations(language=language).count() > 0
+    def have_at_least_one_test_phrase_registered(self, language: str, repository_version_id: int) -> bool:
+        return self.evaluations(language=language, repository_version_id=repository_version_id).count() > 0
 
     def have_at_least_two_intents_registered(self) -> bool:
         return len(self.intents()) >= 2
@@ -406,13 +406,13 @@ class Repository(models.Model):
             ]
         )
 
-    def validate_if_can_run_manual_evaluate(self, language: str) -> None:
-        if not self.have_at_least_one_test_phrase_registered(language=language):
+    def validate_if_can_run_manual_evaluate(self, language: str, repository_version_id: int) -> None:
+        if not self.have_at_least_one_test_phrase_registered(language=language, repository_version_id=repository_version_id):
             raise ValidationError(
                 _("You need to have at least " + "one registered test phrase")
             )
 
-        if not self.have_at_least_two_intents_registered():
+        if not self.have_at_least_two_intents_registered(repository_version_id=repository_version_id):
             raise ValidationError(
                 _("You need to have at least " + "two registered intents")
             )
@@ -516,7 +516,7 @@ class Repository(models.Model):
             )
 
     def request_nlp_manual_evaluate(self, user_authorization, data):
-        self.validate_if_can_run_manual_evaluate(language=data.get("language"))
+        self.validate_if_can_run_manual_evaluate(language=data.get("language"), repository_version_id=data.get("repository_version"))
 
         try:  # pragma: no cover
             payload = {
@@ -738,14 +738,18 @@ class Repository(models.Model):
         return query
 
     def evaluations(
-        self, language=None, queryset=None, version_default=True
+        self, language=None, queryset=None, version_default=True, repository_version_id=None
     ):  # pragma: no cover
         if queryset is None:
             queryset = RepositoryEvaluate.objects
         query = queryset.filter(
             repository_version_language__repository_version__repository=self
         )
-        if version_default:
+        if repository_version_id:
+            query = query.filter(
+                repository_version_language__repository_version__id=repository_version_id
+            )
+        else:
             query = query.filter(
                 repository_version_language__repository_version__is_default=True
             )

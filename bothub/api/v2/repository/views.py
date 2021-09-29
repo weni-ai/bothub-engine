@@ -254,7 +254,7 @@ class NewRepositoryViewSet(
     @action(
         detail=True,
         methods=["POST"],
-        permission_classes=[RepositoryAdminManagerAuthorization],
+        permission_classes=[IsAuthenticated],
         url_name="remove-repository-project",
         serializer_class=RemoveRepositoryProject,
     )
