@@ -46,7 +46,6 @@ env:
     - SUPPORTED_LANGUAGES="en|pt"
     - DEFAULT_DATABASE="postgres://bothub:bothub@localhost:5432/bothub"
 script:
-  - make createproto
   - python manage.py migrate
   - python manage.py collectstatic
   - flake8
