@@ -393,7 +393,7 @@ class Repository(models.Model):
         self.__use_name_entities = self.use_name_entities
         self.__use_analyze_char = self.use_analyze_char
 
-    def have_at_least_one_test_phrase_registered(self, language: str, repository_version_id: int) -> bool:
+    def have_at_least_one_test_phrase_registered(self, language: str, repository_version_id=None) -> bool:
         return self.evaluations(language=language, repository_version_id=repository_version_id).count() > 0
 
     def have_at_least_two_intents_registered(self) -> bool:
@@ -408,13 +408,13 @@ class Repository(models.Model):
             ]
         )
 
-    def validate_if_can_run_manual_evaluate(self, language: str, repository_version_id: int) -> None:
+    def validate_if_can_run_manual_evaluate(self, language: str, repository_version_id=None) -> None:
         if not self.have_at_least_one_test_phrase_registered(language=language, repository_version_id=repository_version_id):
             raise ValidationError(
                 _("You need to have at least " + "one registered test phrase")
             )
 
-        if not self.have_at_least_two_intents_registered(repository_version_id=repository_version_id):
+        if not self.have_at_least_two_intents_registered():
             raise ValidationError(
                 _("You need to have at least " + "two registered intents")
             )
@@ -663,16 +663,19 @@ class Repository(models.Model):
             )
         )
 
-    def intents(self, queryset=None, version_default=True, repository_version=None):
+    def intents(self, queryset=None, language=None, version_default=True, repository_version=None):
         intents = (
             self.examples(
                 queryset=queryset,
+                language=language,
                 version_default=version_default,
                 repository_version=repository_version,
             )
             if queryset
             else self.examples(
-                version_default=version_default, repository_version=repository_version
+                language=language,
+                version_default=version_default, 
+                repository_version=repository_version,
             )
         )
         return list(set(intents.values_list("intent__text", flat=True)))
@@ -753,7 +756,7 @@ class Repository(models.Model):
             )
         else:
             query = query.filter(
-                repository_version_language__repository_version__is_default=True
+                repository_version_language__repository_version__is_default=version_default
             )
         if language:
             query = query.filter(repository_version_language__language=language)
