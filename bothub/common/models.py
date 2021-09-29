@@ -674,7 +674,7 @@ class Repository(models.Model):
             if queryset
             else self.examples(
                 language=language,
-                version_default=version_default, 
+                version_default=version_default,
                 repository_version=repository_version,
             )
         )
