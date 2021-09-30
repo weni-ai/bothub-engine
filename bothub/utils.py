@@ -118,7 +118,7 @@ def organization_unique_slug_generator(org_name, new_slug=None):
 
 def format_entity(text, entity, start, end):
     """
-        Returns the correct formatted text with the correct entities
+    Returns the correct formatted text with the correct entities
     """
     return text[0:start] + "[" + text[start:end] + "](" + entity + ")" + text[end:]
 
@@ -159,8 +159,8 @@ def get_without_entity(example):
 
 def score_normal(x, optimal):
     """
-        Based on normal distribution,
-        score will decay if current value is below or above target
+    Based on normal distribution,
+    score will decay if current value is below or above target
     """
 
     try:
@@ -174,8 +174,8 @@ def score_normal(x, optimal):
 
 def score_cumulated(x, optimal):
     """
-        Based on cumulated distribution,
-        score will increase as close current value is to the target
+    Based on cumulated distribution,
+    score will increase as close current value is to the target
     """
 
     try:
@@ -271,9 +271,9 @@ def evaluate_size_score(dataset):  # pragma: no cover
 
 def arrange_data(train_data, eval_data):
     """
-        :param train_data: list of sentences {"intent";"text"}
-        :param eval_data:  list of sentences {"intent";"text"}
-        :return: formatted dataset
+    :param train_data: list of sentences {"intent";"text"}
+    :param eval_data:  list of sentences {"intent";"text"}
+    :return: formatted dataset
     """
     dataset = {
         "intentions": [],
