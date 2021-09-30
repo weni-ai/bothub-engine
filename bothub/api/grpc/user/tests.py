@@ -3,7 +3,10 @@ from django_grpc_framework.test import RPCTransactionTestCase
 from bothub.api.v2.tests.utils import create_user_and_token
 from bothub.authentication.models import User
 from bothub.common.models import Organization, OrganizationAuthorization
-from bothub.protos import authentication_pb2_grpc, authentication_pb2
+from bothub.protos.src.weni.protobuf.intelligence import (
+    authentication_pb2_grpc,
+    authentication_pb2,
+)
 
 
 class UserServiceTest(RPCTransactionTestCase):
