@@ -8,7 +8,10 @@ from bothub.common.models import (
     OrganizationAuthorization,
     RepositoryAuthorization,
 )
-from bothub.protos import repository_pb2_grpc, repository_pb2
+from bothub.protos.src.weni.protobuf.intelligence import (
+    repository_pb2_grpc,
+    repository_pb2,
+)
 
 
 class RepositoryServiceTestCase(RPCTransactionTestCase):

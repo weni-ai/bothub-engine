@@ -16,6 +16,7 @@ from bothub.api.grpc.connect_grpc_client import ConnectGRPCClient
 from bothub.celery import app
 from bothub.common.models import (
     RepositoryQueueTask,
+    RepositoryReports,
     RepositoryVersion,
     RepositoryVersionLanguage,
     RepositoryExample,
@@ -291,12 +292,13 @@ def delete_nlp_logs():
 def repositories_count_authorizations():
     for repository in Repository.objects.all():
         count = repository.authorizations.filter(
-            user__in=RepositoryNLPLog.objects.filter(
+            user__in=RepositoryReports.objects.filter(
                 repository_version_language__repository_version__repository=repository,
-                from_backend=False,
+                report_date__year=timezone.now().year,
+                report_date__month=timezone.now().month,
             )
             .distinct()
-            .values("user")
+            .values_list("user", flat=True)
         ).count()
         repository.count_authorizations = count
         repository.save(update_fields=["count_authorizations"])
