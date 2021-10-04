@@ -24,6 +24,7 @@ from bothub.common import languages
 from bothub.common.models import (
     QALogs,
     RepositoryAuthorization,
+    RepositoryVersion,
     RepositoryVersionLanguage,
     RepositoryNLPLog,
     RepositoryExample,
@@ -330,13 +331,16 @@ class RepositoryAuthorizationInfoViewSet(mixins.RetrieveModelMixin, GenericViewS
         repository = repository_authorization.repository
 
         repository_version = request.query_params.get("repository_version")
-
+        try:
+            is_default = RepositoryVersion.objects.get(pk=repository_version).is_default
+        except (RepositoryVersion.DoesNotExist, ValueError):
+            is_default = True
         queryset = RepositoryExample.objects.filter(
             repository_version_language__repository_version__repository=repository
         )
         serializer = repository.intents(
             queryset=queryset,
-            version_default=False,
+            version_default=is_default,
             repository_version=repository_version,
         )
 
@@ -584,7 +588,7 @@ class RepositoryAuthorizationAutomaticEvaluateViewSet(
             )
 
         try:
-            repository.validate_if_can_run_automatic_evaluate(language=language)
+            repository.validate_if_can_run_automatic_evaluate(language=language, repository_version_id=repository_version)
             can_run_automatic_evaluate = True
         except ValidationError:
             can_run_automatic_evaluate = False
