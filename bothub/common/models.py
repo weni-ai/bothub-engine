@@ -664,7 +664,7 @@ class Repository(models.Model):
         )
 
     def intents(self, queryset=None, language=None, version_default=True, repository_version=None):
-        repository_version = None if repository_version is '' else repository_version
+        repository_version = None if repository_version == '' else repository_version
         intents = self.examples(
             queryset=queryset,
             language=language,
@@ -717,7 +717,7 @@ class Repository(models.Model):
         version_default=True,
         repository_version=None,
     ):
-        repository_version = None if repository_version is '' else repository_version
+        repository_version = None if repository_version == '' else repository_version
         if queryset is None:
             queryset = RepositoryExample.objects
         query = queryset.filter(
