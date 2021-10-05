@@ -393,23 +393,23 @@ class Repository(models.Model):
         self.__use_name_entities = self.use_name_entities
         self.__use_analyze_char = self.use_analyze_char
 
-    def have_at_least_one_test_phrase_registered(self, language: str) -> bool:
-        return self.evaluations(language=language).count() > 0
+    def have_at_least_one_test_phrase_registered(self, language: str, repository_version_id=None) -> bool:
+        return self.evaluations(language=language, repository_version_id=repository_version_id).count() > 0
 
     def have_at_least_two_intents_registered(self) -> bool:
         return len(self.intents()) >= 2
 
-    def have_at_least_twenty_examples_for_each_intent(self, language: str) -> bool:
+    def have_at_least_twenty_examples_for_each_intent(self, language: str, repository_version_id=None) -> bool:
         return all(
             [
-                self.examples(language=language).filter(intent__text=intent).count()
+                self.examples(language=language, repository_version=repository_version_id).filter(intent__text=intent).count()
                 >= 20
                 for intent in self.intents()
             ]
         )
 
-    def validate_if_can_run_manual_evaluate(self, language: str) -> None:
-        if not self.have_at_least_one_test_phrase_registered(language=language):
+    def validate_if_can_run_manual_evaluate(self, language: str, repository_version_id=None) -> None:
+        if not self.have_at_least_one_test_phrase_registered(language=language, repository_version_id=repository_version_id):
             raise ValidationError(
                 _("You need to have at least " + "one registered test phrase")
             )
@@ -419,13 +419,13 @@ class Repository(models.Model):
                 _("You need to have at least " + "two registered intents")
             )
 
-    def validate_if_can_run_automatic_evaluate(self, language: str) -> None:
+    def validate_if_can_run_automatic_evaluate(self, language: str, repository_version_id=None) -> None:
         if not self.have_at_least_two_intents_registered():
             raise ValidationError(
                 _("You need to have at least " + "two registered intents")
             )
 
-        if not self.have_at_least_twenty_examples_for_each_intent(language=language):
+        if not self.have_at_least_twenty_examples_for_each_intent(language=language, repository_version_id=repository_version_id):
             raise ValidationError(
                 _("You need to have at least " + "twenty train phrases for each intent")
             )
@@ -518,7 +518,7 @@ class Repository(models.Model):
             )
 
     def request_nlp_manual_evaluate(self, user_authorization, data):
-        self.validate_if_can_run_manual_evaluate(language=data.get("language"))
+        self.validate_if_can_run_manual_evaluate(language=data.get("language"), repository_version_id=data.get("repository_version"))
 
         try:  # pragma: no cover
             payload = {
@@ -540,7 +540,7 @@ class Repository(models.Model):
             )
 
     def request_nlp_automatic_evaluate(self, user_authorization, data):
-        self.validate_if_can_run_automatic_evaluate(language=data.get("language"))
+        self.validate_if_can_run_automatic_evaluate(language=data.get("language"), repository_version_id=data.get("repository_version"))
 
         try:  # pragma: no cover
             payload = {
@@ -663,18 +663,15 @@ class Repository(models.Model):
             )
         )
 
-    def intents(self, queryset=None, version_default=True, repository_version=None):
-        intents = (
-            self.examples(
-                queryset=queryset,
-                version_default=version_default,
-                repository_version=repository_version,
-            )
-            if queryset
-            else self.examples(
-                version_default=version_default, repository_version=repository_version
-            )
+    def intents(self, queryset=None, language=None, version_default=True, repository_version=None):
+        repository_version = None if repository_version == '' else repository_version
+        intents = self.examples(
+            queryset=queryset,
+            language=language,
+            version_default=version_default,
+            repository_version=repository_version,
         )
+
         return list(set(intents.values_list("intent__text", flat=True)))
 
     def get_formatted_intents(self):
@@ -720,36 +717,40 @@ class Repository(models.Model):
         version_default=True,
         repository_version=None,
     ):
+        repository_version = None if repository_version == '' else repository_version
         if queryset is None:
             queryset = RepositoryExample.objects
         query = queryset.filter(
             repository_version_language__repository_version__repository=self
         )
-
-        if version_default:
-            query = query.filter(
-                repository_version_language__repository_version__is_default=True
-            )
-        if language:
-            query = query.filter(repository_version_language__language=language)
-
         if repository_version:
             query = query.filter(
                 repository_version_language__repository_version__id=repository_version
             )
+        else:
+            query = query.filter(
+                repository_version_language__repository_version__is_default=version_default
+            )
+        if language:
+            query = query.filter(repository_version_language__language=language)
+
         return query
 
     def evaluations(
-        self, language=None, queryset=None, version_default=True
+        self, language=None, queryset=None, version_default=True, repository_version_id=None
     ):  # pragma: no cover
         if queryset is None:
             queryset = RepositoryEvaluate.objects
         query = queryset.filter(
             repository_version_language__repository_version__repository=self
         )
-        if version_default:
+        if repository_version_id:
             query = query.filter(
-                repository_version_language__repository_version__is_default=True
+                repository_version_language__repository_version__id=repository_version_id
+            )
+        else:
+            query = query.filter(
+                repository_version_language__repository_version__is_default=version_default
             )
         if language:
             query = query.filter(repository_version_language__language=language)
@@ -910,6 +911,7 @@ class RepositoryVersion(models.Model):
         return TYPES
 
     def current_entities(self, queryset=None, version_default=True):
+        version_default = version_default or True
         return self.entities.filter(
             value__in=self.repository.examples(
                 queryset=queryset, version_default=version_default

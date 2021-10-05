@@ -25,7 +25,5 @@ RUN pipenv install --system
 
 COPY . .
 
-RUN make createproto
-
 RUN chmod +x ./entrypoint.sh
 ENTRYPOINT [ "./entrypoint.sh" ]
