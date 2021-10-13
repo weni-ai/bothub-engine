@@ -9,6 +9,7 @@ from django.core.validators import RegexValidator, _lazy_re_compile
 from django.db import models
 from django.db.models import Sum, Q, IntegerField, Case, When, Count
 from django.dispatch import receiver
+from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
@@ -392,23 +393,23 @@ class Repository(models.Model):
         self.__use_name_entities = self.use_name_entities
         self.__use_analyze_char = self.use_analyze_char
 
-    def have_at_least_one_test_phrase_registered(self, language: str) -> bool:
-        return self.evaluations(language=language).count() > 0
+    def have_at_least_one_test_phrase_registered(self, language: str, repository_version_id=None) -> bool:
+        return self.evaluations(language=language, repository_version_id=repository_version_id).count() > 0
 
     def have_at_least_two_intents_registered(self) -> bool:
         return len(self.intents()) >= 2
 
-    def have_at_least_twenty_examples_for_each_intent(self, language: str) -> bool:
+    def have_at_least_twenty_examples_for_each_intent(self, language: str, repository_version_id=None) -> bool:
         return all(
             [
-                self.examples(language=language).filter(intent__text=intent).count()
+                self.examples(language=language, repository_version=repository_version_id).filter(intent__text=intent).count()
                 >= 20
                 for intent in self.intents()
             ]
         )
 
-    def validate_if_can_run_manual_evaluate(self, language: str) -> None:
-        if not self.have_at_least_one_test_phrase_registered(language=language):
+    def validate_if_can_run_manual_evaluate(self, language: str, repository_version_id=None) -> None:
+        if not self.have_at_least_one_test_phrase_registered(language=language, repository_version_id=repository_version_id):
             raise ValidationError(
                 _("You need to have at least " + "one registered test phrase")
             )
@@ -418,13 +419,13 @@ class Repository(models.Model):
                 _("You need to have at least " + "two registered intents")
             )
 
-    def validate_if_can_run_automatic_evaluate(self, language: str) -> None:
+    def validate_if_can_run_automatic_evaluate(self, language: str, repository_version_id=None) -> None:
         if not self.have_at_least_two_intents_registered():
             raise ValidationError(
                 _("You need to have at least " + "two registered intents")
             )
 
-        if not self.have_at_least_twenty_examples_for_each_intent(language=language):
+        if not self.have_at_least_twenty_examples_for_each_intent(language=language, repository_version_id=repository_version_id):
             raise ValidationError(
                 _("You need to have at least " + "twenty train phrases for each intent")
             )
@@ -517,7 +518,7 @@ class Repository(models.Model):
             )
 
     def request_nlp_manual_evaluate(self, user_authorization, data):
-        self.validate_if_can_run_manual_evaluate(language=data.get("language"))
+        self.validate_if_can_run_manual_evaluate(language=data.get("language"), repository_version_id=data.get("repository_version"))
 
         try:  # pragma: no cover
             payload = {
@@ -539,7 +540,7 @@ class Repository(models.Model):
             )
 
     def request_nlp_automatic_evaluate(self, user_authorization, data):
-        self.validate_if_can_run_automatic_evaluate(language=data.get("language"))
+        self.validate_if_can_run_automatic_evaluate(language=data.get("language"), repository_version_id=data.get("repository_version"))
 
         try:  # pragma: no cover
             payload = {
@@ -662,18 +663,15 @@ class Repository(models.Model):
             )
         )
 
-    def intents(self, queryset=None, version_default=True, repository_version=None):
-        intents = (
-            self.examples(
-                queryset=queryset,
-                version_default=version_default,
-                repository_version=repository_version,
-            )
-            if queryset
-            else self.examples(
-                version_default=version_default, repository_version=repository_version
-            )
+    def intents(self, queryset=None, language=None, version_default=True, repository_version=None):
+        repository_version = None if repository_version == '' else repository_version
+        intents = self.examples(
+            queryset=queryset,
+            language=language,
+            version_default=version_default,
+            repository_version=repository_version,
         )
+
         return list(set(intents.values_list("intent__text", flat=True)))
 
     def get_formatted_intents(self):
@@ -719,36 +717,40 @@ class Repository(models.Model):
         version_default=True,
         repository_version=None,
     ):
+        repository_version = None if repository_version == '' else repository_version
         if queryset is None:
             queryset = RepositoryExample.objects
         query = queryset.filter(
             repository_version_language__repository_version__repository=self
         )
-
-        if version_default:
-            query = query.filter(
-                repository_version_language__repository_version__is_default=True
-            )
-        if language:
-            query = query.filter(repository_version_language__language=language)
-
         if repository_version:
             query = query.filter(
                 repository_version_language__repository_version__id=repository_version
             )
+        else:
+            query = query.filter(
+                repository_version_language__repository_version__is_default=version_default
+            )
+        if language:
+            query = query.filter(repository_version_language__language=language)
+
         return query
 
     def evaluations(
-        self, language=None, queryset=None, version_default=True
+        self, language=None, queryset=None, version_default=True, repository_version_id=None
     ):  # pragma: no cover
         if queryset is None:
             queryset = RepositoryEvaluate.objects
         query = queryset.filter(
             repository_version_language__repository_version__repository=self
         )
-        if version_default:
+        if repository_version_id:
             query = query.filter(
-                repository_version_language__repository_version__is_default=True
+                repository_version_language__repository_version__id=repository_version_id
+            )
+        else:
+            query = query.filter(
+                repository_version_language__repository_version__is_default=version_default
             )
         if language:
             query = query.filter(repository_version_language__language=language)
@@ -909,6 +911,7 @@ class RepositoryVersion(models.Model):
         return TYPES
 
     def current_entities(self, queryset=None, version_default=True):
+        version_default = version_default or True
         return self.entities.filter(
             value__in=self.repository.examples(
                 queryset=queryset, version_default=version_default
@@ -1066,7 +1069,8 @@ class RepositoryVersionLanguage(models.Model):
 
         weak_intents = (
             self.examples.values("intent__text")
-            .annotate(intent_count=models.Count("id"))
+            .order_by("intent__text")
+            .annotate(intent_count=models.Count("intent__text"))
             .exclude(intent_count__gte=self.MIN_EXAMPLES_PER_INTENT)
         )
 
@@ -1083,10 +1087,10 @@ class RepositoryVersionLanguage(models.Model):
                 )
 
         weak_entities = (
-            self.examples.annotate(es_count=models.Count("entities"))
-            .filter(es_count__gte=1)
+            self.examples.filter(entities__isnull=False)
+            .order_by("entities__entity__value")
             .values("entities__entity__value")
-            .annotate(entities_count=models.Count("id"))
+            .annotate(entities_count=models.Count("entities__entity__value"))
             .exclude(entities_count__gte=self.MIN_EXAMPLES_PER_ENTITY)
         )
 
@@ -2282,16 +2286,41 @@ class QAKnowledgeBase(models.Model):
     repository = models.ForeignKey(
         Repository, models.CASCADE, related_name="knowledge_bases"
     )
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="knowledge_bases",
+        null=True,
+        blank=True,
+    )
     title = models.CharField(
         _("title"), max_length=64, help_text=_("Knowledge Base title")
     )
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
     last_update = models.DateTimeField(_("last update"), auto_now=True)
 
+    def get_context_by_language(self, lang):
+        return get_object_or_404(self.texts.all(), language=lang)
 
-class QAContext(models.Model):
+    def get_user_authorization(self, user):
+        return self.repository.get_user_authorization(user)
+
+    def get_languages_count(self):
+        return self.texts.all().count()
+
+    def get_text_description(self, lang=None):
+        try:
+            if not lang:
+                return self.texts.first().text[:150]
+            else:
+                return get_object_or_404(self.texts.all(), language=lang).text[:150]
+        except AttributeError:
+            return ""
+
+
+class QAtext(models.Model):
     knowledge_base = models.ForeignKey(
-        QAKnowledgeBase, on_delete=models.CASCADE, related_name="contexts"
+        QAKnowledgeBase, on_delete=models.CASCADE, related_name="texts"
     )
     text = models.TextField(_("text"), help_text=_("QA context text"), max_length=25000)
     language = models.CharField(
@@ -2305,6 +2334,47 @@ class QAContext(models.Model):
 
     class Meta:
         unique_together = ("knowledge_base", "language")
+
+    @property
+    def repository(self):
+        return self.knowledge_base.repository
+
+    def get_user_authorization(self, user):
+        return self.knowledge_base.get_user_authorization(user)
+
+
+class QALogs(models.Model):
+    class Meta:
+        verbose_name = _("repository qa nlp logs")
+        indexes = [
+            models.Index(
+                name="common_repo_qa_nlp_log_idx",
+                fields=("knowledge_base", "user"),
+                condition=Q(from_backend=False),
+            )
+        ]
+        ordering = ["-id"]
+
+    answer = models.TextField(help_text=_("Question"))
+    confidence = models.FloatField(help_text=_("Confidence"))
+    question = models.TextField(help_text=_("Question"))
+    user_agent = models.TextField(help_text=_("User Agent"))
+    from_backend = models.BooleanField()
+    knowledge_base = models.ForeignKey(
+        QAKnowledgeBase,
+        models.CASCADE,
+        related_name="qa_nlp_logs",
+        editable=False,
+        null=True,
+    )
+    language = models.CharField(
+        _("language"),
+        max_length=5,
+        validators=[languages.validate_language],
+    )
+    nlp_log = models.TextField(help_text=_("NLP Log"), blank=True)
+    user = models.ForeignKey(RepositoryOwner, models.CASCADE)
+    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
 
 
 @receiver(models.signals.pre_save, sender=RequestRepositoryAuthorization)

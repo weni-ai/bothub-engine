@@ -3,7 +3,7 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 from django_filters import rest_framework as filters
 from rest_framework.exceptions import PermissionDenied, NotFound
 
-from bothub.common.models import QAKnowledgeBase, Repository, QAContext
+from bothub.common.models import QAKnowledgeBase, Repository, QAtext
 
 
 class QAKnowledgeBaseFilter(filters.FilterSet):
@@ -34,9 +34,9 @@ class QAKnowledgeBaseFilter(filters.FilterSet):
             raise NotFound(_("Invalid repository_uuid"))
 
 
-class QAContextFilter(filters.FilterSet):
+class QAtextFilter(filters.FilterSet):
     class Meta:
-        model = QAContext
+        model = QAtext
         fields = [
             "text",
             "language",

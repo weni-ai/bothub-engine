@@ -13,12 +13,18 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from bothub.api.v2.nlp.serializers import NLPSerializer, RepositoryNLPLogSerializer
+from bothub.api.v2.nlp.serializers import (
+    NLPSerializer,
+    RepositoryNLPLogSerializer,
+    RepositoryQANLPLogSerializer,
+)
 from bothub.authentication.authorization import NLPAuthentication
 from bothub.authentication.models import User
 from bothub.common import languages
 from bothub.common.models import (
+    QALogs,
     RepositoryAuthorization,
+    RepositoryVersion,
     RepositoryVersionLanguage,
     RepositoryNLPLog,
     RepositoryExample,
@@ -222,8 +228,10 @@ class RepositoryAuthorizationTrainLanguagesViewSet(
         for language in settings.SUPPORTED_LANGUAGES:
 
             if repository_version:
-                current_version = repository_authorization.repository.get_specific_version_id(
-                    repository_version, language
+                current_version = (
+                    repository_authorization.repository.get_specific_version_id(
+                        repository_version, language
+                    )
                 )
             else:
                 current_version = repository_authorization.repository.current_version(
@@ -323,13 +331,16 @@ class RepositoryAuthorizationInfoViewSet(mixins.RetrieveModelMixin, GenericViewS
         repository = repository_authorization.repository
 
         repository_version = request.query_params.get("repository_version")
-
+        try:
+            is_default = RepositoryVersion.objects.get(pk=repository_version).is_default
+        except (RepositoryVersion.DoesNotExist, ValueError):
+            is_default = True
         queryset = RepositoryExample.objects.filter(
             repository_version_language__repository_version__repository=repository
         )
         serializer = repository.intents(
             queryset=queryset,
-            version_default=False,
+            version_default=is_default,
             repository_version=repository_version,
         )
 
@@ -577,7 +588,7 @@ class RepositoryAuthorizationAutomaticEvaluateViewSet(
             )
 
         try:
-            repository.validate_if_can_run_automatic_evaluate(language=language)
+            repository.validate_if_can_run_automatic_evaluate(language=language, repository_version_id=repository_version)
             can_run_automatic_evaluate = True
         except ValidationError:
             can_run_automatic_evaluate = False
@@ -691,6 +702,13 @@ class RepositoryNLPLogsViewSet(mixins.CreateModelMixin, GenericViewSet):
     authentication_classes = [NLPAuthentication]
 
 
+class RepositoryQANLPLogsViewSet(mixins.CreateModelMixin, GenericViewSet):
+    queryset = QALogs.objects
+    serializer_class = RepositoryQANLPLogSerializer
+    permission_classes = [AllowAny]
+    authentication_classes = [NLPAuthentication]
+
+
 class RepositoryAuthorizationKnowledgeBaseViewSet(
     mixins.RetrieveModelMixin, GenericViewSet
 ):
@@ -702,7 +720,6 @@ class RepositoryAuthorizationKnowledgeBaseViewSet(
     def retrieve(self, request, *args, **kwargs):
         check_auth(request)
         repository_authorization = self.get_object()
-
         if not repository_authorization.can_contribute:
             raise PermissionDenied()
 
@@ -715,7 +732,7 @@ class RepositoryAuthorizationKnowledgeBaseViewSet(
             repository.knowledge_bases.all(), pk=knowledge_base_pk
         )
 
-        context = get_object_or_404(knowledge_base.contexts.all(), language=language)
+        context = get_object_or_404(knowledge_base.texts.all(), language=language)
 
         return Response(
             {
@@ -742,8 +759,10 @@ class RepositoryAuthorizationExamplesViewSet(mixins.RetrieveModelMixin, GenericV
 
         repository_version = request.query_params.get("repository_version")
         if repository_version:
-            current_version = repository_authorization.repository.get_specific_version_id(
-                repository_version, str(request.query_params.get("language"))
+            current_version = (
+                repository_authorization.repository.get_specific_version_id(
+                    repository_version, str(request.query_params.get("language"))
+                )
             )
         else:
             current_version = repository_authorization.repository.current_version(
