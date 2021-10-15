@@ -10,6 +10,7 @@ from django_elasticsearch_dsl_drf.constants import LOOKUP_QUERY_GTE, LOOKUP_QUER
 from django_elasticsearch_dsl_drf.filter_backends import (
     CompoundSearchFilterBackend,
     FilteringFilterBackend,
+    NestedFilteringFilterBackend,
 )
 from django_elasticsearch_dsl_drf.pagination import LimitOffsetPagination
 from django_elasticsearch_dsl_drf.viewsets import DocumentViewSet
@@ -1153,7 +1154,11 @@ class RepositoryNLPLogViewSet(DocumentViewSet):
     serializer_class = RepositoryNLPLogSerializer
     lookup_field = "pk"
     permission_classes = [permissions.IsAuthenticated, RepositoryLogPermission]
-    filter_backends = [CompoundSearchFilterBackend, FilteringFilterBackend]
+    filter_backends = [
+        CompoundSearchFilterBackend,
+        FilteringFilterBackend,
+        NestedFilteringFilterBackend,
+    ]
     pagination_class = LimitOffsetPagination
     limit = settings.REPOSITORY_NLP_LOG_LIMIT
     search_fields = ["text"]
@@ -1162,9 +1167,15 @@ class RepositoryNLPLogViewSet(DocumentViewSet):
         "language": "language",
         "repository_version": "repository_version",
         "repository_version_language": "repository_version_language",
-        "intent": "log_intent.intent",
+    }
+    nested_filter_fields= {
+        "intent":{
+            "field": "nlp_log.intent.name.raw",
+            "path": "nlp_log",
+        },
         "confidence": {
-            "field": "log_intent.confidence",
+            "field": "nlp_log.intent.confidence",
+            "path": "nlp_log",
             "lookups": [LOOKUP_QUERY_LTE, LOOKUP_QUERY_GTE],
         },
     }
