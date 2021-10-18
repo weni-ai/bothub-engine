@@ -6,7 +6,7 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django.utils.translation import ugettext_lazy as _
-from django_elasticsearch_dsl_drf.constants import LOOKUP_QUERY_GTE, LOOKUP_QUERY_LTE
+from django_elasticsearch_dsl_drf.constants import LOOKUP_FILTER_RANGE, LOOKUP_QUERY_GTE, LOOKUP_QUERY_LTE
 from django_elasticsearch_dsl_drf.filter_backends import (
     CompoundSearchFilterBackend,
     FilteringFilterBackend,
@@ -1167,6 +1167,10 @@ class RepositoryNLPLogViewSet(DocumentViewSet):
         "language": "language",
         "repository_version": "repository_version",
         "repository_version_language": "repository_version_language",
+        "created_at": {
+            "field": "created_at",
+            "lookups": [LOOKUP_FILTER_RANGE, LOOKUP_QUERY_LTE, LOOKUP_QUERY_GTE],
+        },
     }
     nested_filter_fields = {
         "intent": {
@@ -1176,7 +1180,7 @@ class RepositoryNLPLogViewSet(DocumentViewSet):
         "confidence": {
             "field": "nlp_log.intent.confidence",
             "path": "nlp_log",
-            "lookups": [LOOKUP_QUERY_LTE, LOOKUP_QUERY_GTE],
+            "lookups": [LOOKUP_FILTER_RANGE, LOOKUP_QUERY_LTE, LOOKUP_QUERY_GTE],
         },
     }
 
