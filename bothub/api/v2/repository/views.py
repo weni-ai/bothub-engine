@@ -1168,8 +1168,8 @@ class RepositoryNLPLogViewSet(DocumentViewSet):
         "repository_version": "repository_version",
         "repository_version_language": "repository_version_language",
     }
-    nested_filter_fields= {
-        "intent":{
+    nested_filter_fields = {
+        "intent": {
             "field": "nlp_log.intent.name.raw",
             "path": "nlp_log",
         },
