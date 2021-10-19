@@ -136,7 +136,7 @@ class RepositoryNLPLogFilter:
         except DjangoValidationError:
             raise NotFound(_("Invalid Knowledge base"))
 
-    def check_context(self, value):
+    def check_text(self, value):
         try:
             context = QAtext.objects.get(pk=value)
             authorization = context.get_user_authorization(self.user)
@@ -144,7 +144,7 @@ class RepositoryNLPLogFilter:
                 raise PermissionDenied()
             return True
         except QAtext.DoesNotExist:
-            raise NotFound(_("Context {} does not exist").format(value))
+            raise NotFound(_("Text {} does not exist").format(value))
         except DjangoValidationError:
             raise NotFound(_("Invalid Context"))
 

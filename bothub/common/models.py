@@ -2342,6 +2342,9 @@ class QAtext(models.Model):
     def get_user_authorization(self, user):
         return self.knowledge_base.get_user_authorization(user)
 
+    def get_title(self):
+        return self.knowledge_base.title
+
 
 class QALogs(models.Model):
     class Meta:
