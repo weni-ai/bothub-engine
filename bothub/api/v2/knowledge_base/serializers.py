@@ -46,6 +46,7 @@ class QAtextSerializer(serializers.ModelSerializer):
             "knowledge_base",
             "created_at",
             "last_update",
+            "title",
         ]
         read_only_fields = ["created_at", "last_update"]
 
