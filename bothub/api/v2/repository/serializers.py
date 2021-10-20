@@ -1,3 +1,4 @@
+from bothub.common.documents.repositoryqanlplog import RepositoryQANLPLogDocument
 from django.conf import settings
 from django.shortcuts import get_object_or_404
 from django.utils.translation import ugettext_lazy as _
@@ -1299,27 +1300,21 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
 
             if RepositoryExample.objects.filter(
                 text=validated_data.get("text"),
-                intent__text=validated_data.get("intent"),
                 repository_version_language__repository_version__repository=repository,
                 repository_version_language__repository_version=version_id,
                 repository_version_language__language=language,
             ):
-                raise APIExceptionCustom(
-                    detail=_("Intention and Sentence already exists")
-                )
+                raise APIExceptionCustom(detail=_("Sentence already exists"))
         else:
             repository_version_language = repository.current_version(language or None)
 
             if RepositoryExample.objects.filter(
                 text=validated_data.get("text"),
-                intent__text=validated_data.get("intent"),
                 repository_version_language=repository_version_language,
                 repository_version_language__repository_version__is_default=True,
                 repository_version_language__language=language,
             ):
-                raise APIExceptionCustom(
-                    detail=_("Intention and Sentence already exists")
-                )
+                raise APIExceptionCustom(detail=_("Sentence already exists"))
 
         validated_data.update(
             {"repository_version_language": repository_version_language}
@@ -1407,6 +1402,12 @@ class AnalyzeTextSerializer(serializers.Serializer):
     repository_version = serializers.IntegerField(required=False)
 
 
+class AnalyzeQuestionSerializer(serializers.Serializer):
+    knowledge_base_id = serializers.IntegerField(required=True)
+    question = serializers.CharField(allow_blank=False)
+    language = serializers.ChoiceField(LANGUAGE_CHOICES, required=True)
+
+
 class DebugParseSerializer(serializers.Serializer):
     language = serializers.ChoiceField(LANGUAGE_CHOICES, required=True)
     text = serializers.CharField(allow_blank=False)
@@ -1470,6 +1471,26 @@ class RepositoryNLPLogSerializer(DocumentSerializer):
         extra_kwargs = {
             "repository_version_language": {"required": True, "write_only": True}
         }
+
+
+class RepositoryQANLPLogSerializer(DocumentSerializer):
+    class Meta:
+        document = RepositoryQANLPLogDocument
+        fields = [
+            "id",
+            "answer",
+            "confidence",
+            "user",
+            "nlp_log",
+            "text",
+            "language",
+            "knowledge_base",
+            "question",
+            "repository_uuid",
+            "from_backend",
+            "user_agent",
+            "created_at",
+        ]
 
 
 class RepositoryEntitySerializer(serializers.ModelSerializer):

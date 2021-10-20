@@ -14,7 +14,7 @@ from .models import (
     RepositoryEvaluate,
     RepositoryQueueTask,
     QAKnowledgeBase,
-    QAContext,
+    QAtext,
 )
 from .models import RepositoryAuthorization
 from .models import RepositoryEntity
@@ -483,7 +483,7 @@ class RepositoryTestCase(TestCase):
         qa_knowledge_base = QAKnowledgeBase.objects.create(
             repository=self.repository, title="teste"
         )
-        qa_context = QAContext.objects.create(
+        qa_context = QAtext.objects.create(
             knowledge_base=qa_knowledge_base,
             text="texto teste",
             language=languages.LANGUAGE_PT_BR,
@@ -1511,7 +1511,7 @@ class QAKnowledgeBaseTest(TestCase):
         self.assertEqual(self.repository.knowledge_bases.last(), qa_knowledge_base)
 
 
-class QAContextTest(TestCase):
+class QAtextTest(TestCase):
     def setUp(self):
         self.owner = User.objects.create_user("owner@user.com", "user")
 
@@ -1527,13 +1527,13 @@ class QAContextTest(TestCase):
         )
 
     def test_ok(self):
-        qa_context = QAContext.objects.create(
+        qa_context = QAtext.objects.create(
             knowledge_base=self.knowledge_base,
             text="teste text",
             language=languages.LANGUAGE_PT,
         )
         self.assertEqual("teste text", qa_context.text)
-        self.assertEqual(self.knowledge_base.contexts.last(), qa_context)
+        self.assertEqual(self.knowledge_base.texts.last(), qa_context)
 
 
 class RepositoryFormattedIntentsTestCase(TestCase):

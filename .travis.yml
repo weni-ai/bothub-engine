@@ -57,7 +57,6 @@ env:
     - ELASTICSEARCH_NUMBER_OF_SHARDS=1
     - ELASTICSEARCH_NUMBER_OF_REPLICAS=1
 script:
-  - make createproto
   - python manage.py migrate
   - python manage.py search_index --rebuild -f
   - python manage.py collectstatic

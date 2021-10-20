@@ -1,21 +1,22 @@
 import json
 
+from django.conf import settings
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django.utils.translation import ugettext_lazy as _
-from django_elasticsearch_dsl_drf.constants import LOOKUP_QUERY_GTE, LOOKUP_QUERY_LTE
+from django_elasticsearch_dsl_drf.constants import LOOKUP_FILTER_RANGE, LOOKUP_QUERY_GTE, LOOKUP_QUERY_LTE
 from django_elasticsearch_dsl_drf.filter_backends import (
     CompoundSearchFilterBackend,
     FilteringFilterBackend,
+    NestedFilteringFilterBackend,
 )
 from django_elasticsearch_dsl_drf.pagination import LimitOffsetPagination
 from django_elasticsearch_dsl_drf.viewsets import DocumentViewSet
 
 from django_filters.rest_framework import DjangoFilterBackend
 
-from django.conf import settings
 from drf_yasg2 import openapi
 from drf_yasg2.utils import swagger_auto_schema
 from rest_framework import mixins, parsers, permissions, status
@@ -38,6 +39,7 @@ from bothub.authentication.models import RepositoryOwner
 from bothub.celery import app as celery_app
 from bothub.common import languages
 from bothub.common.documents.repositorynlplog import RepositoryNLPLogDocument
+from bothub.common.documents.repositoryqanlplog import RepositoryQANLPLogDocument
 from bothub.common.models import (
     OrganizationAuthorization,
     Repository,
@@ -76,9 +78,11 @@ from .permissions import (
     RepositoryLogPermission,
     RepositoryMigratePermission,
     RepositoryPermission,
+    RepositoryQALogPermission,
     RepositoryTrainInfoPermission,
 )
 from .serializers import (
+    AnalyzeQuestionSerializer,
     AnalyzeTextSerializer,
     DebugParseSerializer,
     EvaluateSerializer,
@@ -97,6 +101,7 @@ from .serializers import (
     RepositoryNLPLogReportsSerializer,
     RepositoryNLPLogSerializer,
     RepositoryPermissionSerializer,
+    RepositoryQANLPLogSerializer,
     RepositoryQueueTaskSerializer,
     RepositorySerializer,
     RepositoryTrainInfoSerializer,
@@ -220,7 +225,6 @@ class NewRepositoryViewSet(
     )
     def projectrepository(self, request, **kwargs):
         repository = self.get_object().repository
-
         project_uuid = request.query_params.get("project_uuid")
         organization_pk = request.query_params.get("organization")
 
@@ -252,8 +256,8 @@ class NewRepositoryViewSet(
 
         if organization:
 
-            organization_authorization = organization.organization_authorizations.filter(
-                uuid__in=task.result
+            organization_authorization = (
+                organization.organization_authorizations.filter(uuid__in=task.result)
             )
             data["in_project"] = (
                 data["in_project"] or organization_authorization.exists()
@@ -264,7 +268,7 @@ class NewRepositoryViewSet(
     @action(
         detail=True,
         methods=["POST"],
-        permission_classes=[RepositoryAdminManagerAuthorization],
+        permission_classes=[IsAuthenticated],
         url_name="remove-repository-project",
         serializer_class=RemoveRepositoryProject,
     )
@@ -512,6 +516,40 @@ class RepositoryViewSet(
         error = response.get("error")  # pragma: no cover
         message = error.get("message")  # pragma: no cover
         raise APIException(detail=message)  # pragma: no cover
+
+    @action(
+        detail=True,
+        methods=["POST"],
+        url_name="repository-question-answering",
+        permission_classes=[],
+        lookup_fields=["uuid"],
+        serializer_class=AnalyzeQuestionSerializer,
+    )
+    def question(self, request, **kwargs):
+        repository = self.get_object()
+        user_authorization = repository.get_user_authorization(request.user)
+        serializer = AnalyzeQuestionSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        request = repository.request_nlp_qa(user_authorization, serializer.data)
+
+        if request.status_code == status.HTTP_200_OK:
+            return Response(request.json())
+
+        response = None
+        try:
+            response = request.json()
+        except Exception:
+            pass
+
+        if not response:
+            raise APIException(
+                detail=_(
+                    "Something unexpected happened! " + "We couldn't analyze your text."
+                )
+            )
+        error = response.get("error")
+        message = error.get("message")
+        raise APIException(detail=message)
 
     @action(
         detail=True,
@@ -1116,7 +1154,11 @@ class RepositoryNLPLogViewSet(DocumentViewSet):
     serializer_class = RepositoryNLPLogSerializer
     lookup_field = "pk"
     permission_classes = [permissions.IsAuthenticated, RepositoryLogPermission]
-    filter_backends = [CompoundSearchFilterBackend, FilteringFilterBackend]
+    filter_backends = [
+        CompoundSearchFilterBackend,
+        FilteringFilterBackend,
+        NestedFilteringFilterBackend,
+    ]
     pagination_class = LimitOffsetPagination
     limit = settings.REPOSITORY_NLP_LOG_LIMIT
     search_fields = ["text"]
@@ -1125,10 +1167,20 @@ class RepositoryNLPLogViewSet(DocumentViewSet):
         "language": "language",
         "repository_version": "repository_version",
         "repository_version_language": "repository_version_language",
-        "intent": "log_intent.intent",
+        "created_at": {
+            "field": "created_at",
+            "lookups": [LOOKUP_FILTER_RANGE, LOOKUP_QUERY_LTE, LOOKUP_QUERY_GTE],
+        },
+    }
+    nested_filter_fields = {
+        "intent": {
+            "field": "nlp_log.intent.name.raw",
+            "path": "nlp_log",
+        },
         "confidence": {
-            "field": "log_intent.confidence",
-            "lookups": [LOOKUP_QUERY_LTE, LOOKUP_QUERY_GTE],
+            "field": "nlp_log.intent.confidence",
+            "path": "nlp_log",
+            "lookups": [LOOKUP_FILTER_RANGE, LOOKUP_QUERY_LTE, LOOKUP_QUERY_GTE],
         },
     }
 
@@ -1145,6 +1197,36 @@ class RepositoryNLPLogViewSet(DocumentViewSet):
             "repository_version_language": self.request.query_params.get(
                 "repository_version_language", None
             ),
+        }
+        RepositoryNLPLogFilter(params=params, user=self.request.user)
+        return super().get_queryset().sort("-created_at")
+
+
+class RepositoryQANLPLogViewSet(DocumentViewSet):
+    document = RepositoryQANLPLogDocument
+    serializer_class = RepositoryQANLPLogSerializer
+    lookup_field = "pk"
+    permission_classes = [permissions.IsAuthenticated, RepositoryQALogPermission]
+    filter_backends = [CompoundSearchFilterBackend, FilteringFilterBackend]
+    pagination_class = LimitOffsetPagination
+    limit = settings.REPOSITORY_NLP_LOG_LIMIT
+    search_fields = ["question"]
+    filter_fields = {
+        "text": "text",
+        "language": "language",
+        "knowledge_base": "knowledge_base",
+        "repository_uuid": "repository_uuid",
+    }
+
+    def filter_queryset(self, queryset):
+        queryset = super().filter_queryset(queryset)
+        return queryset[: self.limit]
+
+    def get_queryset(self):
+        params = {
+            "repository_uuid": self.request.query_params.get("repository_uuid", None),
+            "text": self.request.query_params.get("text", None),
+            "knowledge_base": self.request.query_params.get("knowledge_base", None),
         }
         RepositoryNLPLogFilter(params=params, user=self.request.user)
         return super().get_queryset().sort("-created_at")
