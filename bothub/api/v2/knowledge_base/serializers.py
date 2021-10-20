@@ -46,6 +46,7 @@ class QAtextSerializer(serializers.ModelSerializer):
             "knowledge_base",
             "created_at",
             "last_update",
+            "title",
         ]
         read_only_fields = ["created_at", "last_update"]
 
@@ -53,3 +54,7 @@ class QAtextSerializer(serializers.ModelSerializer):
         queryset=QAKnowledgeBase.objects
     )
     language = serializers.ChoiceField(languages.LANGUAGE_CHOICES, required=True)
+    title = serializers.SerializerMethodField("get_title")
+
+    def get_title(self, obj):
+        return obj.get_title()

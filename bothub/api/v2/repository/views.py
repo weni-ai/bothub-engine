@@ -1225,7 +1225,7 @@ class RepositoryQANLPLogViewSet(DocumentViewSet):
     def get_queryset(self):
         params = {
             "repository_uuid": self.request.query_params.get("repository_uuid", None),
-            "context": self.request.query_params.get("context", None),
+            "text": self.request.query_params.get("text", None),
             "knowledge_base": self.request.query_params.get("knowledge_base", None),
         }
         RepositoryNLPLogFilter(params=params, user=self.request.user)
