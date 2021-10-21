@@ -44,7 +44,10 @@ class RepositoryQANLPLogDocument(Document):
         ]
 
     def prepare_text(self, obj):
-        return obj.knowledge_base.texts.filter(language=obj.language).first().id
+        try:
+            return obj.knowledge_base.texts.filter(language=obj.language).first().id
+        except AttributeError:
+            return None
 
     def prepare_nlp_log(self, obj):
         return json.loads(obj.nlp_log)
