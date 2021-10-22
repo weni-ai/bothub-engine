@@ -108,7 +108,7 @@ class ExamplesFilter(filters.FilterSet):
             if not authorization.can_translate:
                 raise PermissionDenied()
             if request.query_params.get("repository_version"):
-                return repository.examples(queryset=queryset, version_default=False)
+                return queryset
             return repository.examples(queryset=queryset)
         except Repository.DoesNotExist:
             raise NotFound(_("Repository {} does not exist").format(value))
