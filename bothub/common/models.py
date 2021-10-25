@@ -601,7 +601,8 @@ class Repository(models.Model):
             )
         else:
             knowledge_bases_languages = list(set(self.knowledge_bases.values_list("texts__language", flat=True)))
-            knowledge_bases_languages.remove(None)
+            if None in knowledge_bases_languages:
+                knowledge_bases_languages.remove(None)
             return knowledge_bases_languages
 
     @property
