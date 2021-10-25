@@ -580,24 +580,30 @@ class Repository(models.Model):
             )
 
     def available_languages(self, language=None, queryset=None, version_default=True):
-        examples = self.examples(
-            language=language, queryset=queryset, version_default=version_default
-        )
-        examples_languages = examples.values_list(
-            "repository_version_language__language", flat=True
-        )
-        translations_languages = (
-            examples.annotate(translations_count=models.Count("translations"))
-            .filter(translations_count__gt=0)
-            .values_list("translations__language", flat=True)
-        )
-        return list(
-            set(
-                [self.language]
-                + list(set(examples_languages))
-                + list(set(translations_languages))
+        if self.repository_type != self.TYPE_CONTENT:
+            examples = self.examples(
+                language=language, queryset=queryset, version_default=version_default
             )
-        )
+            examples_languages = examples.values_list(
+                "repository_version_language__language", flat=True
+            )
+            translations_languages = (
+                examples.annotate(translations_count=models.Count("translations"))
+                .filter(translations_count__gt=0)
+                .values_list("translations__language", flat=True)
+            )
+            return list(
+                set(
+                    [self.language]
+                    + list(set(examples_languages))
+                    + list(set(translations_languages))
+                )
+            )
+        else:
+            knowledge_bases_languages=list(set(self.knowledge_bases.values_list('texts__language',flat=True)))
+            knowledge_bases_languages.remove(None)
+            return knowledge_bases_languages
+
 
     @property
     def languages_status(self):
@@ -2311,9 +2317,9 @@ class QAKnowledgeBase(models.Model):
     def get_text_description(self, lang=None):
         try:
             if not lang:
-                return self.texts.first().text[:150]
+                return self.texts.first().text[:settings.REPOSITORY_KNOWLEDGE_BASE_DESCRIPTION_LIMIT]
             else:
-                return get_object_or_404(self.texts.all(), language=lang).text[:150]
+                return get_object_or_404(self.texts.all(), language=lang).text[:settings.REPOSITORY_KNOWLEDGE_BASE_DESCRIPTION_LIMIT]
         except AttributeError:
             return ""
 
