@@ -77,6 +77,7 @@ env = environ.Env(
     CONNECT_GRPC_SERVER_URL=(str, "localhost:8002"),
     CONNECT_CERTIFICATE_GRPC_CRT=(str, None),
     REPOSITORY_RESTRICT_ACCESS_NLP_LOGS=(list, []),
+    REPOSITORY_KNOWLEDGE_BASE_DESCRIPTION_LIMIT=(int, 450),
     ELASTICSEARCH_DSL=(str, "localhost:9200"),
     ELASTICSEARCH_REPOSITORYNLPLOG_INDEX=(str, "ai_repositorynlplog"),
     ELASTICSEARCH_REPOSITORYQANLPLOG_INDEX=(str, "ai_repositoryqanlplog"),
@@ -440,6 +441,9 @@ N_SENTENCES_TO_GENERATE = env.int("N_SENTENCES_TO_GENERATE")
 
 # Restrict access to the nlp logs by a list of repository uuids
 REPOSITORY_RESTRICT_ACCESS_NLP_LOGS = env.list("REPOSITORY_RESTRICT_ACCESS_NLP_LOGS")
+
+# Limit of characters for the knowledge base description
+REPOSITORY_KNOWLEDGE_BASE_DESCRIPTION_LIMIT = env.list("REPOSITORY_KNOWLEDGE_BASE_DESCRIPTION_LIMIT", default=450)
 
 
 # django_redis
