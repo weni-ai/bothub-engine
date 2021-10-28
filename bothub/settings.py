@@ -1,5 +1,4 @@
 import os
-import multiprocessing
 
 import environ
 import sentry_sdk
@@ -541,5 +540,3 @@ ELASTICSEARCH_SIGNAL_PROCESSOR_CLASSES = {
 ELASTICSEARCH_DSL_SIGNAL_PROCESSOR = ELASTICSEARCH_SIGNAL_PROCESSOR_CLASSES[
     env.str("ELASTICSEARCH_SIGNAL_PROCESSOR", default="realtime")
 ]
-
-
