@@ -867,6 +867,12 @@ class Repository(models.Model):
         get, created = RepositoryAuthorization.objects.get_or_create(
             user=user.repository_owner, repository=self
         )
+        if self.owner.is_organization:
+            org_role = self.owner.organization.get_organization_authorization(user).role
+            if get.role != org_role and get.role == 0:
+                get.role = org_role
+                get.save()
+                
         return get
 
     def get_absolute_url(self):
