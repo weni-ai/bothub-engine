@@ -67,7 +67,7 @@ class RepositoryOwner(models.Model):
 
     REQUIRED_FIELDS = ["nickname"]
 
-    name = models.CharField(_("name"), max_length=32, help_text=_("User's name."))
+    name = models.CharField(_("name"), max_length=150, help_text=_("User's name."))
     locale = models.CharField(
         _("locale"), max_length=48, help_text=_("User's locale."), blank=True
     )
