@@ -872,7 +872,7 @@ class Repository(models.Model):
             if get.role != org_role and get.role == 0:
                 get.role = org_role
                 get.save()
-                
+
         return get
 
     def get_absolute_url(self):
