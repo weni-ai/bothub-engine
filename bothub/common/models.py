@@ -923,7 +923,6 @@ class RepositoryVersion(models.Model):
         return TYPES
 
     def current_entities(self, queryset=None, version_default=True):
-        version_default = version_default or True
         return self.entities.filter(
             value__in=self.repository.examples(
                 queryset=queryset, version_default=version_default
