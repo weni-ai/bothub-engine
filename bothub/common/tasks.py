@@ -48,20 +48,6 @@ def handle_save(pk, app_label, model_name):
     registry.update_related(instance)
 
 
-@app.task(name="es_handle_pre_delete")
-def handle_pre_delete(pk, app_label, model_name):
-    sender = apps.get_model(app_label, model_name)
-    instance = sender.objects.get(pk=pk)
-    registry.delete_related(instance)
-
-
-@app.task(name="es_handle_delete")
-def handle_delete(pk, app_label, model_name):
-    sender = apps.get_model(app_label, model_name)
-    instance = sender.objects.get(pk=pk)
-    registry.delete(instance, raise_on_error=False)
-
-
 @app.task()
 def trainings_check_task():
     trainers = RepositoryQueueTask.objects.filter(

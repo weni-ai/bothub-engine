@@ -923,7 +923,6 @@ class RepositoryVersion(models.Model):
         return TYPES
 
     def current_entities(self, queryset=None, version_default=True):
-        version_default = version_default or True
         return self.entities.filter(
             value__in=self.repository.examples(
                 queryset=queryset, version_default=version_default
@@ -933,7 +932,7 @@ class RepositoryVersion(models.Model):
             .distinct()
         )
 
-    def entities_list(self, queryset=None, version_default=None):  # pragma: no cover
+    def entities_list(self, queryset=None, version_default=True):  # pragma: no cover
         return (
             self.current_entities(queryset=queryset, version_default=version_default)
             .values_list("value", flat=True)
@@ -948,7 +947,7 @@ class RepositoryVersion(models.Model):
     def groups_list(self):
         return self.current_groups.values_list("value", flat=True).distinct()
 
-    def other_entities(self, queryset=None, version_default=None):
+    def other_entities(self, queryset=None, version_default=True):
         return self.current_entities(
             queryset=queryset, version_default=version_default
         ).filter(group__isnull=True)
