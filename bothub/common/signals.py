@@ -15,3 +15,9 @@ class CelerySignalProcessor(RealTimeSignalProcessor):
                     "es_handle_save", args=[instance.pk, app_label, model_name]
                 )
             )
+
+    def handle_pre_delete(self, sender, instance, **kwargs):
+        pass
+
+    def handle_delete(self, sender, instance, **kwargs):
+        pass
