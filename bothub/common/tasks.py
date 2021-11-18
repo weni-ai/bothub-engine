@@ -14,6 +14,7 @@ from django_elasticsearch_dsl.registries import registry
 from bothub import translate
 from bothub.api.grpc.connect_grpc_client import ConnectGRPCClient
 from bothub.celery import app
+from bothub.common.documents import RepositoryNLPLogDocument
 from bothub.common.models import (
     RepositoryQueueTask,
     RepositoryReports,
@@ -270,6 +271,7 @@ def delete_nlp_logs():
         max_id = batch[-1].id
         with transaction.atomic():
             for log in batch:
+                RepositoryNLPLogDocument.search().query("match", pk=log.pk).delete()
                 log.delete()
 
         num_updated += len(batch)

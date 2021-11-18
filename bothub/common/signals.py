@@ -15,3 +15,15 @@ class CelerySignalProcessor(RealTimeSignalProcessor):
                     "es_handle_save", args=[instance.pk, app_label, model_name]
                 )
             )
+
+    def handle_pre_delete(self, sender, instance, **kwargs):
+        """
+            Logs deletions are now handled in delete_nlp_logs task
+        """
+        pass
+
+    def handle_delete(self, sender, instance, **kwargs):
+        """
+            Logs deletions are now handled in delete_nlp_logs task
+        """
+        pass
