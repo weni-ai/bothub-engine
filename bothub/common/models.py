@@ -5,7 +5,7 @@ import requests
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
-from django.core.validators import RegexValidator, _lazy_re_compile, ProhibitNullCharactersValidator
+from django.core.validators import RegexValidator, _lazy_re_compile
 from django.db import models
 from django.db.models import Sum, Q, IntegerField, Case, When, Count
 from django.dispatch import receiver

@@ -89,8 +89,13 @@ class ExampleTextHasLimitedWordsValidator(object):
     def __call__(self, value):
         count = len(value.split())
         if count > settings.REPOSITORY_EXAMPLE_TEXT_WORDS_LIMIT:
-            raise ValidationError(_("Enter a valid value that is in the range of 200 words"))
-
+            raise ValidationError(
+                _(
+                    "Enter a valid value that is in the range of "
+                    + str(settings.REPOSITORY_EXAMPLE_TEXT_WORDS_LIMIT)
+                    + " words"
+                )
+            )
 
 
 class APIExceptionCustom(APIException):
