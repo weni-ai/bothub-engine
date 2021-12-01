@@ -1,4 +1,5 @@
 import json
+from django.conf import settings
 
 from django.test import TestCase
 from django.test import RequestFactory
@@ -12,9 +13,10 @@ from bothub.common import languages
 
 from bothub.api.v2.tests.utils import create_user_and_token
 from bothub.api.v2.examples.views import ExamplesViewSet
+from bothub.api.v2.repository.views import RepositoryExampleViewSet
 
 
-class ListExamplesAPITestCase(TestCase):
+class DefaultExamplesAPITestCase(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
         self.owner, self.owner_token = create_user_and_token("owner")
@@ -79,13 +81,15 @@ class ListExamplesAPITestCase(TestCase):
             repository_version_language=self.repository_2.current_version(
                 languages.LANGUAGE_PT
             ),
-            text="oi",
+            text="oi ",
             intent=self.example2_intent_1,
         )
         self.translation_6 = RepositoryTranslatedExample.objects.create(
             original_example=self.example_6, language=languages.LANGUAGE_EN, text="hi"
         )
 
+
+class ListExamplesAPITestCase(DefaultExamplesAPITestCase):
     def request(self, data={}, token=None):
         authorization_header = (
             {"HTTP_AUTHORIZATION": "Token {}".format(token.key)} if token else {}
@@ -247,3 +251,92 @@ class ListExamplesAPITestCase(TestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(content_data.get("count"), 1)
+
+
+class CreateExamplesAPITestCase(DefaultExamplesAPITestCase):
+    def request(self, data, token):
+        authorization_header = (
+            {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
+        )
+        request = self.factory.post(
+            "/v2/repository/example/",
+            json.dumps(data),
+            content_type="application/json",
+            **authorization_header,
+        )
+
+        response = RepositoryExampleViewSet.as_view({"post": "create"})(request)
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data)
+
+    def test_ok(self):
+        data = {
+            "repository": str(self.repository.uuid),
+            "repository_version": self.repository.current_version().repository_version.pk,
+            "text": "testing 123 yés ///????³³²²¹¹£  ++++-----",
+            "language": "en",
+            "entities": [
+                {
+                    "start": 9,
+                    "end": 11,
+                    "entity": "numero",
+                }
+            ],
+            "intent": str(self.example_intent_1.pk),
+            "is_corrected": False
+        }
+
+        response, content_data = self.request(
+            data,
+            self.owner_token,
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_text_without_letters(self):
+        data = {
+            "repository": str(self.repository.uuid),
+            "repository_version": self.repository.current_version().repository_version.pk,
+            "text": " ---- //// -----",
+            "language": "en",
+            "entities": [
+                {
+                    "start": 9,
+                    "end": 11,
+                    "entity": "numero",
+                }
+            ],
+            "intent": str(self.example_intent_1.pk),
+            "is_corrected": False
+        }
+        response, content_data = self.request(
+            data,
+            self.owner_token,
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_text_words_limit(self):
+        limit = settings.REPOSITORY_EXAMPLE_TEXT_WORDS_LIMIT + 1
+        text = " ".join(['teste' for x in range(limit)])
+        data = {
+            "repository": str(self.repository.uuid),
+            "repository_version": self.repository.current_version().repository_version.pk,
+            "text": text,
+            "language": "en",
+            "entities": [
+                {
+                    "start": 9,
+                    "end": 11,
+                    "entity": "numero",
+                }
+            ],
+            "intent": str(self.example_intent_1.pk),
+            "is_corrected": False
+        }
+        response, content_data = self.request(
+            data,
+            self.owner_token,
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

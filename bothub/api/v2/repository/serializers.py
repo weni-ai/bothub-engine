@@ -50,6 +50,8 @@ from .validators import (
     CanContributeInRepositoryVersionValidator,
     CanCreateRepositoryInOrganizationValidator,
     ExampleWithIntentOrEntityValidator,
+    ExampleTextHasLettersValidator,
+    ExampleTextHasLimitedWordsValidator,
     IntentValidator,
 )
 from ..translation.validators import (
@@ -1249,7 +1251,7 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
         ref_name = None
 
     id = serializers.PrimaryKeyRelatedField(read_only=True, style={"show": False})
-    text = EntityText(style={"entities_field": "entities"}, required=False)
+    text = EntityText(style={"entities_field": "entities"}, required=False, validators=[ExampleTextHasLettersValidator(), ExampleTextHasLimitedWordsValidator()])
     repository = serializers.PrimaryKeyRelatedField(
         queryset=Repository.objects,
         validators=[CanContributeInRepositoryValidator()],
@@ -1322,6 +1324,7 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
         intent, created = RepositoryIntent.objects.get_or_create(
             repository_version=version_id, text=intent_text
         )
+
         validated_data.update({"intent": intent})
         example = self.Meta.model.objects.create(**validated_data)
         for entity_data in entities_data:
