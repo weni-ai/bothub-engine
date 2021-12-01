@@ -82,7 +82,7 @@ class ExampleTextHasLettersValidator(object):
     def __call__(self, value):
         reg = re.compile(r".[a-zA-Z_]")
         if not reg.match(value):
-            raise ValidationError(_("Enter a valid value that have letters in it"))
+            raise ValidationError(_("Enter a valid value that has letters in it"))
 
 
 class ExampleTextHasLimitedWordsValidator(object):
