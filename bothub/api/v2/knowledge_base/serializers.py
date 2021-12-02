@@ -1,3 +1,4 @@
+from bothub.api.v2.repository.validators import ExampleTextHasLettersValidator
 from rest_framework import serializers
 
 from bothub.common import languages
@@ -50,6 +51,7 @@ class QAtextSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["created_at", "last_update"]
 
+    text = serializers.CharField(required=False, validators=[ExampleTextHasLettersValidator()])
     knowledge_base = serializers.PrimaryKeyRelatedField(
         queryset=QAKnowledgeBase.objects
     )

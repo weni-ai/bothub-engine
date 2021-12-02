@@ -25,6 +25,7 @@ from .exceptions import RepositoryUpdateAlreadyTrained
 from .exceptions import TrainingNotAllowed
 from .. import utils
 
+
 item_key_regex = _lazy_re_compile(r"^[-a-z0-9_]+\Z")
 validate_item_key = RegexValidator(
     item_key_regex,
@@ -32,6 +33,12 @@ validate_item_key = RegexValidator(
         "Enter a valid value consisting of lowercase letters, numbers, "
         + "underscores or hyphens."
     ),
+    "invalid",
+)
+
+validate_text = RegexValidator(
+    _lazy_re_compile(r".[-a-zA-Z_]"),
+    _("Enter a valid value that have letters in it"),
     "invalid",
 )
 
@@ -1428,7 +1435,7 @@ class RepositoryExample(models.Model):
         RepositoryVersionLanguage, models.CASCADE, related_name="added", editable=False
     )
     text = models.TextField(
-        _("text"), help_text=_("Example text"), blank=False, null=False
+        _("text"), help_text=_("Example text"), blank=False, null=False, validators=[validate_text]
     )
     intent = models.ForeignKey(RepositoryIntent, models.CASCADE)
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
@@ -1541,7 +1548,7 @@ class RepositoryTranslatedExample(models.Model):
         help_text=_("Translation language"),
         validators=[languages.validate_language],
     )
-    text = models.TextField(_("text"), help_text=_("Translation text"))
+    text = models.TextField(_("text"), help_text=_("Translation text"), validators=[validate_text])
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
 
     objects = RepositoryTranslatedExampleManager()
@@ -2333,7 +2340,9 @@ class QAtext(models.Model):
     knowledge_base = models.ForeignKey(
         QAKnowledgeBase, on_delete=models.CASCADE, related_name="texts"
     )
-    text = models.TextField(_("text"), help_text=_("QA context text"), max_length=25000)
+    text = models.TextField(
+        _("text"), help_text=_("QA context text"), max_length=25000, validators=[validate_text]
+    )
     language = models.CharField(
         _("language"),
         max_length=5,
