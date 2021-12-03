@@ -1,4 +1,5 @@
 import re
+from django.conf import settings
 
 from django.utils.translation import ugettext_lazy as _
 from django.shortcuts import get_object_or_404
@@ -75,6 +76,26 @@ class IntentValidator(object):
 
     def set_context(self, serializer):
         self.request = serializer.context.get("request")
+
+
+class ExampleTextHasLettersValidator(object):
+    def __call__(self, value):
+        reg = re.compile(r"\w")
+        if not reg.search(value):
+            raise ValidationError(_("Enter a valid value that has letters in it"))
+
+
+class ExampleTextHasLimitedWordsValidator(object):
+    def __call__(self, value):
+        count = len(value.split())
+        if count > settings.REPOSITORY_EXAMPLE_TEXT_WORDS_LIMIT:
+            raise ValidationError(
+                _(
+                    "Enter a valid value that is in the range of "
+                    + str(settings.REPOSITORY_EXAMPLE_TEXT_WORDS_LIMIT)
+                    + " words"
+                )
+            )
 
 
 class APIExceptionCustom(APIException):

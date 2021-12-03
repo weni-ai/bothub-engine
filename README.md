@@ -159,6 +159,7 @@ You can set environment variables in your OS, write on ```.env``` file or pass v
 | REPOSITORY_NLP_LOG_LIMIT | ```int``` | ```10000``` | Limit of query size to repository log.
 | REPOSITORY_RESTRICT_ACCESS_NLP_LOGS | ```list``` | ```[]``` | Restricts log access to a particular or multiple intelligences
 | REPOSITORY_KNOWLEDGE_BASE_DESCRIPTION_LIMIT | ```int``` | ```450``` | Limit of characters in the knowledge base description
+| REPOSITORY_EXAMPLE_TEXT_WORDS_LIMIT | ```int``` | ```200``` | Limit of words for the example sentence text
 | ELASTICSEARCH_DSL | ```string``` | ```es:9200``` | URL Elasticsearch.
 | ELASTICSEARCH_NUMBER_OF_SHARDS | ```int``` | ```1``` | Specify the number of shards for the indexes.
 | ELASTICSEARCH_NUMBER_OF_REPLICAS | ```int``` | ```1``` | Specify the number of replicas for the indexes.
