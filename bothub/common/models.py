@@ -36,12 +36,6 @@ validate_item_key = RegexValidator(
     "invalid",
 )
 
-validate_text = RegexValidator(
-    _lazy_re_compile(r".[-a-zA-Z_]"),
-    _("Enter a valid value that have letters in it"),
-    "invalid",
-)
-
 
 def can_t_be_other(value):  # pragma: no cover
     if value == "other":
@@ -1435,7 +1429,7 @@ class RepositoryExample(models.Model):
         RepositoryVersionLanguage, models.CASCADE, related_name="added", editable=False
     )
     text = models.TextField(
-        _("text"), help_text=_("Example text"), blank=False, null=False, validators=[validate_text]
+        _("text"), help_text=_("Example text"), blank=False, null=False
     )
     intent = models.ForeignKey(RepositoryIntent, models.CASCADE)
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
@@ -1548,7 +1542,7 @@ class RepositoryTranslatedExample(models.Model):
         help_text=_("Translation language"),
         validators=[languages.validate_language],
     )
-    text = models.TextField(_("text"), help_text=_("Translation text"), validators=[validate_text])
+    text = models.TextField(_("text"), help_text=_("Translation text"))
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
 
     objects = RepositoryTranslatedExampleManager()
@@ -2341,7 +2335,7 @@ class QAtext(models.Model):
         QAKnowledgeBase, on_delete=models.CASCADE, related_name="texts"
     )
     text = models.TextField(
-        _("text"), help_text=_("QA context text"), max_length=25000, validators=[validate_text]
+        _("text"), help_text=_("QA context text"), max_length=25000
     )
     language = models.CharField(
         _("language"),
