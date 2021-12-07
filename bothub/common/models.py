@@ -25,6 +25,7 @@ from .exceptions import RepositoryUpdateAlreadyTrained
 from .exceptions import TrainingNotAllowed
 from .. import utils
 
+
 item_key_regex = _lazy_re_compile(r"^[-a-z0-9_]+\Z")
 validate_item_key = RegexValidator(
     item_key_regex,
@@ -2333,7 +2334,9 @@ class QAtext(models.Model):
     knowledge_base = models.ForeignKey(
         QAKnowledgeBase, on_delete=models.CASCADE, related_name="texts"
     )
-    text = models.TextField(_("text"), help_text=_("QA context text"), max_length=25000)
+    text = models.TextField(
+        _("text"), help_text=_("QA context text"), max_length=25000
+    )
     language = models.CharField(
         _("language"),
         max_length=5,

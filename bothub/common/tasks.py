@@ -365,7 +365,7 @@ def auto_translation(
 
 @app.task()
 def repository_score():  # pragma: no cover
-    for version in RepositoryVersion.objects.filter(is_default=True):
+    for version in RepositoryVersion.objects.filter(is_default=True, repository__repository_type="classifier"):
         dataset = {}
         intents = []
         train = {}
