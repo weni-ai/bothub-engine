@@ -33,6 +33,7 @@ class RepositoryProtoSerializer(proto_serializers.ModelProtoSerializer):
             "categories",
             "available_languages",
             "categories_list",
+            "repository_type",
         ]
 
     def get_owner__nickname(self, repository: Repository):
