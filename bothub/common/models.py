@@ -15,6 +15,7 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from django_elasticsearch_dsl_drf.wrappers import dict_to_obj
 from elasticsearch_dsl import A
+from elasticsearch_dsl import Q as elasticQ
 from rest_framework import status
 from rest_framework.exceptions import APIException
 
@@ -1108,7 +1109,13 @@ class RepositoryVersionLanguage(models.Model):
     def _does_all_examples_have_intents(self):
         from bothub.common.documents import RepositoryExampleDocument
 
-        search = RepositoryExampleDocument.search().query("match", intent_text="")
+        search = RepositoryExampleDocument.search().query(
+            "bool",
+            must=[
+                elasticQ("match", intent__text__raw=""),
+                elasticQ("match", repository_version_language__pk=self.pk),
+            ],
+        )
         return False if search.execute().hits.total.value != 0 else True
 
     @property
