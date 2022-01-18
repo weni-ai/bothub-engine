@@ -525,8 +525,8 @@ ELASTICSEARCH_DSL = {
 }
 
 USE_ELASTICSEARCH = env.bool(
-        "USE_ELASTICSEARCH", default=True
-    )
+    "USE_ELASTICSEARCH", default=True
+)
 
 ELASTICSEARCH_DSL_INDEX_SETTINGS = {
     "number_of_shards": env.int("ELASTICSEARCH_NUMBER_OF_SHARDS", default=1),
