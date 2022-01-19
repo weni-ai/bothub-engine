@@ -166,6 +166,7 @@ You can set environment variables in your OS, write on ```.env``` file or pass v
 | ELASTICSEARCH_REPOSITORYNLPLOG_INDEX | ```string``` | ```repositorynlplog``` | Specify the index title for the RepositoryNlpLog document.
 | ELASTICSEARCH_SIGNAL_PROCESSOR | ```string``` | ```celery``` | Specify the signal processor responsible for updating the Elasticsearch data.
 | GUNICORN_WORKERS | ``` int ``` | ``` multiprocessing.cpu_count() * 2 + 1 ``` | Gunicorn number of workers
+| USE_ELASTICSEARCH | ```boolean``` | ```true``` | Change the logic in requirements_to_train to use either elasticsearch or postgres.
 
 
 ## Roadmap
