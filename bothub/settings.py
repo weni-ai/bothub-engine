@@ -444,10 +444,14 @@ N_SENTENCES_TO_GENERATE = env.int("N_SENTENCES_TO_GENERATE")
 REPOSITORY_RESTRICT_ACCESS_NLP_LOGS = env.list("REPOSITORY_RESTRICT_ACCESS_NLP_LOGS")
 
 # Limit of characters for the knowledge base description
-REPOSITORY_KNOWLEDGE_BASE_DESCRIPTION_LIMIT = env.list("REPOSITORY_KNOWLEDGE_BASE_DESCRIPTION_LIMIT", default=450)
+REPOSITORY_KNOWLEDGE_BASE_DESCRIPTION_LIMIT = env.list(
+    "REPOSITORY_KNOWLEDGE_BASE_DESCRIPTION_LIMIT", default=450
+)
 
 # Limit of words for the example sentence
-REPOSITORY_EXAMPLE_TEXT_WORDS_LIMIT = env.list("REPOSITORY_EXAMPLE_TEXT_WORDS_LIMIT", default=200)
+REPOSITORY_EXAMPLE_TEXT_WORDS_LIMIT = env.list(
+    "REPOSITORY_EXAMPLE_TEXT_WORDS_LIMIT", default=200
+)
 
 
 # django_redis
@@ -524,9 +528,7 @@ ELASTICSEARCH_DSL = {
     "default": {"hosts": env.str("ELASTICSEARCH_DSL", default="es:9200")}
 }
 
-USE_ELASTICSEARCH = env.bool(
-    "USE_ELASTICSEARCH", default=True
-)
+USE_ELASTICSEARCH = env.bool("USE_ELASTICSEARCH", default=True)
 
 ELASTICSEARCH_DSL_INDEX_SETTINGS = {
     "number_of_shards": env.int("ELASTICSEARCH_NUMBER_OF_SHARDS", default=1),
@@ -541,7 +543,8 @@ ELASTICSEARCH_INDEX_NAMES = {
         "ELASTICSEARCH_REPOSITORYQANLPLOG_INDEX", default="ai_repositoryqanlplog"
     ),
     "bothub.common.documents.repositorybasicexample": env.str(
-        "ELASTICSEARCH_REPOSITORYBASICEXAMPLE_INDEX", default="ai_repositorybasicexample"
+        "ELASTICSEARCH_REPOSITORYBASICEXAMPLE_INDEX",
+        default="ai_repositorybasicexample",
     ),
 }
 
