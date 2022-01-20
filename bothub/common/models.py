@@ -14,6 +14,8 @@ from django.template.loader import render_to_string
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from django_elasticsearch_dsl_drf.wrappers import dict_to_obj
+from elasticsearch_dsl import A
+from elasticsearch_dsl import Q as elasticQ
 from rest_framework import status
 from rest_framework.exceptions import APIException
 
@@ -1064,7 +1066,60 @@ class RepositoryVersionLanguage(models.Model):
         return examples.distinct()
 
     @property
-    def requirements_to_train(self):
+    def _search_weak_intents_and_entities(self):
+        from bothub.common.documents import RepositoryExampleDocument
+
+        search = RepositoryExampleDocument.search().query(
+            "match", repository_version_language__pk=self.pk
+        )
+        search.update_from_dict({"size": 0})
+
+        duplicated_limit_bucket = A(
+            "bucket_selector",
+            buckets_path={"doc_count": "_count"},
+            script=f"params.doc_count < {self.MIN_EXAMPLES_PER_INTENT}",
+        )
+
+        search.aggs.bucket("duplicated_intents", "terms", field="intent.text.raw")
+        search.aggs["duplicated_intents"].bucket(
+            "filter_duplicated_intent_limit", duplicated_limit_bucket
+        )
+        search.aggs.bucket(
+            "duplicated_intents_stats",
+            "stats_bucket",
+            buckets_path="duplicated_intents._count",
+        )
+
+        search.aggs.bucket("nested_entities", "nested", path="entities")
+        search.aggs["nested_entities"].bucket(
+            "duplicated_entities", "terms", field="entities.entity.value.raw"
+        )
+        search.aggs["nested_entities"]["duplicated_entities"].bucket(
+            "filter_duplicated_entity_limit", duplicated_limit_bucket
+        )
+        search.aggs["nested_entities"].bucket(
+            "duplicated_entities_stats",
+            "stats_bucket",
+            buckets_path="duplicated_entities._count",
+        )
+
+        return search.execute()
+
+    @property
+    def _does_all_examples_have_intents(self):
+        from bothub.common.documents import RepositoryExampleDocument
+
+        search = RepositoryExampleDocument.search().query(
+            "bool",
+            must=[
+                elasticQ("match", intent__text__raw=""),
+                elasticQ("match", repository_version_language__pk=self.pk),
+            ],
+        )
+        return False if search.execute().hits.total.value != 0 else True
+
+    @property
+    def _elasticsearch_requirements_to_train(self):
         try:
             self.validate_init_train()
         except RepositoryUpdateAlreadyTrained:  # pragma: no cover
@@ -1072,12 +1127,64 @@ class RepositoryVersionLanguage(models.Model):
         except RepositoryUpdateAlreadyStartedTraining:  # pragma: no cover
             return [_("This bot version is being trained.")]
 
-        r = []
+        warnings = []
+
+        if not self._does_all_examples_have_intents:
+            warnings.append(_("All examples need to have a intent."))
+
+        search_result = self._search_weak_intents_and_entities
+
+        weak_intents_count = search_result.aggregations.duplicated_intents_stats.count
+        weak_intents = search_result.aggregations.duplicated_intents.buckets
+
+        if weak_intents_count > 0:
+            for intent in weak_intents:
+                warnings.append(
+                    _(
+                        'The "{}" intention has only {} sentence\nAdd 1 more sentence to that intention (minimum is {})'
+                    ).format(
+                        intent["key"],
+                        intent["doc_count"],
+                        self.MIN_EXAMPLES_PER_INTENT,
+                    )
+                )
+
+        weak_entities_count = (
+            search_result.aggregations.nested_entities.duplicated_entities_stats.count
+        )
+        weak_entities = (
+            search_result.aggregations.nested_entities.duplicated_entities.buckets
+        )
+
+        if weak_entities_count > 0:
+            for intent in weak_entities:
+                warnings.append(
+                    _(
+                        'The entity "{}" has only {} sentence\nAdd 1 more sentence to that entity (minimum is {})'
+                    ).format(
+                        intent["key"],
+                        intent["doc_count"],
+                        self.MIN_EXAMPLES_PER_INTENT,
+                    )
+                )
+
+        return warnings
+
+    @property
+    def _relational_requirements_to_train(self):
+        try:
+            self.validate_init_train()
+        except RepositoryUpdateAlreadyTrained:  # pragma: no cover
+            return [_("This bot version has already been trained.")]
+        except RepositoryUpdateAlreadyStartedTraining:  # pragma: no cover
+            return [_("This bot version is being trained.")]
+
+        warnings = []
 
         intents = self.examples.values_list("intent__text", flat=True)
 
         if "" in intents:
-            r.append(_("All examples need have a intent."))
+            warnings.append(_("All examples need to have a intent."))
 
         weak_intents = (
             self.examples.values("intent__text")
@@ -1088,7 +1195,7 @@ class RepositoryVersionLanguage(models.Model):
 
         if weak_intents.exists():
             for i in weak_intents:
-                r.append(
+                warnings.append(
                     _(
                         'The "{}" intention has only {} sentence\nAdd 1 more sentence to that intention (minimum is {})'
                     ).format(
@@ -1108,7 +1215,7 @@ class RepositoryVersionLanguage(models.Model):
 
         if weak_entities.exists():
             for e in weak_entities:
-                r.append(
+                warnings.append(
                     _(
                         'The entity "{}" has only {} sentence\nAdd 1 more sentence to that entity (minimum is {})'
                     ).format(
@@ -1118,7 +1225,14 @@ class RepositoryVersionLanguage(models.Model):
                     )
                 )
 
-        return r
+        return warnings
+
+    @property
+    def requirements_to_train(self):
+        if settings.USE_ELASTICSEARCH:
+            return self._elasticsearch_requirements_to_train
+        else:
+            return self._relational_requirements_to_train
 
     @property
     def ready_for_train(self):
@@ -1462,7 +1576,7 @@ class RepositoryExample(models.Model):
             return self.text
         return self.get_translation(language).text
 
-    def get_entities(self, language):  # pragma: no cover
+    def get_entities(self, language=None):  # pragma: no cover
         if not language or language == self.repository_version_language.language:
             return self.entities.all()
         return self.get_translation(language).entities.all()
@@ -1482,6 +1596,22 @@ class RepositoryExample(models.Model):
         ).filter(repository_version=repository_version).delete()
 
         return instance
+
+    @property
+    def entities_field_indexing(self):
+        entities = self.entities.all()
+        entity_reduced_list = []
+        for entity in entities:
+            reduced_entity_obj = dict_to_obj(
+                {
+                    "entity": {
+                        "value": entity.entity.value,
+                    },
+                }
+            )
+            entity_reduced_list.append(reduced_entity_obj)
+
+        return entity_reduced_list
 
 
 class RepositoryTranslatedExampleManager(models.Manager):

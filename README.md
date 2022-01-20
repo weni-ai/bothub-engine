@@ -25,6 +25,13 @@
 [![Python Version](https://img.shields.io/badge/python-3.6-blue.svg)](https://www.python.org/)
 [![License GPL-3.0](https://img.shields.io/badge/license-%20GPL--3.0-yellow.svg)](https://github.com/bothub-it/bothub-engine/blob/master/LICENSE)
 
+# Requirements
+
+* Python (3.6)
+* Pipenv
+* Docker
+* Docker-compose
+
 ## Development
 
 Use ```make``` commands to ```check_environment```, ```install_requirements```, ```lint```, ```test```, ```migrate```, ```start```, ```migrations``` and ```collectstatic```.
@@ -163,9 +170,12 @@ You can set environment variables in your OS, write on ```.env``` file or pass v
 | ELASTICSEARCH_DSL | ```string``` | ```es:9200``` | URL Elasticsearch.
 | ELASTICSEARCH_NUMBER_OF_SHARDS | ```int``` | ```1``` | Specify the number of shards for the indexes.
 | ELASTICSEARCH_NUMBER_OF_REPLICAS | ```int``` | ```1``` | Specify the number of replicas for the indexes.
-| ELASTICSEARCH_REPOSITORYNLPLOG_INDEX | ```string``` | ```repositorynlplog``` | Specify the index title for the RepositoryNlpLog document.
+| ELASTICSEARCH_REPOSITORYNLPLOG_INDEX | ```string``` | ```ai_repositorynlplog``` | Specify the index title for the RepositoryNLPLog document.
+| ELASTICSEARCH_REPOSITORYQANLPLOG_INDEX | ```string``` | ```ai_repositoryqanlplog``` | Specify the index title for the RepositoryQANLPLog document.
+| ELASTICSEARCH_REPOSITORYBASICEXAMPLE_INDEX | ```string``` | ```ai_repositorybasicexample``` | Specify the index title for the RepositoryBasicExample document.
 | ELASTICSEARCH_SIGNAL_PROCESSOR | ```string``` | ```celery``` | Specify the signal processor responsible for updating the Elasticsearch data.
 | GUNICORN_WORKERS | ``` int ``` | ``` multiprocessing.cpu_count() * 2 + 1 ``` | Gunicorn number of workers
+| USE_ELASTICSEARCH | ```boolean``` | ```true``` | Change the logic in requirements_to_train to use either elasticsearch or postgres.
 
 
 ## Roadmap

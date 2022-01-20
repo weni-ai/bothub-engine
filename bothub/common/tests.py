@@ -959,6 +959,7 @@ class RepositoryUpdateReadyForTrain(TestCase):
         RepositoryExampleEntity.objects.create(
             repository_example=example, start=0, end=7, entity="name"
         )
+
         self.assertFalse(self.repository.current_version().ready_for_train)
 
     def test_intent_dont_have_min_examples(self):
