@@ -1,7 +1,12 @@
 from django.conf import settings
 from django_elasticsearch_dsl import Document, Index, fields
 
-from bothub.common.models import RepositoryExample, RepositoryExampleEntity, RepositoryIntent, RepositoryVersionLanguage
+from bothub.common.models import (
+    RepositoryExample,
+    RepositoryExampleEntity,
+    RepositoryIntent,
+    RepositoryVersionLanguage,
+)
 
 REPOSITORYBASICEXAMPLE_INDEX = Index(settings.ELASTICSEARCH_INDEX_NAMES[__name__])
 
@@ -11,15 +16,11 @@ class RepositoryExampleDocument(Document):
     repository_version_language = fields.ObjectField(
         properties={
             "pk": fields.IntegerField(),
-            "language": fields.TextField(fields={"raw": fields.KeywordField()})
+            "language": fields.TextField(fields={"raw": fields.KeywordField()}),
         }
     )
     intent = fields.ObjectField(
-        properties={
-            "text": fields.TextField(
-                fields={"raw": fields.KeywordField()}
-            )
-        }
+        properties={"text": fields.TextField(fields={"raw": fields.KeywordField()})}
     )
     entities = fields.NestedField(
         properties={
@@ -38,15 +39,24 @@ class RepositoryExampleDocument(Document):
             "id",
             "text",
         ]
-        related_models = [RepositoryVersionLanguage, RepositoryIntent, RepositoryExampleEntity]
+        related_models = [
+            RepositoryVersionLanguage,
+            RepositoryIntent,
+            RepositoryExampleEntity,
+        ]
 
     def get_queryset(self):
-        return super(RepositoryExampleDocument, self).get_queryset().select_related(
-            "repository_version_language",
-            "intent",
-        ).prefetch_related(
-            "entities",
-            "translations",
+        return (
+            super(RepositoryExampleDocument, self)
+            .get_queryset()
+            .select_related(
+                "repository_version_language",
+                "intent",
+            )
+            .prefetch_related(
+                "entities",
+                "translations",
+            )
         )
 
     def get_instances_from_related(self, related_instance):
