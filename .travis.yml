@@ -50,6 +50,7 @@ install:
   - pip install coveralls
 env:
   global:
+    - ES_TMPDIR="/var/log/elasticsearch"
     - SECRET_KEY=SK
     - SUPPORTED_LANGUAGES="en|pt"
     - DEFAULT_DATABASE="postgres://bothub:bothub@localhost:5432/bothub"
