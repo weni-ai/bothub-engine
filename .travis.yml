@@ -20,6 +20,7 @@ before_install:
   - sudo dpkg -i --force-confnew elasticsearch.deb
   - sudo chown -R elasticsearch:elasticsearch /etc/default/elasticsearch
   - sleep 10
+  - curl http://localhost:9200
   - sudo service elasticsearch stop
   - sudo service elasticsearch start
   - until curl --silent -XGET --fail http://localhost:9200; do printf '.'; sleep 1; done
@@ -50,7 +51,6 @@ install:
   - pip install coveralls
 env:
   global:
-    - ES_TMPDIR="/var/log/elasticsearch"
     - SECRET_KEY=SK
     - SUPPORTED_LANGUAGES="en|pt"
     - DEFAULT_DATABASE="postgres://bothub:bothub@localhost:5432/bothub"
