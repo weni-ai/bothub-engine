@@ -19,6 +19,7 @@ before_install:
   - curl https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.13.3-amd64.deb -o elasticsearch.deb
   - sudo dpkg -i --force-confnew elasticsearch.deb
   - sudo chown -R elasticsearch:elasticsearch /etc/default/elasticsearch
+  - sudo systemctl -l status elasticsearch.service
   - sudo systemctl -l restart elasticsearch.service
   - until curl --silent -XGET --fail http://localhost:9200; do printf '.'; sleep 1; done
 
