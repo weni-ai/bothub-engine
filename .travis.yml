@@ -19,10 +19,7 @@ before_install:
   - curl https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.13.3-amd64.deb -o elasticsearch.deb
   - sudo dpkg -i --force-confnew elasticsearch.deb
   - sudo chown -R elasticsearch:elasticsearch /etc/default/elasticsearch
-  - sleep 10
-  - curl http://localhost:9200
-  - sudo service elasticsearch stop
-  - sudo service elasticsearch start
+  - travis_retry sudo service elasticsearch restart
   - until curl --silent -XGET --fail http://localhost:9200; do printf '.'; sleep 1; done
 
   # give PG and ES some time to finish setup
