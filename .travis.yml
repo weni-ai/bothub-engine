@@ -8,22 +8,13 @@ python:
 
 services:
   - docker
+  - elasticsearch
 
 before_install:
   # install the chosen PG version
   - sudo -E apt-get -yq --no-install-suggests --no-install-recommends install postgresql-11 postgresql-client-11
   - sudo -E sed -i -e '/local.*peer/s/postgres/all/' -e 's/peer\|md5/trust/g' /etc/postgresql/*/main/pg_hba.conf
   - sudo -E sed -i 's/port = 5433/port = 5432/' /etc/postgresql/*/main/postgresql.conf
-
-  # Install the chosen ES version
-  - curl https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.13.3-amd64.deb -o elasticsearch.deb
-  - sudo dpkg -i --force-confnew elasticsearch.deb
-  - sudo sed -i.old 's/-Xms1g/-Xms128m/' /etc/elasticsearch/jvm.options
-  - sudo sed -i.old 's/-Xmx1g/-Xmx128m/' /etc/elasticsearch/jvm.options
-  - echo -e '-XX:+DisableExplicitGC\n-Djdk.io.permissionsUseCanonicalPath=true\n-Dlog4j.skipJansi=true\n-server\n' | sudo tee -a /etc/elasticsearch/jvm.options
-  - sudo chown -R elasticsearch:elasticsearch /etc/default/elasticsearch
-  - sudo service elasticsearch restart
-  - until curl --silent -XGET --fail http://localhost:9200; do printf '.'; sleep 1; done
 
   # give PG and ES some time to finish setup
   - sleep 10
