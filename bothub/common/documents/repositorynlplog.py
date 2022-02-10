@@ -1,11 +1,13 @@
 import json
+from datetime import datetime
 
 from django.conf import settings
 from django_elasticsearch_dsl import Document, Index, fields
 
 from bothub.common.models import RepositoryNLPLog
 
-REPOSITORYNLPLOG_INDEX = Index(settings.ELASTICSEARCH_INDEX_NAMES[__name__])
+REPOSITORYNLPLOG_INDEX_NAME = settings.ELASTICSEARCH_INDEX_NAMES[__name__]
+REPOSITORYNLPLOG_INDEX = Index(REPOSITORYNLPLOG_INDEX_NAME)
 
 
 @REPOSITORYNLPLOG_INDEX.doc_type
@@ -68,6 +70,16 @@ class RepositoryNLPLogDocument(Document):
     class Django:
         model = RepositoryNLPLog
         fields = ["id", "text", "from_backend", "user_agent", "created_at"]
+
+    # def save(self, **kwargs):
+    #     # assign now if no timestamp given
+    #     if not self.timestamp:
+    #         self.timestamp = self.created_at
+
+    #     # override the index to go to the proper timeslot
+    #     index = REPOSITORYNLPLOG_INDEX_NAME.replace("*", "%Y%m%d")
+    #     kwargs["index"] = self.timestamp.strftime(index)
+    #     return super().save(**kwargs)
 
     def prepare_nlp_log(self, obj):
         return json.loads(obj.nlp_log)
