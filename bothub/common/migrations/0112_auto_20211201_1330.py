@@ -8,23 +8,54 @@ import re
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('common', '0111_auto_20210908_1135'),
+        ("common", "0111_auto_20210908_1135"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='qatext',
-            name='text',
-            field=models.TextField(help_text='QA context text', max_length=25000, validators=[django.core.validators.RegexValidator(re.compile('.[-a-zA-Z_]'), 'Enter a valid value that have letters in it', 'invalid')], verbose_name='text'),
+            model_name="qatext",
+            name="text",
+            field=models.TextField(
+                help_text="QA context text",
+                max_length=25000,
+                validators=[
+                    django.core.validators.RegexValidator(
+                        re.compile(".[-a-zA-Z_]"),
+                        "Enter a valid value that have letters in it",
+                        "invalid",
+                    )
+                ],
+                verbose_name="text",
+            ),
         ),
         migrations.AlterField(
-            model_name='repositoryexample',
-            name='text',
-            field=models.TextField(help_text='Example text', validators=[django.core.validators.RegexValidator(re.compile('.[-a-zA-Z_]'), 'Enter a valid value that have letters in it', 'invalid')], verbose_name='text'),
+            model_name="repositoryexample",
+            name="text",
+            field=models.TextField(
+                help_text="Example text",
+                validators=[
+                    django.core.validators.RegexValidator(
+                        re.compile(".[-a-zA-Z_]"),
+                        "Enter a valid value that have letters in it",
+                        "invalid",
+                    )
+                ],
+                verbose_name="text",
+            ),
         ),
         migrations.AlterField(
-            model_name='repositorytranslatedexample',
-            name='text',
-            field=models.TextField(help_text='Translation text', validators=[django.core.validators.RegexValidator(re.compile('.[-a-zA-Z_]'), 'Enter a valid value that have letters in it', 'invalid')], verbose_name='text'),
+            model_name="repositorytranslatedexample",
+            name="text",
+            field=models.TextField(
+                help_text="Translation text",
+                validators=[
+                    django.core.validators.RegexValidator(
+                        re.compile(".[-a-zA-Z_]"),
+                        "Enter a valid value that have letters in it",
+                        "invalid",
+                    )
+                ],
+                verbose_name="text",
+            ),
         ),
     ]

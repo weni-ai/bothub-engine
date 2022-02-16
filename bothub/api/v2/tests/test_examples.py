@@ -255,9 +255,7 @@ class ListExamplesAPITestCase(DefaultExamplesAPITestCase):
 
 class CreateExamplesAPITestCase(DefaultExamplesAPITestCase):
     def request(self, data, token):
-        authorization_header = (
-            {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
-        )
+        authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
         request = self.factory.post(
             "/v2/repository/example/",
             json.dumps(data),
@@ -284,7 +282,7 @@ class CreateExamplesAPITestCase(DefaultExamplesAPITestCase):
                 }
             ],
             "intent": str(self.example_intent_1.pk),
-            "is_corrected": False
+            "is_corrected": False,
         }
 
         response, content_data = self.request(
@@ -307,7 +305,7 @@ class CreateExamplesAPITestCase(DefaultExamplesAPITestCase):
                 }
             ],
             "intent": str(self.example_intent_1.pk),
-            "is_corrected": False
+            "is_corrected": False,
         }
         response, content_data = self.request(
             data,
@@ -318,7 +316,7 @@ class CreateExamplesAPITestCase(DefaultExamplesAPITestCase):
 
     def test_text_words_limit(self):
         limit = settings.REPOSITORY_EXAMPLE_TEXT_WORDS_LIMIT + 1
-        text = " ".join(['teste' for x in range(limit)])
+        text = " ".join(["teste" for x in range(limit)])
         data = {
             "repository": str(self.repository.uuid),
             "repository_version": self.repository.current_version().repository_version.pk,
@@ -332,7 +330,7 @@ class CreateExamplesAPITestCase(DefaultExamplesAPITestCase):
                 }
             ],
             "intent": str(self.example_intent_1.pk),
-            "is_corrected": False
+            "is_corrected": False,
         }
         response, content_data = self.request(
             data,
