@@ -88,6 +88,8 @@ env = environ.Env(
     ELASTICSEARCH_SIGNAL_PROCESSOR=(str, "realtime"),
     ELASTICSEARCH_TIMESTAMP_PIPELINE_NAME=(str, "set_timestamp"),
     ELASTICSEARCH_DELETE_ILM_NAME=(str, "delete_nlp_logs"),
+    ELASTICSEARCH_LOGS_DELETE_AGE=(str, "90d"),
+    ELASTICSEARCH_LOGS_ROLLOVER_AGE=(str, "1d"),
 )
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -206,7 +208,11 @@ DEFAULT_ERROR_MESSAGE = _("An error has occurred")
 LANGUAGE_CODE = env.str("LANGUAGE_CODE")
 
 
-LANGUAGES = (("en-us", _("English")), ("pt-br", _("Brazilian Portuguese")))
+LANGUAGES = (
+    ("en-us", _("English")),
+    ("pt-br", _("Brazilian Portuguese")),
+    ("es-es", _("Spanish")),
+)
 
 MODELTRANSLATION_DEFAULT_LANGUAGE = "en-us"
 
@@ -535,10 +541,19 @@ ELASTICSEARCH_DSL_INDEX_SETTINGS = {
     "number_of_shards": env.int("ELASTICSEARCH_NUMBER_OF_SHARDS", default=1),
     "number_of_replicas": env.int("ELASTICSEARCH_NUMBER_OF_REPLICAS", default=0),
 }
-ES_TIMESTAMP_PIPELINE_NAME = env.str(
+ELASTICSEARCH_TIMESTAMP_PIPELINE_NAME = env.str(
     "ELASTICSEARCH_TIMESTAMP_PIPELINE_NAME", default="set_timestamp"
 )
-ES_DELETE_ILM_NAME = env.str("ELASTICSEARCH_DELETE_ILM_NAME", default="delete_nlp_logs")
+
+ELASTICSEARCH_LOGS_DELETE_AGE = env.str("ELASTICSEARCH_LOGS_DELETE_AGE", default="90d")
+
+ELASTICSEARCH_LOGS_ROLLOVER_AGE = env.str(
+    "ELASTICSEARCH_LOGS_ROLLOVER_AGE", default="1d"
+)
+
+ELASTICSEARCH_DELETE_ILM_NAME = env.str(
+    "ELASTICSEARCH_DELETE_ILM_NAME", default="delete_nlp_logs"
+)
 
 ELASTICSEARCH_INDEX_NAMES = {
     "bothub.common.documents.repositorynlplog": env.str(

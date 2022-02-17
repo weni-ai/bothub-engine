@@ -15,12 +15,12 @@ class Command(BaseCommand):
 
     def _check_pipeline_ilm(self):
         # Check Pipeline
-        pipeline_url = (
-            f"{ES_BASE_URL}/_ingest/pipeline/{settings.ES_TIMESTAMP_PIPELINE_NAME}"
-        )
+        pipeline_url = f"{ES_BASE_URL}/_ingest/pipeline/{settings.ELASTICSEARCH_TIMESTAMP_PIPELINE_NAME}"
         pipeline_get = requests.get(pipeline_url)
         if pipeline_get.status_code == 200:
-            print("Pipeline already created")
+            print(
+                f"[{pipeline_get.status_code}] {settings.ELASTICSEARCH_TIMESTAMP_PIPELINE_NAME} Pipeline already exists"
+            )
         else:
             pipeline_body = {
                 "processors": [
@@ -32,14 +32,23 @@ class Command(BaseCommand):
                     }
                 ]
             }
-            requests.post(pipeline_url, json.dumps(pipeline_body))
-            print("Pipeline created")
+            r = requests.put(
+                pipeline_url,
+                json.dumps(pipeline_body),
+                headers={"content-type": "application/json"},
+            )
+
+            print(
+                f"[{r.status_code}] {settings.ELASTICSEARCH_TIMESTAMP_PIPELINE_NAME} Pipeline created"
+            )
 
         # Check ILM Policy
-        ilm_url = f"{ES_BASE_URL}/_ilm/policy/{settings.ES_DELETE_ILM_NAME}"
+        ilm_url = f"{ES_BASE_URL}/_ilm/policy/{settings.ELASTICSEARCH_DELETE_ILM_NAME}"
         ilm_get = requests.get(ilm_url)
         if ilm_get.status_code == 200:
-            print("ILM Policy already created")
+            print(
+                f"[{ilm_get.status_code}] {settings.ELASTICSEARCH_DELETE_ILM_NAME} ILM Policy already exists"
+            )
         else:
             ilm_body = {
                 "policy": {
@@ -48,58 +57,88 @@ class Command(BaseCommand):
                             "min_age": "0ms",
                             "actions": {
                                 "rollover": {
-                                    "max_age": "90d",
+                                    "max_age": settings.ELASTICSEARCH_LOGS_ROLLOVER_AGE,  # 1d
                                 }
                             },
                         },
                         "delete": {
-                            "min_age": "30m",
+                            "min_age": settings.ELASTICSEARCH_LOGS_DELETE_AGE,  # 90d
                             "actions": {"delete": {"delete_searchable_snapshot": True}},
                         },
                     }
                 }
             }
-            requests.post(ilm_url, json.dumps(ilm_body))
-            print("ILM Policy created")
+            r = requests.put(
+                ilm_url,
+                json.dumps(ilm_body),
+                headers={"content-type": "application/json"},
+            )
+            print(
+                f"[{r.status_code}] {settings.ELASTICSEARCH_DELETE_ILM_NAME} ILM Policy created"
+            )
 
     def _check_index_settings(self, index):
         doc_settings_url = f"{ES_BASE_URL}/_component_template/{index}-settings"
-        doc_settings_body = {}
-        doc_settings_body["template"][
-            "settings"
-        ] = settings.ELASTICSEARCH_DSL_INDEX_SETTINGS
-        doc_settings_body["template"]["settings"][
-            "index.default_pipeline"
-        ] = settings.ES_TIMESTAMP_PIPELINE_NAME
-        doc_settings_body["template"]["settings"][
-            "index.lifecycle.name"
-        ] = settings.ES_DELETE_ILM_NAME
-        doc_settings_body["template"]["settings"][
-            "index.lifecycle.rollover_alias"
-        ] = index
-        requests.post(doc_settings_url, json.dumps(doc_settings_body))
-        print(f"{index} Settings template created")
+        r = requests.get(doc_settings_url)
+        if r.status_code == 200:
+            print(f"[{r.status_code}] {index} Settings template already exists")
+        else:
+            doc_settings_body = {"template": {"settings": {}}}
+            doc_settings_body["template"][
+                "settings"
+            ] = settings.ELASTICSEARCH_DSL_INDEX_SETTINGS
+            doc_settings_body["template"]["settings"][
+                "index.default_pipeline"
+            ] = settings.ELASTICSEARCH_TIMESTAMP_PIPELINE_NAME
+            doc_settings_body["template"]["settings"][
+                "index.lifecycle.name"
+            ] = settings.ELASTICSEARCH_DELETE_ILM_NAME
+            doc_settings_body["template"]["settings"][
+                "index.lifecycle.rollover_alias"
+            ] = index
+            r = requests.put(
+                doc_settings_url,
+                json.dumps(doc_settings_body),
+                headers={"content-type": "application/json"},
+            )
+            print(f"[{r.status_code}] {index} Settings template created")
 
     def _check_index_mappings(self, index, mapping):
         doc_mapping_url = f"{ES_BASE_URL}/_component_template/{index}-mappings"
-        doc_mapping_body = {}
-        doc_mapping_body["template"]["mappings"]["_doc"] = mapping
-        doc_mapping_body["template"]["mappings"]["_doc"]["properties"]["@timestamp"] = {
-            "type": "date"
-        }
-        requests.post(doc_mapping_url, json.dumps(doc_mapping_body))
-        print(f"{index} Mappings template created")
+        r = requests.get(doc_mapping_url)
+        if r.status_code == 200:
+            print(f"[{r.status_code}] {index} Mappings template already exists")
+        else:
+            doc_mapping_body = {"template": {"mappings": {}}}
+            doc_mapping_body["template"]["mappings"]["_doc"] = mapping
+            doc_mapping_body["template"]["mappings"]["_doc"]["properties"][
+                "@timestamp"
+            ] = {"type": "date"}
+            r = requests.put(
+                doc_mapping_url,
+                json.dumps(doc_mapping_body),
+                headers={"content-type": "application/json"},
+            )
+            print(f"[{r.status_code}] {index} Mappings template created")
 
     def _check_index_template(self, index):
-        doc_index_template_url = f"{ES_BASE_URL}/_component_template/{index}-template"
-        doc_index_template_body = {
-            "index_patterns": [f"{index}*"],
-            "data_stream": {},
-            "composed_of": [f"{index}-mappings", f"{index}-settings"],
-            "priority": 500,
-        }
-        requests.post(doc_index_template_url, json.dumps(doc_index_template_body))
-        print(f"{index} Index template created")
+        doc_index_template_url = f"{ES_BASE_URL}/_index_template/{index}-template"
+        r = requests.get(doc_index_template_url)
+        if r.status_code == 200:
+            print(f"[{r.status_code}] {index} Index template already exists")
+        else:
+            doc_index_template_body = {
+                "index_patterns": [f"{index}*"],
+                "data_stream": {},
+                "composed_of": [f"{index}-mappings", f"{index}-settings"],
+                "priority": 500,
+            }
+            r = requests.put(
+                doc_index_template_url,
+                json.dumps(doc_index_template_body),
+                headers={"content-type": "application/json"},
+            )
+            print(f"[{r.status_code}] {index} Index template created")
 
     def handle(self, *args, **options):
         document_classes = []
