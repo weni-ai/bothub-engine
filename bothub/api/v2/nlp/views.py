@@ -63,20 +63,20 @@ class RepositoryAuthorizationTrainViewSet(
 
     def retrieve(self, request, *args, **kwargs):
         check_auth(request)
-        repository_authorization = self.get_object()
+        repository_auth = self.get_object()
 
-        if not repository_authorization.can_contribute:
+        if not repository_auth.can_contribute:
             raise PermissionDenied()
 
         repository_version = request.query_params.get("repository_version")
         if repository_version:
             current_version = (
-                repository_authorization.repository.get_specific_version_id(
+                repository_auth.repository.get_specific_version_id(
                     repository_version, str(request.query_params.get("language"))
                 )
             )
         else:
-            current_version = repository_authorization.repository.current_version(
+            current_version = repository_auth.repository.current_version(
                 str(request.query_params.get("language"))
             )
 
@@ -84,7 +84,7 @@ class RepositoryAuthorizationTrainViewSet(
             {
                 "ready_for_train": current_version.ready_for_train,
                 "current_version_id": current_version.id,
-                "repository_authorization_user_id": repository_authorization.user.id,
+                "repository_authorization_user_id": repository_auth.user.id,
                 "language": current_version.language,
                 "algorithm": current_version.repository_version.repository.algorithm,
                 "use_name_entities": current_version.repository_version.repository.use_name_entities,
@@ -756,20 +756,20 @@ class RepositoryAuthorizationExamplesViewSet(mixins.RetrieveModelMixin, GenericV
 
     def retrieve(self, request, *args, **kwargs):
         check_auth(request)
-        repository_authorization = self.get_object()
+        repo_authorization = self.get_object()
 
-        if not repository_authorization.can_contribute:
+        if not repo_authorization.can_contribute:
             raise PermissionDenied()
 
         repository_version = request.query_params.get("repository_version")
         if repository_version:
             current_version = (
-                repository_authorization.repository.get_specific_version_id(
+                repo_authorization.repository.get_specific_version_id(
                     repository_version, str(request.query_params.get("language"))
                 )
             )
         else:
-            current_version = repository_authorization.repository.current_version(
+            current_version = repo_authorization.repository.current_version(
                 str(request.query_params.get("language"))
             )
 
