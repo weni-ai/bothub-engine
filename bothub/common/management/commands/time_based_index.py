@@ -9,6 +9,8 @@ ES_BASE_URL = settings.ELASTICSEARCH_DSL["default"]["hosts"]
 
 
 class Command(BaseCommand):
+    req_content_type = {"content-type": "application/json"}
+
     def add_arguments(self, parser):
         super().add_arguments(parser)
         parser.add_argument("documents", nargs="+", type=str, help="list of models")
@@ -35,7 +37,7 @@ class Command(BaseCommand):
             r = requests.put(
                 pipeline_url,
                 json.dumps(pipeline_body),
-                headers={"content-type": "application/json"},
+                headers=self.req_content_type,
             )
 
             print(
@@ -71,7 +73,7 @@ class Command(BaseCommand):
             r = requests.put(
                 ilm_url,
                 json.dumps(ilm_body),
-                headers={"content-type": "application/json"},
+                headers=self.req_content_type,
             )
             print(
                 f"[{r.status_code}] {settings.ELASTICSEARCH_DELETE_ILM_NAME} ILM Policy created"
@@ -99,7 +101,7 @@ class Command(BaseCommand):
             r = requests.put(
                 doc_settings_url,
                 json.dumps(doc_settings_body),
-                headers={"content-type": "application/json"},
+                headers=self.req_content_type,
             )
             print(f"[{r.status_code}] {index} Settings template created")
 
@@ -117,7 +119,7 @@ class Command(BaseCommand):
             r = requests.put(
                 doc_mapping_url,
                 json.dumps(doc_mapping_body),
-                headers={"content-type": "application/json"},
+                headers=self.req_content_type,
             )
             print(f"[{r.status_code}] {index} Mappings template created")
 
@@ -136,7 +138,7 @@ class Command(BaseCommand):
             r = requests.put(
                 doc_index_template_url,
                 json.dumps(doc_index_template_body),
-                headers={"content-type": "application/json"},
+                headers=self.req_content_type,
             )
             print(f"[{r.status_code}] {index} Index template created")
 

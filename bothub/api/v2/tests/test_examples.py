@@ -316,7 +316,7 @@ class CreateExamplesAPITestCase(DefaultExamplesAPITestCase):
 
     def test_text_words_limit(self):
         limit = settings.REPOSITORY_EXAMPLE_TEXT_WORDS_LIMIT + 1
-        text = " ".join(["teste" for x in range(limit)])
+        text = " ".join(["teste" for _ in range(limit)])
         data = {
             "repository": str(self.repository.uuid),
             "repository_version": self.repository.current_version().repository_version.pk,

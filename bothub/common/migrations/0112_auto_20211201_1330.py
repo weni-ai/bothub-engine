@@ -5,6 +5,10 @@ from django.db import migrations, models
 import re
 
 
+VALIDATE_REGEX = ".[-a-zA-Z_]"
+VALIDATE_TEXT = "Enter a valid value that have letters in it"
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -20,8 +24,8 @@ class Migration(migrations.Migration):
                 max_length=25000,
                 validators=[
                     django.core.validators.RegexValidator(
-                        re.compile(".[-a-zA-Z_]"),
-                        "Enter a valid value that have letters in it",
+                        re.compile(VALIDATE_REGEX),
+                        VALIDATE_TEXT,
                         "invalid",
                     )
                 ],
@@ -35,8 +39,8 @@ class Migration(migrations.Migration):
                 help_text="Example text",
                 validators=[
                     django.core.validators.RegexValidator(
-                        re.compile(".[-a-zA-Z_]"),
-                        "Enter a valid value that have letters in it",
+                        re.compile(VALIDATE_REGEX),
+                        VALIDATE_TEXT,
                         "invalid",
                     )
                 ],
@@ -50,8 +54,8 @@ class Migration(migrations.Migration):
                 help_text="Translation text",
                 validators=[
                     django.core.validators.RegexValidator(
-                        re.compile(".[-a-zA-Z_]"),
-                        "Enter a valid value that have letters in it",
+                        re.compile(VALIDATE_REGEX),
+                        VALIDATE_TEXT,
                         "invalid",
                     )
                 ],
