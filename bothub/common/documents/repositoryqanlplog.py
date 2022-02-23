@@ -11,6 +11,8 @@ REPOSITORYQANLPLOG_INDEX = Index(settings.ELASTICSEARCH_INDEX_NAMES[__name__])
 
 @REPOSITORYQANLPLOG_INDEX.doc_type
 class RepositoryQANLPLogDocument(TimeBasedDocument):
+    _time_based = True
+
     user = fields.IntegerField(attr="user.id")
     knowledge_base = fields.IntegerField(attr="knowledge_base.id")
     nlp_log = fields.NestedField(

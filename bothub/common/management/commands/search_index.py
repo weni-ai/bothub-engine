@@ -5,22 +5,23 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.utils.module_loading import import_string
 
+from django_elasticsearch_dsl.management.commands import search_index
+from django_elasticsearch_dsl.registries import registry
+from elasticsearch.exceptions import RequestError
+
+
 ES_BASE_URL = settings.ELASTICSEARCH_DSL["default"]["hosts"]
 
 
-class Command(BaseCommand):
+class Command(search_index.Command):
     req_content_type = {"content-type": "application/json"}
-
-    def add_arguments(self, parser):
-        super().add_arguments(parser)
-        parser.add_argument("documents", nargs="+", type=str, help="list of models")
 
     def _check_pipeline_ilm(self):
         # Check Pipeline
         pipeline_url = f"{ES_BASE_URL}/_ingest/pipeline/{settings.ELASTICSEARCH_TIMESTAMP_PIPELINE_NAME}"
         pipeline_get = requests.get(pipeline_url)
         if pipeline_get.status_code == 200:
-            print(
+            self.stdout.write(
                 f"[{pipeline_get.status_code}] {settings.ELASTICSEARCH_TIMESTAMP_PIPELINE_NAME} Pipeline already exists"
             )
         else:
@@ -40,7 +41,7 @@ class Command(BaseCommand):
                 headers=self.req_content_type,
             )
 
-            print(
+            self.stdout.write(
                 f"[{r.status_code}] {settings.ELASTICSEARCH_TIMESTAMP_PIPELINE_NAME} Pipeline created"
             )
 
@@ -48,7 +49,7 @@ class Command(BaseCommand):
         ilm_url = f"{ES_BASE_URL}/_ilm/policy/{settings.ELASTICSEARCH_DELETE_ILM_NAME}"
         ilm_get = requests.get(ilm_url)
         if ilm_get.status_code == 200:
-            print(
+            self.stdout.write(
                 f"[{ilm_get.status_code}] {settings.ELASTICSEARCH_DELETE_ILM_NAME} ILM Policy already exists"
             )
         else:
@@ -75,7 +76,7 @@ class Command(BaseCommand):
                 json.dumps(ilm_body),
                 headers=self.req_content_type,
             )
-            print(
+            self.stdout.write(
                 f"[{r.status_code}] {settings.ELASTICSEARCH_DELETE_ILM_NAME} ILM Policy created"
             )
 
@@ -83,7 +84,9 @@ class Command(BaseCommand):
         doc_settings_url = f"{ES_BASE_URL}/_component_template/{index}-settings"
         r = requests.get(doc_settings_url)
         if r.status_code == 200:
-            print(f"[{r.status_code}] {index} Settings template already exists")
+            self.stdout.write(
+                f"[{r.status_code}] {index} Settings template already exists"
+            )
         else:
             doc_settings_body = {"template": {"settings": {}}}
             doc_settings_body["template"][
@@ -97,19 +100,21 @@ class Command(BaseCommand):
             ] = settings.ELASTICSEARCH_DELETE_ILM_NAME
             doc_settings_body["template"]["settings"][
                 "index.lifecycle.rollover_alias"
-            ] = index
+            ] = index._name
             r = requests.put(
                 doc_settings_url,
                 json.dumps(doc_settings_body),
                 headers=self.req_content_type,
             )
-            print(f"[{r.status_code}] {index} Settings template created")
+            self.stdout.write(f"[{r.status_code}] {index} Settings template created")
 
     def _check_index_mappings(self, index, mapping):
         doc_mapping_url = f"{ES_BASE_URL}/_component_template/{index}-mappings"
         r = requests.get(doc_mapping_url)
         if r.status_code == 200:
-            print(f"[{r.status_code}] {index} Mappings template already exists")
+            self.stdout.write(
+                f"[{r.status_code}] {index} Mappings template already exists"
+            )
         else:
             doc_mapping_body = {"template": {"mappings": {}}}
             doc_mapping_body["template"]["mappings"]["_doc"] = mapping
@@ -121,13 +126,15 @@ class Command(BaseCommand):
                 json.dumps(doc_mapping_body),
                 headers=self.req_content_type,
             )
-            print(f"[{r.status_code}] {index} Mappings template created")
+            self.stdout.write(f"[{r.status_code}] {index} Mappings template created")
 
     def _check_index_template(self, index):
         doc_index_template_url = f"{ES_BASE_URL}/_index_template/{index}-template"
         r = requests.get(doc_index_template_url)
         if r.status_code == 200:
-            print(f"[{r.status_code}] {index} Index template already exists")
+            self.stdout.write(
+                f"[{r.status_code}] {index} Index template already exists"
+            )
         else:
             doc_index_template_body = {
                 "index_patterns": [f"{index}*"],
@@ -140,18 +147,20 @@ class Command(BaseCommand):
                 json.dumps(doc_index_template_body),
                 headers=self.req_content_type,
             )
-            print(f"[{r.status_code}] {index} Index template created")
+            self.stdout.write(f"[{r.status_code}] {index} Index template created")
 
-    def handle(self, *args, **options):
-        document_classes = []
-        for doc in options["documents"][1:]:
-            document_classes.append(import_string(doc))
-        document_classes = set(document_classes)
-        self._check_pipeline_ilm()
-
-        for doc in document_classes:
-            index = doc._index._name
-            mapping = doc()._doc_type.mapping.to_dict()
-            self._check_index_settings(index)
-            self._check_index_mappings(index, mapping)
-            self._check_index_template(index)
+    def _create(self, models, options):
+        for index in registry.get_indices(models):
+            doc = index._doc_types[0]
+            if getattr(doc, "_time_based", None):
+                self._check_pipeline_ilm()
+                mapping = doc._doc_type.mapping.to_dict()
+                self._check_index_settings(index)
+                self._check_index_mappings(index, mapping)
+                self._check_index_template(index)
+            else:
+                try:
+                    self.stdout.write(f"Creating index '{index._name}'")
+                    index.create()
+                except RequestError:
+                    self.stdout.write(f"Index '{index._name}' already exists")
