@@ -2,8 +2,6 @@ import json
 import requests
 
 from django.conf import settings
-from django.core.management.base import BaseCommand
-from django.utils.module_loading import import_string
 
 from django_elasticsearch_dsl.management.commands import search_index
 from django_elasticsearch_dsl.registries import registry

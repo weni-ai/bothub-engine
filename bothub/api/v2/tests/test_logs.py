@@ -172,7 +172,7 @@ class ListRepositoryNLPLogTestCase(TestCase):
             repository_nlp_log=nlp_log,
         )
         registry.update(nlp_log)
-
+        
     def request(self, data, token=None):
         authorization_header = (
             {"HTTP_AUTHORIZATION": "Token {}".format(token.key)} if token else {}
