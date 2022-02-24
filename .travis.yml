@@ -52,7 +52,7 @@ env:
     - USE_ELASTICSEARCH="false"
 script:
   - python manage.py migrate
-  - python manage.py search_ index --create -f
+  - python manage.py search_index --create -f
   - python manage.py search_index --populate -f
   - python manage.py collectstatic
   - flake8
