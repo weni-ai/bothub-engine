@@ -45,7 +45,7 @@ env:
     - SECRET_KEY=SK
     - SUPPORTED_LANGUAGES="en|pt"
     - DEFAULT_DATABASE="postgres://bothub:bothub@localhost:5432/bothub"
-    - ELASTICSEARCH_DSL="localhost:9200"
+    - ELASTICSEARCH_DSL="http://localhost:9200"
     - ELASTICSEARCH_SIGNAL_PROCESSOR="realtime"
     - ELASTICSEARCH_NUMBER_OF_SHARDS=1
     - ELASTICSEARCH_NUMBER_OF_REPLICAS=0
