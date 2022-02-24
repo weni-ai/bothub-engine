@@ -90,6 +90,7 @@ env = environ.Env(
     ELASTICSEARCH_DELETE_ILM_NAME=(str, "delete_nlp_logs"),
     ELASTICSEARCH_LOGS_DELETE_AGE=(str, "90d"),
     ELASTICSEARCH_LOGS_ROLLOVER_AGE=(str, "1d"),
+    ELASTICSEARCH_TIMESTAMP_PIPELINE_FIELD=(str, "created_at"),
 )
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -549,6 +550,10 @@ ELASTICSEARCH_LOGS_DELETE_AGE = env.str("ELASTICSEARCH_LOGS_DELETE_AGE", default
 
 ELASTICSEARCH_LOGS_ROLLOVER_AGE = env.str(
     "ELASTICSEARCH_LOGS_ROLLOVER_AGE", default="1d"
+)
+
+ES_TIMESTAMP_PIPELINE_FIELD = env.str(
+    "ELASTICSEARCH_TIMESTAMP_PIPELINE_FIELD", default="created_at"
 )
 
 ELASTICSEARCH_DELETE_ILM_NAME = env.str(
