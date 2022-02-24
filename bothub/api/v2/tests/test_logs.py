@@ -104,7 +104,7 @@ class ListRepositoryNLPLogTestCase(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
         requests.delete(
-            f"{settings.ELASTICSEARCH_DSL["default"]["hosts"]}/_data_stream/{REPOSITORYNLPLOG_INDEX_NAME}"
+            f"{settings.ELASTICSEARCH_DSL['default']['hosts']}/_data_stream/{REPOSITORYNLPLOG_INDEX_NAME}"
         )
         self.owner, self.owner_token = create_user_and_token("owneres")
 
