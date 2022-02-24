@@ -49,6 +49,7 @@ env:
     - ELASTICSEARCH_SIGNAL_PROCESSOR="realtime"
     - ELASTICSEARCH_NUMBER_OF_SHARDS=1
     - ELASTICSEARCH_NUMBER_OF_REPLICAS=0
+    - USE_ELASTICSEARCH="false"
 script:
   - python manage.py migrate
   - python manage.py search_ index --create -f
