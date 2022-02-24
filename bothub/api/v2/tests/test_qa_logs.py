@@ -1,5 +1,7 @@
 import json
+import requests
 
+from django.conf import settings
 from django.test import TestCase
 from django.test import tag
 from django_elasticsearch_dsl.registries import registry
@@ -9,6 +11,7 @@ from bothub.api.v2.tests.test_knowledge_base import DefaultSetUpKnowledgeBaseMix
 from bothub.common.models import QALogs
 from bothub.api.v2.repository.views import RepositoryQANLPLogViewSet
 from bothub.api.v2.nlp.views import RepositoryQANLPLogsViewSet
+from bothub.common.documents.repositoryqanlplog import REPOSITORYQANLPLOG_INDEX_NAME
 
 
 class QALogsTestCase(DefaultSetUpKnowledgeBaseMixin, TestCase):
@@ -59,7 +62,11 @@ class QALogsTestCase(DefaultSetUpKnowledgeBaseMixin, TestCase):
 class ListQALogTestCase(DefaultSetUpKnowledgeBaseMixin, TestCase):
     def setUp(self):
         super().setUp()
+        requests.delete(
+            f"{settings.ELASTICSEARCH_DSL['default']['hosts']}/_data_stream/{REPOSITORYQANLPLOG_INDEX_NAME}"
+        )
         self.log = QALogs.objects.create(
+            id=2,
             knowledge_base=self.knowledge_base_1,
             question="t2est",
             answer="te123st",

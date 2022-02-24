@@ -1,5 +1,7 @@
 import json
+import requests
 
+from django.conf import settings
 from django.test import RequestFactory
 from django.test import tag
 from django.test import TestCase
@@ -18,6 +20,7 @@ from bothub.common.models import (
     RepositoryIntent,
 )
 from bothub.common.models import RepositoryExample
+from bothub.common.documents.repositorynlplog import REPOSITORYNLPLOG_INDEX_NAME
 
 
 class RepositoryNLPLogTestCase(TestCase):
@@ -120,6 +123,7 @@ class ListRepositoryNLPLogTestCase(TestCase):
         )
 
         nlp_log = RepositoryNLPLog.objects.create(
+            id=2,
             text="testes",
             user_agent="python-requests/2.20.1",
             from_backend=True,
@@ -170,6 +174,9 @@ class ListRepositoryNLPLogTestCase(TestCase):
             confidence=0.0,
             is_default=False,
             repository_nlp_log=nlp_log,
+        )
+        requests.delete(
+            f"{settings.ELASTICSEARCH_DSL['default']['hosts']}/_data_stream/{REPOSITORYNLPLOG_INDEX_NAME}"
         )
         registry.update(nlp_log)
 

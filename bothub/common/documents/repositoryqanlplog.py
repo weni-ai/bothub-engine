@@ -6,7 +6,8 @@ from bothub.utils import TimeBasedDocument
 
 from bothub.common.models import QALogs
 
-REPOSITORYQANLPLOG_INDEX = Index(settings.ELASTICSEARCH_INDEX_NAMES[__name__])
+REPOSITORYQANLPLOG_INDEX_NAME = settings.ELASTICSEARCH_INDEX_NAMES[__name__]
+REPOSITORYQANLPLOG_INDEX = Index(REPOSITORYQANLPLOG_INDEX_NAME)
 
 
 @REPOSITORYQANLPLOG_INDEX.doc_type

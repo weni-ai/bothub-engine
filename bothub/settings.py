@@ -536,7 +536,7 @@ ELASTICSEARCH_DSL = {
     "default": {"hosts": env.str("ELASTICSEARCH_DSL", default="es:9200")}
 }
 
-USE_ELASTICSEARCH = env.bool("USE_ELASTICSEARCH", default=True)
+USE_ELASTICSEARCH = False  # env.bool("USE_ELASTICSEARCH", default=True)
 
 ELASTICSEARCH_DSL_INDEX_SETTINGS = {
     "number_of_shards": env.int("ELASTICSEARCH_NUMBER_OF_SHARDS", default=1),
