@@ -103,9 +103,6 @@ class RepositoryNLPLogTestCase(TestCase):
 class ListRepositoryNLPLogTestCase(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
-        requests.delete(
-            f"{settings.ELASTICSEARCH_DSL['default']['hosts']}/_data_stream/{REPOSITORYNLPLOG_INDEX_NAME}"
-        )
         self.owner, self.owner_token = create_user_and_token("owneres")
 
         self.repository = Repository.objects.create(
@@ -176,6 +173,9 @@ class ListRepositoryNLPLogTestCase(TestCase):
             confidence=0.0,
             is_default=False,
             repository_nlp_log=nlp_log,
+        )
+        requests.delete(
+            f"{settings.ELASTICSEARCH_DSL['default']['hosts']}/_data_stream/{REPOSITORYNLPLOG_INDEX_NAME}"
         )
         registry.update(nlp_log)
 

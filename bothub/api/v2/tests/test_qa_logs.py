@@ -62,9 +62,6 @@ class QALogsTestCase(DefaultSetUpKnowledgeBaseMixin, TestCase):
 class ListQALogTestCase(DefaultSetUpKnowledgeBaseMixin, TestCase):
     def setUp(self):
         super().setUp()
-        requests.delete(
-            f"{settings.ELASTICSEARCH_DSL['default']['hosts']}/_data_stream/{REPOSITORYQANLPLOG_INDEX_NAME}"
-        )
         self.log = QALogs.objects.create(
             id=2,
             knowledge_base=self.knowledge_base_1,
@@ -86,6 +83,9 @@ class ListQALogTestCase(DefaultSetUpKnowledgeBaseMixin, TestCase):
                 }
             ),
             user=self.owner,
+        )
+        requests.delete(
+            f"{settings.ELASTICSEARCH_DSL['default']['hosts']}/_data_stream/{REPOSITORYQANLPLOG_INDEX_NAME}"
         )
         registry.update(self.log)
 
