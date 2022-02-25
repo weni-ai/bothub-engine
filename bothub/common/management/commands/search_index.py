@@ -162,3 +162,29 @@ class Command(search_index.Command):
                     index.create()
                 except RequestError:
                     self.stdout.write(f"Index '{index._name}' already exists")
+
+    def _delete(self, models, options):
+        index_names = [index._name for index in registry.get_indices(models)]
+
+        if not options["force"]:
+            response = input(
+                "Are you sure you want to delete "
+                "the '{}' indexes? [y/N]: ".format(", ".join(index_names))
+            )
+            if response.lower() != "y":
+                self.stdout.write("Aborted")
+                return False
+
+        for index in registry.get_indices(models):
+            doc = index._doc_types[0]
+            if getattr(doc, "_time_based", None):
+                self.stdout.write(
+                    "Deletion of time-based indices is not supported yet,"
+                    "delete the index '{}' directly using the Elasticseach deletion API".format(
+                        index._name
+                    )
+                )
+            else:
+                self.stdout.write("Deleting index '{}'".format(index._name))
+                index.delete(ignore=404)
+        return True
