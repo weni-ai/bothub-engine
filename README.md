@@ -174,7 +174,12 @@ You can set environment variables in your OS, write on ```.env``` file or pass v
 | ELASTICSEARCH_REPOSITORYQANLPLOG_INDEX | ```string``` | ```ai_repositoryqanlplog``` | Specify the index title for the RepositoryQANLPLog document.
 | ELASTICSEARCH_REPOSITORYBASICEXAMPLE_INDEX | ```string``` | ```ai_repositorybasicexample``` | Specify the index title for the RepositoryBasicExample document.
 | ELASTICSEARCH_SIGNAL_PROCESSOR | ```string``` | ```celery``` | Specify the signal processor responsible for updating the Elasticsearch data.
-| GUNICORN_WORKERS | ``` int ``` | ``` multiprocessing.cpu_count() * 2 + 1 ``` | Gunicorn number of workers
+| ELASTICSEARCH_DELETE_ILM_NAME | ```string``` | ```delete_nlp_logs``` | Specify the name of the ILM responsible to delete the logs.
+| ELASTICSEARCH_TIMESTAMP_PIPELINE_NAME | ```string``` | ```set_timestamp``` | Specify the pipeline name that will be responsible to create the @timestamp field.
+| ES_TIMESTAMP_PIPELINE_FIELD | ```string``` | ```created_at``` | Specify the field that will be used to populate the @timestamp field.
+| ELASTICSEARCH_LOGS_ROLLOVER_AGE | ```string``` | ```1d``` | Specify the ILM rollover age, when a new index will be created.
+| ELASTICSEARCH_LOGS_DELETE_AGE | ```string``` | ```90d``` | Specify the ILM delete age, when the index will be deleted.
+| GUNICORN_WORKERS | ``` int ``` | ``` multiprocessing.cpu_count() * 2 + 1 ``` | Gunicorn number of workers.
 | USE_ELASTICSEARCH | ```boolean``` | ```true``` | Change the logic in requirements_to_train to use either elasticsearch or postgres.
 
 
