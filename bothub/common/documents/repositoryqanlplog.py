@@ -12,7 +12,7 @@ REPOSITORYQANLPLOG_INDEX = Index(REPOSITORYQANLPLOG_INDEX_NAME)
 
 @REPOSITORYQANLPLOG_INDEX.doc_type
 class RepositoryQANLPLogDocument(TimeBasedDocument):
-    _time_based = True
+    time_based = True
 
     user = fields.IntegerField(attr="user.id")
     knowledge_base = fields.IntegerField(attr="knowledge_base.id")

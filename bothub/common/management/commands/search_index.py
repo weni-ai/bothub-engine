@@ -150,7 +150,7 @@ class Command(search_index.Command):
     def _create(self, models, options):
         for index in registry.get_indices(models):
             doc = index._doc_types[0]
-            if getattr(doc, "_time_based", None):
+            if getattr(doc, "time_based", None):
                 self._check_pipeline_ilm()
                 mapping = doc._doc_type.mapping.to_dict()
                 self._check_index_settings(index)
@@ -177,7 +177,7 @@ class Command(search_index.Command):
 
         for index in registry.get_indices(models):
             doc = index._doc_types[0]
-            if getattr(doc, "_time_based", None):
+            if getattr(doc, "time_based", None):
                 self.stdout.write(
                     "Deletion of time-based indices is not supported yet,"
                     "delete the index '{}' directly using the Elasticseach deletion API".format(

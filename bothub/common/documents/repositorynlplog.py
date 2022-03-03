@@ -11,7 +11,7 @@ REPOSITORYNLPLOG_INDEX = Index(REPOSITORYNLPLOG_INDEX_NAME)
 
 @REPOSITORYNLPLOG_INDEX.document
 class RepositoryNLPLogDocument(TimeBasedDocument):
-    _time_based = True
+    time_based = True
 
     user = fields.IntegerField(attr="user.id")
     log_intent = fields.NestedField(

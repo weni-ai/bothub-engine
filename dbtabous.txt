@@ -1,0 +1,698 @@
+# This is an auto-generated Django model module.
+# You'll have to do the following manually to clean this up:
+#   * Rearrange models' order
+#   * Make sure each model has one field with primary_key=True
+#   * Make sure each ForeignKey and OneToOneField has `on_delete` set to the desired behavior
+#   * Remove `managed = False` lines if you wish to allow Django to create, modify, and delete the table
+# Feel free to rename the models, but don't rename db_table values or field names.
+from django.db import models
+
+
+class AuthGroup(models.Model):
+    name = models.CharField(unique=True, max_length=150)
+
+    class Meta:
+        managed = False
+        db_table = 'auth_group'
+
+
+class AuthGroupPermissions(models.Model):
+    group = models.ForeignKey(AuthGroup, models.DO_NOTHING)
+    permission = models.ForeignKey('AuthPermission', models.DO_NOTHING)
+
+    class Meta:
+        managed = False
+        db_table = 'auth_group_permissions'
+        unique_together = (('group', 'permission'),)
+
+
+class AuthPermission(models.Model):
+    name = models.CharField(max_length=255)
+    content_type = models.ForeignKey('DjangoContentType', models.DO_NOTHING)
+    codename = models.CharField(max_length=100)
+
+    class Meta:
+        managed = False
+        db_table = 'auth_permission'
+        unique_together = (('content_type', 'codename'),)
+
+
+class AuthenticationRepositoryowner(models.Model):
+    name = models.CharField(max_length=150)
+    locale = models.CharField(max_length=48)
+    nickname = models.CharField(unique=True, max_length=150)
+    biography = models.TextField(blank=True, null=True)
+    joined_at = models.DateField()
+
+    class Meta:
+        managed = False
+        db_table = 'authentication_repositoryowner'
+
+
+class AuthenticationUser(models.Model):
+    repository_owner = models.OneToOneField(AuthenticationRepositoryowner, models.DO_NOTHING, primary_key=True)
+    password = models.CharField(max_length=128)
+    last_login = models.DateTimeField(blank=True, null=True)
+    is_superuser = models.BooleanField()
+    email = models.CharField(unique=True, max_length=254)
+    is_staff = models.BooleanField()
+    is_active = models.BooleanField()
+    language = models.CharField(max_length=5, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'authentication_user'
+
+
+class AuthenticationUserGroups(models.Model):
+    user_id = models.IntegerField()
+    group = models.ForeignKey(AuthGroup, models.DO_NOTHING)
+
+    class Meta:
+        managed = False
+        db_table = 'authentication_user_groups'
+        unique_together = (('user_id', 'group'),)
+
+
+class AuthenticationUserUserPermissions(models.Model):
+    user_id = models.IntegerField()
+    permission = models.ForeignKey(AuthPermission, models.DO_NOTHING)
+
+    class Meta:
+        managed = False
+        db_table = 'authentication_user_user_permissions'
+        unique_together = (('user_id', 'permission'),)
+
+
+class AuthtokenToken(models.Model):
+    key = models.CharField(primary_key=True, max_length=40)
+    created = models.DateTimeField()
+    user = models.OneToOneField(AuthenticationUser, models.DO_NOTHING)
+
+    class Meta:
+        managed = False
+        db_table = 'authtoken_token'
+
+
+class CommonOrganization(models.Model):
+    description = models.TextField()
+    created_at = models.DateTimeField()
+    verificated = models.BooleanField()
+    repository_owner = models.OneToOneField(AuthenticationRepositoryowner, models.DO_NOTHING, primary_key=True)
+
+    class Meta:
+        managed = False
+        db_table = 'common_organization'
+
+
+class CommonOrganizationauthorization(models.Model):
+    uuid = models.UUIDField(primary_key=True)
+    role = models.IntegerField()
+    created_at = models.DateTimeField()
+    organization = models.ForeignKey(CommonOrganization, models.DO_NOTHING)
+    user = models.ForeignKey(AuthenticationRepositoryowner, models.DO_NOTHING, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'common_organizationauthorization'
+        unique_together = (('user', 'organization'),)
+
+
+class CommonQaknowledgebase(models.Model):
+    title = models.CharField(max_length=64)
+    created_at = models.DateTimeField()
+    last_update = models.DateTimeField()
+    repository = models.ForeignKey('CommonRepository', models.DO_NOTHING)
+    user = models.ForeignKey(AuthenticationUser, models.DO_NOTHING, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'common_qaknowledgebase'
+
+
+class CommonQalogs(models.Model):
+    answer = models.TextField()
+    confidence = models.FloatField()
+    question = models.TextField()
+    user_agent = models.TextField()
+    from_backend = models.BooleanField()
+    language = models.CharField(max_length=5)
+    nlp_log = models.TextField()
+    created_at = models.DateTimeField()
+    knowledge_base = models.ForeignKey(CommonQaknowledgebase, models.DO_NOTHING, blank=True, null=True)
+    user = models.ForeignKey(AuthenticationRepositoryowner, models.DO_NOTHING)
+
+    class Meta:
+        managed = False
+        db_table = 'common_qalogs'
+
+
+class CommonQatext(models.Model):
+    text = models.TextField()
+    language = models.CharField(max_length=5)
+    created_at = models.DateTimeField()
+    last_update = models.DateTimeField()
+    knowledge_base = models.ForeignKey(CommonQaknowledgebase, models.DO_NOTHING)
+
+    class Meta:
+        managed = False
+        db_table = 'common_qatext'
+        unique_together = (('knowledge_base', 'language'),)
+
+
+class CommonRepository(models.Model):
+    uuid = models.UUIDField(primary_key=True)
+    name = models.CharField(max_length=64)
+    slug = models.CharField(max_length=32)
+    language = models.CharField(max_length=5)
+    algorithm = models.CharField(max_length=50)
+    use_competing_intents = models.BooleanField()
+    use_name_entities = models.BooleanField()
+    use_analyze_char = models.BooleanField()
+    description = models.TextField()
+    is_private = models.BooleanField()
+    created_at = models.DateTimeField()
+    nlp_server = models.CharField(max_length=200, blank=True, null=True)
+    owner = models.ForeignKey(AuthenticationRepositoryowner, models.DO_NOTHING)
+    count_authorizations = models.IntegerField()
+    repository_type = models.CharField(max_length=10)
+
+    class Meta:
+        managed = False
+        db_table = 'common_repository'
+        unique_together = (('owner', 'slug'),)
+
+
+class CommonRepositoryCategories(models.Model):
+    repository = models.ForeignKey(CommonRepository, models.DO_NOTHING)
+    repositorycategory = models.ForeignKey('CommonRepositorycategory', models.DO_NOTHING)
+
+    class Meta:
+        managed = False
+        db_table = 'common_repository_categories'
+        unique_together = (('repository', 'repositorycategory'),)
+
+
+class CommonRepositoryEvaluate(models.Model):
+    text = models.TextField()
+    intent = models.CharField(max_length=64)
+    created_at = models.DateTimeField()
+    repository_version_language = models.ForeignKey('CommonRepositoryversionlanguage', models.DO_NOTHING, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'common_repository_evaluate'
+
+
+class CommonRepositoryEvaluateEntity(models.Model):
+    start = models.IntegerField()
+    end = models.IntegerField()
+    created_at = models.DateTimeField()
+    entity = models.ForeignKey('CommonRepositoryentity', models.DO_NOTHING)
+    repository_evaluate = models.ForeignKey(CommonRepositoryEvaluate, models.DO_NOTHING)
+
+    class Meta:
+        managed = False
+        db_table = 'common_repository_evaluate_entity'
+
+
+class CommonRepositoryEvaluateResult(models.Model):
+    matrix_chart = models.CharField(max_length=200)
+    confidence_chart = models.CharField(max_length=200)
+    log = models.TextField()
+    version = models.IntegerField()
+    created_at = models.DateTimeField()
+    entity_results = models.ForeignKey('CommonRepositoryEvaluateResultScore', models.DO_NOTHING)
+    intent_results = models.ForeignKey('CommonRepositoryEvaluateResultScore', models.DO_NOTHING)
+    repository_version_language = models.ForeignKey('CommonRepositoryversionlanguage', models.DO_NOTHING, blank=True, null=True)
+    cross_validation = models.BooleanField()
+
+    class Meta:
+        managed = False
+        db_table = 'common_repository_evaluate_result'
+
+
+class CommonRepositoryEvaluateResultEntity(models.Model):
+    entity = models.ForeignKey('CommonRepositoryentity', models.DO_NOTHING)
+    evaluate_result = models.ForeignKey(CommonRepositoryEvaluateResult, models.DO_NOTHING)
+    score = models.ForeignKey('CommonRepositoryEvaluateResultScore', models.DO_NOTHING)
+
+    class Meta:
+        managed = False
+        db_table = 'common_repository_evaluate_result_entity'
+
+
+class CommonRepositoryEvaluateResultIntent(models.Model):
+    intent = models.CharField(max_length=64)
+    evaluate_result = models.ForeignKey(CommonRepositoryEvaluateResult, models.DO_NOTHING)
+    score = models.ForeignKey('CommonRepositoryEvaluateResultScore', models.DO_NOTHING)
+
+    class Meta:
+        managed = False
+        db_table = 'common_repository_evaluate_result_intent'
+
+
+class CommonRepositoryEvaluateResultScore(models.Model):
+    precision = models.DecimalField(max_digits=3, decimal_places=2, blank=True, null=True)
+    f1_score = models.DecimalField(max_digits=3, decimal_places=2, blank=True, null=True)
+    accuracy = models.DecimalField(max_digits=3, decimal_places=2, blank=True, null=True)
+    recall = models.DecimalField(max_digits=3, decimal_places=2, blank=True, null=True)
+    support = models.FloatField(blank=True, null=True)
+    created_at = models.DateTimeField()
+
+    class Meta:
+        managed = False
+        db_table = 'common_repository_evaluate_result_score'
+
+
+class CommonRepositoryauthorization(models.Model):
+    uuid = models.UUIDField(primary_key=True)
+    role = models.IntegerField()
+    created_at = models.DateTimeField()
+    repository = models.ForeignKey(CommonRepository, models.DO_NOTHING)
+    user = models.ForeignKey(AuthenticationRepositoryowner, models.DO_NOTHING, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'common_repositoryauthorization'
+        unique_together = (('user', 'repository'),)
+
+
+class CommonRepositorycategory(models.Model):
+    name = models.CharField(max_length=32)
+    icon = models.CharField(max_length=16)
+
+    class Meta:
+        managed = False
+        db_table = 'common_repositorycategory'
+
+
+class CommonRepositoryentity(models.Model):
+    value = models.CharField(max_length=64)
+    created_at = models.DateTimeField()
+    repository_version = models.ForeignKey('CommonRepositoryversion', models.DO_NOTHING, blank=True, null=True)
+    group = models.ForeignKey('CommonRepositoryentitygroup', models.DO_NOTHING, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'common_repositoryentity'
+        unique_together = (('repository_version', 'value'),)
+
+
+class CommonRepositoryentitygroup(models.Model):
+    value = models.CharField(max_length=64)
+    created_at = models.DateTimeField()
+    repository_version = models.ForeignKey('CommonRepositoryversion', models.DO_NOTHING)
+
+    class Meta:
+        managed = False
+        db_table = 'common_repositoryentitygroup'
+        unique_together = (('repository_version', 'value'),)
+
+
+class CommonRepositoryexample(models.Model):
+    text = models.TextField()
+    created_at = models.DateTimeField()
+    repository_version_language = models.ForeignKey('CommonRepositoryversionlanguage', models.DO_NOTHING)
+    last_update = models.DateTimeField()
+    is_corrected = models.BooleanField()
+    intent = models.ForeignKey('CommonRepositoryintent', models.DO_NOTHING)
+
+    class Meta:
+        managed = False
+        db_table = 'common_repositoryexample'
+
+
+class CommonRepositoryexampleentity(models.Model):
+    start = models.IntegerField()
+    end = models.IntegerField()
+    created_at = models.DateTimeField()
+    entity = models.ForeignKey(CommonRepositoryentity, models.DO_NOTHING)
+    repository_example = models.ForeignKey(CommonRepositoryexample, models.DO_NOTHING)
+
+    class Meta:
+        managed = False
+        db_table = 'common_repositoryexampleentity'
+
+
+class CommonRepositoryintent(models.Model):
+    text = models.CharField(max_length=64)
+    repository_version = models.ForeignKey('CommonRepositoryversion', models.DO_NOTHING)
+    created_at = models.DateTimeField()
+
+    class Meta:
+        managed = False
+        db_table = 'common_repositoryintent'
+        unique_together = (('repository_version', 'text'),)
+
+
+class CommonRepositorymigrate(models.Model):
+    language = models.CharField(max_length=5)
+    auth_token = models.TextField()
+    created = models.DateTimeField()
+    repository_version = models.ForeignKey('CommonRepositoryversion', models.DO_NOTHING)
+    user = models.ForeignKey(AuthenticationRepositoryowner, models.DO_NOTHING)
+    classifier = models.CharField(max_length=16)
+
+    class Meta:
+        managed = False
+        db_table = 'common_repositorymigrate'
+
+
+class CommonRepositorynlplog(models.Model):
+    text = models.TextField()
+    user_agent = models.TextField()
+    nlp_log = models.TextField()
+    created_at = models.DateTimeField()
+    repository_version_language = models.ForeignKey('CommonRepositoryversionlanguage', models.DO_NOTHING, blank=True, null=True)
+    user = models.ForeignKey(AuthenticationRepositoryowner, models.DO_NOTHING)
+    from_backend = models.BooleanField()
+
+    class Meta:
+        managed = False
+        db_table = 'common_repositorynlplog'
+
+
+class CommonRepositorynlplogintent(models.Model):
+    intent = models.TextField()
+    confidence = models.FloatField()
+    is_default = models.BooleanField()
+    repository_nlp_log = models.ForeignKey(CommonRepositorynlplog, models.DO_NOTHING, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'common_repositorynlplogintent'
+
+
+class CommonRepositorynlptrain(models.Model):
+    bot_data = models.TextField()
+    rasa_version = models.CharField(max_length=20)
+    created_at = models.DateTimeField()
+    repositoryversionlanguage = models.ForeignKey('CommonRepositoryversionlanguage', models.DO_NOTHING)
+
+    class Meta:
+        managed = False
+        db_table = 'common_repositorynlptrain'
+        unique_together = (('repositoryversionlanguage', 'rasa_version'),)
+
+
+class CommonRepositoryqueuetask(models.Model):
+    id_queue = models.TextField()
+    from_queue = models.IntegerField()
+    status = models.IntegerField()
+    ml_units = models.FloatField()
+    created_at = models.DateTimeField()
+    end_training = models.DateTimeField(blank=True, null=True)
+    repositoryversionlanguage = models.ForeignKey('CommonRepositoryversionlanguage', models.DO_NOTHING)
+    type_processing = models.IntegerField()
+
+    class Meta:
+        managed = False
+        db_table = 'common_repositoryqueuetask'
+
+
+class CommonRepositoryreports(models.Model):
+    count_reports = models.IntegerField()
+    report_date = models.DateField()
+    repository_version_language = models.ForeignKey('CommonRepositoryversionlanguage', models.DO_NOTHING)
+    user = models.ForeignKey(AuthenticationRepositoryowner, models.DO_NOTHING)
+
+    class Meta:
+        managed = False
+        db_table = 'common_repositoryreports'
+        unique_together = (('repository_version_language', 'user', 'report_date'),)
+
+
+class CommonRepositoryscore(models.Model):
+    intents_balance_score = models.FloatField()
+    intents_balance_recommended = models.TextField(blank=True, null=True)
+    intents_size_score = models.FloatField()
+    intents_size_recommended = models.TextField(blank=True, null=True)
+    evaluate_size_score = models.FloatField()
+    evaluate_size_recommended = models.TextField(blank=True, null=True)
+    repository = models.OneToOneField(CommonRepository, models.DO_NOTHING)
+
+    class Meta:
+        managed = False
+        db_table = 'common_repositoryscore'
+
+
+class CommonRepositorytranslatedexample(models.Model):
+    language = models.CharField(max_length=5)
+    text = models.TextField()
+    created_at = models.DateTimeField()
+    original_example = models.ForeignKey(CommonRepositoryexample, models.DO_NOTHING)
+    repository_version_language = models.ForeignKey('CommonRepositoryversionlanguage', models.DO_NOTHING, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'common_repositorytranslatedexample'
+        unique_together = (('original_example', 'language'),)
+
+
+class CommonRepositorytranslatedexampleentity(models.Model):
+    start = models.IntegerField()
+    end = models.IntegerField()
+    created_at = models.DateTimeField()
+    entity = models.ForeignKey(CommonRepositoryentity, models.DO_NOTHING)
+    repository_translated_example = models.ForeignKey(CommonRepositorytranslatedexample, models.DO_NOTHING)
+
+    class Meta:
+        managed = False
+        db_table = 'common_repositorytranslatedexampleentity'
+
+
+class CommonRepositorytranslator(models.Model):
+    uuid = models.UUIDField(primary_key=True)
+    language = models.CharField(max_length=5)
+    created_at = models.DateTimeField()
+    created_by = models.ForeignKey(AuthenticationRepositoryowner, models.DO_NOTHING)
+    repository_version_language = models.ForeignKey('CommonRepositoryversionlanguage', models.DO_NOTHING)
+
+    class Meta:
+        managed = False
+        db_table = 'common_repositorytranslator'
+
+
+class CommonRepositoryversion(models.Model):
+    name = models.CharField(max_length=40)
+    last_update = models.DateTimeField()
+    is_default = models.BooleanField()
+    created_at = models.DateTimeField()
+    created_by = models.ForeignKey(AuthenticationRepositoryowner, models.DO_NOTHING, blank=True, null=True)
+    repository = models.ForeignKey(CommonRepository, models.DO_NOTHING)
+    is_deleted = models.BooleanField()
+
+    class Meta:
+        managed = False
+        db_table = 'common_repositoryversion'
+
+
+class CommonRepositoryversionlanguage(models.Model):
+    language = models.CharField(max_length=5)
+    training_started_at = models.DateTimeField(blank=True, null=True)
+    training_end_at = models.DateTimeField(blank=True, null=True)
+    failed_at = models.DateTimeField(blank=True, null=True)
+    use_analyze_char = models.BooleanField()
+    use_name_entities = models.BooleanField()
+    use_competing_intents = models.BooleanField()
+    algorithm = models.CharField(max_length=50)
+    training_log = models.TextField()
+    created_at = models.DateTimeField()
+    last_update = models.DateTimeField(blank=True, null=True)
+    total_training_end = models.IntegerField()
+    repository_version = models.ForeignKey(CommonRepositoryversion, models.DO_NOTHING)
+
+    class Meta:
+        managed = False
+        db_table = 'common_repositoryversionlanguage'
+
+
+class CommonRepositoryvote(models.Model):
+    created = models.DateTimeField()
+    repository = models.ForeignKey(CommonRepository, models.DO_NOTHING)
+    user = models.ForeignKey(AuthenticationRepositoryowner, models.DO_NOTHING)
+
+    class Meta:
+        managed = False
+        db_table = 'common_repositoryvote'
+        unique_together = (('user', 'repository'),)
+
+
+class CommonRequestrepositoryauthorization(models.Model):
+    text = models.CharField(max_length=250)
+    created_at = models.DateTimeField()
+    approved_by = models.ForeignKey(AuthenticationRepositoryowner, models.DO_NOTHING, blank=True, null=True)
+    repository = models.ForeignKey(CommonRepository, models.DO_NOTHING)
+    user = models.ForeignKey(AuthenticationRepositoryowner, models.DO_NOTHING)
+
+    class Meta:
+        managed = False
+        db_table = 'common_requestrepositoryauthorization'
+        unique_together = (('user', 'repository'),)
+
+
+class DjangoAdminLog(models.Model):
+    action_time = models.DateTimeField()
+    object_id = models.TextField(blank=True, null=True)
+    object_repr = models.CharField(max_length=200)
+    action_flag = models.SmallIntegerField()
+    change_message = models.TextField()
+    content_type = models.ForeignKey('DjangoContentType', models.DO_NOTHING, blank=True, null=True)
+    user = models.ForeignKey(AuthenticationUser, models.DO_NOTHING)
+
+    class Meta:
+        managed = False
+        db_table = 'django_admin_log'
+
+
+class DjangoCeleryBeatClockedschedule(models.Model):
+    clocked_time = models.DateTimeField()
+
+    class Meta:
+        managed = False
+        db_table = 'django_celery_beat_clockedschedule'
+
+
+class DjangoCeleryBeatCrontabschedule(models.Model):
+    minute = models.CharField(max_length=240)
+    hour = models.CharField(max_length=96)
+    day_of_week = models.CharField(max_length=64)
+    day_of_month = models.CharField(max_length=124)
+    month_of_year = models.CharField(max_length=64)
+    timezone = models.CharField(max_length=63)
+
+    class Meta:
+        managed = False
+        db_table = 'django_celery_beat_crontabschedule'
+
+
+class DjangoCeleryBeatIntervalschedule(models.Model):
+    every = models.IntegerField()
+    period = models.CharField(max_length=24)
+
+    class Meta:
+        managed = False
+        db_table = 'django_celery_beat_intervalschedule'
+
+
+class DjangoCeleryBeatPeriodictask(models.Model):
+    name = models.CharField(unique=True, max_length=200)
+    task = models.CharField(max_length=200)
+    args = models.TextField()
+    kwargs = models.TextField()
+    queue = models.CharField(max_length=200, blank=True, null=True)
+    exchange = models.CharField(max_length=200, blank=True, null=True)
+    routing_key = models.CharField(max_length=200, blank=True, null=True)
+    expires = models.DateTimeField(blank=True, null=True)
+    enabled = models.BooleanField()
+    last_run_at = models.DateTimeField(blank=True, null=True)
+    total_run_count = models.IntegerField()
+    date_changed = models.DateTimeField()
+    description = models.TextField()
+    crontab = models.ForeignKey(DjangoCeleryBeatCrontabschedule, models.DO_NOTHING, blank=True, null=True)
+    interval = models.ForeignKey(DjangoCeleryBeatIntervalschedule, models.DO_NOTHING, blank=True, null=True)
+    solar = models.ForeignKey('DjangoCeleryBeatSolarschedule', models.DO_NOTHING, blank=True, null=True)
+    one_off = models.BooleanField()
+    start_time = models.DateTimeField(blank=True, null=True)
+    priority = models.IntegerField(blank=True, null=True)
+    headers = models.TextField()
+    clocked = models.ForeignKey(DjangoCeleryBeatClockedschedule, models.DO_NOTHING, blank=True, null=True)
+    expire_seconds = models.IntegerField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'django_celery_beat_periodictask'
+
+
+class DjangoCeleryBeatPeriodictasks(models.Model):
+    ident = models.SmallIntegerField(primary_key=True)
+    last_update = models.DateTimeField()
+
+    class Meta:
+        managed = False
+        db_table = 'django_celery_beat_periodictasks'
+
+
+class DjangoCeleryBeatSolarschedule(models.Model):
+    event = models.CharField(max_length=24)
+    latitude = models.DecimalField(max_digits=9, decimal_places=6)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6)
+
+    class Meta:
+        managed = False
+        db_table = 'django_celery_beat_solarschedule'
+        unique_together = (('event', 'latitude', 'longitude'),)
+
+
+class DjangoCeleryResultsChordcounter(models.Model):
+    group_id = models.CharField(unique=True, max_length=255)
+    sub_tasks = models.TextField()
+    count = models.IntegerField()
+
+    class Meta:
+        managed = False
+        db_table = 'django_celery_results_chordcounter'
+
+
+class DjangoCeleryResultsGroupresult(models.Model):
+    group_id = models.CharField(unique=True, max_length=255)
+    date_created = models.DateTimeField()
+    date_done = models.DateTimeField()
+    content_type = models.CharField(max_length=128)
+    content_encoding = models.CharField(max_length=64)
+    result = models.TextField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'django_celery_results_groupresult'
+
+
+class DjangoCeleryResultsTaskresult(models.Model):
+    task_id = models.CharField(unique=True, max_length=255)
+    status = models.CharField(max_length=50)
+    content_type = models.CharField(max_length=128)
+    content_encoding = models.CharField(max_length=64)
+    result = models.TextField(blank=True, null=True)
+    date_done = models.DateTimeField()
+    traceback = models.TextField(blank=True, null=True)
+    meta = models.TextField(blank=True, null=True)
+    task_args = models.TextField(blank=True, null=True)
+    task_kwargs = models.TextField(blank=True, null=True)
+    task_name = models.CharField(max_length=255, blank=True, null=True)
+    worker = models.CharField(max_length=100, blank=True, null=True)
+    date_created = models.DateTimeField()
+
+    class Meta:
+        managed = False
+        db_table = 'django_celery_results_taskresult'
+
+
+class DjangoContentType(models.Model):
+    app_label = models.CharField(max_length=100)
+    model = models.CharField(max_length=100)
+
+    class Meta:
+        managed = False
+        db_table = 'django_content_type'
+        unique_together = (('app_label', 'model'),)
+
+
+class DjangoMigrations(models.Model):
+    app = models.CharField(max_length=255)
+    name = models.CharField(max_length=255)
+    applied = models.DateTimeField()
+
+    class Meta:
+        managed = False
+        db_table = 'django_migrations'
+
+
+class DjangoSession(models.Model):
+    session_key = models.CharField(primary_key=True, max_length=40)
+    session_data = models.TextField()
+    expire_date = models.DateTimeField()
+
+    class Meta:
+        managed = False
+        db_table = 'django_session'
