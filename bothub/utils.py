@@ -15,6 +15,7 @@ from django.conf import settings
 from django.db.models import IntegerField, Subquery
 from django.utils.text import slugify
 from django.utils.translation import ugettext_lazy as _
+from django_elasticsearch_dsl import Document
 from rest_framework import status
 from rest_framework.exceptions import APIException, ValidationError
 
@@ -371,3 +372,11 @@ def get_organization(request, organization_id: int):
         request.context.abort(
             grpc.StatusCode.NOT_FOUND, f"{organization_id} not found!"
         )
+
+
+class TimeBasedDocument(Document):
+    def save(self, action="create", **kwargs):
+        return super().save(action=action, **kwargs)
+
+    def update(self, instance, action="create", **kwargs):
+        return super().update(instance, action=action, **kwargs)

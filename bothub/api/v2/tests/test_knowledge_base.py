@@ -241,7 +241,10 @@ class DetailQAKnowledgeBaseAPITestCase(DefaultSetUpKnowledgeBaseMixin, TestCase)
         response, content_data = self.request(self.repository, self.owner_token)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(content_data.get("title"), self.knowledge_base_1.title)
-        self.assertEqual(content_data.get("description"), self.context_1.text[:settings.REPOSITORY_KNOWLEDGE_BASE_DESCRIPTION_LIMIT])
+        self.assertEqual(
+            content_data.get("description"),
+            self.context_1.text[: settings.REPOSITORY_KNOWLEDGE_BASE_DESCRIPTION_LIMIT],
+        )
 
 
 class ListQAtextAPITestCase(DefaultSetUpKnowledgeBaseMixin, TestCase):

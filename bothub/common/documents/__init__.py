@@ -5,5 +5,5 @@ from bothub.common.documents.repositorybasicexample import RepositoryExampleDocu
 __all__ = (
     "RepositoryNLPLogDocument",
     "RepositoryQANLPLogDocument",
-    "RepositoryExampleDocument"
+    "RepositoryExampleDocument",
 )

@@ -1,17 +1,19 @@
 import json
 
 from django.conf import settings
-from django_elasticsearch_dsl import Document, Index, fields
-
+from django_elasticsearch_dsl import Index, fields
 from bothub.common.models import RepositoryNLPLog
+from bothub.utils import TimeBasedDocument
 
-REPOSITORYNLPLOG_INDEX = Index(settings.ELASTICSEARCH_INDEX_NAMES[__name__])
+REPOSITORYNLPLOG_INDEX_NAME = settings.ELASTICSEARCH_INDEX_NAMES[__name__]
+REPOSITORYNLPLOG_INDEX = Index(REPOSITORYNLPLOG_INDEX_NAME)
 
 
-@REPOSITORYNLPLOG_INDEX.doc_type
-class RepositoryNLPLogDocument(Document):
+@REPOSITORYNLPLOG_INDEX.document
+class RepositoryNLPLogDocument(TimeBasedDocument):
+    time_based = True
+
     user = fields.IntegerField(attr="user.id")
-
     log_intent = fields.NestedField(
         attr="log_intent_field_indexing",
         properties={
