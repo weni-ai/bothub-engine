@@ -1052,6 +1052,7 @@ class RepositoryVersionLanguage(models.Model):
     class Meta:
         verbose_name = _("repository version language")
         verbose_name_plural = _("repository version languages")
+        unique_together = ["language", "repository_version"]
         ordering = ["-created_at"]
         indexes = [
             models.Index(
