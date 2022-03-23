@@ -38,6 +38,7 @@ before_script:
 
 install:
   - pip install poetry==1.1.12
+  - poetry config virtualenvs.create false --local
   - poetry install
   - pip install coveralls
 env:
@@ -50,7 +51,6 @@ env:
     - ELASTICSEARCH_NUMBER_OF_SHARDS=1
     - ELASTICSEARCH_NUMBER_OF_REPLICAS=0
     - USE_ELASTICSEARCH="false"
-    - POETRY_VIRTUALENVS_CREATE=false 
 script:
   - python manage.py migrate
   - python manage.py search_index --create -f
