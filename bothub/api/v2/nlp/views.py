@@ -331,10 +331,21 @@ class RepositoryAuthorizationInfoViewSet(mixins.RetrieveModelMixin, GenericViewS
         repository = repository_authorization.repository
 
         repository_version = request.query_params.get("repository_version")
+        repository_version_language = request.query_params.get(
+            "repository_version_language"
+        )
+
         try:
             is_default = RepositoryVersion.objects.get(pk=repository_version).is_default
         except (RepositoryVersion.DoesNotExist, ValueError):
-            is_default = True
+            try:
+                repository_version_language = RepositoryVersionLanguage.objects.get(
+                    pk=repository_version_language
+                )
+                is_default = repository_version_language.repository_version.is_default
+                repository_version = repository_version_language.repository_version.pk
+            except (RepositoryVersionLanguage.DoesNotExist, ValueError):
+                is_default = True
         queryset = RepositoryExample.objects.filter(
             repository_version_language__repository_version__repository=repository
         )

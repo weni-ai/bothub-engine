@@ -54,13 +54,12 @@ weni-protobuffers = "~=1.2.1"
 black = "21.7b0"
 
 [tool.poetry.dev-dependencies]
-[dev-packages]
 flake8 = "~=4.0.0"
 requests-mock = "~=1.8.0"
 coverage = "~=5.5"
 ipython = "*"
-autopep8 = "*"
 black = "==21.7b0"
+autopep8 = "^1.6.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
