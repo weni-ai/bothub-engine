@@ -28,7 +28,7 @@
 # Requirements
 
 * Python (3.6)
-* Pipenv
+* Poetry
 * Docker
 * Docker-compose
 
@@ -53,22 +53,22 @@ Use ```make``` commands to ```check_environment```, ```install_requirements```, 
 
 ### Fill database using fake data
 
-Run ```pipenv run python ./manage.py fill_db_using_fake_data``` to fill database using fake data. This can help you to test [Bothub Webapp](https://github.com/bothub-it/bothub-webapp).
+Run ```poetry run python ./manage.py fill_db_using_fake_data``` to fill database using fake data. This can help you to test [Bothub Webapp](https://github.com/bothub-it/bothub-webapp).
 
 
 ### Migrate all training for aws
 
-Run ```pipenv run python ./manage.py transfer_train_aws``` Migrate all trainings to an aws bucket defined in project settings.
+Run ```poetry run python ./manage.py transfer_train_aws``` Migrate all trainings to an aws bucket defined in project settings.
 
 
 ### Enable all repository to train
 
-Run ```pipenv run python ./manage.py enable_all_train```
+Run ```poetry run python ./manage.py enable_all_train```
 
 
 ### Start Train in all repositories
 
-Run ```pipenv run python ./manage.py start_all_repository_train```
+Run ```poetry run python ./manage.py start_all_repository_train```
 
 
 #### Fake users infos:

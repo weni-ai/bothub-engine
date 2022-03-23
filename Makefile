@@ -19,8 +19,8 @@ install_requirements:
 
 lint:
 	@make development_mode_guard
-	@poetry run black .
-	@poetry run flake8 .
+	@poetry run black bothub
+	@poetry run flake8
 	@echo "${SUCCESS}✔${NC} The code is following the PEP8"
 
 ifeq (test,$(firstword $(MAKECMDGOALS)))
