@@ -227,9 +227,9 @@ def clone_version(instance_id, id_clone, repository, *args, **kwargs):
 
             bulk_evaluate_entities = [
                 RepositoryEvaluateEntity(
-                    evaluate_entity, pk=None, repository_evaluate=evaluate_id
+                    **evaluate_entity, pk=None, repository_evaluate=evaluate_id
                 )
-                for evaluate_entity in evaluate.entities.all()
+                for evaluate_entity in evaluate.entities.all().values()
             ]
             RepositoryEvaluateEntity.objects.bulk_create(
                 bulk_evaluate_entities, ignore_conflicts=True
