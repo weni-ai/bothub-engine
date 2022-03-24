@@ -13,7 +13,7 @@ authors = ["weni.ai"]
 license = "MPL-2.0"
 
 [tool.poetry.dependencies]
-python = "~=3.6.2"
+python = "~=3.6.15"
 django = "~=3.2.6"
 djangorestframework = "~=3.12.4"
 django-filter = "~=2.4.0"
