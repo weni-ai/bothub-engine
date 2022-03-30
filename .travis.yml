@@ -37,8 +37,10 @@ before_script:
   - psql -U bothub postgres -c "CREATE DATABASE bothub;"
 
 install:
-  - pip install pipenv
-  - pipenv install --system --dev
+  - pip install --upgrade pip
+  - pip install poetry==1.1.12
+  - poetry config virtualenvs.create false --local
+  - poetry install
   - pip install coveralls
 env:
   global:

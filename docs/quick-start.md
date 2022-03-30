@@ -71,11 +71,11 @@
 
 * (optional) Add initial data into the database
         
-        $ pipenv run python ./manage.py fill_db_using_fake_data
+        $ poetry run python ./manage.py fill_db_using_fake_data
 
 * If you did not follow the previous step, create a superuser to access the django admin interface
 
-        $ pipenv run python ./manage.py createsuperuser
+        $ poetry run python ./manage.py createsuperuser
 
 The API will be running at ```http://localhost:8000``` and the admin interface can be accessed at ```http://localhost:8000/admin```
 

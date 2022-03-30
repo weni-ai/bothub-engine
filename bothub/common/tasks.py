@@ -89,26 +89,17 @@ def trainings_check_task():
 
 
 @app.task(name="clone_version")
-def debug_parse_text(instance_id, id_clone, repository, *args, **kwargs):
+def clone_version(instance_id, id_clone, repository, *args, **kwargs):
     clone = RepositoryVersion.objects.get(pk=id_clone, repository=repository)
     instance = RepositoryVersion.objects.get(pk=instance_id)
 
-    for version in clone.version_languages:
-        # Prepare languages for versioning before creating phrases
-        RepositoryVersionLanguage.objects.create(
-            language=version.language,
-            training_started_at=version.training_started_at,
-            training_end_at=version.training_end_at,
-            failed_at=version.failed_at,
-            use_analyze_char=version.use_analyze_char,
-            use_name_entities=version.use_name_entities,
-            use_competing_intents=version.use_competing_intents,
-            algorithm=version.algorithm,
-            repository_version=instance,
-            training_log=version.training_log,
-            last_update=version.last_update,
-            total_training_end=version.total_training_end,
-        )
+    bulk_versionlanguages = [
+        RepositoryVersionLanguage(**version, pk=None, repository_version=instance)
+        for version in clone.version_languages.values()
+    ]
+    RepositoryVersionLanguage.objects.bulk_create(
+        bulk_versionlanguages, ignore_conflicts=True
+    )
 
     for version in clone.version_languages:
         version_language = instance.get_version_language(version.language)
@@ -234,18 +225,15 @@ def debug_parse_text(instance_id, id_clone, repository, *args, **kwargs):
                 created_at=evaluate.created_at,
             )
 
-            evaluate_entities = RepositoryEvaluateEntity.objects.filter(
-                repository_evaluate=evaluate
-            )
-
-            for evaluate_entity in evaluate_entities:
-                RepositoryEvaluateEntity.objects.create(
-                    repository_evaluate=evaluate_id,
-                    start=evaluate_entity.start,
-                    end=evaluate_entity.end,
-                    entity=evaluate_entity.entity,
-                    created_at=evaluate_entity.created_at,
+            bulk_evaluate_entities = [
+                RepositoryEvaluateEntity(
+                    **evaluate_entity, pk=None, repository_evaluate=evaluate_id
                 )
+                for evaluate_entity in evaluate.entities.all().values()
+            ]
+            RepositoryEvaluateEntity.objects.bulk_create(
+                bulk_evaluate_entities, ignore_conflicts=True
+            )
 
     instance.is_deleted = False
     instance.save(update_fields=["is_deleted"])
