@@ -12,6 +12,8 @@ from bothub.common.models import (
     RepositoryTranslatedExample,
 )
 
+from bothub.utils import filter_validate_entities
+
 
 class RepositoryTranslatorFilter(filters.FilterSet):
     class Meta:
@@ -156,66 +158,14 @@ class TranslatorExamplesFilter(filters.FilterSet):
         return queryset.filter(intent__pk=value)
 
     def filter_has_valid_entities(self, queryset, name, value):
-        result_queryset = queryset.annotate(
-            original_entities_count=Count(
-                "entities",
-                filter=Q(
-                    translations__original_example__entities__repository_example=F("pk")
-                )
-                & Q(translations__language=value),
-                distinct=True,
-            )
-        ).annotate(
-            entities_count=Count(
-                "translations__entities",
-                filter=Q(
-                    Q(
-                        translations__entities__repository_translated_example__language=value
-                    )
-                    | Q(
-                        translations__entities__repository_translated_example__language=F(
-                            "repository_version_language__repository_version__repository__language"
-                        )
-                    ),
-                    translations__entities__entity__in=F(
-                        "translations__original_example__entities__entity"
-                    ),
-                ),
-                distinct=True,
-            )
+        return filter_validate_entities(queryset, name, value).filter(
+            original_entities_count=F("entities_count")
         )
-        return result_queryset.filter(original_entities_count=F("entities_count"))
 
     def filter_has_invalid_entities(self, queryset, name, value):
-        result_queryset = queryset.annotate(
-            original_entities_count=Count(
-                "entities",
-                filter=Q(
-                    translations__original_example__entities__repository_example=F("pk")
-                )
-                & Q(translations__language=value),
-                distinct=True,
-            )
-        ).annotate(
-            entities_count=Count(
-                "translations__entities",
-                filter=Q(
-                    Q(
-                        translations__entities__repository_translated_example__language=value
-                    )
-                    | Q(
-                        translations__entities__repository_translated_example__language=F(
-                            "repository_version_language__repository_version__repository__language"
-                        )
-                    ),
-                    translations__entities__entity__in=F(
-                        "translations__original_example__entities__entity"
-                    ),
-                ),
-                distinct=True,
-            )
+        return filter_validate_entities(queryset, name, value).exclude(
+            original_entities_count=F("entities_count")
         )
-        return result_queryset.exclude(original_entities_count=F("entities_count"))
 
 
 class TranslationsTranslatorFilter(filters.FilterSet):

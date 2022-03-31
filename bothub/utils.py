@@ -12,7 +12,7 @@ import requests
 from collections import OrderedDict
 from botocore.exceptions import ClientError
 from django.conf import settings
-from django.db.models import IntegerField, Subquery
+from django.db.models import IntegerField, Subquery, Q, F, Count
 from django.utils.text import slugify
 from django.utils.translation import ugettext_lazy as _
 from django_elasticsearch_dsl import Document
@@ -380,3 +380,32 @@ class TimeBasedDocument(Document):
 
     def update(self, instance, action="create", **kwargs):
         return super().update(instance, action=action, **kwargs)
+
+
+def filter_validate_entities(queryset, name, value):
+    entities = list(
+        queryset.values_list("entities__entity", flat=True).order_by().distinct()
+    )
+
+    result_queryset = queryset.annotate(
+        original_entities_count=Count(
+            "entities",
+            filter=Q(translations__language=value),
+            distinct=True,
+        )
+    ).annotate(
+        entities_count=Count(
+            "translations__entities",
+            filter=Q(
+                Q(translations__entities__repository_translated_example__language=value)
+                | Q(
+                    translations__entities__repository_translated_example__language=F(
+                        "repository_version_language__repository_version__repository__language"
+                    )
+                ),
+                translations__entities__entity__in=entities,
+            ),
+            distinct=True,
+        )
+    )
+    return result_queryset
