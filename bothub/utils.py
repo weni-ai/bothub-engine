@@ -382,7 +382,7 @@ class TimeBasedDocument(Document):
         return super().update(instance, action=action, **kwargs)
 
 
-def filter_validate_entities(queryset, name, value):
+def filter_validate_entities(queryset, value):
     entities = list(
         queryset.values_list("entities__entity", flat=True).order_by().distinct()
     )
