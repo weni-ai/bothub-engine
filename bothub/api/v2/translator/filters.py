@@ -158,12 +158,12 @@ class TranslatorExamplesFilter(filters.FilterSet):
         return queryset.filter(intent__pk=value)
 
     def filter_has_valid_entities(self, queryset, name, value):
-        return filter_validate_entities(queryset, name, value).filter(
+        return filter_validate_entities(queryset, value).filter(
             original_entities_count=F("entities_count")
         )
 
     def filter_has_invalid_entities(self, queryset, name, value):
-        return filter_validate_entities(queryset, name, value).exclude(
+        return filter_validate_entities(queryset, value).exclude(
             original_entities_count=F("entities_count")
         )
 
