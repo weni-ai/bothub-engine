@@ -1,5 +1,4 @@
-from django.db.models import Count, F
-from django.db.models import Q
+from django.db.models import Count, Q
 from django.utils.translation import ugettext_lazy as _
 from django_filters import rest_framework as filters
 from rest_framework.exceptions import PermissionDenied, NotFound
@@ -12,10 +11,10 @@ from bothub.common.models import (
     RepositoryTranslatedExample,
 )
 
-from bothub.utils import filter_validate_entities
+from bothub.utils import DefaultExamplesFilter
 
 
-class RepositoryTranslatorFilter(filters.FilterSet):
+class RepositoryTranslatorFilter(DefaultExamplesFilter):
     class Meta:
         model = RepositoryTranslator
         fields = ["repository"]

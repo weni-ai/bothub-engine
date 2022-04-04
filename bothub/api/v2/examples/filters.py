@@ -1,6 +1,5 @@
 from django.core.exceptions import ValidationError as DjangoValidationError
-from django.db.models import Count
-from django.db.models import Q, F
+from django.db.models import Count, Q
 from django.utils.translation import ugettext_lazy as _
 from django_filters import rest_framework as filters
 from rest_framework.exceptions import NotFound
@@ -9,10 +8,10 @@ from rest_framework.exceptions import PermissionDenied
 from bothub.common.models import Repository
 from bothub.common.models import RepositoryExample
 
-from bothub.utils import filter_validate_entities
+from bothub.utils import DefaultExamplesFilter
 
 
-class ExamplesFilter(filters.FilterSet):
+class ExamplesFilter(DefaultExamplesFilter):
     class Meta:
         model = RepositoryExample
         fields = ["text", "language"]
