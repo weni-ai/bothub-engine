@@ -125,29 +125,6 @@ class ExamplesFilter(filters.FilterSet):
             repository_version_language__repository_version__pk=value
         )
 
-    def filter_has_translation(self, queryset, name, value):
-        annotated_queryset = queryset.annotate(translation_count=Count("translations"))
-        if value:
-            return annotated_queryset.filter(translation_count__gt=0)
-        else:
-            return annotated_queryset.filter(translation_count=0)
-
-    def filter_has_not_translation_to(self, queryset, name, value):
-        annotated_queryset = queryset.annotate(
-            translation_count=Count(
-                "translations", filter=Q(translations__language=value)
-            )
-        )
-        return annotated_queryset.filter(translation_count=0)
-
-    def filter_has_translation_to(self, queryset, name, value):
-        annotated_queryset = queryset.annotate(
-            translation_count=Count(
-                "translations", filter=Q(translations__language=value)
-            )
-        )
-        return annotated_queryset.filter(~Q(translation_count=0))
-
     def filter_is_available_language(self, queryset, name, value):
         annotated_queryset = queryset.annotate(
             translation_count=Count(
@@ -170,30 +147,3 @@ class ExamplesFilter(filters.FilterSet):
             "-translation_count" if inverted else "translation_count"
         )
         return result_queryset
-
-    def filter_group(self, queryset, name, value):
-        if value == "other":
-            return queryset.filter(entities__entity__group__isnull=True)
-        return queryset.filter(entities__entity__group__value=value)
-
-    def filter_entity(self, queryset, name, value):
-        return queryset.filter(entities__entity__value=value).distinct()
-
-    def filter_entity_id(self, queryset, name, value):
-        return queryset.filter(entities__entity__pk=value).distinct()
-
-    def filter_intent(self, queryset, name, value):
-        return queryset.filter(intent__text=value)
-
-    def filter_intent_id(self, queryset, name, value):
-        return queryset.filter(intent__pk=value)
-
-    def filter_has_valid_entities(self, queryset, name, value):
-        return filter_validate_entities(queryset, value).filter(
-            original_entities_count=F("entities_count")
-        )
-
-    def filter_has_invalid_entities(self, queryset, name, value):
-        return filter_validate_entities(queryset, value).exclude(
-            original_entities_count=F("entities_count")
-        )
