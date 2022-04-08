@@ -1251,7 +1251,14 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
         ref_name = None
 
     id = serializers.PrimaryKeyRelatedField(read_only=True, style={"show": False})
-    text = EntityText(style={"entities_field": "entities"}, required=False, validators=[ExampleTextHasLettersValidator(), ExampleTextHasLimitedWordsValidator()])
+    text = EntityText(
+        style={"entities_field": "entities"},
+        required=False,
+        validators=[
+            ExampleTextHasLettersValidator(),
+            ExampleTextHasLimitedWordsValidator(),
+        ],
+    )
     repository = serializers.PrimaryKeyRelatedField(
         queryset=Repository.objects,
         validators=[CanContributeInRepositoryValidator()],

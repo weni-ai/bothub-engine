@@ -13,6 +13,8 @@ REPOSITORYBASICEXAMPLE_INDEX = Index(settings.ELASTICSEARCH_INDEX_NAMES[__name__
 
 @REPOSITORYBASICEXAMPLE_INDEX.doc_type
 class RepositoryExampleDocument(Document):
+    time_based = False
+
     repository_version_language = fields.ObjectField(
         properties={
             "pk": fields.IntegerField(),

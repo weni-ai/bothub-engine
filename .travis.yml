@@ -16,7 +16,7 @@ before_install:
   - sudo -E sed -i -e '/local.*peer/s/postgres/all/' -e 's/peer\|md5/trust/g' /etc/postgresql/*/main/pg_hba.conf
   - sudo -E sed -i 's/port = 5433/port = 5432/' /etc/postgresql/*/main/postgresql.conf
 
-  # give PG and ES some time to finish setup
+  # give PG some time to finish setup
   - sleep 10
 
   # stop any running postgres versions
@@ -37,21 +37,25 @@ before_script:
   - psql -U bothub postgres -c "CREATE DATABASE bothub;"
 
 install:
-  - pip install pipenv
-  - pipenv install --system --dev
+  - pip install --upgrade pip
+  - pip install poetry==1.1.12
+  - poetry config virtualenvs.create false --local
+  - poetry install
   - pip install coveralls
 env:
   global:
     - SECRET_KEY=SK
     - SUPPORTED_LANGUAGES="en|pt"
     - DEFAULT_DATABASE="postgres://bothub:bothub@localhost:5432/bothub"
-    - ELASTICSEARCH_DSL="localhost:9200"
+    - ELASTICSEARCH_DSL="http://localhost:9200"
     - ELASTICSEARCH_SIGNAL_PROCESSOR="realtime"
     - ELASTICSEARCH_NUMBER_OF_SHARDS=1
     - ELASTICSEARCH_NUMBER_OF_REPLICAS=0
+    - USE_ELASTICSEARCH="false"
 script:
   - python manage.py migrate
-  - python manage.py search_index --rebuild -f
+  - python manage.py search_index --create -f
+  - python manage.py search_index --populate -f
   - python manage.py collectstatic
   - flake8
   - travis_wait coverage run manage.py test

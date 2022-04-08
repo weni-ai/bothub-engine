@@ -51,7 +51,9 @@ class QAtextSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["created_at", "last_update"]
 
-    text = serializers.CharField(required=False, validators=[ExampleTextHasLettersValidator()])
+    text = serializers.CharField(
+        required=False, validators=[ExampleTextHasLettersValidator()]
+    )
     knowledge_base = serializers.PrimaryKeyRelatedField(
         queryset=QAKnowledgeBase.objects
     )

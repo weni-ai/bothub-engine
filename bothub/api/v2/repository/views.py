@@ -6,7 +6,11 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django.utils.translation import ugettext_lazy as _
-from django_elasticsearch_dsl_drf.constants import LOOKUP_FILTER_RANGE, LOOKUP_QUERY_GTE, LOOKUP_QUERY_LTE
+from django_elasticsearch_dsl_drf.constants import (
+    LOOKUP_FILTER_RANGE,
+    LOOKUP_QUERY_GTE,
+    LOOKUP_QUERY_LTE,
+)
 from django_elasticsearch_dsl_drf.filter_backends import (
     CompoundSearchFilterBackend,
     FilteringFilterBackend,

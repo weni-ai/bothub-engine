@@ -79,15 +79,19 @@ env = environ.Env(
     REPOSITORY_KNOWLEDGE_BASE_DESCRIPTION_LIMIT=(int, 450),
     REPOSITORY_EXAMPLE_TEXT_WORDS_LIMIT=(int, 200),
     ELASTICSEARCH_DSL=(str, "localhost:9200"),
-    ELASTICSEARCH_REPOSITORYNLPLOG_INDEX=(str, "ai_repositorynlplog"),
+    ELASTICSEARCH_REPOSITORYNLPLOG_INDEX=(str, "ai_repository_classifier_nlplog"),
     USE_ELASTICSEARCH=(bool, True),
-    ELASTICSEARCH_REPOSITORYQANLPLOG_INDEX=(str, "ai_repositoryqanlplog"),
+    ELASTICSEARCH_REPOSITORYQANLPLOG_INDEX=(str, "ai_repository_qa_nlplog"),
     ELASTICSEARCH_REPOSITORYBASICEXAMPLE_INDEX=(str, "ai_repositorybasicexample"),
     ELASTICSEARCH_NUMBER_OF_SHARDS=(int, 1),
     ELASTICSEARCH_NUMBER_OF_REPLICAS=(int, 0),
     ELASTICSEARCH_SIGNAL_PROCESSOR=(str, "realtime"),
+    ELASTICSEARCH_TIMESTAMP_PIPELINE_NAME=(str, "set_timestamp"),
+    ELASTICSEARCH_DELETE_ILM_NAME=(str, "delete_nlp_logs"),
+    ELASTICSEARCH_LOGS_DELETE_AGE=(str, "90d"),
+    ELASTICSEARCH_LOGS_ROLLOVER_AGE=(str, "1d"),
+    ELASTICSEARCH_TIMESTAMP_PIPELINE_FIELD=(str, "created_at"),
 )
-
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -204,8 +208,11 @@ DEFAULT_ERROR_MESSAGE = _("An error has occurred")
 
 LANGUAGE_CODE = env.str("LANGUAGE_CODE")
 
-
-LANGUAGES = (("en-us", _("English")), ("pt-br", _("Brazilian Portuguese")))
+LANGUAGES = (
+    ("en-us", _("English")),
+    ("pt-br", _("Brazilian Portuguese")),
+    ("es", _("Spanish")),
+)
 
 MODELTRANSLATION_DEFAULT_LANGUAGE = "en-us"
 
@@ -535,12 +542,31 @@ ELASTICSEARCH_DSL_INDEX_SETTINGS = {
     "number_of_replicas": env.int("ELASTICSEARCH_NUMBER_OF_REPLICAS", default=0),
 }
 
+ES_TIMESTAMP_PIPELINE_FIELD = env.str(
+    "ELASTICSEARCH_TIMESTAMP_PIPELINE_FIELD", default="created_at"
+)
+
+ELASTICSEARCH_TIMESTAMP_PIPELINE_NAME = env.str(
+    "ELASTICSEARCH_TIMESTAMP_PIPELINE_NAME", default="set_timestamp"
+)
+
+ELASTICSEARCH_LOGS_DELETE_AGE = env.str("ELASTICSEARCH_LOGS_DELETE_AGE", default="90d")
+
+ELASTICSEARCH_LOGS_ROLLOVER_AGE = env.str(
+    "ELASTICSEARCH_LOGS_ROLLOVER_AGE", default="1d"
+)
+
+ELASTICSEARCH_DELETE_ILM_NAME = env.str(
+    "ELASTICSEARCH_DELETE_ILM_NAME", default="delete_nlp_logs"
+)
+
 ELASTICSEARCH_INDEX_NAMES = {
     "bothub.common.documents.repositorynlplog": env.str(
-        "ELASTICSEARCH_REPOSITORYNLPLOG_INDEX", default="ai_repositorynlplog"
+        "ELASTICSEARCH_REPOSITORYNLPLOG_INDEX",
+        default="ai_repository_classifier_nlplog",
     ),
     "bothub.common.documents.repositoryqanlplog": env.str(
-        "ELASTICSEARCH_REPOSITORYQANLPLOG_INDEX", default="ai_repositoryqanlplog"
+        "ELASTICSEARCH_REPOSITORYQANLPLOG_INDEX", default="ai_repository_qa_nlplog"
     ),
     "bothub.common.documents.repositorybasicexample": env.str(
         "ELASTICSEARCH_REPOSITORYBASICEXAMPLE_INDEX",

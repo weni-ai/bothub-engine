@@ -1,15 +1,19 @@
 import json
 
 from django.conf import settings
-from django_elasticsearch_dsl import Document, Index, fields
+from django_elasticsearch_dsl import Index, fields
+from bothub.utils import TimeBasedDocument
 
 from bothub.common.models import QALogs
 
-REPOSITORYQANLPLOG_INDEX = Index(settings.ELASTICSEARCH_INDEX_NAMES[__name__])
+REPOSITORYQANLPLOG_INDEX_NAME = settings.ELASTICSEARCH_INDEX_NAMES[__name__]
+REPOSITORYQANLPLOG_INDEX = Index(REPOSITORYQANLPLOG_INDEX_NAME)
 
 
 @REPOSITORYQANLPLOG_INDEX.doc_type
-class RepositoryQANLPLogDocument(Document):
+class RepositoryQANLPLogDocument(TimeBasedDocument):
+    time_based = True
+
     user = fields.IntegerField(attr="user.id")
     knowledge_base = fields.IntegerField(attr="knowledge_base.id")
     nlp_log = fields.NestedField(
