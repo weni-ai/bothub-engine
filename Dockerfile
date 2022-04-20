@@ -11,17 +11,18 @@ RUN apt-get update \
 RUN apt-get install make
 
 RUN pip install -U pip==21.2.2 setuptools==57.4.0
-RUN pip install pipenv==2021.5.29
+RUN pip install poetry==1.1.12
 RUN pip install gunicorn==19.9.0
 RUN pip install gevent==1.4.0
 RUN pip install psycopg2-binary
 RUN apt-get install -y libjpeg-dev libgpgme-dev linux-libc-dev musl-dev libffi-dev libssl-dev
 ENV LIBRARY_PATH=/lib:/usr/lib
 
-COPY Pipfile Pipfile
-COPY Pipfile.lock Pipfile.lock
+COPY pyproject.toml pyproject.toml
+COPY poetry.lock poetry.lock
 
-RUN pipenv install --system
+RUN poetry config virtualenvs.create false \
+  && poetry install --no-interaction --no-ansi
 
 COPY . .
 

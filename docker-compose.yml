@@ -117,7 +117,7 @@ services:
       - 6379:6379
 
   es:
-    image: elasticsearch:7.13.3
+    image: elasticsearch:7.14.1
     environment:
        - discovery.type=single-node
        - bootstrap.memory_lock=true
@@ -141,7 +141,18 @@ services:
     networks:
       - default
       - bothub
-      
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.14.1
+    environment:
+      SERVER_NAME: kibana
+      ELASTICSEARCH_HOSTS: http://es:9200
+    ports:
+      - 5601:5601
+    networks:
+      - default
+      - bothub
+
 networks:
   bothub:
     external: true

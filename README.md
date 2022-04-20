@@ -28,7 +28,7 @@
 # Requirements
 
 * Python (3.6)
-* Pipenv
+* Poetry
 * Docker
 * Docker-compose
 
@@ -53,22 +53,22 @@ Use ```make``` commands to ```check_environment```, ```install_requirements```, 
 
 ### Fill database using fake data
 
-Run ```pipenv run python ./manage.py fill_db_using_fake_data``` to fill database using fake data. This can help you to test [Bothub Webapp](https://github.com/bothub-it/bothub-webapp).
+Run ```poetry run python ./manage.py fill_db_using_fake_data``` to fill database using fake data. This can help you to test [Bothub Webapp](https://github.com/bothub-it/bothub-webapp).
 
 
 ### Migrate all training for aws
 
-Run ```pipenv run python ./manage.py transfer_train_aws``` Migrate all trainings to an aws bucket defined in project settings.
+Run ```poetry run python ./manage.py transfer_train_aws``` Migrate all trainings to an aws bucket defined in project settings.
 
 
 ### Enable all repository to train
 
-Run ```pipenv run python ./manage.py enable_all_train```
+Run ```poetry run python ./manage.py enable_all_train```
 
 
 ### Start Train in all repositories
 
-Run ```pipenv run python ./manage.py start_all_repository_train```
+Run ```poetry run python ./manage.py start_all_repository_train```
 
 
 #### Fake users infos:
@@ -174,7 +174,12 @@ You can set environment variables in your OS, write on ```.env``` file or pass v
 | ELASTICSEARCH_REPOSITORYQANLPLOG_INDEX | ```string``` | ```ai_repositoryqanlplog``` | Specify the index title for the RepositoryQANLPLog document.
 | ELASTICSEARCH_REPOSITORYBASICEXAMPLE_INDEX | ```string``` | ```ai_repositorybasicexample``` | Specify the index title for the RepositoryBasicExample document.
 | ELASTICSEARCH_SIGNAL_PROCESSOR | ```string``` | ```celery``` | Specify the signal processor responsible for updating the Elasticsearch data.
-| GUNICORN_WORKERS | ``` int ``` | ``` multiprocessing.cpu_count() * 2 + 1 ``` | Gunicorn number of workers
+| ELASTICSEARCH_DELETE_ILM_NAME | ```string``` | ```delete_nlp_logs``` | Specify the name of the ILM responsible to delete the logs.
+| ELASTICSEARCH_TIMESTAMP_PIPELINE_NAME | ```string``` | ```set_timestamp``` | Specify the pipeline name that will be responsible to create the @timestamp field.
+| ES_TIMESTAMP_PIPELINE_FIELD | ```string``` | ```created_at``` | Specify the field that will be used to populate the @timestamp field.
+| ELASTICSEARCH_LOGS_ROLLOVER_AGE | ```string``` | ```1d``` | Specify the ILM rollover age, when a new index will be created.
+| ELASTICSEARCH_LOGS_DELETE_AGE | ```string``` | ```90d``` | Specify the ILM delete age, when the index will be deleted.
+| GUNICORN_WORKERS | ``` int ``` | ``` multiprocessing.cpu_count() * 2 + 1 ``` | Gunicorn number of workers.
 | USE_ELASTICSEARCH | ```boolean``` | ```true``` | Change the logic in requirements_to_train to use either elasticsearch or postgres.
 
 
