@@ -14,7 +14,6 @@ from django_elasticsearch_dsl.registries import registry
 from bothub import translate
 from bothub.api.grpc.connect_grpc_client import ConnectGRPCClient
 from bothub.celery import app
-from bothub.common.documents import RepositoryNLPLogDocument
 from bothub.common.models import (
     RepositoryQueueTask,
     RepositoryReports,
@@ -259,7 +258,6 @@ def delete_nlp_logs():
         max_id = batch[-1].id
         with transaction.atomic():
             for log in batch:
-                RepositoryNLPLogDocument.search().query("match", pk=log.pk).delete()
                 log.delete()
 
         num_updated += len(batch)
@@ -553,10 +551,12 @@ def get_project_organization(project_uuid: str):  # pragma: no cover
 
 
 @app.task(name="remove_authorizations_project")
-def remove_authorizations_project(project_uuid: str, authorizations_uuids: list):
+def remove_authorizations_project(
+    project_uuid: str, authorizations_uuids: list, user_email: str
+):
     grpc_client = ConnectGRPCClient()
     for authorization_uuid in authorizations_uuids:
-        grpc_client.remove_authorization(project_uuid, authorization_uuid)
+        grpc_client.remove_authorization(project_uuid, authorization_uuid, user_email)
 
 
 @app.task(name="create_repository_project")
