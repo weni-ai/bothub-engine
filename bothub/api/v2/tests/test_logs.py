@@ -82,10 +82,10 @@ class RepositoryNLPLogTestCase(TestCase):
                 ),
                 "nlp_log": json.dumps(
                     {
-                        "intent": {"name": "bias", "confidence": 0.9994810819625854},
+                        "intent": {"name": "bias", "confidence": 0.9994810899625854},
                         "intent_ranking": [
-                            {"name": "bias", "confidence": 0.9994810819625854},
-                            {"name": "doubt", "confidence": 0.039212167263031006},
+                            {"name": "bias", "confidence": 0.9994810819625244},
+                            {"name": "doubt", "confidence": 0.039216167263031006},
                             {"name": "negative", "confidence": 0.0},
                             {"name": "affirmative", "confidence": 0.0},
                         ],
