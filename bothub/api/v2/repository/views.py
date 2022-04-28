@@ -336,7 +336,7 @@ class NewRepositoryViewSet(
 
         task = celery_app.send_task(
             name="remove_authorizations_project",
-            args=[project_uuid, list(authorizations_uuids)],
+            args=[project_uuid, list(authorizations_uuids), request.user.email],
         )
         task.wait()
 
