@@ -71,7 +71,7 @@ class RepositoryNLPLogTestCase(TestCase):
         return (response, content_data)
 
     def test_blocked_user(self):
-        with self.settings(REPOSITORY_BLOCK_USER_LOGS=[self.owner.email]):
+        with self.settings(REPOSITORY_BLOCK_USER_LOGS=[self.repository_auth.pk]):
             data = {
                 "text": "test",
                 "user_agent": "python-requests/2.20.1",
