@@ -49,7 +49,7 @@ class RepositoryNLPLogSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         repository_auth = validated_data.get("user")
         user = repository_auth.user
-        if repository_auth.pk in settings.REPOSITORY_BLOCK_USER_LOGS:
+        if str(repository_auth.pk) in settings.REPOSITORY_BLOCK_USER_LOGS:
             return validated_data
         log_intent = validated_data.pop("log_intent")
         validated_data.update({"user": user})
