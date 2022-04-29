@@ -23,6 +23,7 @@ from bothub.common.models import RepositoryExample
 from bothub.common.documents.repositorynlplog import REPOSITORYNLPLOG_INDEX_NAME
 
 
+@tag("elastic")
 class RepositoryNLPLogTestCase(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
@@ -58,6 +59,58 @@ class RepositoryNLPLogTestCase(TestCase):
         response.render()
         content_data = json.loads(response.content)
         return (response, content_data)
+
+    def list_request(self, data, token=None):
+        authorization_header = (
+            {"HTTP_AUTHORIZATION": "Token {}".format(token.key)} if token else {}
+        )
+        request = self.factory.get("/v2/repository/log/", data, **authorization_header)
+        response = RepositoryNLPLogViewSet.as_view({"get": "list"})(request)
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data)
+
+    def test_blocked_user(self):
+        with self.settings(REPOSITORY_BLOCK_USER_LOGS=[str(self.repository_auth.pk)]):
+            data = {
+                "text": "test",
+                "user_agent": "python-requests/2.20.1",
+                "from_backend": True,
+                "user": str(self.repository_auth.pk),
+                "repository_version_language": int(
+                    self.repository.current_version().pk
+                ),
+                "nlp_log": json.dumps(
+                    {
+                        "intent": {"name": "bias", "confidence": 0.9994810899625854},
+                        "intent_ranking": [
+                            {"name": "bias", "confidence": 0.9994810819625244},
+                            {"name": "doubt", "confidence": 0.039216167263031006},
+                            {"name": "negative", "confidence": 0.0},
+                            {"name": "affirmative", "confidence": 0.0},
+                        ],
+                        "labels_list": [],
+                        "entities_list": [],
+                        "entities": {},
+                        "text": "test",
+                        "repository_version": int(self.repository.current_version().pk),
+                        "language": str(self.repository.language),
+                    }
+                ),
+                "log_intent": [],
+            }
+            self.request(data)
+            response, content_data = self.list_request(
+                {
+                    "repository_version_language": int(
+                        self.repository.current_version().pk
+                    )
+                },
+                self.owner_token,
+            )
+
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(content_data.get("count"), 0)
 
     def test_okay(self):
         data = {
