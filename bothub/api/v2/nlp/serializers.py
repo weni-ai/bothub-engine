@@ -1,5 +1,7 @@
 from rest_framework import serializers
 
+from django.conf import settings
+
 from bothub.common.models import (
     QAKnowledgeBase,
     QALogs,
@@ -45,8 +47,12 @@ class RepositoryNLPLogSerializer(serializers.ModelSerializer):
     )
 
     def create(self, validated_data):
+        repository_auth = validated_data.get("user")
+        user = repository_auth.user
+        if str(repository_auth.pk) in settings.REPOSITORY_BLOCK_USER_LOGS:
+            return validated_data
         log_intent = validated_data.pop("log_intent")
-        validated_data.update({"user": validated_data.get("user").user})
+        validated_data.update({"user": user})
 
         instance = self.Meta.model(**validated_data)
         instance.save()

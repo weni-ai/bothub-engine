@@ -181,6 +181,7 @@ You can set environment variables in your OS, write on ```.env``` file or pass v
 | ELASTICSEARCH_LOGS_DELETE_AGE | ```string``` | ```90d``` | Specify the ILM delete age, when the index will be deleted.
 | GUNICORN_WORKERS | ``` int ``` | ``` multiprocessing.cpu_count() * 2 + 1 ``` | Gunicorn number of workers.
 | USE_ELASTICSEARCH | ```boolean``` | ```true``` | Change the logic in requirements_to_train to use either elasticsearch or postgres.
+| REPOSITORY_BLOCK_USER_LOGS | ```list``` | ```[]``` | List of repository authorization(api bearer) that won't save logs
 
 
 ## Roadmap
