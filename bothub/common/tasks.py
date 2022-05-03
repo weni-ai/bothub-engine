@@ -551,10 +551,12 @@ def get_project_organization(project_uuid: str):  # pragma: no cover
 
 
 @app.task(name="remove_authorizations_project")
-def remove_authorizations_project(project_uuid: str, authorizations_uuids: list):
+def remove_authorizations_project(
+    project_uuid: str, authorizations_uuids: list, user_email: str
+):
     grpc_client = ConnectGRPCClient()
     for authorization_uuid in authorizations_uuids:
-        grpc_client.remove_authorization(project_uuid, authorization_uuid)
+        grpc_client.remove_authorization(project_uuid, authorization_uuid, user_email)
 
 
 @app.task(name="create_repository_project")
