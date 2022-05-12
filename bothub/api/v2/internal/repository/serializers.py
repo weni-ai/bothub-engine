@@ -32,7 +32,6 @@ class InternalRepositorySerializer(serializers.ModelSerializer):
             "categories_list",
             "repository_type",
         ]
-        extra_kwargs = {"org_id": {"write_only": True}}
 
     def get_owner__nickname(self, repository: Repository):
         return repository.owner.nickname

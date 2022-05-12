@@ -29,6 +29,7 @@ class InternalRepositoriesViewSet(mixins.ListModelMixin, GenericViewSet):
     @action(detail=True, methods=["GET"], url_name="retrieve-authorization")
     def RetrieveAuthorization(self, request, **kwargs):
         auth = self.request.query_params.get("repository_authorization", None)
+        repository = Repository.objects.none()
         if auth:
             repository = Repository.objects.get(authorizations__uuid=auth)
         serialized_data = InternalRepositorySerializer(repository)

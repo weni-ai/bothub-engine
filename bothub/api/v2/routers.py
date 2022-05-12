@@ -67,6 +67,7 @@ from .translator.views import (
 )
 
 from bothub.api.v2.internal.repository.views import InternalRepositoriesViewSet
+from bothub.api.v2.internal.organization.views import InternalOrganizationViewSet
 
 
 class Router(routers.SimpleRouter):
@@ -236,3 +237,4 @@ router.register("org/organization", OrganizationViewSet)
 router.register("org/profile", OrganizationProfileViewSet)
 router.register("org/authorizations", OrganizationAuthorizationViewSet)
 router.register("internal/repository", InternalRepositoriesViewSet)
+router.register("internal/organization", InternalOrganizationViewSet)
