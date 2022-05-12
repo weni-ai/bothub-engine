@@ -144,6 +144,7 @@ MIDDLEWARE = [
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.locale.LocaleMiddleware",
+    "csp.middleware.CSPMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -151,6 +152,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "bothub.api.v2.middleware.UserLanguageMiddleware",
+
 ]
 
 ROOT_URLCONF = "bothub.urls"
@@ -297,6 +299,13 @@ BOTHUB_NLP_BASE_URL = env.str("BOTHUB_NLP_BASE_URL")
 CSRF_COOKIE_DOMAIN = env.str("CSRF_COOKIE_DOMAIN")
 
 CSRF_COOKIE_SECURE = env.bool("CSRF_COOKIE_SECURE")
+
+
+# CSP headers
+
+CSP_DEFAULT_SRC = ("'self'", '*')
+
+CSP_FRAME_ANCESTORS = ["'self'", "*.weni.ai"]
 
 
 # Logging
