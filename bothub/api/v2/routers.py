@@ -66,6 +66,8 @@ from .translator.views import (
     RepositoryTranslatorViewSet,
 )
 
+from bothub.api.v2.internal.repository.views import InternalRepositoriesViewSet
+
 
 class Router(routers.SimpleRouter):
     routes = [
@@ -233,3 +235,4 @@ router.register("account/reset-password", ResetPasswordViewSet)
 router.register("org/organization", OrganizationViewSet)
 router.register("org/profile", OrganizationProfileViewSet)
 router.register("org/authorizations", OrganizationAuthorizationViewSet)
+router.register("internal/repository", InternalRepositoriesViewSet)
