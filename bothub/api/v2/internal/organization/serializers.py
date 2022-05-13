@@ -65,7 +65,6 @@ class OrgUpdateSerializer(serializers.ModelSerializer):
         return value
 
     def save(self):
-        # import pdb; pdb.set_trace()
         data = dict(self.validated_data)
 
         org = Organization.objects.get(pk=data.get("id"))

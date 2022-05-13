@@ -19,8 +19,7 @@ class InternalRepositoriesViewSet(mixins.ListModelMixin, GenericViewSet):
     def get_queryset(self, *args, **kwargs):
         queryset = self.queryset
         name = self.request.query_params.get("name", None)
-        if name:
-            queryset = self.queryset.filter(name__icontains=name)
+        queryset = self.queryset.filter(name__icontains=name)
         org_id = self.request.query_params.get("org_id", None)
         if org_id:
             queryset = queryset.filter(authorizations__user__pk=org_id)
