@@ -473,3 +473,11 @@ class DefaultExamplesFilter(filters.FilterSet):
         return filter_validate_entities(queryset, value).exclude(
             original_entities_count=F("entities_count")
         )
+
+
+def check_module_keycloak(token):
+    request = requests.get(
+        f"{settings.OIDC_OP_USER_ENDPOINT}", headers={"Authorization": "Bearer {token}"}
+    )
+    response = request.json()
+    return response.get("is_admin", False)

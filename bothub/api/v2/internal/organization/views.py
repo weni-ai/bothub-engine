@@ -19,6 +19,7 @@ from bothub.api.v2.internal.organization.serializers import (
     OrgUpdateSerializer,
 )
 from bothub import utils
+from bothub.api.v2.internal.permissions import ModuleHasPermission
 
 
 class InternalOrganizationViewSet(
@@ -31,6 +32,7 @@ class InternalOrganizationViewSet(
 ):
     queryset = Organization.objects.all()
     serializer_class = OrganizationSerializer
+    permission_classes = [ModuleHasPermission]
     lookup_field = "pk"
     metadata_class = Metadata
 

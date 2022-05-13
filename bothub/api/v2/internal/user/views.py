@@ -10,10 +10,12 @@ from bothub.api.v2.internal.user.serializers import (
     UserLanguageSerializer,
 )
 from bothub import utils
+from bothub.api.v2.internal.permissions import ModuleHasPermission
 
 
 class UserPermissionViewSet(GenericViewSet):
     queryset = OrganizationAuthorization.objects.all()
+    permission_classes = [ModuleHasPermission]
     serializer_class = UserPermissionSerializer
 
     @action(detail=True, methods=["get"])
@@ -61,6 +63,7 @@ class UserPermissionViewSet(GenericViewSet):
 
 class UserViewSet(GenericViewSet):
     serializer_class = UserSerializer
+    permission_classes = [ModuleHasPermission]
     queryset = User.objects
 
     @action(detail=True, methods=["get"])
@@ -75,6 +78,7 @@ class UserViewSet(GenericViewSet):
 
 class UserLanguageViewSet(GenericViewSet):
     serializer_class = UserLanguageSerializer
+    permission_classes = [ModuleHasPermission]
     queryset = User.objects
 
     @action(detail=True, methods=["put"])
