@@ -375,6 +375,17 @@ def get_organization(request, organization_id: int):
         )
 
 
+def get_user_and_organization(user_email: str, organization_id: int):
+    from bothub.authentication.models import User
+    from bothub.common.models import Organization
+
+    org = Organization.objects.get(pk=organization_id)
+    user, created = User.objects.get_or_create(
+        email=user_email, defaults={"nickname": user_email}
+    )
+    return user, org
+
+
 class TimeBasedDocument(Document):
     def save(self, action="create", **kwargs):
         return super().save(action=action, **kwargs)

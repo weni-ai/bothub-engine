@@ -7,8 +7,17 @@ from rest_framework.viewsets import GenericViewSet
 
 from bothub.api.v2.metadata import Metadata
 from bothub.authentication.models import User
-from bothub.common.models import Organization, OrganizationAuthorization, Repository, RepositoryAuthorization
-from bothub.api.v2.internal.organization.serializers import OrganizationSerializer, OrgCreateSerializer, OrgUpdateSerializer
+from bothub.common.models import (
+    Organization,
+    OrganizationAuthorization,
+    Repository,
+    RepositoryAuthorization,
+)
+from bothub.api.v2.internal.organization.serializers import (
+    OrganizationSerializer,
+    OrgCreateSerializer,
+    OrgUpdateSerializer,
+)
 from bothub import utils
 
 
@@ -33,7 +42,8 @@ class InternalOrganizationViewSet(
 
     def create(self, request, *args, **kwargs):
         user, created = User.objects.get_or_create(
-            email=request.data.get('user_email', None), defaults={"nickname": request.data.get('user_email', None)}
+            email=request.data.get("user_email", None),
+            defaults={"nickname": request.data.get("user_email", None)},
         )
 
         serializer = OrgCreateSerializer(data=request.data)
@@ -60,7 +70,8 @@ class InternalOrganizationViewSet(
     def destroy(self, request, *args, **kwargs):
         org = Organization.objects.get(pk=request.data.get("id", None))
         user, created = User.objects.get_or_create(
-            email=request.query_params.get("user_email"), defaults={"nickname": request.query_params.get("user_email")}
+            email=request.query_params.get("user_email"),
+            defaults={"nickname": request.query_params.get("user_email")},
         )
 
         perm = org.organization_authorizations.get(user=user)
