@@ -20,6 +20,7 @@ from django_filters import rest_framework as filters
 from rest_framework import status
 from rest_framework.exceptions import APIException, ValidationError
 
+
 entity_regex = re.compile(
     r"\[(?P<entity_text>[^\]]+)" r"\]\((?P<entity>[^:)]*?)" r"(?:\:(?P<value>[^)]+))?\)"
 )
@@ -475,9 +476,19 @@ class DefaultExamplesFilter(filters.FilterSet):
         )
 
 
-def check_module_keycloak(token):
-    request = requests.get(
-        f"{settings.OIDC_OP_USER_ENDPOINT}", headers={"Authorization": "Bearer {token}"}
-    )
-    response = request.json()
-    return response.get("is_admin", False)
+def check_module_permission(claims, user):
+    from django.contrib.auth.models import Permission
+    from django.contrib.contenttypes.models import ContentType
+    from bothub.common.models import User
+
+    if claims.get("can_communicate_internally", False):
+        content_type = ContentType.objects.get_for_model(User)
+        permission, created = Permission.objects.get_or_create(
+            codename="can_communicate_internally",
+            name="can communicate internally",
+            content_type=content_type,
+        )
+        if not user.has_perm(permission):
+            user.user_permissions.add(permission)
+        return True
+    return False

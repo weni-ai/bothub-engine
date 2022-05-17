@@ -1,7 +1,7 @@
 from rest_framework import permissions
 
 from bothub.api.v2 import READ_METHODS, WRITE_METHODS
-from utils import get_user
+from bothub.utils import get_user
 
 
 class InternalOrganizationAdminHasPermission(permissions.BasePermission):
