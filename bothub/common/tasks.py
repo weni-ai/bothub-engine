@@ -42,7 +42,9 @@ from bothub.utils import (
 if settings.USE_GRPC:
     from bothub.api.grpc.connect_grpc_client import ConnectGRPCClient as ConnectClient
 else:
-    from bothub.api.v2.internal.connect_rest_client import ConnectRESTClient as ConnectClient
+    from bothub.api.v2.internal.connect_rest_client import (
+        ConnectRESTClient as ConnectClient,
+    )
 
 
 @app.task(name="es_handle_save")
