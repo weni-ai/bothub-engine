@@ -1,7 +1,7 @@
 from django.utils.translation import ugettext_lazy as _
 from django.db import models
 from rest_framework import mixins
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.decorators import permission_classes
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
@@ -20,6 +20,7 @@ from bothub.api.v2.internal.organization.serializers import (
 )
 from bothub import utils
 from bothub.api.v2.internal.permissions import ModuleHasPermission
+from bothub.api.v2.internal.organization.permissions import InternalOrganizationAdminHasPermission, InternalOrganizationHasPermission
 
 
 class InternalOrganizationViewSet(
@@ -32,16 +33,17 @@ class InternalOrganizationViewSet(
 ):
     queryset = Organization.objects.all()
     serializer_class = OrganizationSerializer
-    permission_classes = [ModuleHasPermission]
     lookup_field = "pk"
     metadata_class = Metadata
 
+    @permission_classes([ModuleHasPermission, InternalOrganizationHasPermission])
     def list(self, request, *args, **kwargs):
         user = utils.get_user(request.query_params.get("user_email"))
         serializer = OrganizationSerializer(user.get_user_organizations, many=True)
 
         return Response(serializer.data)
 
+    @permission_classes([ModuleHasPermission])
     def create(self, request, *args, **kwargs):
         user, created = User.objects.get_or_create(
             email=request.data.get("user_email", None),
@@ -69,19 +71,19 @@ class InternalOrganizationViewSet(
 
         return Response(org_serializer.data)
 
+    @permission_classes([ModuleHasPermission, InternalOrganizationAdminHasPermission])
     def destroy(self, request, *args, **kwargs):
-        org = Organization.objects.get(pk=request.data.get("id", None))
-        user, created = User.objects.get_or_create(
-            email=request.query_params.get("user_email"),
-            defaults={"nickname": request.query_params.get("user_email")},
-        )
+        # org = self.get_object()
+        # user, created = User.objects.get_or_create(
+        #     email=request.query_params.get("user_email"),
+        #     defaults={"nickname": request.query_params.get("user_email")},
+        # )
 
-        perm = org.organization_authorizations.get(user=user)
-        if perm.is_admin:
-            org.delete()
-            return Response({_("Organization deleted with success")})
-        raise PermissionDenied
+        # org.delete()
+        # return Response({_("Organization deleted with success")})
+        return super().destroy(request, *args, **kwargs)
 
+    @permission_classes([ModuleHasPermission, InternalOrganizationAdminHasPermission])
     def update(self, request, *args, **kwargs):
         serializer = OrgUpdateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -89,8 +91,9 @@ class InternalOrganizationViewSet(
 
         return Response(serializer.data)
 
+    @permission_classes([ModuleHasPermission])
     def retrieve(self, request, *args, **kwargs):
-        org = Organization.objects.get(pk=request.query_params.get("org_id", None))
+        org = self.get_object()
 
         auths = (
             RepositoryAuthorization.objects.exclude(repository__owner=org)
