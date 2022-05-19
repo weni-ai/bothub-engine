@@ -1,73 +1,112 @@
-# import json
+import json
 
-# from django.test import RequestFactory
-# from django.test import TestCase, override_settings
-# from django.test.client import MULTIPART_CONTENT
-# from django.utils.translation import ugettext_lazy as _
-# from rest_framework import status
+from django.test import tag
+from django.test import RequestFactory
+from django.test import TestCase
+from rest_framework import status
 
-# from bothub.authentication.models import User
-# from bothub.common import languages
-# from bothub.common.models import Repository
-# from bothub.utils import create_user_and_token
+from bothub.api.v2.internal.repository.views import InternalRepositoriesViewSet
+from bothub.api.v2.tests.utils import create_user_and_token
+from bothub.common.models import (
+    Organization,
+    OrganizationAuthorization,
+)
+from bothub.common.models import RepositoryCategory
 
-# class InternalRepositoryListTestCase(TestCase):
-
-#     def setUp(self):
-#         self.factory = RequestFactory()
-
-#         self.owner, self.owner_token = create_user_and_token("owner")
-
-#         self.repository = Repository.objects.create(
-#             owner=self.owner,
-#             name="Testing",
-#             slug="test",
-#             language=languages.LANGUAGE_EN,
-#         )
-
-#         self.example_intent_1 = RepositoryIntent.objects.create(
-#             text="bias",
-#             repository_version=self.repository.current_version().repository_version,
-#         )
-#         self.example = RepositoryExample.objects.create(
-#             repository_version_language=self.repository.current_version(),
-#             text="hi",
-#             intent=self.example_intent_1,
-#         )
-
-#         self.repository_auth = RepositoryAuthorization.objects.create(
-#             user=self.owner, repository=self.repository, role=3
-#         )
+from bothub.api.v2.tests.utils import get_valid_mockups, create_repository_from_mockup
 
 
-# InternalRepository
+class InternalRepositoryTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.moduser, self.moduser_token = create_user_and_token("module", module=True)
+        self.owner, self.owner_token = create_user_and_token("owner")
+        self.category = RepositoryCategory.objects.create(name="Category 1")
+        self.org = Organization.objects.create(
+            name="Organization 1", nickname="organization1"
+        )
+        OrganizationAuthorization.objects.create(
+            user=self.owner,
+            organization=self.org,
+            role=OrganizationAuthorization.ROLE_ADMIN,
+        )
+        self.repositories = [
+            create_repository_from_mockup(self.org, **mockup)
+            for mockup in get_valid_mockups([self.category])
+        ]
+        for rep in self.repositories:
+            rep.get_user_authorization(self.org)
 
-#     List
-#         setup
-#             user, token
-#             fail_user, fail_token
-#             repositories
-
-#         testok >
-#             GET with both user and module authorization
-#             GET with name filter
-#             GET with org_id filter
-#             compare response to database query data that should be returned
-#         testnotuser >
-#             GET without user authorization
-#         testnotmodule >
-#             GET without module authorization
-#         testwrong >
-#             GET with module/user authorization that does not have permission on the repository
+        self.repository_auth = self.repositories[0].get_user_authorization(self.owner)
 
 
-#     RetrieveAuthorization
-#         testok >
-#             GET with both user and module authorization
-#             compare response to database query data that should be returned
-#         testnotuser >
-#             GET without user authorization
-#         testnotmodule >
-#             GET without module authorization
-#         testwrong >
-#             GET with module/user authorization that does not have permission on the repository
+@tag("internal")
+class InternalRepositoryListTestCase(InternalRepositoryTestCase):
+    def request(self, params, token=None):
+        authorization_header = (
+            {"HTTP_AUTHORIZATION": "Token {}".format(token.key)} if token else {}
+        )
+
+        request = self.factory.get(
+            "/v2/internal/repository/",
+            params,
+            **authorization_header,
+        )
+        response = InternalRepositoriesViewSet.as_view({"get": "list"})(request)
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data)
+
+    def test_ok(self):
+        response, content_data = self.request(
+            {"name": "Repository 1", "org_id": self.org.id}, self.moduser_token
+        )
+        self.assertEqual(content_data["count"], 1)
+        self.assertEqual(len(content_data["results"]), 1)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_return_all_repos(self):
+        response, content_data = self.request(
+            {"org_id": self.org.id}, self.moduser_token
+        )
+
+        self.assertEqual(content_data["count"], 2)
+        self.assertEqual(len(content_data["results"]), 2)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_fail_module(self):
+        response, content_data = self.request({"org_id": self.org.pk}, self.owner_token)
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
+@tag("internal")
+class InternalRepositoryRetrieveAuthorizationTestCase(InternalRepositoryTestCase):
+    def request(self, params, token=None):
+        authorization_header = (
+            {"HTTP_AUTHORIZATION": "Token {}".format(token.key)} if token else {}
+        )
+        request = self.factory.get(
+            "/v2/internal/repository/RetrieveAuthorization/",
+            params,
+            **authorization_header,
+        )
+        response = InternalRepositoriesViewSet.as_view(
+            {"get": "retrieve_authorization"}
+        )(request)
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data)
+
+    def test_ok_repository_1(self):
+        response, content_data = self.request(
+            {"repository_authorization": self.repository_auth.pk}, self.moduser_token
+        )
+        self.assertEqual(content_data["name"], "Repository 1")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_not_ok(self):
+        response, content_data = self.request(
+            {"repository_authorization": self.repository_auth.pk}, self.owner_token
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

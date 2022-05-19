@@ -29,7 +29,7 @@ class InternalRepositoriesViewSet(mixins.ListModelMixin, GenericViewSet):
         return queryset[:20]
 
     @action(detail=True, methods=["GET"], url_name="retrieve-authorization")
-    def RetrieveAuthorization(self, request, **kwargs):
+    def retrieve_authorization(self, request, **kwargs):
         auth = self.request.query_params.get("repository_authorization", None)
         repository = Repository.objects.none()
         if auth:
