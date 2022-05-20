@@ -70,6 +70,13 @@ class InternalOrganizationListTestCase(InternalOrganizationTestCase):
         self.assertEqual(len(content_data), 2)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+    def test_not_ok(self):
+        response, content_data = self.request(
+            {"user_email": self.owner.email},
+            self.owner_token,
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
 
 @tag("internal")
 class InternalOrganizationCreateTestCase(InternalOrganizationTestCase):
@@ -105,6 +112,13 @@ class InternalOrganizationCreateTestCase(InternalOrganizationTestCase):
             OrganizationAuthorization.ROLE_ADMIN,
         )
 
+    def test_not_ok(self):
+        response, content_data = self.request(
+            {"user_email": self.owner.email, "organization_name": "org3"},
+            self.owner_token,
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
 
 @tag("internal")
 class InternalOrganizationDestroyTestCase(InternalOrganizationTestCase):
@@ -134,6 +148,14 @@ class InternalOrganizationDestroyTestCase(InternalOrganizationTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         organization = Organization.objects.filter(pk=self.org_2.pk)
         self.assertEqual(organization.count(), 0)
+
+    def test_not_ok(self):
+        response, content_data = self.request(
+            self.owner.email,
+            self.org_2.id,
+            self.owner_token,
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
 @tag("internal")
@@ -168,6 +190,16 @@ class InternalOrganizationUpdateTestCase(InternalOrganizationTestCase):
 
         self.assertEqual(organization.name, "org222")
 
+    def test_not_ok(self):
+        response, content_data = self.request(
+            {"name": "org222"},
+            self.owner.email,
+            self.org_2.id,
+            self.owner_token,
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
 
 @tag("internal")
 class InternalOrganizationRetrieveTestCase(InternalOrganizationTestCase):
@@ -195,3 +227,11 @@ class InternalOrganizationRetrieveTestCase(InternalOrganizationTestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(content_data["repositories_count"], 2)
+
+    def test_not_ok(self):
+        response, content_data = self.request(
+            self.owner.email,
+            self.org.id,
+            self.owner_token,
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
