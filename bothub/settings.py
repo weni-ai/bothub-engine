@@ -150,9 +150,7 @@ MIDDLEWARE = [
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
-    "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "bothub.api.v2.middleware.UserLanguageMiddleware",
-
 ]
 
 ROOT_URLCONF = "bothub.urls"
@@ -303,9 +301,19 @@ CSRF_COOKIE_SECURE = env.bool("CSRF_COOKIE_SECURE")
 
 # CSP headers
 
-CSP_DEFAULT_SRC = ("'self'", '*')
-
-CSP_FRAME_ANCESTORS = ["'self'", "*.weni.ai"]
+CSP_DEFAULT_SRC = env.tuple("CSP_DEFAULT_SRC", default=("'self'",))
+CSP_FRAME_ANCESTORS = env.tuple("CSP_FRAME_ANCESTORS", default=("'self'", "*.weni.ai"))
+CSP_FONT_SRC = env.tuple("CSP_FONT_SRC", default=CSP_DEFAULT_SRC)
+CSP_STYLE_SRC = env.tuple(
+    "CSP_STYLE_SRC", default=("'self'", "'unsafe-inline'", "'unsafe-eval'")
+)
+CSP_STYLE_SRC_ELEM = env.tuple("CSP_STYLE_SRC_ELEM", default=CSP_STYLE_SRC)
+CSP_SCRIPT_SRC = env.tuple(
+    "CSP_SCRIPT_SRC", default=("'self'", "'unsafe-inline'", "'unsafe-eval'")
+)
+CSP_SCRIPT_SRC_ELEM = env.tuple("CSP_SCRIPT_SRC_ELEM", default=CSP_SCRIPT_SRC)
+CSP_FRAME_SRC = env.tuple("CSP_FRAME_SRC", default=CSP_DEFAULT_SRC)
+CSP_CONNECT_SRC = env.tuple("CSP_CONNECT_SRC", default=CSP_DEFAULT_SRC)
 
 
 # Logging
