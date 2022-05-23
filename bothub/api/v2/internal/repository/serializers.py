@@ -3,7 +3,7 @@ from rest_framework import serializers
 from bothub.api.v2.repository.serializers import RepositoryCategorySerializer
 from bothub.common.models import Repository
 
-from bothub.utils import internal_fields
+from bothub.utils import internal_serializer_fields
 
 
 class InternalRepositorySerializer(serializers.ModelSerializer):
@@ -14,7 +14,7 @@ class InternalRepositorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Repository
-        fields = internal_fields
+        fields = internal_serializer_fields
 
     def get_owner__nickname(self, repository: Repository):
         return repository.owner.nickname

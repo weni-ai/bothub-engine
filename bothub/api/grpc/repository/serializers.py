@@ -5,7 +5,7 @@ from bothub.api.v2.repository.serializers import RepositoryCategorySerializer
 from bothub.common.models import Repository
 from weni.protobuf.intelligence import repository_pb2
 
-from bothub.utils import internal_fields
+from bothub.utils import internal_serializer_fields
 
 
 class RepositoryProtoSerializer(proto_serializers.ModelProtoSerializer):
@@ -17,7 +17,7 @@ class RepositoryProtoSerializer(proto_serializers.ModelProtoSerializer):
     class Meta:
         model = Repository
         proto_class = repository_pb2.Repository
-        fields = internal_fields
+        fields = internal_serializer_fields
 
     def get_owner__nickname(self, repository: Repository):
         return repository.owner.nickname

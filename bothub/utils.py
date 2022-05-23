@@ -493,6 +493,7 @@ def check_module_permission(claims, user):
         return True
     return False
 
+
 internal_serializer_fields = [
     "uuid",
     "name",
