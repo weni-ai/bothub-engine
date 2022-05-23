@@ -36,18 +36,18 @@ class ConnectRESTClient:
 
         return request.json()
 
-    def list_authorizations(self, project_uuid: str) -> List[str]:
-        classifiers = self.list_classifiers(project_uuid=project_uuid)
+    def list_authorizations(self, project_uuid: str, user_email: str) -> List[str]:
+        classifiers = self.list_classifiers(project_uuid=project_uuid, user_email=user_email)
 
         return [classifier.get("authorization_uuid") for classifier in classifiers]
 
     def get_authorization_classifier(
-        self, project_uuid: str, authorization_uuid: str
+        self, project_uuid: str, authorization_uuid: str, user_email: str
     ) -> str:
         """
         Recives a authorization UUID and returns the respective classifier UUID
         """
-        classifiers = self.list_classifiers(project_uuid)
+        classifiers = self.list_classifiers(project_uuid, user_email)
         classifier = filter(
             lambda classifier: classifier["authorization_uuid"] == authorization_uuid,
             classifiers,
@@ -59,7 +59,7 @@ class ConnectRESTClient:
         self, project_uuid: str, authorization_uuid: str, user_email: str
     ):
         classifier_uuid = self.get_authorization_classifier(
-            project_uuid, authorization_uuid
+            project_uuid, authorization_uuid, user_email,
         )
         request = requests.delete(
             url=f"{self.base_url}/v1/organization/project/destroy_classifier/",
