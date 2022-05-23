@@ -6,7 +6,11 @@ from django.test import RequestFactory
 from django.test import TestCase
 from rest_framework import status
 
-from bothub.api.v2.internal.user.views import UserPermissionViewSet, UserViewSet, UserLanguageViewSet
+from bothub.api.v2.internal.user.views import (
+    UserPermissionViewSet,
+    UserViewSet,
+    UserLanguageViewSet,
+)
 from bothub.api.v2.tests.utils import create_user_and_token
 from bothub.common.models import (
     Organization,
@@ -53,12 +57,18 @@ class InternalUserPermissionRetrieveTestCase(InternalUserTestCase):
         return (response, content_data)
 
     def test_ok(self):
-        response, content_data = self.request({"user_email": self.owner.email, "org_id": self.org.pk}, token=self.moduser_token)
-        self.assertEqual(content_data["role"] , OrganizationAuthorization.ROLE_ADMIN)
+        response, content_data = self.request(
+            {"user_email": self.owner.email, "org_id": self.org.pk},
+            token=self.moduser_token,
+        )
+        self.assertEqual(content_data["role"], OrganizationAuthorization.ROLE_ADMIN)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_not_ok(self):
-        response, content_data = self.request({"user_email": self.owner.email, "org_id": self.org.pk}, token=self.owner_token)
+        response, content_data = self.request(
+            {"user_email": self.owner.email, "org_id": self.org.pk},
+            token=self.owner_token,
+        )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
@@ -71,7 +81,9 @@ class InternalUserPermissionUpdateTestCase(InternalUserTestCase):
         authorization_header["content_type"] = "application/json"
 
         request = self.factory.put(
-            f"/v2/internal/user/permission?user_email={user_email}&org_id={org_id}", params, **authorization_header
+            f"/v2/internal/user/permission?user_email={user_email}&org_id={org_id}",
+            params,
+            **authorization_header,
         )
         response = UserPermissionViewSet.as_view({"put": "update"})(request)
         response.render()
@@ -79,14 +91,28 @@ class InternalUserPermissionUpdateTestCase(InternalUserTestCase):
         return (response, content_data)
 
     def test_ok(self):
-        response, content_data = self.request({"role": OrganizationAuthorization.ROLE_CONTRIBUTOR}, user_email=self.owner.email, org_id=self.org.pk, token=self.moduser_token)
-        auth = OrganizationAuthorization.objects.get(user=self.owner, organization=self.org)
-        self.assertEqual(content_data["role"] , OrganizationAuthorization.ROLE_CONTRIBUTOR)
-        self.assertEqual(content_data["role"] , auth.role)
+        response, content_data = self.request(
+            {"role": OrganizationAuthorization.ROLE_CONTRIBUTOR},
+            user_email=self.owner.email,
+            org_id=self.org.pk,
+            token=self.moduser_token,
+        )
+        auth = OrganizationAuthorization.objects.get(
+            user=self.owner, organization=self.org
+        )
+        self.assertEqual(
+            content_data["role"], OrganizationAuthorization.ROLE_CONTRIBUTOR
+        )
+        self.assertEqual(content_data["role"], auth.role)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_not_ok(self):
-        response, content_data = self.request({"role": OrganizationAuthorization.ROLE_CONTRIBUTOR}, user_email=self.owner.email, org_id=self.org.pk, token=self.owner_token)
+        response, content_data = self.request(
+            {"role": OrganizationAuthorization.ROLE_CONTRIBUTOR},
+            user_email=self.owner.email,
+            org_id=self.org.pk,
+            token=self.owner_token,
+        )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
@@ -99,7 +125,9 @@ class InternalUserPermissionDeleteTestCase(InternalUserTestCase):
         authorization_header["content_type"] = "application/json"
 
         request = self.factory.delete(
-            f"/v2/internal/user/permission?user_email={user_email}&org_id={org_id}", {}, **authorization_header
+            f"/v2/internal/user/permission?user_email={user_email}&org_id={org_id}",
+            {},
+            **authorization_header,
         )
         response = UserPermissionViewSet.as_view({"delete": "destroy"})(request)
         response.render()
@@ -107,12 +135,16 @@ class InternalUserPermissionDeleteTestCase(InternalUserTestCase):
         return (response, content_data)
 
     def test_ok(self):
-        response, content_data = self.request(user_email=self.owner.email, org_id=self.org.pk, token=self.moduser_token)
+        response, content_data = self.request(
+            user_email=self.owner.email, org_id=self.org.pk, token=self.moduser_token
+        )
         self.assertEqual(content_data["role"], None)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_not_ok(self):
-        response, content_data = self.request(user_email=self.owner.email, org_id=self.org.pk, token=self.owner_token)
+        response, content_data = self.request(
+            user_email=self.owner.email, org_id=self.org.pk, token=self.owner_token
+        )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
@@ -123,21 +155,23 @@ class InternalUserRetrieveTestCase(InternalUserTestCase):
             {"HTTP_AUTHORIZATION": "Token {}".format(token.key)} if token else {}
         )
 
-        request = self.factory.get(
-            "/v2/internal/user", params, **authorization_header
-        )
+        request = self.factory.get("/v2/internal/user", params, **authorization_header)
         response = UserViewSet.as_view({"get": "retrieve"})(request)
         response.render()
         content_data = json.loads(response.content)
         return (response, content_data)
 
     def test_ok(self):
-        response, content_data = self.request({"user_email": self.owner.email}, token=self.moduser_token)
-        self.assertEqual(content_data["email"] , self.owner.email)
+        response, content_data = self.request(
+            {"user_email": self.owner.email}, token=self.moduser_token
+        )
+        self.assertEqual(content_data["email"], self.owner.email)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_not_ok(self):
-        response, content_data = self.request({"user_email": self.owner.email}, token=self.owner_token)
+        response, content_data = self.request(
+            {"user_email": self.owner.email}, token=self.owner_token
+        )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
@@ -150,7 +184,9 @@ class InternalUserLanguageUpdateTestCase(InternalUserTestCase):
         authorization_header["content_type"] = "application/json"
 
         request = self.factory.put(
-            f"/v2/internal/user/language?user_email={user_email}", params, **authorization_header
+            f"/v2/internal/user/language?user_email={user_email}",
+            params,
+            **authorization_header,
         )
         response = UserLanguageViewSet.as_view({"put": "update"})(request)
         response.render()
@@ -158,11 +194,15 @@ class InternalUserLanguageUpdateTestCase(InternalUserTestCase):
         return (response, content_data)
 
     def test_ok(self):
-        response, content_data = self.request({"language":"es"}, user_email=self.owner.email, token=self.moduser_token)
+        response, content_data = self.request(
+            {"language": "es"}, user_email=self.owner.email, token=self.moduser_token
+        )
         user = User.objects.get(email=self.owner.email)
-        self.assertEqual(content_data["language"] , user.language)
+        self.assertEqual(content_data["language"], user.language)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_not_ok(self):
-        response, content_data = self.request({"language":"es"}, user_email=self.owner.email, token=self.owner_token)
+        response, content_data = self.request(
+            {"language": "es"}, user_email=self.owner.email, token=self.owner_token
+        )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
