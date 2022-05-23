@@ -12,7 +12,6 @@ from django.utils import timezone
 from django_elasticsearch_dsl.registries import registry
 
 from bothub import translate
-from bothub.api.grpc.connect_grpc_client import ConnectGRPCClient
 from bothub.celery import app
 from bothub.common.models import (
     RepositoryQueueTask,
@@ -38,6 +37,14 @@ from bothub.utils import (
     evaluate_size_score,
     request_nlp,
 )
+
+
+if settings.USE_GRPC:
+    from bothub.api.grpc.connect_grpc_client import ConnectGRPCClient as ConnectClient
+else:
+    from bothub.api.v2.internal.connect_rest_client import (
+        ConnectRESTClient as ConnectClient,
+    )
 
 
 @app.task(name="es_handle_save")
@@ -544,9 +551,16 @@ def evaluate_crossvalidation(data, authorization_token):  # pragma: no cover
 
 
 @app.task(name="get_project_organization")
-def get_project_organization(project_uuid: str):  # pragma: no cover
-    grpc_client = ConnectGRPCClient()
-    authorizations = grpc_client.list_authorizations(project_uuid=project_uuid)
+def get_project_organization(
+    project_uuid: str, user_email: str = ""
+):  # pragma: no cover
+    grpc_client = ConnectClient()
+    if settings.USE_GRPC:
+        authorizations = grpc_client.list_authorizations(project_uuid=project_uuid)
+    else:
+        authorizations = grpc_client.list_authorizations(
+            project_uuid=project_uuid, user_email=user_email
+        )
     return authorizations
 
 
@@ -554,13 +568,13 @@ def get_project_organization(project_uuid: str):  # pragma: no cover
 def remove_authorizations_project(
     project_uuid: str, authorizations_uuids: list, user_email: str
 ):
-    grpc_client = ConnectGRPCClient()
+    grpc_client = ConnectClient()
     for authorization_uuid in authorizations_uuids:
         grpc_client.remove_authorization(project_uuid, authorization_uuid, user_email)
 
 
 @app.task(name="create_repository_project")
 def create_repository_project(**kwargs):
-    grpc_client = ConnectGRPCClient()
+    grpc_client = ConnectClient()
     grpc_client.create_classifier(**kwargs)
     return kwargs
