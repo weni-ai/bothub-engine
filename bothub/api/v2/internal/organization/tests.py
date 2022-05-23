@@ -47,12 +47,19 @@ class InternalOrganizationTestCase(TestCase):
         self.repository_auth = self.repositories[0].get_user_authorization(self.owner)
 
 
+def auth_header(token):
+    authorization_header = (
+        {"HTTP_AUTHORIZATION": "Token {}".format(token.key)} if token else {}
+    )
+    authorization_header["content_type"] = "application/json"
+
+    return authorization_header
+
+
 @tag("internal")
 class InternalOrganizationListTestCase(InternalOrganizationTestCase):
     def request(self, params, token=None):
-        authorization_header = (
-            {"HTTP_AUTHORIZATION": "Token {}".format(token.key)} if token else {}
-        )
+        authorization_header = auth_header(token)
 
         request = self.factory.get(
             "/v2/internal/organization/", params, **authorization_header
@@ -81,10 +88,7 @@ class InternalOrganizationListTestCase(InternalOrganizationTestCase):
 @tag("internal")
 class InternalOrganizationCreateTestCase(InternalOrganizationTestCase):
     def request(self, data, token=None):
-        authorization_header = (
-            {"HTTP_AUTHORIZATION": "Token {}".format(token.key)} if token else {}
-        )
-        authorization_header["content_type"] = "application/json"
+        authorization_header = auth_header(token)
 
         request = self.factory.post(
             "/v2/internal/organization/", data, **authorization_header
@@ -123,10 +127,7 @@ class InternalOrganizationCreateTestCase(InternalOrganizationTestCase):
 @tag("internal")
 class InternalOrganizationDestroyTestCase(InternalOrganizationTestCase):
     def request(self, email, id, token=None):
-        authorization_header = (
-            {"HTTP_AUTHORIZATION": "Token {}".format(token.key)} if token else {}
-        )
-        authorization_header["content_type"] = "application/json"
+        authorization_header = auth_header(token)
 
         request = self.factory.delete(
             f"/v2/internal/organization/?user_email={email}", **authorization_header
@@ -161,10 +162,7 @@ class InternalOrganizationDestroyTestCase(InternalOrganizationTestCase):
 @tag("internal")
 class InternalOrganizationUpdateTestCase(InternalOrganizationTestCase):
     def request(self, data, email, id, token=None):
-        authorization_header = (
-            {"HTTP_AUTHORIZATION": "Token {}".format(token.key)} if token else {}
-        )
-        authorization_header["content_type"] = "application/json"
+        authorization_header = auth_header(token)
 
         request = self.factory.put(
             f"/v2/internal/organization/?user_email={email}",
@@ -204,10 +202,7 @@ class InternalOrganizationUpdateTestCase(InternalOrganizationTestCase):
 @tag("internal")
 class InternalOrganizationRetrieveTestCase(InternalOrganizationTestCase):
     def request(self, email, id, token=None):
-        authorization_header = (
-            {"HTTP_AUTHORIZATION": "Token {}".format(token.key)} if token else {}
-        )
-        authorization_header["content_type"] = "application/json"
+        authorization_header = auth_header(token)
 
         request = self.factory.get(
             f"/v2/internal/organization/?user_email={email}", **authorization_header
