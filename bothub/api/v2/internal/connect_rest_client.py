@@ -29,7 +29,7 @@ class ConnectRESTClient:
         self, project_uuid: str, user_email: str
     ) -> List[Dict[str, str]]:
         request = requests.get(
-            url=f"{self.base_url}/v2/internal/classifiers",
+            url=f"{self.base_url}/v1/organization/project/list_classifier/",
             headers=self.headers,
             params={"project_uuid": project_uuid, "user_email": user_email},
         )
@@ -62,7 +62,7 @@ class ConnectRESTClient:
             project_uuid, authorization_uuid
         )
         request = requests.delete(
-            url=f"{self.base_url}/v2/internal/authorization",
+            url=f"{self.base_url}/v1/organization/project/destroy_classifier/",
             headers=self.headers,
             json=json.dumps({"uuid": classifier_uuid, "user_email": user_email}),
         )
@@ -71,7 +71,7 @@ class ConnectRESTClient:
 
     def create_classifier(self, **kwargs):
         request = requests.post(
-            url=f"{self.base_url}/v2/internal/classifier/create",
+            url=f"{self.base_url}/v1/organization/project/create_classifier/",
             headers=self.headers,
             json=json.dumps({**kwargs, "classifier_type": "bothub"}),
         )

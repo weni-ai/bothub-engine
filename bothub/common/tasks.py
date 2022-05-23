@@ -551,9 +551,12 @@ def evaluate_crossvalidation(data, authorization_token):  # pragma: no cover
 
 
 @app.task(name="get_project_organization")
-def get_project_organization(project_uuid: str):  # pragma: no cover
+def get_project_organization(project_uuid: str, user_email: str=""):  # pragma: no cover
     grpc_client = ConnectClient()
-    authorizations = grpc_client.list_authorizations(project_uuid=project_uuid)
+    if settings.USE_GRPC:
+        authorizations = grpc_client.list_authorizations(project_uuid=project_uuid)
+    else:
+        authorizations = grpc_client.list_authorizations(project_uuid=project_uuid, user_email=user_email)
     return authorizations
 
 
