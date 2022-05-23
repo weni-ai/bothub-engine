@@ -492,3 +492,25 @@ def check_module_permission(claims, user):
             user.user_permissions.add(permission)
         return True
     return False
+
+
+internal_serializer_fields = [
+    "uuid",
+    "name",
+    "slug",
+    "description",
+    "is_private",
+    "created_at",
+    "language",
+    "owner",
+    "algorithm",
+    "use_competing_intents",
+    "use_name_entities",
+    "use_analyze_char",
+    "owner__nickname",
+    "intents",
+    "categories",
+    "available_languages",
+    "categories_list",
+    "repository_type",
+]
