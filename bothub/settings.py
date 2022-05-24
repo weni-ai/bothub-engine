@@ -75,6 +75,8 @@ env = environ.Env(
     SECRET_KEY_CHECK_LEGACY_USER=(str, None),
     CONNECT_GRPC_SERVER_URL=(str, "localhost:8002"),
     CONNECT_CERTIFICATE_GRPC_CRT=(str, None),
+    USE_GRPC=(bool, False),
+    CONNECT_API_URL=(str, ""),
     REPOSITORY_RESTRICT_ACCESS_NLP_LOGS=(list, []),
     REPOSITORY_BLOCK_USER_LOGS=(list, []),
     REPOSITORY_KNOWLEDGE_BASE_DESCRIPTION_LIMIT=(int, 450),
@@ -556,6 +558,10 @@ if OIDC_ENABLED:
 CONNECT_GRPC_SERVER_URL = env.str("CONNECT_GRPC_SERVER_URL")
 
 CONNECT_CERTIFICATE_GRPC_CRT = env.str("CONNECT_CERTIFICATE_GRPC_CRT")
+
+USE_GRPC = env.bool("USE_GRPC", default=False)
+
+CONNECT_API_URL = env.str("CONNECT_API_URL", default="https://api.dev.cloud.weni.ai")
 
 # ElasticSearch
 ELASTICSEARCH_DSL = {

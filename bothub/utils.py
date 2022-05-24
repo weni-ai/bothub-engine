@@ -20,6 +20,7 @@ from django_filters import rest_framework as filters
 from rest_framework import status
 from rest_framework.exceptions import APIException, ValidationError
 
+
 entity_regex = re.compile(
     r"\[(?P<entity_text>[^\]]+)" r"\]\((?P<entity>[^:)]*?)" r"(?:\:(?P<value>[^)]+))?\)"
 )
@@ -375,6 +376,17 @@ def get_organization(request, organization_id: int):
         )
 
 
+def get_user_and_organization(user_email: str, organization_id: int):
+    from bothub.authentication.models import User
+    from bothub.common.models import Organization
+
+    org = Organization.objects.get(pk=organization_id)
+    user, created = User.objects.get_or_create(
+        email=user_email, defaults={"nickname": user_email}
+    )
+    return user, org
+
+
 class TimeBasedDocument(Document):
     def save(self, action="create", **kwargs):
         return super().save(action=action, **kwargs)
@@ -462,3 +474,43 @@ class DefaultExamplesFilter(filters.FilterSet):
         return filter_validate_entities(queryset, value).exclude(
             original_entities_count=F("entities_count")
         )
+
+
+def check_module_permission(claims, user):
+    from django.contrib.auth.models import Permission
+    from django.contrib.contenttypes.models import ContentType
+    from bothub.common.models import User
+
+    if claims.get("can_communicate_internally", False):
+        content_type = ContentType.objects.get_for_model(User)
+        permission, created = Permission.objects.get_or_create(
+            codename="can_communicate_internally",
+            name="can communicate internally",
+            content_type=content_type,
+        )
+        if not user.has_perm("authentication.can_communicate_internally"):
+            user.user_permissions.add(permission)
+        return True
+    return False
+
+
+internal_serializer_fields = [
+    "uuid",
+    "name",
+    "slug",
+    "description",
+    "is_private",
+    "created_at",
+    "language",
+    "owner",
+    "algorithm",
+    "use_competing_intents",
+    "use_name_entities",
+    "use_analyze_char",
+    "owner__nickname",
+    "intents",
+    "categories",
+    "available_languages",
+    "categories_list",
+    "repository_type",
+]
