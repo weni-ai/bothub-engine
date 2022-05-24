@@ -94,15 +94,15 @@ env = environ.Env(
     ELASTICSEARCH_LOGS_DELETE_AGE=(str, "90d"),
     ELASTICSEARCH_LOGS_ROLLOVER_AGE=(str, "1d"),
     ELASTICSEARCH_TIMESTAMP_PIPELINE_FIELD=(str, "created_at"),
-    CSP_DEFAULT_SRC = (tuple, "CSP_DEFAULT_SRC")
-    CSP_FRAME_ANCESTORS = (tuple, "CSP_FRAME_ANCESTORS")
-    CSP_FONT_SRC = (tuple, "CSP_FONT_SRC")
-    CSP_STYLE_SRC = (tuple, "CSP_STYLE_SRC")
-    CSP_STYLE_SRC_ELEM = (tuple, "CSP_STYLE_SRC_ELEM")
-    CSP_SCRIPT_SRC = (tuple, "CSP_SCRIPT_SRC")
-    CSP_SCRIPT_SRC_ELEM = (tuple, "CSP_SCRIPT_SRC_ELEM")
-    CSP_FRAME_SRC = (tuple, "CSP_FRAME_SRC")
-    CSP_CONNECT_SRC = (tuple, "CSP_CONNECT_SRC")
+    CSP_DEFAULT_SRC=(tuple, "CSP_DEFAULT_SRC"),
+    CSP_FRAME_ANCESTORS=(tuple, "CSP_FRAME_ANCESTORS"),
+    CSP_FONT_SRC=(tuple, "CSP_FONT_SRC"),
+    CSP_STYLE_SRC=(tuple, "CSP_STYLE_SRC"),
+    CSP_STYLE_SRC_ELEM=(tuple, "CSP_STYLE_SRC_ELEM"),
+    CSP_SCRIPT_SRC=(tuple, "CSP_SCRIPT_SRC"),
+    CSP_SCRIPT_SRC_ELEM=(tuple, "CSP_SCRIPT_SRC_ELEM"),
+    CSP_FRAME_SRC=(tuple, "CSP_FRAME_SRC"),
+    CSP_CONNECT_SRC=(tuple, "CSP_CONNECT_SRC"),
 )
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
