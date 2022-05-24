@@ -1,4 +1,5 @@
 import logging
+import re
 
 from django.utils.translation import ugettext_lazy as _
 from bothub.utils import check_module_permission
@@ -95,6 +96,7 @@ class WeniOIDCAuthenticationBackend(OIDCAuthenticationBackend):
         # Override existing create_user method in OIDCAuthenticationBackend
         email = claims.get("email")
         username = self.get_username(claims)[:16]
+        username = re.sub("[^A-Za-z0-9]+", "", username)
         user = self.UserModel.objects.create_user(email, username)
 
         user.name = claims.get("name", "")
