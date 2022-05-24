@@ -42,48 +42,11 @@ from bothub.common.models import RepositoryTranslatedExample
 from bothub.common.models import RepositoryVote
 from bothub.common.models import RequestRepositoryAuthorization
 
-
-def get_valid_mockups(categories):
-    return [
-        {
-            "name": "Repository 1",
-            "slug": "repository-1",
-            "description": "",
-            "language": languages.LANGUAGE_EN,
-            "categories": [category.pk for category in categories],
-        },
-        {
-            "name": "Repository 2",
-            "description": "",
-            "language": languages.LANGUAGE_PT,
-            "categories": [category.pk for category in categories],
-        },
-    ]
-
-
-def get_invalid_mockups(categories):
-    return [
-        {
-            "name": "",
-            "slug": "repository-1",
-            "language": languages.LANGUAGE_EN,
-            "categories": [category.pk for category in categories],
-        },
-        {
-            "name": "Repository 3",
-            "language": "out",
-            "categories": [category.pk for category in categories],
-            "is_private": False,
-        },
-    ]
-
-
-def create_repository_from_mockup(owner, categories, **mockup):
-    r = Repository.objects.create(owner_id=owner.id, **mockup)
-    r.current_version()
-    for category in categories:
-        r.categories.add(category)
-    return r
+from bothub.api.v2.tests.utils import (
+    get_valid_mockups,
+    get_invalid_mockups,
+    create_repository_from_mockup,
+)
 
 
 class CreateRepositoryAPITestCase(TestCase):

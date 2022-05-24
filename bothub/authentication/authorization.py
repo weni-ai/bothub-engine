@@ -2,6 +2,9 @@ import logging
 import re
 
 from django.utils.translation import ugettext_lazy as _
+from bothub.utils import check_module_permission
+
+
 from mozilla_django_oidc.auth import OIDCAuthenticationBackend
 from rest_framework import exceptions
 from rest_framework.authentication import TokenAuthentication, get_authorization_header
@@ -99,11 +102,14 @@ class WeniOIDCAuthenticationBackend(OIDCAuthenticationBackend):
         user.name = claims.get("name", "")
         user.save()
 
+        check_module_permission(claims, user)
+
         return user
 
     def update_user(self, user, claims):
         user.name = claims.get("name", "")
         user.email = claims.get("email", "")
         user.save()
+        check_module_permission(claims, user)
 
         return user

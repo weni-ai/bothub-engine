@@ -804,7 +804,7 @@ class RepositoriesViewSet(mixins.ListModelMixin, GenericViewSet):
             raise ValidationError(_("Need to pass 'project_uuid' in query params"))
 
         task = celery_app.send_task(
-            name="get_project_organization", args=[project_uuid]
+            name="get_project_organization", args=[project_uuid, request.user.email]
         )
         task.wait()
 
