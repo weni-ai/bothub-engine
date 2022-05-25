@@ -75,6 +75,8 @@ env = environ.Env(
     SECRET_KEY_CHECK_LEGACY_USER=(str, None),
     CONNECT_GRPC_SERVER_URL=(str, "localhost:8002"),
     CONNECT_CERTIFICATE_GRPC_CRT=(str, None),
+    USE_GRPC=(bool, False),
+    CONNECT_API_URL=(str, ""),
     REPOSITORY_RESTRICT_ACCESS_NLP_LOGS=(list, []),
     REPOSITORY_BLOCK_USER_LOGS=(list, []),
     REPOSITORY_KNOWLEDGE_BASE_DESCRIPTION_LIMIT=(int, 450),
@@ -92,6 +94,15 @@ env = environ.Env(
     ELASTICSEARCH_LOGS_DELETE_AGE=(str, "90d"),
     ELASTICSEARCH_LOGS_ROLLOVER_AGE=(str, "1d"),
     ELASTICSEARCH_TIMESTAMP_PIPELINE_FIELD=(str, "created_at"),
+    CSP_DEFAULT_SRC=(tuple, "CSP_DEFAULT_SRC"),
+    CSP_FRAME_ANCESTORS=(tuple, "CSP_FRAME_ANCESTORS"),
+    CSP_FONT_SRC=(tuple, "CSP_FONT_SRC"),
+    CSP_STYLE_SRC=(tuple, "CSP_STYLE_SRC"),
+    CSP_STYLE_SRC_ELEM=(tuple, "CSP_STYLE_SRC_ELEM"),
+    CSP_SCRIPT_SRC=(tuple, "CSP_SCRIPT_SRC"),
+    CSP_SCRIPT_SRC_ELEM=(tuple, "CSP_SCRIPT_SRC_ELEM"),
+    CSP_FRAME_SRC=(tuple, "CSP_FRAME_SRC"),
+    CSP_CONNECT_SRC=(tuple, "CSP_CONNECT_SRC"),
 )
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -144,12 +155,12 @@ MIDDLEWARE = [
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.locale.LocaleMiddleware",
+    "csp.middleware.CSPMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
-    "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "bothub.api.v2.middleware.UserLanguageMiddleware",
 ]
 
@@ -297,6 +308,23 @@ BOTHUB_NLP_BASE_URL = env.str("BOTHUB_NLP_BASE_URL")
 CSRF_COOKIE_DOMAIN = env.str("CSRF_COOKIE_DOMAIN")
 
 CSRF_COOKIE_SECURE = env.bool("CSRF_COOKIE_SECURE")
+
+
+# CSP headers
+
+CSP_DEFAULT_SRC = env.tuple("CSP_DEFAULT_SRC", default=("'self'",))
+CSP_FRAME_ANCESTORS = env.tuple("CSP_FRAME_ANCESTORS", default=("'self'", "*.weni.ai"))
+CSP_FONT_SRC = env.tuple("CSP_FONT_SRC", default=CSP_DEFAULT_SRC)
+CSP_STYLE_SRC = env.tuple(
+    "CSP_STYLE_SRC", default=("'self'", "'unsafe-inline'", "'unsafe-eval'")
+)
+CSP_STYLE_SRC_ELEM = env.tuple("CSP_STYLE_SRC_ELEM", default=CSP_STYLE_SRC)
+CSP_SCRIPT_SRC = env.tuple(
+    "CSP_SCRIPT_SRC", default=("'self'", "'unsafe-inline'", "'unsafe-eval'")
+)
+CSP_SCRIPT_SRC_ELEM = env.tuple("CSP_SCRIPT_SRC_ELEM", default=CSP_SCRIPT_SRC)
+CSP_FRAME_SRC = env.tuple("CSP_FRAME_SRC", default=CSP_DEFAULT_SRC)
+CSP_CONNECT_SRC = env.tuple("CSP_CONNECT_SRC", default=CSP_DEFAULT_SRC)
 
 
 # Logging
@@ -530,6 +558,10 @@ if OIDC_ENABLED:
 CONNECT_GRPC_SERVER_URL = env.str("CONNECT_GRPC_SERVER_URL")
 
 CONNECT_CERTIFICATE_GRPC_CRT = env.str("CONNECT_CERTIFICATE_GRPC_CRT")
+
+USE_GRPC = env.bool("USE_GRPC", default=False)
+
+CONNECT_API_URL = env.str("CONNECT_API_URL", default="https://api.dev.cloud.weni.ai")
 
 # ElasticSearch
 ELASTICSEARCH_DSL = {
