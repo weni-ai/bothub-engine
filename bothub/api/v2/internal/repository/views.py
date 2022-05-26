@@ -18,7 +18,7 @@ class InternalRepositoriesViewSet(mixins.ListModelMixin, GenericViewSet):
     search_fields = ["$name", "^name", "=name"]
 
     def get_queryset(self, *args, **kwargs):
-        queryset = self.queryset
+        queryset = self.queryset.all()
         name = self.request.query_params.get("name", None)
         if name:
             queryset = self.queryset.filter(name__icontains=name)
