@@ -103,6 +103,8 @@ env = environ.Env(
     CSP_SCRIPT_SRC_ELEM=(tuple, "CSP_SCRIPT_SRC_ELEM"),
     CSP_FRAME_SRC=(tuple, "CSP_FRAME_SRC"),
     CSP_CONNECT_SRC=(tuple, "CSP_CONNECT_SRC"),
+    CSP_WORKER_SRC=(tuple, "CSP_WORKER_SRC"),
+    CSP_IMG_SRC=(tuple, "CSP_IMG_SRC"),
 )
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -312,19 +314,26 @@ CSRF_COOKIE_SECURE = env.bool("CSRF_COOKIE_SECURE")
 
 # CSP headers
 
-CSP_DEFAULT_SRC = env.tuple("CSP_DEFAULT_SRC", default=("'self'",))
-CSP_FRAME_ANCESTORS = env.tuple("CSP_FRAME_ANCESTORS", default=("'self'", "*.weni.ai"))
+DEFAULT_CSP_SETTINGS = ("'self'",)
+DEFAULT_CSP_WENI_SETTINGS = DEFAULT_CSP_SETTINGS + ("*.weni.ai",)
+
+CSP_DEFAULT_SRC = env.tuple("CSP_DEFAULT_SRC", default=DEFAULT_CSP_SETTINGS)
+CSP_FRAME_ANCESTORS = env.tuple(
+    "CSP_FRAME_ANCESTORS", default=DEFAULT_CSP_WENI_SETTINGS
+)
 CSP_FONT_SRC = env.tuple("CSP_FONT_SRC", default=CSP_DEFAULT_SRC)
 CSP_STYLE_SRC = env.tuple(
-    "CSP_STYLE_SRC", default=("'self'", "'unsafe-inline'", "'unsafe-eval'")
+    "CSP_STYLE_SRC", default=DEFAULT_CSP_SETTINGS + ("'unsafe-inline'", "'unsafe-eval'")
 )
 CSP_STYLE_SRC_ELEM = env.tuple("CSP_STYLE_SRC_ELEM", default=CSP_STYLE_SRC)
-CSP_SCRIPT_SRC = env.tuple(
-    "CSP_SCRIPT_SRC", default=("'self'", "'unsafe-inline'", "'unsafe-eval'")
-)
+CSP_SCRIPT_SRC = env.tuple("CSP_SCRIPT_SRC", default=CSP_STYLE_SRC)
 CSP_SCRIPT_SRC_ELEM = env.tuple("CSP_SCRIPT_SRC_ELEM", default=CSP_SCRIPT_SRC)
 CSP_FRAME_SRC = env.tuple("CSP_FRAME_SRC", default=CSP_DEFAULT_SRC)
 CSP_CONNECT_SRC = env.tuple("CSP_CONNECT_SRC", default=CSP_DEFAULT_SRC)
+CSP_WORKER_SRC = env.tuple(
+    "CSP_WORKER_SRC", default=DEFAULT_CSP_WENI_SETTINGS + ("blob:", "data:")
+)
+CSP_IMG_SRC = env.tuple("CSP_IMG_SRC", default=CSP_WORKER_SRC)
 
 
 # Logging
