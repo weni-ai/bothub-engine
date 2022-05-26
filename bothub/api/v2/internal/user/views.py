@@ -22,6 +22,7 @@ class UserPermissionViewSet(
     queryset = OrganizationAuthorization.objects.all()
     permission_classes = [ModuleHasPermission]
     serializer_class = UserPermissionSerializer
+    lookup_field = None
 
     def retrieve(self, request, **kwargs):
         user, org = utils.get_user_and_organization(
@@ -67,6 +68,7 @@ class UserViewSet(mixins.RetrieveModelMixin, GenericViewSet):
     serializer_class = UserSerializer
     permission_classes = [ModuleHasPermission]
     queryset = User.objects
+    lookup_field = None
 
     def retrieve(self, request, **kwargs):
         user, created = User.objects.get_or_create(
@@ -81,6 +83,7 @@ class UserLanguageViewSet(mixins.UpdateModelMixin, GenericViewSet):
     serializer_class = UserLanguageSerializer
     permission_classes = [ModuleHasPermission]
     queryset = User.objects
+    lookup_field = None
 
     def update(self, request, **kwargs):
         user, created = User.objects.get_or_create(
