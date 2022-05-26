@@ -103,6 +103,8 @@ env = environ.Env(
     CSP_SCRIPT_SRC_ELEM=(tuple, "CSP_SCRIPT_SRC_ELEM"),
     CSP_FRAME_SRC=(tuple, "CSP_FRAME_SRC"),
     CSP_CONNECT_SRC=(tuple, "CSP_CONNECT_SRC"),
+    CSP_WORKER_SRC=(tuple, "CSP_WORKER_SRC"),
+    CSP_IMG_SRC=(tuple, "CSP_IMG_SRC"),
 )
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -325,6 +327,12 @@ CSP_SCRIPT_SRC = env.tuple(
 CSP_SCRIPT_SRC_ELEM = env.tuple("CSP_SCRIPT_SRC_ELEM", default=CSP_SCRIPT_SRC)
 CSP_FRAME_SRC = env.tuple("CSP_FRAME_SRC", default=CSP_DEFAULT_SRC)
 CSP_CONNECT_SRC = env.tuple("CSP_CONNECT_SRC", default=CSP_DEFAULT_SRC)
+CSP_WORKER_SRC = env.tuple(
+    "CSP_WORKER_SRC", default=("'self'", "*.weni.ai", "blob:", "data:")
+)
+CSP_IMG_SRC = env.tuple(
+    "CSP_IMG_SRC", default=("'self'", "*.weni.ai", "blob:", "data:")
+)
 
 
 # Logging
