@@ -1,5 +1,4 @@
 import requests
-import json
 from typing import List, Dict
 
 from django.conf import settings
@@ -34,7 +33,7 @@ class ConnectRESTClient:
             params={"project_uuid": project_uuid, "user_email": user_email},
         )
 
-        return request.json()
+        return request.json()["data"]
 
     def list_authorizations(self, project_uuid: str, user_email: str) -> List[str]:
         classifiers = self.list_classifiers(
@@ -55,7 +54,7 @@ class ConnectRESTClient:
             classifiers,
         )
 
-        return classifier.get("uuid")
+        return next(classifier).get("uuid")
 
     def remove_authorization(
         self, project_uuid: str, authorization_uuid: str, user_email: str
@@ -68,7 +67,7 @@ class ConnectRESTClient:
         request = requests.delete(
             url=f"{self.base_url}/v1/organization/project/destroy_classifier/",
             headers=self.headers,
-            json=json.dumps({"uuid": classifier_uuid, "user_email": user_email}),
+            params={"uuid": classifier_uuid, "user_email": user_email},
         )
 
         return request.json()
@@ -77,6 +76,6 @@ class ConnectRESTClient:
         request = requests.post(
             url=f"{self.base_url}/v1/organization/project/create_classifier/",
             headers=self.headers,
-            json=json.dumps({**kwargs, "classifier_type": "bothub"}),
+            params={**kwargs, "classifier_type": "bothub"},
         )
         return request.json()
