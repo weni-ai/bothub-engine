@@ -8,6 +8,7 @@ version: '3.6'
 services:
   database:
     image: postgres
+    container_name: bothub-db
     ports:
       - 5432:5432
     volumes:
@@ -27,6 +28,7 @@ services:
 
   bothub:
     image: ${DOCKER_IMAGE_NAME:-ilha/bothub}:${TAG:-latest}
+    container_name: bothub-backend
     build:
       context: .
       dockerfile: Dockerfile
@@ -77,6 +79,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    container_name: bothub-celery
     depends_on:
       - bothub
       - bothub-engine-celery-redis
@@ -121,11 +124,13 @@ services:
 
   bothub-engine-celery-redis:
     image: redis
+    container_name: bothub-redis
     ports:
       - 6379:6379
 
   es:
     image: elasticsearch:7.14.1
+    container_name: bothub-es
     environment:
        - discovery.type=single-node
        - bootstrap.memory_lock=true
@@ -152,6 +157,7 @@ services:
 
   kibana:
     image: docker.elastic.co/kibana/kibana:7.14.1
+    container_name: bothub-kibana
     environment:
       SERVER_NAME: kibana
       ELASTICSEARCH_HOSTS: http://es:9200
