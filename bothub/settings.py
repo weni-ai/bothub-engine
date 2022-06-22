@@ -148,6 +148,7 @@ INSTALLED_APPS = [
     "django_grpc_framework",
     "django_elasticsearch_dsl",
     "django_elasticsearch_dsl_drf",
+    "debug_toolbar",
 ]
 
 MIDDLEWARE = [
@@ -155,6 +156,7 @@ MIDDLEWARE = [
     "elasticapm.contrib.django.middleware.Catch404Middleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.locale.LocaleMiddleware",
     "csp.middleware.CSPMiddleware",
@@ -626,3 +628,15 @@ ELASTICSEARCH_DSL_SIGNAL_PROCESSOR = ELASTICSEARCH_SIGNAL_PROCESSOR_CLASSES[
 ]
 
 REPOSITORY_BLOCK_USER_LOGS = env.list("REPOSITORY_BLOCK_USER_LOGS", default=[])
+
+# Django Debug Toolbar
+INTERNAL_IPS = [
+    "127.0.0.1",
+    "0.0.0.0",
+]
+
+def show_toolbar(request):
+    return DEBUG
+DEBUG_TOOLBAR_CONFIG = {
+    "SHOW_TOOLBAR_CALLBACK" : show_toolbar,
+}
