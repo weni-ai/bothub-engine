@@ -911,9 +911,13 @@ class Repository(models.Model):
         )
         if self.owner.is_organization:
             org_auth = self.owner.organization.get_organization_authorization(user)
-            if repo_auth.role < org_auth.role:
-                return org_auth
-
+            
+            # Excluding ROLE_TRANSLATE as it does not correspond to the same role in the client app (connect).
+            # todo: update this conditional with corresponding role rule
+            if repo_auth.role < org_auth.role\
+                and org_auth.role < RepositoryAuthorization.ROLE_TRANSLATE:
+                    repo_auth.role = org_auth.role
+                    repo_auth.save(update_fields=['role'])
         return repo_auth
 
     def get_absolute_url(self):
