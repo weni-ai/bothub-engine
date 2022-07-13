@@ -15,6 +15,8 @@ from .models import (
     RepositoryQueueTask,
     QAKnowledgeBase,
     QAtext,
+    Organization,
+    OrganizationAuthorization
 )
 from .models import RepositoryAuthorization
 from .models import RepositoryEntity
@@ -544,6 +546,7 @@ class RepositoryAuthorizationTestCase(TestCase):
     def setUp(self):
         self.owner = User.objects.create_user("owner@user.com", "owner")
         self.user = User.objects.create_user("fake@user.com", "user")
+        self.collaborator = User.objects.create_user("colaborator@user.com", "collaborator")
 
         self.repository = Repository.objects.create(
             owner=self.owner.repository_owner, name="Test", slug="test"
@@ -553,6 +556,12 @@ class RepositoryAuthorizationTestCase(TestCase):
             name="Test",
             slug="private",
             is_private=True,
+        )
+        self.organization = Organization.objects.create(name="Weni")
+        self.organization_repository = Repository.objects.create(
+            owner=self.organization, 
+            name="Organization Repository", 
+            slug="organization_repository"
         )
 
     def test_admin_level(self):
@@ -682,6 +691,36 @@ class RepositoryAuthorizationTestCase(TestCase):
         authorization_user.save()
         self.assertTrue(authorization_user.can_contribute)
 
+    def test_organization_auth_over_repository_auth(self):
+        """ 
+        Tests that a User's authorization role is of the highest level possible in a Repository, 
+        either using the RepositoryAuthorization or the OrganizationAuthorization.
+        """
+
+        # Set user's role to a low level at the Repository
+        collaborator_repository_auth, created = RepositoryAuthorization.objects.get_or_create(
+            user=self.collaborator, repository=self.organization_repository, role=RepositoryAuthorization.ROLE_USER
+        )
+        # Set user's role to a high level at the Organization
+        collaborator_organization_auth = self.organization.organization_authorizations.create(
+            user=self.collaborator, role=OrganizationAuthorization.ROLE_ADMIN
+        )
+        
+        # Validate that their access level corresponds to their role in the Organization and not the Repository, as it is higher at this point.
+        repository_auth = self.organization_repository.get_user_authorization(self.collaborator)
+        self.assertEqual(repository_auth.role, collaborator_organization_auth.role)
+
+        # Lower their level inside the Organization
+        collaborator_organization_auth.role = OrganizationAuthorization.ROLE_NOT_SETTED
+        collaborator_organization_auth.save()
+        
+        # Validate that the repository authorization level is the same as before, i.e, it was not overwritten.
+        collaborator_repository_auth.refresh_from_db()
+        self.assertEqual(collaborator_repository_auth.role, RepositoryAuthorization.ROLE_USER)
+
+        # Validate that the user's level is now the Repository's and not the Organization's, as it is higher.
+        repository_auth = self.organization_repository.get_user_authorization(self.collaborator)
+        self.assertEqual(repository_auth.role, collaborator_repository_auth.role)
 
 class RepositoryVersionTrainingTestCase(TestCase):
     def setUp(self):

@@ -906,16 +906,15 @@ class Repository(models.Model):
     def get_user_authorization(self, user):
         if user.is_anonymous:
             return RepositoryAuthorization(repository=self)
-        get, created = RepositoryAuthorization.objects.get_or_create(
+        repo_auth, created = RepositoryAuthorization.objects.get_or_create(
             user=user.repository_owner, repository=self
         )
         if self.owner.is_organization:
-            org_role = self.owner.organization.get_organization_authorization(user).role
-            if get.role != org_role and get.role == 0:
-                get.role = org_role
-                get.save()
+            org_auth = self.owner.organization.get_organization_authorization(user)
+            if repo_auth.role < org_auth.role:
+                return org_auth
 
-        return get
+        return repo_auth
 
     def get_absolute_url(self):
         return "{}dashboard/{}/{}/".format(
