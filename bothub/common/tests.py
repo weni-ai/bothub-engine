@@ -559,8 +559,8 @@ class RepositoryAuthorizationTestCase(TestCase):
         )
         self.organization = Organization.objects.create(name="Weni")
         self.organization_repository = Repository.objects.create(
-            owner=self.organization, 
-            name="Organization Repository", 
+            owner=self.organization,
+            name="Organization Repository",
             slug="organization_repository"
         )
 
@@ -692,8 +692,8 @@ class RepositoryAuthorizationTestCase(TestCase):
         self.assertTrue(authorization_user.can_contribute)
 
     def test_organization_auth_over_repository_auth(self):
-        """ 
-        Tests that a User's authorization role is of the highest level possible in a Repository, 
+        """
+        Tests that a User's authorization role is of the highest level possible in a Repository,
         either using the RepositoryAuthorization or the OrganizationAuthorization.
         The expected behavior is that the organization's authorization role should be passed to the repository's authorization for that user.
         """
@@ -709,7 +709,7 @@ class RepositoryAuthorizationTestCase(TestCase):
         collaborator_organization_auth = self.organization.organization_authorizations.create(
             user=self.collaborator, role=initial_organization_role
         )
-        
+
         # Validate that their access level corresponds to their role in the Organization and not the Repository, as it is higher at this point.
         user_authorization = self.organization_repository.get_user_authorization(self.collaborator)
         self.assertEqual(user_authorization.role, collaborator_organization_auth.role)
@@ -717,7 +717,7 @@ class RepositoryAuthorizationTestCase(TestCase):
         # Lower their level inside the Organization
         collaborator_organization_auth.role = OrganizationAuthorization.ROLE_NOT_SETTED
         collaborator_organization_auth.save()
-        
+
         # Validate that the repository authorization level was updated.
         collaborator_repository_auth.refresh_from_db()
         self.assertEqual(collaborator_repository_auth.role, initial_organization_role)
@@ -726,12 +726,12 @@ class RepositoryAuthorizationTestCase(TestCase):
         user_authorization = self.organization_repository.get_user_authorization(self.collaborator)
         self.assertEqual(user_authorization.role, collaborator_repository_auth.role)
 
-        ## Verify that org auth with (role >= 4) will not update the repository's authorization
-        
+        # Verify that org auth with (role >= 4) will not update the repository's authorization
+
         # Set user's role to ROLE_TRANSLATE level at the Organization
         collaborator_organization_auth.role = OrganizationAuthorization.ROLE_TRANSLATE
         collaborator_organization_auth.save()
-        
+
         user_authorization = self.organization_repository.get_user_authorization(self.collaborator)
         self.assertEqual(user_authorization.role, collaborator_repository_auth.role)
 
