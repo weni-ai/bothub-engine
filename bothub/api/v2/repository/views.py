@@ -121,6 +121,10 @@ from .serializers import (
     AddRepositoryProjectSerializer,
 )
 
+from bothub.api.v2.internal.connect_rest_client import (
+    ConnectRESTClient as ConnectClient,
+)
+
 
 class NewRepositoryViewSet(
     MultipleFieldLookupMixin, mixins.RetrieveModelMixin, GenericViewSet
@@ -803,12 +807,17 @@ class RepositoriesViewSet(mixins.ListModelMixin, GenericViewSet):
         if not project_uuid:
             raise ValidationError(_("Need to pass 'project_uuid' in query params"))
 
-        task = celery_app.send_task(
-            name="get_project_organization", args=[project_uuid, request.user.email]
+        # task = celery_app.send_task(
+        #     name="get_project_organization", args=[project_uuid, request.user.email]
+        # )
+        # task.wait()
+        authorizations = ConnectClient().list_authorizations(
+            project_uuid=project_uuid, user_email=request.user.email
         )
-        task.wait()
 
-        repositories = Repository.objects.filter(authorizations__uuid__in=task.result)
+        repositories = Repository.objects.filter(
+            authorizations__uuid__in=authorizations
+        )
 
         serialized_data = ShortRepositorySerializer(repositories, many=True)
         return Response(serialized_data.data)
