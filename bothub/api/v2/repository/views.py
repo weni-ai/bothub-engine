@@ -258,8 +258,8 @@ class NewRepositoryViewSet(
                 name="get_project_organization", args=[project_uuid]
             )
             task.wait()
-
-            repositories = repository.authorizations.filter(uuid__in=task.result)
+            authorizations = task.result
+            repositories = repository.authorizations.filter(uuid__in=authorizations)
 
         else:
             authorizations = ConnectClient().list_authorizations(
@@ -272,7 +272,7 @@ class NewRepositoryViewSet(
         if organization:
 
             organization_authorization = (
-                organization.organization_authorizations.filter(uuid__in=task.result)
+                organization.organization_authorizations.filter(uuid__in=authorizations)
             )
             data["in_project"] = (
                 data["in_project"] or organization_authorization.exists()
@@ -317,10 +317,10 @@ class NewRepositoryViewSet(
                 name="get_project_organization", args=[project_uuid]
             )
             project_organization.wait()
-
+            project_organization = project_organization.result
             authorizations = list(
                 repository.authorizations.filter(
-                    uuid__in=project_organization.result
+                    uuid__in=project_organization
                 ).values_list("uuid", flat=True)
             )
 
@@ -343,7 +343,7 @@ class NewRepositoryViewSet(
 
             authorizations += list(
                 organization.organization_authorizations.filter(
-                    uuid__in=project_organization.result
+                    uuid__in=project_organization
                 ).values_list("uuid", flat=True)
             )
 
