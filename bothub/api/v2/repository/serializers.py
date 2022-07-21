@@ -59,10 +59,6 @@ from ..translation.validators import (
     CanContributeInRepositoryTranslatedExampleValidator,
 )
 
-from bothub.api.v2.internal.connect_rest_client import (
-    ConnectRESTClient as ConnectClient,
-)
-
 
 class RequestRepositoryAuthorizationSerializer(serializers.ModelSerializer):
     class Meta:
@@ -1658,13 +1654,10 @@ class AddRepositoryProjectSerializer(serializers.Serializer):
     project_uuid = serializers.CharField(required=True)
 
     def create(self, validated_data):
-        if settings.USE_GRPC:
-            task = celery_app.send_task(
-                name="create_repository_project", kwargs=validated_data
-            )
-            task.wait()
-        else:
-            task = ConnectClient().create_classifier(**validated_data)
+        task = celery_app.send_task(
+            name="create_repository_project", kwargs=validated_data
+        )
+        task.wait()
         return validated_data
 
     def to_representation(self, instance):

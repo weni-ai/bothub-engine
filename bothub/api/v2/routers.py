@@ -66,14 +66,6 @@ from .translator.views import (
     RepositoryTranslatorViewSet,
 )
 
-from bothub.api.v2.internal.repository.views import InternalRepositoriesViewSet
-from bothub.api.v2.internal.organization.views import InternalOrganizationViewSet
-from bothub.api.v2.internal.user.views import (
-    UserPermissionViewSet,
-    UserViewSet,
-    UserLanguageViewSet,
-)
-
 
 class Router(routers.SimpleRouter):
     routes = [
@@ -241,8 +233,3 @@ router.register("account/reset-password", ResetPasswordViewSet)
 router.register("org/organization", OrganizationViewSet)
 router.register("org/profile", OrganizationProfileViewSet)
 router.register("org/authorizations", OrganizationAuthorizationViewSet)
-router.register("internal/organization", InternalOrganizationViewSet)
-router.register("internal/repository", InternalRepositoriesViewSet)
-router.register("internal/user", UserViewSet)
-router.register("internal/user/permission", UserPermissionViewSet)
-router.register("internal/user/language", UserLanguageViewSet)
