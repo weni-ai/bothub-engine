@@ -121,10 +121,6 @@ from .serializers import (
     AddRepositoryProjectSerializer,
 )
 
-from bothub.api.v2.internal.connect_rest_client import (
-    ConnectRESTClient as ConnectClient,
-)
-
 
 class NewRepositoryViewSet(
     MultipleFieldLookupMixin, mixins.RetrieveModelMixin, GenericViewSet
@@ -253,26 +249,19 @@ class NewRepositoryViewSet(
         if not authorization.can_contribute:
             raise PermissionDenied()
 
-        if settings.USE_GRPC:
-            task = celery_app.send_task(
-                name="get_project_organization", args=[project_uuid]
-            )
-            task.wait()
-            authorizations = task.result
-            repositories = repository.authorizations.filter(uuid__in=authorizations)
+        task = celery_app.send_task(
+            name="get_project_organization", args=[project_uuid]
+        )
+        task.wait()
 
-        else:
-            authorizations = ConnectClient().list_authorizations(
-                project_uuid=project_uuid, user_email=request.user.email
-            )
-            repositories = repository.authorizations.filter(uuid__in=authorizations)
+        repositories = repository.authorizations.filter(uuid__in=task.result)
 
         data = dict(in_project=repositories.exists())
 
         if organization:
 
             organization_authorization = (
-                organization.organization_authorizations.filter(uuid__in=authorizations)
+                organization.organization_authorizations.filter(uuid__in=task.result)
             )
             data["in_project"] = (
                 data["in_project"] or organization_authorization.exists()
@@ -312,27 +301,16 @@ class NewRepositoryViewSet(
         if not user_authorization.is_admin:
             raise PermissionDenied()
 
-        if settings.USE_GRPC:
-            project_organization = celery_app.send_task(
-                name="get_project_organization", args=[project_uuid]
-            )
-            project_organization.wait()
-            project_organization = project_organization.result
-            authorizations = list(
-                repository.authorizations.filter(
-                    uuid__in=project_organization
-                ).values_list("uuid", flat=True)
-            )
+        project_organization = celery_app.send_task(
+            name="get_project_organization", args=[project_uuid]
+        )
+        project_organization.wait()
 
-        else:
-            project_organization = ConnectClient().list_authorizations(
-                project_uuid=project_uuid, user_email=request.user.email
-            )
-            authorizations = list(
-                repository.authorizations.filter(
-                    uuid__in=project_organization
-                ).values_list("uuid", flat=True)
-            )
+        authorizations = list(
+            repository.authorizations.filter(
+                uuid__in=project_organization.result
+            ).values_list("uuid", flat=True)
+        )
 
         if organization:
             organization_authorization = organization.get_organization_authorization(
@@ -343,7 +321,7 @@ class NewRepositoryViewSet(
 
             authorizations += list(
                 organization.organization_authorizations.filter(
-                    uuid__in=project_organization
+                    uuid__in=project_organization.result
                 ).values_list("uuid", flat=True)
             )
 
@@ -356,20 +334,11 @@ class NewRepositoryViewSet(
             lambda authorization: str(authorization), authorizations
         )
 
-        if settings.USE_GRPC:
-            task = celery_app.send_task(
-                name="remove_authorizations_project",
-                args=[project_uuid, list(authorizations_uuids), request.user.email],
-            )
-            task.wait()
-        else:
-            task = ConnectClient().list_authorizations(
-                project_uuid=project_uuid, user_email=request.user.email
-            )
-            for authorization_uuid in authorizations_uuids:
-                ConnectClient().remove_authorization(
-                    project_uuid, authorization_uuid, request.user.email
-                )
+        task = celery_app.send_task(
+            name="remove_authorizations_project",
+            args=[project_uuid, list(authorizations_uuids), request.user.email],
+        )
+        task.wait()
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -412,22 +381,14 @@ class NewRepositoryViewSet(
 
         project_uuid = serializer.validated_data.get("project_uuid")
 
-        if settings.USE_GRPC:
-            task = celery_app.send_task(
-                name="get_project_organization", args=[project_uuid]
-            )
-            task.wait()
+        task = celery_app.send_task(
+            name="get_project_organization", args=[project_uuid]
+        )
+        task.wait()
 
-            organization_authorization = (
-                organization.organization_authorizations.filter(uuid__in=task.result)
-            )
-        else:
-            task = ConnectClient().list_authorizations(
-                project_uuid=project_uuid, user_email=request.user.email
-            )
-            organization_authorization = (
-                organization.organization_authorizations.filter(uuid__in=task)
-            )
+        organization_authorization = organization.organization_authorizations.filter(
+            uuid__in=task.result
+        )
 
         if organization_authorization.exists():
             raise ValidationError(_("Repository already added"))
@@ -842,21 +803,12 @@ class RepositoriesViewSet(mixins.ListModelMixin, GenericViewSet):
         if not project_uuid:
             raise ValidationError(_("Need to pass 'project_uuid' in query params"))
 
-        if settings.USE_GRPC:
-            task = celery_app.send_task(
-                name="get_project_organization", args=[project_uuid, request.user.email]
-            )
-            task.wait()
-            repositories = Repository.objects.filter(
-                authorizations__uuid__in=task.result
-            )
-        else:
-            authorizations = ConnectClient().list_authorizations(
-                project_uuid=project_uuid, user_email=request.user.email
-            )
-            repositories = Repository.objects.filter(
-                authorizations__uuid__in=authorizations
-            )
+        task = celery_app.send_task(
+            name="get_project_organization", args=[project_uuid]
+        )
+        task.wait()
+
+        repositories = Repository.objects.filter(authorizations__uuid__in=task.result)
 
         serialized_data = ShortRepositorySerializer(repositories, many=True)
         return Response(serialized_data.data)

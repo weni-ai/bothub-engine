@@ -906,18 +906,16 @@ class Repository(models.Model):
     def get_user_authorization(self, user):
         if user.is_anonymous:
             return RepositoryAuthorization(repository=self)
-        repo_auth, created = RepositoryAuthorization.objects.get_or_create(
+        get, created = RepositoryAuthorization.objects.get_or_create(
             user=user.repository_owner, repository=self
         )
         if self.owner.is_organization:
-            org_auth = self.owner.organization.get_organization_authorization(user)
+            org_role = self.owner.organization.get_organization_authorization(user).role
+            if get.role != org_role and get.role == 0:
+                get.role = org_role
+                get.save()
 
-            # Excluding ROLE_TRANSLATE as it does not correspond to the same role in the client app (connect).
-            # todo: update this conditional with corresponding role rule
-            if repo_auth.role < org_auth.role and org_auth.role < RepositoryAuthorization.ROLE_TRANSLATE:
-                repo_auth.role = org_auth.role
-                repo_auth.save(update_fields=['role'])
-        return repo_auth
+        return get
 
     def get_absolute_url(self):
         return "{}dashboard/{}/{}/".format(

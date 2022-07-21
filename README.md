@@ -162,8 +162,6 @@ You can set environment variables in your OS, write on ```.env``` file or pass v
 | OIDC_RP_SCOPES | ```string``` | ```openid email``` | The OpenID Connect scopes to request during login.
 | CONNECT_GRPC_SERVER_URL | ```string``` | ```localhost:8002``` | Define grpc connect server url
 | CONNECT_CERTIFICATE_GRPC_CRT | ```string``` | ```None``` | Absolute certificate path for secure grpc communication
-| CONNECT_API_URL | ```string``` | ```None``` | Connect module api url
-| USE_GRPC | ```bool``` | ```False``` | Use connect gRPC clients
 | RECAPTCHA_SECRET_KEY | ```string``` | ```''``` | Token of the recaptcha used in the validation of a user's registration.
 | REPOSITORY_NLP_LOG_LIMIT | ```int``` | ```10000``` | Limit of query size to repository log.
 | REPOSITORY_RESTRICT_ACCESS_NLP_LOGS | ```list``` | ```[]``` | Restricts log access to a particular or multiple intelligences
