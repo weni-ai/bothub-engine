@@ -726,15 +726,6 @@ class RepositoryAuthorizationTestCase(TestCase):
         user_authorization = self.organization_repository.get_user_authorization(self.collaborator)
         self.assertEqual(user_authorization.role, collaborator_repository_auth.role)
 
-        # Verify that org auth with (role >= 4) will not update the repository's authorization
-
-        # Set user's role to ROLE_TRANSLATE level at the Organization
-        collaborator_organization_auth.role = OrganizationAuthorization.ROLE_TRANSLATE
-        collaborator_organization_auth.save()
-
-        user_authorization = self.organization_repository.get_user_authorization(self.collaborator)
-        self.assertEqual(user_authorization.role, collaborator_repository_auth.role)
-
 
 class RepositoryVersionTrainingTestCase(TestCase):
     def setUp(self):
