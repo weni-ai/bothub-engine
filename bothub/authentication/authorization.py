@@ -1,6 +1,10 @@
 import logging
+import re
 
 from django.utils.translation import ugettext_lazy as _
+from bothub.utils import check_module_permission
+
+
 from mozilla_django_oidc.auth import OIDCAuthenticationBackend
 from rest_framework import exceptions
 from rest_framework.authentication import TokenAuthentication, get_authorization_header
@@ -92,10 +96,13 @@ class WeniOIDCAuthenticationBackend(OIDCAuthenticationBackend):
         # Override existing create_user method in OIDCAuthenticationBackend
         email = claims.get("email")
         username = self.get_username(claims)[:16]
+        username = re.sub("[^A-Za-z0-9]+", "", username)
         user = self.UserModel.objects.create_user(email, username)
 
         user.name = claims.get("name", "")
         user.save()
+
+        check_module_permission(claims, user)
 
         return user
 
@@ -103,5 +110,6 @@ class WeniOIDCAuthenticationBackend(OIDCAuthenticationBackend):
         user.name = claims.get("name", "")
         user.email = claims.get("email", "")
         user.save()
+        check_module_permission(claims, user)
 
         return user
