@@ -102,19 +102,5 @@ class InternalOrganizationViewSet(
 
     def retrieve(self, request, *args, **kwargs):
         org = self.get_object()
-
-        auths = (
-            RepositoryAuthorization.objects.exclude(repository__owner=org)
-            .exclude(role=RepositoryAuthorization.ROLE_NOT_SETTED)
-            .filter(user=org)
-        )
-
-        response = {
-            "repositories_count": int(
-                Repository.objects.filter(
-                    models.Q(uuid__in=auths) | models.Q(owner=org)
-                ).count()
-            )
-        }
-
+        response = {"repositories_count": org.repositories.count()}
         return Response(response)
