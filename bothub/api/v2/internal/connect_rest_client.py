@@ -71,8 +71,6 @@ class ConnectRESTClient:
             authorization_uuid,
             user_email,
         )
-        cache_key = f"LIST_CLASSIFIER_CACHE_KEY:project_uuid:{project_uuid}:user_email:{user_email}"
-        cache.delete(cache_key)
         request = requests.delete(
             url=f"{self.base_url}/v1/organization/project/destroy_classifier/",
             headers=self.headers,
@@ -82,11 +80,6 @@ class ConnectRESTClient:
         return request.json()
 
     def create_classifier(self, **kwargs):
-        project_uuid = kwargs.get("project_uuid")
-        user_email = kwargs.get("user_email")
-        cache_key = f"LIST_CLASSIFIER_CACHE_KEY:project_uuid:{project_uuid}:user_email:{user_email}"
-        cache.delete(cache_key)
-
         request = requests.post(
             url=f"{self.base_url}/v1/organization/project/create_classifier/",
             headers=self.headers,
