@@ -147,20 +147,17 @@ class OrganizationAuthorization(models.Model):
     LEVEL_READER = 1
     LEVEL_CONTRIBUTOR = 2
     LEVEL_ADMIN = 3
-    LEVEL_TRANSLATE = 4
 
     ROLE_NOT_SETTED = 0
     ROLE_USER = 1
     ROLE_CONTRIBUTOR = 2
     ROLE_ADMIN = 3
-    ROLE_TRANSLATE = 4
 
     ROLE_CHOICES = [
         (ROLE_NOT_SETTED, _("not set")),
         (ROLE_USER, _("user")),
         (ROLE_CONTRIBUTOR, _("contributor")),
         (ROLE_ADMIN, _("admin")),
-        (ROLE_TRANSLATE, _("translate")),
     ]
 
     uuid = models.UUIDField(
@@ -191,9 +188,6 @@ class OrganizationAuthorization(models.Model):
         if self.role == OrganizationAuthorization.ROLE_ADMIN:
             return OrganizationAuthorization.LEVEL_ADMIN
 
-        if self.role == OrganizationAuthorization.ROLE_TRANSLATE:
-            return OrganizationAuthorization.LEVEL_TRANSLATE
-
         return OrganizationAuthorization.LEVEL_NOTHING  # pragma: no cover
 
     @property
@@ -202,7 +196,6 @@ class OrganizationAuthorization(models.Model):
             OrganizationAuthorization.LEVEL_READER,
             OrganizationAuthorization.LEVEL_CONTRIBUTOR,
             OrganizationAuthorization.LEVEL_ADMIN,
-            OrganizationAuthorization.LEVEL_TRANSLATE,
         ]
 
     @property
@@ -221,7 +214,6 @@ class OrganizationAuthorization(models.Model):
         return self.level in [
             OrganizationAuthorization.LEVEL_CONTRIBUTOR,
             OrganizationAuthorization.LEVEL_ADMIN,
-            OrganizationAuthorization.LEVEL_TRANSLATE,
         ]
 
     @property
@@ -912,9 +904,7 @@ class Repository(models.Model):
         if self.owner.is_organization:
             org_auth = self.owner.organization.get_organization_authorization(user)
 
-            # Excluding ROLE_TRANSLATE as it does not correspond to the same role in the client app (connect).
-            # todo: update this conditional with corresponding role rule
-            if repo_auth.role < org_auth.role and org_auth.role < RepositoryAuthorization.ROLE_TRANSLATE:
+            if repo_auth.role < org_auth.role:
                 repo_auth.role = org_auth.role
                 repo_auth.save(update_fields=['role'])
         return repo_auth
@@ -1984,20 +1974,17 @@ class RepositoryAuthorization(models.Model):
     LEVEL_READER = 1
     LEVEL_CONTRIBUTOR = 2
     LEVEL_ADMIN = 3
-    LEVEL_TRANSLATE = 4
 
     ROLE_NOT_SETTED = 0
     ROLE_USER = 1
     ROLE_CONTRIBUTOR = 2
     ROLE_ADMIN = 3
-    ROLE_TRANSLATE = 4
 
     ROLE_CHOICES = [
         (ROLE_NOT_SETTED, _("not set")),
         (ROLE_USER, _("user")),
         (ROLE_CONTRIBUTOR, _("contributor")),
         (ROLE_ADMIN, _("admin")),
-        (ROLE_TRANSLATE, _("translate")),
     ]
 
     uuid = models.UUIDField(
@@ -2060,9 +2047,6 @@ class RepositoryAuthorization(models.Model):
         if role == RepositoryAuthorization.ROLE_ADMIN:
             return RepositoryAuthorization.LEVEL_ADMIN
 
-        if role == RepositoryAuthorization.ROLE_TRANSLATE:
-            return RepositoryAuthorization.LEVEL_TRANSLATE
-
         return RepositoryAuthorization.LEVEL_NOTHING  # pragma: no cover
 
     @property
@@ -2071,7 +2055,6 @@ class RepositoryAuthorization(models.Model):
             RepositoryAuthorization.LEVEL_READER,
             RepositoryAuthorization.LEVEL_CONTRIBUTOR,
             RepositoryAuthorization.LEVEL_ADMIN,
-            RepositoryAuthorization.LEVEL_TRANSLATE,
         ]
 
     @property
@@ -2090,7 +2073,6 @@ class RepositoryAuthorization(models.Model):
         return self.level in [
             RepositoryAuthorization.LEVEL_CONTRIBUTOR,
             RepositoryAuthorization.LEVEL_ADMIN,
-            RepositoryAuthorization.LEVEL_TRANSLATE,
         ]
 
     @property

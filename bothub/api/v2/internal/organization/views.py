@@ -1,5 +1,4 @@
 from django.utils.translation import ugettext_lazy as _
-from django.db import models
 from rest_framework import mixins
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
@@ -8,9 +7,7 @@ from bothub.api.v2.metadata import Metadata
 from bothub.authentication.models import User
 from bothub.common.models import (
     Organization,
-    OrganizationAuthorization,
-    Repository,
-    RepositoryAuthorization,
+    OrganizationAuthorization
 )
 from bothub.api.v2.internal.organization.serializers import (
     OrganizationSerializer,
@@ -102,19 +99,5 @@ class InternalOrganizationViewSet(
 
     def retrieve(self, request, *args, **kwargs):
         org = self.get_object()
-
-        auths = (
-            RepositoryAuthorization.objects.exclude(repository__owner=org)
-            .exclude(role=RepositoryAuthorization.ROLE_NOT_SETTED)
-            .filter(user=org)
-        )
-
-        response = {
-            "repositories_count": int(
-                Repository.objects.filter(
-                    models.Q(uuid__in=auths) | models.Q(owner=org)
-                ).count()
-            )
-        }
-
+        response = {"repositories_count": org.repositories.count()}
         return Response(response)
