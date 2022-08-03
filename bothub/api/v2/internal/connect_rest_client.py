@@ -2,7 +2,6 @@ import requests
 from typing import List, Dict
 
 from django.conf import settings
-from django.core.cache import cache
 
 
 class ConnectRESTClient:
@@ -28,21 +27,15 @@ class ConnectRESTClient:
     def list_classifiers(
         self, project_uuid: str, user_email: str
     ) -> List[Dict[str, str]]:
-        cache_key = f"LIST_CLASSIFIER_CACHE_KEY:project_uuid:{project_uuid}:user_email:{user_email}"
-        cache_result = cache.get(cache_key, None)
-        if cache_result is None:
-            request = requests.get(
-                url=f"{self.base_url}/v1/organization/project/list_classifier/",
-                headers=self.headers,
-                params={"project_uuid": project_uuid, "user_email": user_email},
-            )
-            cache.set(cache_key, request.json().get("data"), settings.CACHE_TTL)
-            return request.json().get("data")
-        else:
-            return cache_result
+        request = requests.get(
+            url=f"{self.base_url}/v1/organization/project/list_classifier/",
+            headers=self.headers,
+            params={"project_uuid": project_uuid, "user_email": user_email},
+        )
+
+        return request.json()["data"]
 
     def list_authorizations(self, project_uuid: str, user_email: str) -> List[str]:
-
         classifiers = self.list_classifiers(
             project_uuid=project_uuid, user_email=user_email
         )
@@ -53,7 +46,7 @@ class ConnectRESTClient:
         self, project_uuid: str, authorization_uuid: str, user_email: str
     ) -> str:
         """
-        Receives a authorization UUID and returns the respective classifier UUID
+        Recives a authorization UUID and returns the respective classifier UUID
         """
         classifiers = self.list_classifiers(project_uuid, user_email)
         classifier = filter(
@@ -71,8 +64,6 @@ class ConnectRESTClient:
             authorization_uuid,
             user_email,
         )
-        cache_key = f"LIST_CLASSIFIER_CACHE_KEY:project_uuid:{project_uuid}:user_email:{user_email}"
-        cache.delete(cache_key)
         request = requests.delete(
             url=f"{self.base_url}/v1/organization/project/destroy_classifier/",
             headers=self.headers,
@@ -82,11 +73,6 @@ class ConnectRESTClient:
         return request.json()
 
     def create_classifier(self, **kwargs):
-        project_uuid = kwargs.get("project_uuid")
-        user_email = kwargs.get("user_email")
-        cache_key = f"LIST_CLASSIFIER_CACHE_KEY:project_uuid:{project_uuid}:user_email:{user_email}"
-        cache.delete(cache_key)
-
         request = requests.post(
             url=f"{self.base_url}/v1/organization/project/create_classifier/",
             headers=self.headers,
