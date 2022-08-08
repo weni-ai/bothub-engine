@@ -859,10 +859,11 @@ class NewRepositorySerializer(serializers.ModelSerializer):
         return settings.BOTHUB_NLP_BASE_URL
 
     def get_version_default(self, obj):
+        current_version = obj.repository.current_version()
         return {
-            "id": obj.repository.current_version().repository_version.pk,
-            "repository_version_language_id": obj.repository.current_version().pk,
-            "name": obj.repository.current_version().repository_version.name,
+            "id": current_version.repository_version.pk,
+            "repository_version_language_id": current_version.pk,
+            "name": current_version.repository_version.name,
         }
 
     def get_repository_score(self, obj):
