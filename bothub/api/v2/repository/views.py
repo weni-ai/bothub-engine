@@ -1069,6 +1069,8 @@ class RepositoryAuthorizationRequestsViewSet(
 
 
 class RepositoryTokenByUserViewSet(mixins.ListModelMixin, GenericViewSet):
+    serializer_class = RepositoryAuthorizationSerializer
+
     def get_queryset(self):
         user = self.request.user
         if user.is_anonymous:
