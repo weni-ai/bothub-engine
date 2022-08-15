@@ -1068,6 +1068,34 @@ class RepositoryAuthorizationRequestsViewSet(
         return super().destroy(request, *args, **kwargs)
 
 
+class RepositoryTokenByUserViewSet(mixins.ListModelMixin, GenericViewSet):
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_anonymous:
+            return RepositoryAuthorization.objects.none()
+        return RepositoryAuthorization.objects.filter(user=self.request.user)
+
+    def list(self, request, **kwargs):
+        """
+        Get repository access token based on logged user
+        """
+
+        repository_id = settings.TEST_REPOSITORY_ID
+        if not repository_id:
+            return Response(
+                {"TEST_REPOSITORY_ID": "Not set"}, status=status.HTTP_400_BAD_REQUEST
+            )
+        try:
+            repository = Repository.objects.get(pk=repository_id)
+        except Repository.DoesNotExist:
+            return Response(
+                {"Repository": "Does Not Exist"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        authorization = repository.get_user_authorization(request.user)
+        return Response({"access_token": str(authorization.uuid)})
+
+
 class RepositoryExampleViewSet(
     mixins.CreateModelMixin,
     mixins.RetrieveModelMixin,
