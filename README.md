@@ -10,7 +10,7 @@
     ·
   </p>
 </p>
-    
+
 <br />
 <p align="center">
     <img src="https://user-images.githubusercontent.com/5360835/65427083-1af35900-de01-11e9-86ef-59f1eee79a68.png" width="230" height="70" alt="Bothub" />
@@ -27,7 +27,7 @@
 
 # Requirements
 
-* Python (3.6)
+* Python (3.8.13)
 * Poetry
 * Docker
 * Docker-compose
@@ -146,7 +146,7 @@ You can set environment variables in your OS, write on ```.env``` file or pass v
 | APM_SERVICE_ENVIRONMENT |  ```string``` | ```''``` | Environment that APM is running on
 | ENVIRONMENT |  ```string``` | ```production``` | Specify the environment you are going to run, it is also used for sentry
 | SUGGESTION_LANGUAGES |  ```string``` | ```en|pt_br``` | Specify the the languages supported by environment for word and intent suggestions
-| N_WORDS_TO_GENERATE |  ```int``` | ```4``` | Specify the number of suggestions that will be returned for word suggestions 
+| N_WORDS_TO_GENERATE |  ```int``` | ```4``` | Specify the number of suggestions that will be returned for word suggestions
 | N_SENTENCES_TO_GENERATE |  ```int``` | ```10``` | Specify the number of suggestions that will be returned for intent suggestions
 | REDIS_TIMEOUT |  ```int``` | ```3600``` | Specify a systemwide Redis keys life time
 | SECRET_KEY_CHECK_LEGACY_USER | ```string``` | ```None``` | Enables and specifies the token to use for the legacy user endpoint.
@@ -206,4 +206,3 @@ Contributions are what make the open source community such an amazing place to b
 3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
 4. Push to the Branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
-
