@@ -2007,26 +2007,9 @@ class RepositoryAuthorization(models.Model):
     @property
     def get_role(self):
         if self.role < RepositoryAuthorization.ROLE_USER and self.user:
-            org = (
-                self.user.organization_user_authorization.exclude(
-                    role=RepositoryAuthorization.ROLE_NOT_SETTED
-                )
-                .filter(
-                    Q(
-                        organization__in=RepositoryAuthorization.objects.filter(
-                            repository=self.repository,
-                            user__in=self.user.organization_user_authorization.exclude(
-                                role=OrganizationAuthorization.ROLE_NOT_SETTED
-                            ).values_list("organization", flat=True),
-                        )
-                        .exclude(role=OrganizationAuthorization.ROLE_NOT_SETTED)
-                        .order_by("-role")
-                        .values_list("user")
-                    )
-                )
-                .order_by("-role")
-            ).first()
-            return org.role if org else RepositoryAuthorization.LEVEL_NOTHING
+            # Get role directly from repository
+            auth = self.repository.get_user_authorization(self.user)
+            return auth.role
         return self.role
 
     @property
