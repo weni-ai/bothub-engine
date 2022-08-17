@@ -320,48 +320,57 @@ class RepositoryAuthorizationTestCase(TestCase):
             )
 
     def test_authorization_permission_admin_in_organization(self):
+        """Validate that the owner user has full access to the repository
+        while a common user only has read access"""
         for repository in self.repositories:
-            perm = OrganizationAuthorization.objects.create(
+
+            # Create repository and organization authorizations
+            organization_authorization = OrganizationAuthorization.objects.create(
                 user=self.user,
                 organization=self.organization,
                 role=OrganizationAuthorization.ROLE_ADMIN,
             )
+            repository_authorization = RepositoryAuthorization.objects.create(
+                user=self.organization,
+                repository=repository,
+                role=RepositoryAuthorization.ROLE_ADMIN,
+            )
 
-            repo_auth = RepositoryAuthorization.objects.create(
-                user=self.organization, repository=repository, role=3
-            )
-            user, user_token = (
-                (self.owner, self.owner_token)
-                if repository.is_private
-                else (self.user, self.user_token)
-            )
+            user, user_token = (self.owner, self.owner_token) if repository.is_private else (self.user, self.user_token)
             response, content_data = self.request(repository, user_token)
             authorization = content_data.get("authorization")
             self.assertIsNotNone(authorization)
-            self.assertEqual(
-                authorization.get("level"), OrganizationAuthorization.ROLE_ADMIN
-            )
             self.assertTrue(authorization.get("can_read"))
-            self.assertTrue(authorization.get("can_contribute"))
-            self.assertTrue(authorization.get("can_write"))
-            self.assertTrue(authorization.get("can_translate"))
-            self.assertTrue(authorization.get("is_admin"))
-            self.assertEqual(len(authorization.get("organizations")), 1)
-            perm.delete()
-            response, content_data = self.request(repository, user_token)
-            authorization = content_data.get("authorization")
-            self.assertIsNotNone(authorization)
-            self.assertEqual(
-                authorization.get("level"), OrganizationAuthorization.ROLE_USER
-            )
 
-            repo_auth.delete()
+            # Assert owner access vs common user access behavior
+            if user is self.owner:
+                self.assertEqual(authorization.get("level"), OrganizationAuthorization.ROLE_ADMIN)
+                self.assertTrue(authorization.get("can_contribute"))
+                self.assertTrue(authorization.get("can_write"))
+                self.assertTrue(authorization.get("can_translate"))
+                self.assertTrue(authorization.get("is_admin"))
+            else:  # is not owner
+                self.assertEqual(authorization.get("level"), OrganizationAuthorization.ROLE_USER)
+                self.assertFalse(authorization.get("can_contribute"))
+                self.assertFalse(authorization.get("can_write"))
+                self.assertFalse(authorization.get("can_translate"))
+                self.assertFalse(authorization.get("is_admin"))
+
+            self.assertEqual(len(authorization.get("organizations")), 1)
+
+            # User should have role==ROLE_USER when they lose their authorization in the organization
+            organization_authorization.delete()
             response, content_data = self.request(repository, user_token)
             authorization = content_data.get("authorization")
             self.assertIsNotNone(authorization)
-            self.assertEqual(
-                authorization.get("level"), OrganizationAuthorization.ROLE_USER
-            )
+            self.assertEqual(authorization.get("level"), OrganizationAuthorization.ROLE_USER)
+
+            # User should have role==ROLE_USER when they lose their authorization in the repository
+            repository_authorization.delete()
+            response, content_data = self.request(repository, user_token)
+            authorization = content_data.get("authorization")
+            self.assertIsNotNone(authorization)
+            self.assertEqual(authorization.get("level"), OrganizationAuthorization.ROLE_USER)
 
 
 class RepositoryAvailableRequestAuthorizationTestCase(TestCase):
