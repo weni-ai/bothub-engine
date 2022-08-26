@@ -39,6 +39,7 @@ from .repository.views import (
 from .repository.views import RepositoriesViewSet
 from .repository.views import RepositoryAuthorizationRequestsViewSet
 from .repository.views import RepositoryAuthorizationViewSet
+from .repository.views import RepositoryTokenByUserViewSet
 from .repository.views import RepositoryCategoriesView
 from .repository.views import RepositoryExampleViewSet
 from .repository.views import RepositoryMigrateViewSet
@@ -179,6 +180,11 @@ router.register("repository/repositories-permissions", RepositoriesPermissionsVi
 router.register("repository/authorizations", RepositoryAuthorizationViewSet)
 router.register(
     "repository/authorization-requests", RepositoryAuthorizationRequestsViewSet
+)
+router.register(
+    "repository/authorization-by-user",
+    RepositoryTokenByUserViewSet,
+    basename="authorization-by-user",
 )
 router.register("repository/example", RepositoryExampleViewSet)
 router.register("repository/example-bulk", RepositoryExamplesBulkViewSet)
