@@ -95,11 +95,13 @@ def trainings_check_task():
 
 
 @app.task(name="clone_version")
-def clone_version(repository, instance_id, id_clone=None, *args, **kwargs):
-    if id_clone:
-        clone = RepositoryVersion.objects.get(pk=id_clone, repository_id=repository)
+def clone_version(
+    repository_id: str, instance_id: int, clone_id: int = None, *args, **kwargs
+):
+    if clone_id:
+        clone = RepositoryVersion.objects.get(pk=clone_id, repository_id=repository_id)
     else:
-        clone = RepositoryVersion.objects.create(repository_id=repository)
+        clone = RepositoryVersion.objects.create(repository_id=repository_id)
     instance = RepositoryVersion.objects.get(pk=instance_id)
 
     bulk_version_languages = [

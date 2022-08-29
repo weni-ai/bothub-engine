@@ -138,7 +138,3 @@ class RepositoryCloneTestCase(TestCase):
         clone_knowledge_bases = clone.knowledge_bases.all().values_list("id", flat=True)
         self.assertNotEqual(len(clone_knowledge_bases), 0)
         self.assertEqual(len(clone_knowledge_bases), len(repository_knowledge_bases))
-
-        # clone_versions = clone.versions.all().values_list("id", flat=True)
-        # self.assertNotEqual(len(clone_versions), 0)
-        # self.assertEqual(len(clone_versions), len(repository_versions))
