@@ -119,6 +119,7 @@ from .serializers import (
     WordDistributionSerializer,
     RemoveRepositoryProject,
     AddRepositoryProjectSerializer,
+    RepositoryCloneSerializer,
 )
 
 from bothub.api.v2.internal.connect_rest_client import (
@@ -1069,6 +1070,8 @@ class RepositoryAuthorizationRequestsViewSet(
 
 
 class RepositoryTokenByUserViewSet(mixins.ListModelMixin, GenericViewSet):
+    serializer_class = RepositoryAuthorizationSerializer
+
     def get_queryset(self):
         user = self.request.user
         if user.is_anonymous:
@@ -1497,3 +1500,20 @@ class RepositoryExamplesBulkViewSet(mixins.CreateModelMixin, GenericViewSet):
             kwargs["many"] = True
 
         return super().get_serializer(*args, **kwargs)
+
+
+class CloneRepositoryViewSet(mixins.CreateModelMixin, GenericViewSet):
+    queryset = Repository.objects.none()
+    serializer_class = RepositoryCloneSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        owner_id = serializer.data.get("owner")
+        repository_id = serializer.data.get("repository")
+        repository = Repository.objects.get(pk=repository_id)
+
+        slug, message, http_status = repository.clone_self(owner_id)
+        return Response(slug if slug else message, status=http_status)

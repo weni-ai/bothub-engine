@@ -95,16 +95,19 @@ def trainings_check_task():
 
 
 @app.task(name="clone_version")
-def clone_version(instance_id, id_clone, repository, *args, **kwargs):
-    clone = RepositoryVersion.objects.get(pk=id_clone, repository=repository)
+def clone_version(repository, instance_id, id_clone=None, *args, **kwargs):
+    if id_clone:
+        clone = RepositoryVersion.objects.get(pk=id_clone, repository_id=repository)
+    else:
+        clone = RepositoryVersion.objects.create(repository_id=repository)
     instance = RepositoryVersion.objects.get(pk=instance_id)
 
-    bulk_versionlanguages = [
+    bulk_version_languages = [
         RepositoryVersionLanguage(**version, pk=None, repository_version=instance)
         for version in clone.version_languages.values()
     ]
     RepositoryVersionLanguage.objects.bulk_create(
-        bulk_versionlanguages, ignore_conflicts=True
+        bulk_version_languages, ignore_conflicts=True
     )
 
     for version in clone.version_languages:
@@ -129,11 +132,11 @@ def clone_version(instance_id, id_clone, repository, *args, **kwargs):
                 last_update=example.last_update,
             )
 
-            example_entites = RepositoryExampleEntity.objects.filter(
+            example_entities = RepositoryExampleEntity.objects.filter(
                 repository_example=example
             )
 
-            for example_entity in example_entites:
+            for example_entity in example_entities:
                 if example_entity.entity.group:
                     group, created_group = RepositoryEntityGroup.objects.get_or_create(
                         repository_version=instance,
@@ -244,6 +247,61 @@ def clone_version(instance_id, id_clone, repository, *args, **kwargs):
     instance.is_deleted = False
     instance.save(update_fields=["is_deleted"])
     return True
+
+
+@app.task()
+def clone_repository(
+    source_repository_id: str, clone_repository_id: str, new_owner_id: int
+) -> Repository:
+    """
+    Clone a Repository Instance ans it's related fields.
+    Returns a Repository instance or None
+    """
+
+    source_repository = Repository.objects.get(pk=source_repository_id)
+    clone_repository = Repository.objects.get(pk=clone_repository_id)
+
+    # region 1. clone Repository and direct fields
+
+    # copy fields from source repository to clone repository
+    exclude_fields = ("id", "pk", "uuid", "slug")
+    for field in Repository._meta.fields:
+        if field.name in exclude_fields or field.primary_key:
+            continue
+        setattr(
+            clone_repository,
+            field.name,
+            getattr(source_repository, field.name),
+        )
+
+    # Keep full name if the field's "max_length" allows it, else crop it
+    size = Repository.name.field.max_length
+    name = f"Clone - {source_repository.name}"
+    if len(name) > size:
+        name = name[: size - 3] + "..."
+    clone_repository.name = name
+
+    # Update necessary fields
+    clone_repository.owner_id = new_owner_id
+    clone_repository.is_private = True
+    clone_repository.count_authorizations = 0
+    clone_repository.created_at = timezone.now()
+
+    clone_repository.save()
+    # endregion
+
+    # region 2. ForeignKeys and ManyToManyFields
+    clone_repository.categories.set(source_repository.categories.all())
+    # endregion
+
+    # region 3. reverse ForeignKeys and ManyToManyFields (the ones which reference the Repository)
+    for knowledge_base in source_repository.knowledge_bases.all():
+        knowledge_base.pk = None
+        knowledge_base.repository = clone_repository
+        knowledge_base.save()
+    # endregion
+
+    return clone_repository.pk
 
 
 @app.task()
