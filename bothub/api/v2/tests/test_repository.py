@@ -9,6 +9,7 @@ from rest_framework import status
 
 from bothub.api.v2.repository.serializers import NewRepositorySerializer
 from bothub.api.v2.repository.views import (
+    CloneRepositoryViewSet,
     RepositoriesContributionsViewSet,
     RepositoryEntitiesViewSet,
     NewRepositoryViewSet,
@@ -28,6 +29,7 @@ from bothub.api.v2.tests.utils import create_user_and_token
 from bothub.api.v2.versionning.views import RepositoryVersionViewSet
 from bothub.common import languages
 from bothub.common.models import (
+    QAKnowledgeBase,
     Repository,
     Organization,
     OrganizationAuthorization,
@@ -336,7 +338,11 @@ class RepositoryAuthorizationTestCase(TestCase):
                 role=RepositoryAuthorization.ROLE_ADMIN,
             )
 
-            user, user_token = (self.owner, self.owner_token) if repository.is_private else (self.user, self.user_token)
+            user, user_token = (
+                (self.owner, self.owner_token)
+                if repository.is_private
+                else (self.user, self.user_token)
+            )
             response, content_data = self.request(repository, user_token)
             authorization = content_data.get("authorization")
             self.assertIsNotNone(authorization)
@@ -344,13 +350,17 @@ class RepositoryAuthorizationTestCase(TestCase):
 
             # Assert owner access vs common user access behavior
             if user is self.owner:
-                self.assertEqual(authorization.get("level"), OrganizationAuthorization.ROLE_ADMIN)
+                self.assertEqual(
+                    authorization.get("level"), OrganizationAuthorization.ROLE_ADMIN
+                )
                 self.assertTrue(authorization.get("can_contribute"))
                 self.assertTrue(authorization.get("can_write"))
                 self.assertTrue(authorization.get("can_translate"))
                 self.assertTrue(authorization.get("is_admin"))
             else:  # is not owner
-                self.assertEqual(authorization.get("level"), OrganizationAuthorization.ROLE_USER)
+                self.assertEqual(
+                    authorization.get("level"), OrganizationAuthorization.ROLE_USER
+                )
                 self.assertFalse(authorization.get("can_contribute"))
                 self.assertFalse(authorization.get("can_write"))
                 self.assertFalse(authorization.get("can_translate"))
@@ -363,14 +373,18 @@ class RepositoryAuthorizationTestCase(TestCase):
             response, content_data = self.request(repository, user_token)
             authorization = content_data.get("authorization")
             self.assertIsNotNone(authorization)
-            self.assertEqual(authorization.get("level"), OrganizationAuthorization.ROLE_USER)
+            self.assertEqual(
+                authorization.get("level"), OrganizationAuthorization.ROLE_USER
+            )
 
             # User should have role==ROLE_USER when they lose their authorization in the repository
             repository_authorization.delete()
             response, content_data = self.request(repository, user_token)
             authorization = content_data.get("authorization")
             self.assertIsNotNone(authorization)
-            self.assertEqual(authorization.get("level"), OrganizationAuthorization.ROLE_USER)
+            self.assertEqual(
+                authorization.get("level"), OrganizationAuthorization.ROLE_USER
+            )
 
 
 class RepositoryAvailableRequestAuthorizationTestCase(TestCase):
@@ -2411,3 +2425,85 @@ class CheckCanEvaluateAutomaticTestCase(TestCase):
         response, content_data = self.request(self.repository, data, self.owner_token)
         self.assertTrue(content_data.get("can_run_evaluate_automatic"))
         self.assertEqual(len(content_data.get("messages")), 0)
+
+
+class RepositoryCloneTestCase(TestCase):
+    """Test repository_clone API and validate the underlying function, validating all repository fields
+    and making sure that new fields, such as foreignkeys and many-to-many relationships will cause test failure,
+    requiring for clone function refactor."""
+
+    def setUp(self) -> None:
+        self.factory = RequestFactory()
+        self.owner, self.owner_token = create_user_and_token("owner")
+        self.user, self.user_token = create_user_and_token("user")
+        self.organization = Organization.objects.create(name="Org", verificated=True)
+        self.organization.set_user_permission(
+            self.user, OrganizationAuthorization.ROLE_ADMIN
+        )
+
+        # Create categories for repositories
+        self.category_1 = RepositoryCategory.objects.create(name="Category 1")
+        self.category_2 = RepositoryCategory.objects.create(name="Category 2")
+        self.repositories = [
+            create_repository_from_mockup(self.owner, **mockup)
+            for mockup in get_valid_mockups([self.category_1, self.category_2])
+        ]
+        # Create versions and knowledge bases for repositories
+        for repository in self.repositories:
+            RepositoryVersion.objects.create(
+                repository=repository, name="beta", is_default=False
+            )
+            RepositoryVersion.objects.create(
+                repository=repository, name="alfa", is_default=True
+            )
+
+            QAKnowledgeBase.objects.create(repository=repository, user=self.user)
+            QAKnowledgeBase.objects.create(repository=repository, user=self.owner)
+
+        return super().setUp()
+
+    def request(self, data, token=""):
+        authorization_header = (
+            {"HTTP_AUTHORIZATION": "Token {}".format(token.key)} if token else {}
+        )
+
+        url = "/v2/repository/clone-repository/"
+        request = self.factory.post(url, data, **authorization_header)
+
+        response = CloneRepositoryViewSet.as_view({"post": "create"})(request)
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data)
+
+    def test_cannot_clone_private_repository(self):
+        repository = self.repositories[1]
+        repository.is_private = True
+        repository.save()
+        response, content_data = self.request(
+            {"repository": repository.pk, "owner": self.organization.pk},
+            self.owner_token,
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_cannot_call_api_while_unauthenticated(self):
+        """Validate that only authenticated users can clone repositories with an unauthenticated request"""
+        repository = self.repositories[1]
+        response, content_data = self.request(
+            {"repository": repository.pk, "owner": self.organization.pk}, token=None
+        )
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_cannot_call_api_with_empty_or_incomplete_body(self):
+        repository = self.repositories[0]
+        response, content_data = self.request({}, token=self.user_token)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        response, content_data = self.request(
+            {"repository": repository.pk}, token=self.user_token
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        response, content_data = self.request(
+            {"owner": self.organization.pk}, token=self.user_token
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

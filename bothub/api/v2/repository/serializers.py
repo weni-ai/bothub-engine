@@ -1673,3 +1673,13 @@ class AddRepositoryProjectSerializer(serializers.Serializer):
         if data.get("organization"):
             data.pop("organization")
         return data
+
+
+class RepositoryCloneSerializer(serializers.Serializer):
+
+    repository = serializers.PrimaryKeyRelatedField(
+        queryset=Repository.objects.all(), required=True
+    )
+    owner = serializers.PrimaryKeyRelatedField(
+        queryset=RepositoryOwner.objects.all(), required=True
+    )
