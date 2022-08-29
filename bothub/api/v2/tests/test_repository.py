@@ -51,6 +51,25 @@ from bothub.api.v2.tests.utils import (
 )
 
 
+def request_repository_info(factory, repository, token):
+    authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
+
+    request = factory.get(
+        "/v2/repository/info/{}/{}/".format(
+            str(repository.uuid), repository.current_version().repository_version.pk
+        ),
+        **authorization_header,
+    )
+    response = NewRepositoryViewSet.as_view({"get": "retrieve"})(
+        request,
+        repository__uuid=repository.uuid,
+        pk=repository.current_version().repository_version.pk,
+    )
+    response.render()
+    content_data = json.loads(response.content)
+    return (response, content_data)
+
+
 class CreateRepositoryAPITestCase(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
@@ -122,25 +141,7 @@ class RetriveRepositoryTestCase(TestCase):
         ]
 
     def request(self, repository, token=None):
-        authorization_header = (
-            {"HTTP_AUTHORIZATION": "Token {}".format(token.key)} if token else {}
-        )
-
-        request = self.factory.get(
-            "/v2/repository/info/{}/{}/".format(
-                repository.uuid, repository.current_version().repository_version.pk
-            ),
-            **authorization_header,
-        )
-
-        response = NewRepositoryViewSet.as_view({"get": "retrieve"})(
-            request,
-            repository__uuid=repository.uuid,
-            pk=repository.current_version().repository_version.pk,
-        )
-        response.render()
-        content_data = json.loads(response.content)
-        return (response, content_data)
+        return request_repository_info(self.factory, repository, token)
 
     def test_okay(self):
         for repository in self.repositories:
@@ -278,25 +279,7 @@ class RepositoryAuthorizationTestCase(TestCase):
         ]
 
     def request(self, repository, token=None):
-        authorization_header = (
-            {"HTTP_AUTHORIZATION": "Token {}".format(token.key)} if token else {}
-        )
-
-        request = self.factory.get(
-            "/v2/repository/info/{}/{}/".format(
-                repository.uuid, repository.current_version().repository_version.pk
-            ),
-            **authorization_header,
-        )
-
-        response = NewRepositoryViewSet.as_view({"get": "retrieve"})(
-            request,
-            repository__uuid=repository.uuid,
-            pk=repository.current_version().repository_version.pk,
-        )
-        response.render()
-        content_data = json.loads(response.content)
-        return (response, content_data)
+        return request_repository_info(self.factory, repository, token)
 
     def test_authorization_without_user(self):
         for repository in self.repositories:
@@ -402,25 +385,7 @@ class RepositoryAvailableRequestAuthorizationTestCase(TestCase):
         )
 
     def request(self, repository, token=None):
-        authorization_header = (
-            {"HTTP_AUTHORIZATION": "Token {}".format(token.key)} if token else {}
-        )
-
-        request = self.factory.get(
-            "/v2/repository/info/{}/{}/".format(
-                repository.uuid, repository.current_version().repository_version.pk
-            ),
-            **authorization_header,
-        )
-
-        response = NewRepositoryViewSet.as_view({"get": "retrieve"})(
-            request,
-            repository__uuid=repository.uuid,
-            pk=repository.current_version().repository_version.pk,
-        )
-        response.render()
-        content_data = json.loads(response.content)
-        return (response, content_data)
+        return request_repository_info(self.factory, repository, token)
 
     def test_owner_ever_false(self):
         response, content_data = self.request(self.repository, self.owner_token)
@@ -1778,21 +1743,7 @@ class RetrieveRepositoryTestCase(TestCase):
         )
 
     def request(self, repository, token):
-        authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
-        request = self.factory.get(
-            "/v2/repository/info/{}/{}/".format(
-                str(repository.uuid), repository.current_version().repository_version.pk
-            ),
-            **authorization_header,
-        )
-        response = NewRepositoryViewSet.as_view({"get": "retrieve"})(
-            request,
-            repository__uuid=repository.uuid,
-            pk=repository.current_version().repository_version.pk,
-        )
-        response.render()
-        content_data = json.loads(response.content)
-        return (response, content_data)
+        return request_repository_info(self.factory, repository, token)
 
     def test_allowed_in_public(self):
         # owner
