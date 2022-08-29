@@ -906,7 +906,7 @@ class Repository(models.Model):
 
             if repo_auth.role < org_auth.role:
                 repo_auth.role = org_auth.role
-                repo_auth.save(update_fields=['role'])
+                repo_auth.save(update_fields=["role"])
         return repo_auth
 
     def get_absolute_url(self):
