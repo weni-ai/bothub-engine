@@ -133,7 +133,14 @@ class NewRepositoryViewSet(
     Manager repository (bot).
     """
 
-    queryset = RepositoryVersion.objects
+    queryset = (
+        RepositoryVersion.objects.all()
+        .select_related(
+            "repository",
+            "repository__owner",
+        )
+        .prefetch_related("repository__categories")
+    )
     lookup_field = "repository__uuid"
     lookup_fields = ["repository__uuid", "pk"]
     serializer_class = NewRepositorySerializer
@@ -506,6 +513,7 @@ class RepositoryViewSet(
         serializer_class=TrainSerializer,
     )
     def train(self, request, **kwargs):
+
         """
         Train current update using Bothub NLP service
         """
