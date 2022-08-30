@@ -29,7 +29,6 @@ from bothub.api.v2.tests.utils import create_user_and_token
 from bothub.api.v2.versionning.views import RepositoryVersionViewSet
 from bothub.common import languages
 from bothub.common.models import (
-    QAKnowledgeBase,
     Repository,
     Organization,
     OrganizationAuthorization,
@@ -51,8 +50,12 @@ from bothub.api.v2.tests.utils import (
 )
 
 
+def get_authorization_header(token):
+    return {"HTTP_AUTHORIZATION": "Token {}".format(token)}
+
+
 def request_repository_info(factory, repository, token):
-    authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
+    authorization_header = get_authorization_header(token)
 
     request = factory.get(
         "/v2/repository/info/{}/{}/".format(
@@ -87,9 +90,7 @@ class CreateRepositoryAPITestCase(TestCase):
         )
 
     def request(self, data, token=None):
-        authorization_header = (
-            {"HTTP_AUTHORIZATION": "Token {}".format(token.key)} if token else {}
-        )
+        authorization_header = get_authorization_header(token.key if token else {})
 
         request = self.factory.post(
             "/v2/repository/repository-details/", data, **authorization_header
@@ -172,9 +173,7 @@ class RetriveRepositoryTrainInfoTestCase(TestCase):
         ]
 
     def request(self, repository, token=None):
-        authorization_header = (
-            {"HTTP_AUTHORIZATION": "Token {}".format(token.key)} if token else {}
-        )
+        authorization_header = get_authorization_header(token.key if token else {})
 
         request = self.factory.get(
             "/v2/repository/train/info/{}/{}/".format(
@@ -223,9 +222,7 @@ class UpdateRepositoryTestCase(TestCase):
         ]
 
     def request(self, repository, data={}, token=None):
-        authorization_header = (
-            {"HTTP_AUTHORIZATION": "Token {}".format(token.key)} if token else {}
-        )
+        authorization_header = get_authorization_header(token.key if token else {})
 
         request = self.factory.patch(
             "/v2/repository/repository-details/{}/".format(repository.uuid),
@@ -474,9 +471,7 @@ class RepositoriesViewSetTestCase(TestCase):
         )
 
     def request(self, data={}, token=None):
-        authorization_header = (
-            {"HTTP_AUTHORIZATION": "Token {}".format(token.key)} if token else {}
-        )
+        authorization_header = get_authorization_header(token.key if token else {})
         request = self.factory.get("/v2/repositories/", data, **authorization_header)
         response = RepositoriesViewSet.as_view({"get": "list"})(request)
         response.render()
@@ -528,9 +523,7 @@ class RepositoriesLanguageFilterTestCase(TestCase):
         )
 
     def request(self, data={}, token=None):
-        authorization_header = (
-            {"HTTP_AUTHORIZATION": "Token {}".format(token.key)} if token else {}
-        )
+        authorization_header = get_authorization_header(token.key if token else {})
         request = self.factory.get("/v2/repositories/", data, **authorization_header)
         response = RepositoriesViewSet.as_view({"get": "list"})(request)
         response.render()
@@ -610,7 +603,7 @@ class ListRepositoryVoteTestCase(TestCase):
         )
 
     def request(self, param, value, token):
-        authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token)}
+        authorization_header = get_authorization_header(token)
         request = self.factory.get(
             "/v2/repository-votes/?{}={}".format(param, value), **authorization_header
         )
@@ -663,7 +656,7 @@ class NewRepositoryVoteTestCase(TestCase):
         )
 
     def request(self, data, token):
-        authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token)}
+        authorization_header = get_authorization_header(token)
         request = self.factory.post(
             "/v2/repository-votes/",
             json.dumps(data),
@@ -712,7 +705,7 @@ class DestroyRepositoryVoteTestCase(TestCase):
         )
 
     def request(self, token):
-        authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token)}
+        authorization_header = get_authorization_header(token)
         request = self.factory.delete(
             "/v2/repository-votes/{}/".format(str(self.repository.uuid)),
             **authorization_header,
@@ -870,7 +863,7 @@ class ListAuthorizationTestCase(TestCase):
         self.user_auth.save()
 
     def request(self, repository, token):
-        authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
+        authorization_header = get_authorization_header(token.key if token else {})
         request = self.factory.get(
             "/v2/repository/authorizations/",
             {"repository": repository.uuid},
@@ -911,7 +904,7 @@ class UpdateAuthorizationRoleTestCase(TestCase):
         )
 
     def request(self, repository, token, user, data):
-        authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
+        authorization_header = get_authorization_header(token.key if token else {})
         request = self.factory.patch(
             "/v2/repository/authorizations/{}/{}/".format(
                 repository.uuid, user.nickname
@@ -991,9 +984,7 @@ class RepositoryAuthorizationRequestsTestCase(TestCase):
         admin_autho.save()
 
     def request(self, data, token=None):
-        authorization_header = (
-            {"HTTP_AUTHORIZATION": "Token {}".format(token.key)} if token else {}
-        )
+        authorization_header = get_authorization_header(token.key if token else {})
         request = self.factory.get(
             "/v2/repository/authorization-requests/", data, **authorization_header
         )
@@ -1045,9 +1036,7 @@ class RequestAuthorizationTestCase(TestCase):
         )
 
     def request(self, data, token=None):
-        authorization_header = (
-            {"HTTP_AUTHORIZATION": "Token {}".format(token.key)} if token else {}
-        )
+        authorization_header = get_authorization_header(token.key if token else {})
         request = self.factory.post(
             "/v2/repository/authorization-requests/", data, **authorization_header
         )
@@ -1099,9 +1088,7 @@ class ReviewAuthorizationRequestTestCase(TestCase):
         admin_autho.save()
 
     def request_approve(self, ra, token=None):
-        authorization_header = (
-            {"HTTP_AUTHORIZATION": "Token {}".format(token.key)} if token else {}
-        )
+        authorization_header = get_authorization_header(token.key if token else {})
         request = self.factory.put(
             "/v2/repository/authorization-requests/{}/".format(ra.pk),
             self.factory._encode_data({}, MULTIPART_CONTENT),
@@ -1116,9 +1103,7 @@ class ReviewAuthorizationRequestTestCase(TestCase):
         return (response, content_data)
 
     def request_reject(self, ra, token=None):
-        authorization_header = (
-            {"HTTP_AUTHORIZATION": "Token {}".format(token.key)} if token else {}
-        )
+        authorization_header = get_authorization_header(token.key if token else {})
         request = self.factory.delete(
             "/v2/repository/authorization-requests/{}/".format(ra.pk),
             **authorization_header,
@@ -1207,7 +1192,7 @@ class RepositoryExampleRetrieveTestCase(TestCase):
         )
 
     def request(self, example, token):
-        authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
+        authorization_header = get_authorization_header(token.key if token else {})
         request = self.factory.get(
             "/v2/repository/example/{}/".format(example.id), **authorization_header
         )
@@ -1269,7 +1254,7 @@ class RepositoryExampleUploadTestCase(TestCase):
         )
 
     def request(self, token):
-        authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
+        authorization_header = get_authorization_header(token.key if token else {})
         examples = b"""[
                     {
                         "text": "yes",
@@ -1368,7 +1353,7 @@ class RepositoryExampleDestroyTestCase(TestCase):
         )
 
     def request(self, example, token):
-        authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
+        authorization_header = get_authorization_header(token.key if token else {})
         request = self.factory.delete(
             "/v2/repository/example/{}/".format(example.id), **authorization_header
         )
@@ -1441,7 +1426,7 @@ class RepositoryExampleUpdateTestCase(TestCase):
         )
 
     def request(self, example, token, data):
-        authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
+        authorization_header = get_authorization_header(token.key if token else {})
         request = self.factory.patch(
             "/v2/repository/example/{}/".format(example.id),
             json.dumps(data),
@@ -1505,7 +1490,7 @@ class NewRepositoryExampleTestCase(TestCase):
         )
 
     def request(self, token, data):
-        authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
+        authorization_header = get_authorization_header(token.key if token else {})
         request = self.factory.post(
             "/v2/repository/example/",
             json.dumps(data),
@@ -1764,9 +1749,7 @@ class RetrieveRepositoryTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_languages_status(self):
-        authorization_header = {
-            "HTTP_AUTHORIZATION": "Token {}".format(self.user_token.key)
-        }
+        authorization_header = get_authorization_header(self.user_token.key)
         request = self.factory.get(
             "/v2/repository/repository-details/{}/languagesstatus/".format(
                 self.repository.uuid
@@ -1830,7 +1813,7 @@ class TrainRepositoryTestCase(TestCase):
         )
 
     def request(self, repository, token, data):
-        authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
+        authorization_header = get_authorization_header(token.key if token else {})
         request = self.factory.post(
             "/v2/repository/repository-details/{}/train/".format(str(repository.uuid)),
             data,
@@ -1870,7 +1853,7 @@ class AnalyzeRepositoryTestCase(TestCase):
         )
 
     def request(self, repository, token, data):
-        authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
+        authorization_header = get_authorization_header(token.key if token else {})
         request = self.factory.post(
             "/v2/repository/repository-details/{}/analyze/".format(
                 str(repository.uuid)
@@ -1939,9 +1922,7 @@ class VersionsTestCase(TestCase):
         current_version.start_training(self.owner)
 
     def request(self, data, token=None):
-        authorization_header = (
-            {"HTTP_AUTHORIZATION": "Token {}".format(token.key)} if token else {}
-        )
+        authorization_header = get_authorization_header(token.key if token else {})
         request = self.factory.get(
             "/v2/repository/version/", data, **authorization_header
         )
@@ -1997,7 +1978,7 @@ class RepositoryEntitiesTestCase(TestCase):
         self.example_entity.entity.save()
 
     def request(self, data, token):
-        authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
+        authorization_header = get_authorization_header(token.key if token else {})
         request = self.factory.get(
             "/v2/repository/entities/", data=data, **authorization_header
         )
@@ -2056,9 +2037,7 @@ class UpdateRepositoryIntentTestCase(TestCase):
         self.repository_version = self.repository.current_version().repository_version
 
     def request(self, id, data={}, token=None):
-        authorization_header = (
-            {"HTTP_AUTHORIZATION": "Token {}".format(token.key)} if token else {}
-        )
+        authorization_header = get_authorization_header(token.key if token else {})
 
         request = self.factory.patch(
             "/v2/repository/intent/{}/".format(id),
@@ -2133,7 +2112,7 @@ class RepositoryExamplesBulkTestCase(TestCase):
         ]
 
     def request(self, token):
-        authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
+        authorization_header = get_authorization_header(token.key if token else {})
         request = self.factory.post(
             "/v2/repository/example-bulk/",
             data=json.dumps(self.data),
@@ -2280,7 +2259,7 @@ class EvaluateAutomaticTestCase(TestCase):
         )
 
     def request(self, repository, data={}, token=None):
-        authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
+        authorization_header = get_authorization_header(token.key if token else {})
 
         request = self.factory.post(
             "/v2/repository/repository-details/{}/automatic_evaluate/".format(
@@ -2327,7 +2306,7 @@ class CheckCanEvaluateAutomaticTestCase(TestCase):
         )
 
     def request(self, repository, data={}, token=None):
-        authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
+        authorization_header = get_authorization_header(token.key if token else {})
 
         request = self.factory.get(
             "/v2/repository/repository-details/{}/check_can_automatic_evaluate/".format(
@@ -2387,7 +2366,7 @@ class RepositoryCloneTestCase(TestCase):
         self.factory = RequestFactory()
         self.owner, self.owner_token = create_user_and_token("owner")
         self.user, self.user_token = create_user_and_token("user")
-        self.organization = Organization.objects.create(name="Org", verificated=True)
+        self.organization = Organization.objects.create(name="Org1", verificated=True)
         self.organization.set_user_permission(
             self.user, OrganizationAuthorization.ROLE_ADMIN
         )
@@ -2402,21 +2381,16 @@ class RepositoryCloneTestCase(TestCase):
         # Create versions and knowledge bases for repositories
         for repository in self.repositories:
             RepositoryVersion.objects.create(
-                repository=repository, name="beta", is_default=False
+                repository=repository, name="alfa", is_default=False
             )
             RepositoryVersion.objects.create(
-                repository=repository, name="alfa", is_default=True
+                repository=repository, name="beta", is_default=True
             )
-
-            QAKnowledgeBase.objects.create(repository=repository, user=self.user)
-            QAKnowledgeBase.objects.create(repository=repository, user=self.owner)
 
         return super().setUp()
 
     def request(self, data, token=""):
-        authorization_header = (
-            {"HTTP_AUTHORIZATION": "Token {}".format(token.key)} if token else {}
-        )
+        authorization_header = get_authorization_header(token.key if token else {})
 
         url = "/v2/repository/clone-repository/"
         request = self.factory.post(url, data, **authorization_header)
