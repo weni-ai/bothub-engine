@@ -1,78 +1,81 @@
 from rest_framework import routers
 
+from bothub.api.v2.internal.organization.views import InternalOrganizationViewSet
+from bothub.api.v2.internal.repository.views import InternalRepositoriesViewSet
+from bothub.api.v2.internal.user.views import (
+    UserLanguageViewSet,
+    UserPermissionViewSet,
+    UserViewSet,
+)
 from bothub.api.v2.versionning.views import RepositoryVersionViewSet
-from .account.views import ChangePasswordViewSet
-from .account.views import LoginViewSet
-from .account.views import MyUserProfileViewSet
-from .account.views import RegisterUserViewSet
-from .account.views import RequestResetPasswordViewSet
-from .account.views import ResetPasswordViewSet
-from .account.views import SearchUserViewSet
-from .account.views import UserProfileViewSet
-from .evaluate.views import EvaluateViewSet
-from .evaluate.views import ResultsListViewSet
+
+from .account.views import (
+    ChangePasswordViewSet,
+    LoginViewSet,
+    MyUserProfileViewSet,
+    RegisterUserViewSet,
+    RequestResetPasswordViewSet,
+    ResetPasswordViewSet,
+    SearchUserViewSet,
+    UserProfileViewSet,
+)
+from .evaluate.views import EvaluateViewSet, ResultsListViewSet
 from .examples.views import ExamplesViewSet
 from .groups.views import RepositoryEntityGroupViewSet
 from .knowledge_base.views import QAKnowledgeBaseViewSet, QAtextViewSet
-from .nlp.views import NLPLangsViewSet, RepositoryQANLPLogsViewSet
-from .nlp.views import RepositoryAuthorizationEvaluateViewSet
-from .nlp.views import RepositoryAuthorizationInfoViewSet
-from .nlp.views import RepositoryAuthorizationParseViewSet
 from .nlp.views import (
+    NLPLangsViewSet,
+    RepositoryAuthorizationAutomaticEvaluateViewSet,
+    RepositoryAuthorizationEvaluateViewSet,
+    RepositoryAuthorizationExamplesViewSet,
+    RepositoryAuthorizationInfoViewSet,
+    RepositoryAuthorizationKnowledgeBaseViewSet,
+    RepositoryAuthorizationParseViewSet,
+    RepositoryAuthorizationTrainLanguagesViewSet,
     RepositoryAuthorizationTrainViewSet,
     RepositoryNLPLogsViewSet,
-    RepositoryAuthorizationKnowledgeBaseViewSet,
-    RepositoryAuthorizationExamplesViewSet,
-    RepositoryAuthorizationAutomaticEvaluateViewSet,
-    RepositoryAuthorizationTrainLanguagesViewSet,
+    RepositoryQANLPLogsViewSet,
+    RepositoryUpdateInterpretersViewSet,
 )
-from .nlp.views import RepositoryUpdateInterpretersViewSet
 from .organization.views import (
-    OrganizationViewSet,
-    OrganizationProfileViewSet,
     OrganizationAuthorizationViewSet,
+    OrganizationProfileViewSet,
+    OrganizationViewSet,
 )
 from .repository.views import (
-    RepositoriesContributionsViewSet,
-    RepositoryQANLPLogViewSet,
-)
-from .repository.views import RepositoriesViewSet
-from .repository.views import RepositoryAuthorizationRequestsViewSet
-from .repository.views import RepositoryAuthorizationViewSet
-from .repository.views import RepositoryTokenByUserViewSet
-from .repository.views import RepositoryCategoriesView
-from .repository.views import RepositoryExampleViewSet
-from .repository.views import RepositoryMigrateViewSet
-from .repository.views import (
-    RepositoryViewSet,
-    RepositoryNLPLogViewSet,
-    RepositoryEntitiesViewSet,
+    CloneRepositoryViewSet,
     NewRepositoryViewSet,
     RasaUploadViewSet,
-    RepositoryTaskQueueViewSet,
+    RepositoriesContributionsViewSet,
     RepositoriesPermissionsViewSet,
-    RepositoryNLPLogReportsViewSet,
-    RepositoryIntentViewSet,
-    RepositoryTranslatorInfoViewSet,
-    RepositoryTrainInfoViewSet,
+    RepositoriesViewSet,
+    RepositoryAuthorizationRequestsViewSet,
+    RepositoryAuthorizationViewSet,
+    RepositoryCategoriesView,
+    RepositoryEntitiesViewSet,
     RepositoryExamplesBulkViewSet,
+    RepositoryExampleViewSet,
+    RepositoryIntentViewSet,
+    RepositoryMigrateViewSet,
+    RepositoryNLPLogReportsViewSet,
+    RepositoryNLPLogViewSet,
+    RepositoryQANLPLogViewSet,
+    RepositoryTaskQueueViewSet,
+    RepositoryTokenByUserViewSet,
+    RepositoryTrainInfoViewSet,
+    RepositoryTranslatorInfoViewSet,
+    RepositoryViewSet,
+    RepositoryVotesViewSet,
+    SearchRepositoriesViewSet,
 )
-from .repository.views import RepositoryVotesViewSet
-from .repository.views import SearchRepositoriesViewSet
-from .translation.views import RepositoryTranslatedExampleViewSet
-from .translation.views import RepositoryTranslatedExporterViewSet
+from .translation.views import (
+    RepositoryTranslatedExampleViewSet,
+    RepositoryTranslatedExporterViewSet,
+)
 from .translator.views import (
-    TranslatorExamplesViewSet,
     RepositoryTranslationTranslatorExampleViewSet,
     RepositoryTranslatorViewSet,
-)
-
-from bothub.api.v2.internal.repository.views import InternalRepositoriesViewSet
-from bothub.api.v2.internal.organization.views import InternalOrganizationViewSet
-from bothub.api.v2.internal.user.views import (
-    UserPermissionViewSet,
-    UserViewSet,
-    UserLanguageViewSet,
+    TranslatorExamplesViewSet,
 )
 
 
@@ -205,6 +208,8 @@ router.register("repository/qa/text", QAtextViewSet)
 router.register("repository/upload-rasa-file", RasaUploadViewSet)
 router.register("repository/entity/group", RepositoryEntityGroupViewSet)
 router.register("repository/repository-migrate", RepositoryMigrateViewSet)
+router.register("repository/clone-repository", CloneRepositoryViewSet)
+
 router.register(
     "repository/nlp/authorization/train", RepositoryAuthorizationTrainViewSet
 )

@@ -69,7 +69,7 @@ class RepositoryVersionSeralizer(serializers.ModelSerializer):
         )
         instance.save()
         answer_task = celery_app.send_task(
-            "clone_version", args=[instance.pk, id_clone, repository.pk]
+            "clone_version", args=[repository.pk, instance.pk, id_clone]
         )
         answer_task.wait()
         return instance

@@ -1,3 +1,4 @@
+from typing import Tuple
 import uuid
 from functools import reduce
 
@@ -913,6 +914,38 @@ class Repository(models.Model):
         return "{}dashboard/{}/{}/".format(
             settings.BOTHUB_WEBAPP_BASE_URL, self.owner.nickname, self.slug
         )
+
+    def clone_self(self, new_owner_id) -> Tuple[bool, str, int]:
+        """Clone the current repository and transfer the clone version to a new owner.
+        Returns a Tuple[slug:str, message:str, http_status:int].
+        (The "slug" field refers to the repository clone's slug field).
+        """
+        from celery import group
+        from bothub.common.tasks import clone_repository, clone_version
+        from bothub.utils import unique_slug_generator
+
+        if self.is_private:
+            return (
+                None,
+                "You cannot clone a private repository",
+                status.HTTP_403_FORBIDDEN,
+            )
+
+        try:
+            RepositoryOwner.objects.get(id=new_owner_id)
+        except RepositoryOwner.DoesNotExist:
+            return None, "User does not exist", status.HTTP_404_NOT_FOUND
+
+        slug = unique_slug_generator({"name": self.name})
+        clone = Repository.objects.create(owner_id=new_owner_id, slug=slug)
+
+        # Queue clone_repository and clone_version tasks
+        group_tasks = group(
+            clone_repository.s(self.pk, clone.pk, new_owner_id),
+            *[clone_version.s(clone.pk, version.pk) for version in self.versions.all()],
+        )
+        group_tasks()
+        return clone.pk, "Queued for cloning", status.HTTP_200_OK
 
 
 class RepositoryVersion(models.Model):
