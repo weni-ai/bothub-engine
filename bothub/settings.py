@@ -277,7 +277,8 @@ CORS_ORIGIN_ALLOW_ALL = True
 
 envvar_EMAIL_HOST = env.str("EMAIL_HOST")
 
-ADMINS = env.list("ADMINS")
+ADMINS = [email_username.split("|") for email_username in env.list("ADMINS")]
+
 EMAIL_SUBJECT_PREFIX = "[bothub] "
 DEFAULT_FROM_EMAIL = env.str("DEFAULT_FROM_EMAIL")
 SERVER_EMAIL = env.str("SERVER_EMAIL")
