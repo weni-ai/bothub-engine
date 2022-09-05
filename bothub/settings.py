@@ -279,7 +279,7 @@ envvar_EMAIL_HOST = env.str("EMAIL_HOST")
 
 admins = env.list("ADMINS", default=None)
 if admins:
-    ADMINS = [email_username.split("|") for email_username in admins]
+    ADMINS = [tuple(email_username.split("|")) for email_username in admins]
 
 EMAIL_SUBJECT_PREFIX = "[bothub] "
 DEFAULT_FROM_EMAIL = env.str("DEFAULT_FROM_EMAIL")
