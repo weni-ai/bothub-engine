@@ -940,9 +940,13 @@ class Repository(models.Model):
         clone = Repository.objects.create(owner_id=new_owner_id, slug=slug)
 
         # Queue clone_repository and clone_version tasks
+        # Only the default version
+        default_repository_version = (
+            self.versions.filter(is_default=True).order_by("-last_update").first()
+        )
         group_tasks = group(
             clone_repository.s(self.pk, clone.pk, new_owner_id),
-            *[clone_version.s(clone.pk, version.pk) for version in self.versions.all()],
+            clone_version.s(clone.pk, default_repository_version.pk),
         )
         group_tasks()
         return clone.pk, "Queued for cloning", status.HTTP_200_OK

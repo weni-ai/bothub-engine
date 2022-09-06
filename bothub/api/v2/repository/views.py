@@ -1515,6 +1515,10 @@ class CloneRepositoryViewSet(mixins.CreateModelMixin, GenericViewSet):
     serializer_class = RepositoryCloneSerializer
     permission_classes = (IsAuthenticated,)
 
+    @swagger_auto_schema(
+        responses={200: '"repository_clone_id"', 400: '"error_message"'},
+        operation_id="clone_repository",
+    )
     def create(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -1523,5 +1527,5 @@ class CloneRepositoryViewSet(mixins.CreateModelMixin, GenericViewSet):
         repository_id = serializer.data.get("repository")
         repository = Repository.objects.get(pk=repository_id)
 
-        slug, message, http_status = repository.clone_self(owner_id)
-        return Response(slug if slug else message, status=http_status)
+        clone_id, message, http_status = repository.clone_self(owner_id)
+        return Response(clone_id if clone_id else message, status=http_status)
