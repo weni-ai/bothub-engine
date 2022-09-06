@@ -102,10 +102,30 @@ def clone_version(
     if clone_id:
         clone = RepositoryVersion.objects.get(pk=clone_id, repository_id=repository_id)
     else:
+        # Create a new RepositoryVersion
         clone = RepositoryVersion.objects.create(
             repository_id=repository_id,
             name=instance.name,
         )
+        # Clone version languages to clone
+
+        # all fields minus unwanted fields
+        fields_names = [field.name for field in RepositoryVersionLanguage._meta.fields]
+        exclude_fields = ("id", "pk", "uuid", "repository_version")
+        fields_names = list(
+            filter(lambda name: name not in exclude_fields, fields_names)
+        )
+
+        queue = []
+        for version_language in instance.version_languages:
+            fields_values = {f: getattr(version_language, f) for f in fields_names}
+            queue.append(
+                RepositoryVersionLanguage(
+                    repository_version=clone,
+                    **fields_values,
+                )
+            )
+        RepositoryVersionLanguage.objects.bulk_create(queue)
 
     bulk_version_languages = [
         RepositoryVersionLanguage(**version, pk=None, repository_version=instance)
