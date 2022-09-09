@@ -954,7 +954,7 @@ class Repository(models.Model):
         group_tasks = group(
             clone_repository.s(self.pk, repository_clone.pk, new_owner_id),
             clone_version.s(
-                repository_clone.pk,
+                default_repository_version.repository.pk,
                 default_repository_version.pk,
                 clone_repository_version.pk,
             ),
