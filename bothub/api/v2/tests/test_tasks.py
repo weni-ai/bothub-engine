@@ -15,6 +15,8 @@ from bothub.common.models import (
     QAKnowledgeBase,
     Repository,
     RepositoryCategory,
+    RepositoryExample,
+    RepositoryIntent,
     RepositoryVersion,
     RepositoryVersionLanguage,
 )
@@ -51,26 +53,26 @@ class RepositoryCloneTestCase(TestCase):
             rv1 = RepositoryVersion.objects.create(
                 repository=repository, name="beta", is_default=False
             )
-            RepositoryVersionLanguage.objects.create(
-                repository_version=rv1,
-                language=languages[0],
-            )
-            RepositoryVersionLanguage.objects.create(
-                repository_version=rv1,
-                language=languages[-1],
-            )
 
             rv2 = RepositoryVersion.objects.create(
                 repository=repository, name="alfa", is_default=True
             )
-            RepositoryVersionLanguage.objects.create(
-                repository_version=rv2,
-                language=languages[0],
-            )
-            RepositoryVersionLanguage.objects.create(
-                repository_version=rv2,
-                language=languages[-1],
-            )
+            for repository_version in [rv1, rv2]:
+                for language in languages:
+                    version_language = RepositoryVersionLanguage.objects.create(
+                        repository_version=repository_version,
+                        language=language,
+                    )
+                    intent = RepositoryIntent.objects.create(
+                        text=uuid4().hex, repository_version=repository_version
+                    )
+                    for i in range(10):
+                        RepositoryExample.objects.create(
+                            repository_version_language=version_language,
+                            text=uuid4().hex,
+                            intent=intent,
+                            is_corrected=True,
+                        )
 
             QAKnowledgeBase.objects.create(repository=repository, user=self.user)
             QAKnowledgeBase.objects.create(repository=repository, user=self.owner)
@@ -186,21 +188,31 @@ class RepositoryCloneTestCase(TestCase):
 
     def clone_versions_function(self):
 
-        clone = Repository.objects.get(owner=self.organization, slug=self.slug)
+        repository_clone = Repository.objects.get(
+            owner=self.organization, slug=self.slug
+        )
         default_repository_version = (
             self.main_repository.versions.filter(is_default=True)
             .order_by("-last_update")
             .first()
         )
-        success = clone_version(clone.pk, default_repository_version.pk)
+        clone = RepositoryVersion.objects.create(
+            repository_id=repository_clone.pk,
+            name=default_repository_version.name,
+        )
+        success = clone_version(
+            repository_id_from_original_version=self.main_repository.pk,
+            original_version_id=default_repository_version.pk,
+            clone_id=clone.pk,
+        )
 
         self.assertEqual(success, True)
-        clone.refresh_from_db()
+        repository_clone.refresh_from_db()
 
         # Verify that the cloned version of the repository has had all of the original repository's
         # version_languages cloned
-        self.assertEqual(clone.versions.count(), 1)
-        clone_repository_version = clone.versions.first()
+        self.assertEqual(repository_clone.versions.count(), 1)
+        clone_repository_version = repository_clone.versions.first()
         repository_version = self.main_repository.versions.filter(
             name=clone_repository_version.name,
             is_default=clone_repository_version.is_default,
@@ -212,6 +224,14 @@ class RepositoryCloneTestCase(TestCase):
             repository_version.repositoryversionlanguage_set.count(),
             clone_repository_version.repositoryversionlanguage_set.count(),
         )
+        for (
+            clone_version_language
+        ) in clone_repository_version.repositoryversionlanguage_set.all():
+            clone_version_language_examples = RepositoryExample.objects.filter(
+                repository_version_language=clone_version_language
+            )
+            self.assertEqual(clone_version_language_examples.count(), 10)
+            print("passou")
 
     def test_functions(self):
         self.clone_repository_function()

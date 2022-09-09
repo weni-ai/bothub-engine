@@ -96,79 +96,66 @@ def trainings_check_task():
 
 @app.task(name="clone_version")
 def clone_version(
-    repository_id: str, instance_id: int, clone_id: int = None, *args, **kwargs
+    repository_id_from_original_version: str,
+    original_version_id: int,
+    clone_id: int,
+    *args,
+    **kwargs,
 ):
-    instance = RepositoryVersion.objects.get(pk=instance_id)
-    if clone_id:
-        clone = RepositoryVersion.objects.get(pk=clone_id, repository_id=repository_id)
-    else:
-        # Create a new RepositoryVersion
-        clone = RepositoryVersion.objects.create(
-            repository_id=repository_id,
-            name=instance.name,
-        )
-        # Clone version languages to clone
+    original_version = RepositoryVersion.objects.get(
+        pk=original_version_id, repository_id=repository_id_from_original_version
+    )
+    clone = RepositoryVersion.objects.get(pk=clone_id)
 
-        # all fields minus unwanted fields
-        fields_names = [field.name for field in RepositoryVersionLanguage._meta.fields]
-        exclude_fields = ("id", "pk", "uuid", "repository_version")
-        fields_names = list(
-            filter(lambda name: name not in exclude_fields, fields_names)
-        )
-
-        queue = []
-        for version_language in instance.version_languages:
-            fields_values = {f: getattr(version_language, f) for f in fields_names}
-            queue.append(
-                RepositoryVersionLanguage(
-                    repository_version=clone,
-                    **fields_values,
-                )
-            )
-        RepositoryVersionLanguage.objects.bulk_create(queue)
-
+    # Copy version_languages and direct fields
     bulk_version_languages = [
-        RepositoryVersionLanguage(**version, pk=None, repository_version=instance)
-        for version in clone.version_languages.values()
+        RepositoryVersionLanguage(**version, pk=None, repository_version=clone)
+        for version in original_version.version_languages.values()
     ]
     RepositoryVersionLanguage.objects.bulk_create(
         bulk_version_languages, ignore_conflicts=True
     )
 
-    for version in clone.version_languages:
-        version_language = instance.get_version_language(version.language)
-
-        version_language.update_trainer(
-            version.get_bot_data.bot_data, version.get_bot_data.rasa_version
+    # Copy version_languages relations (examples, intents, etc)
+    for original_version_language in original_version.version_languages:
+        clone_version_language = clone.get_version_language(
+            original_version_language.language
         )
 
-        examples = RepositoryExample.objects.filter(repository_version_language=version)
+        clone_version_language.update_trainer(
+            original_version_language.get_bot_data.bot_data,
+            original_version_language.get_bot_data.rasa_version,
+        )
 
-        for example in examples:
+        examples = RepositoryExample.objects.filter(
+            repository_version_language=original_version_language
+        )
+
+        for original_example in examples:
             intent, created = RepositoryIntent.objects.get_or_create(
-                text=example.intent.text,
-                repository_version=version_language.repository_version,
+                text=original_example.intent.text,
+                repository_version=clone_version_language.repository_version,
             )
             example_id = RepositoryExample.objects.create(
-                repository_version_language=version_language,
-                text=example.text,
+                repository_version_language=clone_version_language,
+                text=original_example.text,
                 intent=intent,
-                created_at=example.created_at,
-                last_update=example.last_update,
+                created_at=original_example.created_at,
+                last_update=original_example.last_update,
             )
 
             example_entities = RepositoryExampleEntity.objects.filter(
-                repository_example=example
+                repository_example=original_example
             )
 
             for example_entity in example_entities:
                 if example_entity.entity.group:
                     group, created_group = RepositoryEntityGroup.objects.get_or_create(
-                        repository_version=instance,
+                        repository_version=clone,
                         value=example_entity.entity.group.value,
                     )
                     entity, created_entity = RepositoryEntity.objects.get_or_create(
-                        repository_version=instance,
+                        repository_version=clone,
                         value=example_entity.entity.value,
                         group=group,
                     )
@@ -181,7 +168,7 @@ def clone_version(
                     )
                 else:
                     entity, created = RepositoryEntity.objects.get_or_create(
-                        repository_version=instance, value=example_entity.entity.value
+                        repository_version=clone, value=example_entity.entity.value
                     )
                     RepositoryExampleEntity.objects.create(
                         repository_example=example_id,
@@ -192,12 +179,12 @@ def clone_version(
                     )
 
             translated_examples = RepositoryTranslatedExample.objects.filter(
-                original_example=example
+                original_example=original_example
             )
 
             for translated_example in translated_examples:
                 translated = RepositoryTranslatedExample.objects.create(
-                    repository_version_language=instance.get_version_language(
+                    repository_version_language=clone.get_version_language(
                         translated_example.language
                     ),
                     original_example=example_id,
@@ -219,11 +206,11 @@ def clone_version(
                             group,
                             created_group,
                         ) = RepositoryEntityGroup.objects.get_or_create(
-                            repository_version=instance,
+                            repository_version=clone,
                             value=translated_entity.entity.group.value,
                         )
                         entity, created_entity = RepositoryEntity.objects.get_or_create(
-                            repository_version=instance,
+                            repository_version=clone,
                             value=translated_entity.entity.value,
                             group=group,
                         )
@@ -236,7 +223,7 @@ def clone_version(
                         )
                     else:
                         entity, created_entity = RepositoryEntity.objects.get_or_create(
-                            repository_version=instance,
+                            repository_version=clone,
                             value=translated_entity.entity.value,
                         )
                         RepositoryTranslatedExampleEntity.objects.create(
@@ -248,12 +235,12 @@ def clone_version(
                         )
 
         evaluates = RepositoryEvaluate.objects.filter(
-            repository_version_language=version
+            repository_version_language=original_version_language
         )
 
         for evaluate in evaluates:
             evaluate_id = RepositoryEvaluate.objects.create(
-                repository_version_language=version_language,
+                repository_version_language=clone_version_language,
                 text=evaluate.text,
                 intent=evaluate.intent,
                 created_at=evaluate.created_at,
@@ -269,8 +256,8 @@ def clone_version(
                 bulk_evaluate_entities, ignore_conflicts=True
             )
 
-    instance.is_deleted = False
-    instance.save(update_fields=["is_deleted"])
+    clone.is_deleted = False
+    clone.save(update_fields=["is_deleted"])
     return True
 
 

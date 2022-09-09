@@ -937,19 +937,30 @@ class Repository(models.Model):
             return None, "User does not exist", status.HTTP_404_NOT_FOUND
 
         slug = unique_slug_generator({"name": self.name})
-        clone = Repository.objects.create(owner_id=new_owner_id, slug=slug)
+        repository_clone = Repository.objects.create(owner_id=new_owner_id, slug=slug)
 
         # Queue clone_repository and clone_version tasks
         # Only the default version
         default_repository_version = (
             self.versions.filter(is_default=True).order_by("-last_update").first()
         )
+        if not default_repository_version:
+            return None, "No version found to clone", status.HTTP_404_NOT_FOUND
+
+        clone_repository_version = RepositoryVersion.objects.create(
+            repository_id=repository_clone.pk,
+            name=default_repository_version.name,
+        )
         group_tasks = group(
-            clone_repository.s(self.pk, clone.pk, new_owner_id),
-            clone_version.s(clone.pk, default_repository_version.pk),
+            clone_repository.s(self.pk, repository_clone.pk, new_owner_id),
+            clone_version.s(
+                repository_clone.pk,
+                default_repository_version.pk,
+                clone_repository_version.pk,
+            ),
         )
         group_tasks()
-        return clone.pk, "Queued for cloning", status.HTTP_200_OK
+        return repository_clone.pk, "Queued for cloning", status.HTTP_200_OK
 
 
 class RepositoryVersion(models.Model):
