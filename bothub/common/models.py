@@ -914,9 +914,12 @@ class Repository(models.Model):
 
             # Excluding ROLE_TRANSLATE as it does not correspond to the same role in the client app (connect).
             # todo: update this conditional with corresponding role rule
-            if repo_auth.role < org_auth.role and org_auth.role < RepositoryAuthorization.ROLE_TRANSLATE:
+            if (
+                repo_auth.role < org_auth.role
+                and org_auth.role < RepositoryAuthorization.ROLE_TRANSLATE
+            ):
                 repo_auth.role = org_auth.role
-                repo_auth.save(update_fields=['role'])
+                repo_auth.save(update_fields=["role"])
         return repo_auth
 
     def get_absolute_url(self):
@@ -1271,7 +1274,7 @@ class RepositoryVersionLanguage(models.Model):
 
     @property
     def requirements_to_train(self):
-        if settings.USE_ELASTICSEARCH:
+        if settings.ELASTICSEARCH_EXAMPLES:
             return self._elasticsearch_requirements_to_train
         else:
             return self._relational_requirements_to_train
