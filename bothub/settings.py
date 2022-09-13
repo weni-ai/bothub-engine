@@ -83,6 +83,7 @@ env = environ.Env(
     REPOSITORY_EXAMPLE_TEXT_WORDS_LIMIT=(int, 200),
     ELASTICSEARCH_DSL=(str, "localhost:9200"),
     ELASTICSEARCH_REPOSITORYNLPLOG_INDEX=(str, "ai_repository_classifier_nlplog"),
+    ELASTICSEARCH_EXAMPLES=(bool, False),
     USE_ELASTICSEARCH=(bool, True),
     ELASTICSEARCH_REPOSITORYQANLPLOG_INDEX=(str, "ai_repository_qa_nlplog"),
     ELASTICSEARCH_REPOSITORYBASICEXAMPLE_INDEX=(str, "ai_repositorybasicexample"),
@@ -577,6 +578,7 @@ ELASTICSEARCH_DSL = {
     "default": {"hosts": env.str("ELASTICSEARCH_DSL", default="es:9200")}
 }
 
+ELASTICSEARCH_EXAMPLES = env.bool("ELASTICSEARCH_EXAMPLES", default=False)
 USE_ELASTICSEARCH = env.bool("USE_ELASTICSEARCH", default=True)
 
 ELASTICSEARCH_DSL_INDEX_SETTINGS = {

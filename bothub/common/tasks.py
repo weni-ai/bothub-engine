@@ -49,10 +49,11 @@ else:
 
 @app.task(name="es_handle_save")
 def handle_save(pk, app_label, model_name):
-    sender = apps.get_model(app_label, model_name)
-    instance = sender.objects.get(pk=pk)
-    registry.update(instance)
-    registry.update_related(instance)
+    if settings.USE_ELASTICSEARCH:
+        sender = apps.get_model(app_label, model_name)
+        instance = sender.objects.get(pk=pk)
+        registry.update(instance)
+        registry.update_related(instance)
 
 
 @app.task()
