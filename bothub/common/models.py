@@ -1309,7 +1309,7 @@ class RepositoryVersionLanguage(models.Model):
 
     @property
     def requirements_to_train(self):
-        if settings.USE_ELASTICSEARCH:
+        if settings.ELASTICSEARCH_EXAMPLES:
             return self._elasticsearch_requirements_to_train
         else:
             return self._relational_requirements_to_train
