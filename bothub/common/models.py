@@ -915,7 +915,7 @@ class Repository(models.Model):
             settings.BOTHUB_WEBAPP_BASE_URL, self.owner.nickname, self.slug
         )
 
-    def clone_self(self, new_owner_id) -> Tuple[bool, str, int]:
+    def clone_self(self, new_owner_id, language) -> Tuple[bool, str, int]:
         """Clone the current repository and transfer the clone version to a new owner.
         Returns a Tuple[slug:str, message:str, http_status:int].
         (The "slug" field refers to the repository clone's slug field).
@@ -952,7 +952,7 @@ class Repository(models.Model):
             name=default_repository_version.name,
         )
         group_tasks = group(
-            clone_repository.s(self.pk, repository_clone.pk, new_owner_id),
+            clone_repository.s(self.pk, repository_clone.pk, new_owner_id, language),
             clone_version.s(
                 default_repository_version.repository.pk,
                 default_repository_version.pk,

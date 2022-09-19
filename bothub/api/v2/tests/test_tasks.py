@@ -231,7 +231,6 @@ class RepositoryCloneTestCase(TestCase):
                 repository_version_language=clone_version_language
             )
             self.assertEqual(clone_version_language_examples.count(), 10)
-            print("passou")
 
     def test_functions(self):
         self.clone_repository_function()

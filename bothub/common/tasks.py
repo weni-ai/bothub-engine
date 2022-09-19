@@ -8,6 +8,8 @@ from django.conf import settings
 from django.db import transaction
 from django.db.models import Q, Count
 from django.utils import timezone
+from django.utils import translation
+from django.utils.translation import gettext_lazy as _
 
 from django_elasticsearch_dsl.registries import registry
 
@@ -264,7 +266,10 @@ def clone_version(
 
 @app.task()
 def clone_repository(
-    source_repository_id: str, clone_repository_id: str, new_owner_id: int
+    source_repository_id: str,
+    clone_repository_id: str,
+    new_owner_id: int,
+    language: str,
 ) -> Repository:
     """
     Clone a Repository Instance ans it's related fields.
@@ -289,7 +294,12 @@ def clone_repository(
 
     # Keep full name if the field's "max_length" allows it, else crop it
     size = Repository.name.field.max_length
-    name = f"Clone - {source_repository.name}"
+    translation.activate(language)
+    name = "{prefix} - {name}".format(
+        prefix=_("Copy"),
+        name=source_repository.name,
+    )
+    translation.deactivate()
     if len(name) > size:
         name = name[: size - 3] + "..."
     clone_repository.name = name

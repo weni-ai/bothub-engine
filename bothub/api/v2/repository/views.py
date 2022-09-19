@@ -1526,6 +1526,11 @@ class CloneRepositoryViewSet(mixins.CreateModelMixin, GenericViewSet):
         owner_id = serializer.data.get("owner")
         repository_id = serializer.data.get("repository")
         repository = Repository.objects.get(pk=repository_id)
+        language = (
+            request.user.language
+            if getattr(request.user, "language")
+            else settings.LANGUAGES[0][0]
+        )
 
-        clone_id, message, http_status = repository.clone_self(owner_id)
+        clone_id, message, http_status = repository.clone_self(owner_id, language)
         return Response(clone_id if clone_id else message, status=http_status)
