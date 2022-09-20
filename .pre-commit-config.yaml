@@ -20,12 +20,6 @@ repos:
       - id: black
         exclude: ^migrations/
 
-  - repo: https://github.com/IamTheFij/docker-pre-commit
-    rev: 71cd8ff86aa4dd50210ba4d86a9ff5dc6339e9a0
-    hooks:
-      - id: docker-compose-check # Checks that docker-compose files are valid
-
-
   - repo: https://gitlab.com/smop/pre-commit-hooks
     rev: df034f88cf92b394e6f00a78fa97a2aa4e270e60
     hooks:
