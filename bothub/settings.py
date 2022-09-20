@@ -85,6 +85,7 @@ env = environ.Env(
     ELASTICSEARCH_REPOSITORYNLPLOG_INDEX=(str, "ai_repository_classifier_nlplog"),
     ELASTICSEARCH_EXAMPLES=(bool, False),
     USE_ELASTICSEARCH=(bool, True),
+    ELASTICSEARCH_CUSTOM_QUEUE=(str, "celery"),
     ELASTICSEARCH_REPOSITORYQANLPLOG_INDEX=(str, "ai_repository_qa_nlplog"),
     ELASTICSEARCH_REPOSITORYBASICEXAMPLE_INDEX=(str, "ai_repositorybasicexample"),
     ELASTICSEARCH_NUMBER_OF_SHARDS=(int, 1),
@@ -583,6 +584,7 @@ ELASTICSEARCH_DSL = {
 
 ELASTICSEARCH_EXAMPLES = env.bool("ELASTICSEARCH_EXAMPLES", default=False)
 USE_ELASTICSEARCH = env.bool("USE_ELASTICSEARCH", default=True)
+ELASTICSEARCH_CUSTOM_QUEUE = env("ELASTICSEARCH_CUSTOM_QUEUE", default="celery")
 
 ELASTICSEARCH_DSL_INDEX_SETTINGS = {
     "number_of_shards": env.int("ELASTICSEARCH_NUMBER_OF_SHARDS", default=1),

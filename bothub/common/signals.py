@@ -1,6 +1,6 @@
 from django.db import transaction
 from django.conf import settings
-from bothub.celery import app as celery_app
+from bothub.common.tasks import handle_save
 from django_elasticsearch_dsl.registries import registry
 from django_elasticsearch_dsl.signals import RealTimeSignalProcessor
 
@@ -15,8 +15,9 @@ class CelerySignalProcessor(RealTimeSignalProcessor):
             model in registry._models or model in registry._related_models
         ):
             transaction.on_commit(
-                lambda: celery_app.send_task(
-                    "es_handle_save", args=[instance.pk, app_label, model_name]
+                lambda: handle_save.apply_async(
+                    args=[instance.pk, app_label, model_name],
+                    queue=settings.ELASTICSEARCH_CUSTOM_QUEUE,
                 )
             )
 
