@@ -269,12 +269,14 @@ def clone_repository(
     source_repository_id: str,
     clone_repository_id: str,
     new_owner_id: int,
-    language: str,
+    language: str = None,
 ) -> Repository:
     """
     Clone a Repository Instance ans it's related fields.
     Returns a Repository instance or None
     """
+    if not language:
+        language = "en"
 
     source_repository = Repository.objects.get(pk=source_repository_id)
     clone_repository = Repository.objects.get(pk=clone_repository_id)
