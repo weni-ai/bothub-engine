@@ -297,9 +297,9 @@ def clone_repository(
     # Keep full name if the field's "max_length" allows it, else crop it
     size = Repository.name.field.max_length
     translation.activate(language)
-    name = "{prefix} - {name}".format(
-        prefix=_("Copy"),
+    name = "{name} [{suffix}]".format(
         name=source_repository.name,
+        suffix=_("Copy"),
     )
     translation.deactivate()
     if len(name) > size:
