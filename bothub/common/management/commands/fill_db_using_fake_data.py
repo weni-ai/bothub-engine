@@ -28,13 +28,15 @@ class Command(BaseCommand):
 
         # Users
 
-        User.objects.create_superuser(
-            email="admin@bothub.it", nickname="admin", password="admin", name="Admin"
-        )
+        if not User.objects.filter(email="admin@bothub.it").exists:
+            User.objects.create_superuser(
+                email="admin@bothub.it", nickname="admin", password="admin", name="Admin"
+            )
 
-        user = User.objects.create_user(
-            email="user@bothub.it", nickname="user", password="user", name="User"
-        )
+        if not User.objects.filter(email="user@bothub.it").exists:
+            user = User.objects.create_user(
+                email="user@bothub.it", nickname="user", password="user", name="User"
+            )
 
         # Categories
 
