@@ -1192,10 +1192,13 @@ class RepositoryExampleRetrieveTestCase(TestCase):
             intent=self.example_intent_2,
         )
 
-    def request(self, example, token):
+    def request(self, example, token, method="get", data=None):
         authorization_header = get_authorization_header(token.key if token else None)
-        request = self.factory.get(
-            "/v2/repository/example/{}/".format(example.id), **authorization_header
+        method = getattr(self.factory, method)
+        request = method(
+            "/v2/repository/example/{}/".format(example.id),
+            data=data,
+            **authorization_header,
         )
         response = RepositoryExampleViewSet.as_view({"get": "retrieve"})(
             request, pk=example.id
@@ -1209,9 +1212,18 @@ class RepositoryExampleRetrieveTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(content_data.get("id"), self.example.id)
 
-    def test_forbidden(self):
+    def test_read_private(self):
         response, content_data = self.request(self.private_example, self.user_token)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_block_update_private(self):
+        data = {"text": "New text"}
+        response, content_data = self.request(self.private_example, self.user_token, "put", data)
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_block_delete_private(self):
+        response, content_data = self.request(self.private_example, self.user_token, "delete")
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_public(self):
         response, content_data = self.request(self.example, self.user_token)

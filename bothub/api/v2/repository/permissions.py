@@ -117,7 +117,7 @@ class RepositoryExamplePermission(permissions.BasePermission):
             request.user
         )
         if request.method in READ_METHODS:
-            return authorization.can_read
+            return True
         return authorization.can_contribute
 
 
