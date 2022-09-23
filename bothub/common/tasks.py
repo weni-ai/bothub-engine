@@ -317,6 +317,22 @@ def clone_repository(
 
     # region 2. ForeignKeys and ManyToManyFields
     clone_repository.categories.set(source_repository.categories.all())
+
+    score_queue = []
+    score_exclude_fields = ("id", "pk", "uuid", "repository")
+    score_fields = RepositoryScore._meta.fields
+    for original_score in source_repository.repository_score.all():
+        clone_score = RepositoryScore(repository=clone_repository)
+        # copy fields and values
+        for field in score_fields:
+            if not (field.name in score_exclude_fields or field.primary_key):
+                setattr(
+                    clone_score,
+                    field.name,
+                    getattr(original_score, field.name),
+                )
+        score_queue.append(clone_score)
+    RepositoryScore.objects.bulk_create(score_queue)
     # endregion
 
     # region 3. reverse ForeignKeys and ManyToManyFields (the ones which reference the Repository)
