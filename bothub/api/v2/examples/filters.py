@@ -8,6 +8,7 @@ from rest_framework.exceptions import PermissionDenied
 from bothub.common.models import Repository
 from bothub.common.models import RepositoryExample
 
+from bothub.api.v2 import READ_METHODS
 from bothub.utils import DefaultExamplesFilter
 
 
@@ -106,7 +107,7 @@ class ExamplesFilter(DefaultExamplesFilter):
         try:
             repository = Repository.objects.get(uuid=value)
             authorization = repository.get_user_authorization(request.user)
-            if not authorization.can_translate:
+            if request.method not in READ_METHODS and not authorization.can_translate:
                 raise PermissionDenied()
             if request.query_params.get("repository_version"):
                 return queryset
