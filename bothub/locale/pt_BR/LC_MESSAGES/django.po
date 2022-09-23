@@ -2,94 +2,72 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <contato@ilhasoft.com.br>, 2020.
-# 
+#
 # Translators:
 # Ilhasoft <contato@ilhasoft.com.br>, 2020
 # Daniel Yohan <dyohan9@gmail.com>, 2020
-# 
-#, fuzzy
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-09-01 16:45+0000\n"
+"POT-Creation-Date: 2022-09-19 17:00+0000\n"
 "PO-Revision-Date: 2020-04-28 13:01+0000\n"
 "Last-Translator: Daniel Yohan <dyohan9@gmail.com>, 2020\n"
-"Language-Team: Portuguese (Brazil) (https://www.transifex.com/bothub/teams/106489/pt_BR/)\n"
+"Language-Team: Portuguese (Brazil) (https://www.transifex.com/bothub/"
+"teams/106489/pt_BR/)\n"
+"Language: pt_BR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: pt_BR\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: bothub/api/v2/account/serializers.py:13
-#: bothub/api/v2/account/serializers.py:56
+#: bothub/api/v2/account/serializers.py:14
+#: bothub/api/v2/account/serializers.py:64
 msgid "Email"
 msgstr "Email"
 
-#: bothub/api/v2/account/serializers.py:14
-#: bothub/api/v2/account/serializers.py:24
+#: bothub/api/v2/account/serializers.py:15
+#: bothub/api/v2/account/serializers.py:26
 msgid "Password"
 msgstr "Senha"
 
-#: bothub/api/v2/account/serializers.py:38
+#: bothub/api/v2/account/serializers.py:46
 msgid "Current Password"
 msgstr "Senha Atual"
 
-#: bothub/api/v2/account/serializers.py:40
-#: bothub/api/v2/account/serializers.py:84
+#: bothub/api/v2/account/serializers.py:48
+#: bothub/api/v2/account/serializers.py:100
 msgid "New Password"
 msgstr "Nova Senha"
 
-#: bothub/api/v2/account/serializers.py:51
+#: bothub/api/v2/account/serializers.py:59
 msgid "Wrong password"
 msgstr "Senha incorreta"
 
-#: bothub/api/v2/account/serializers.py:68
+#: bothub/api/v2/account/serializers.py:76
 msgid "No user registered with this email"
 msgstr "Nenhum usuário registrado com esse email"
 
-#: bothub/api/v2/account/serializers.py:82
+#: bothub/api/v2/account/serializers.py:98
 msgid "Token"
 msgstr "Token"
 
-#: bothub/api/v2/account/serializers.py:95
+#: bothub/api/v2/account/serializers.py:111
 msgid "Invalid token for this user"
 msgstr "Token inválido para esse usuário"
 
-#: bothub/api/v2/account/serializers.py:24
-msgid "The request is invalid or malformed."
-msgstr "A solicitação está inválida ou malformada."
-
-#: bothub/api/v2/account/serializers.py:24
-msgid "The response parameter is invalid or malformed."
-msgstr "O parâmetro response está inválido ou malformado."
-
-#: bothub/api/v2/account/serializers.py:24
-msgid "The secret parameter is invalid or malformed."
-msgstr "O parâmetro secret está inválido ou malformado."
-
-#: bothub/api/v2/account/serializers.py:24
-msgid "The response parameter is missing."
-msgstr "O parâmetro response precisa ser enviado."
-
-#: bothub/api/v2/account/serializers.py:24
-msgid "The secret parameter is missing."
-msgstr "O parâmetro secret precisa ser enviado."
-
-#: bothub/api/v2/account/serializers.py:24
-msgid "The response parameter has timed out or has already been used."
-msgstr "O parâmetro de resposta expirou ou já foi usado."
-
 #: bothub/api/v2/evaluate/filters.py:24 bothub/api/v2/evaluate/filters.py:98
-#: bothub/api/v2/evaluate/filters.py:151 bothub/api/v2/examples/filters.py:22
-#: bothub/api/v2/repository/filters.py:39
-#: bothub/api/v2/repository/filters.py:65
-#: bothub/api/v2/repository/filters.py:91
-#: bothub/api/v2/repository/filters.py:148
-#: bothub/api/v2/repository/filters.py:184
-#: bothub/api/v2/repository/filters.py:250
+#: bothub/api/v2/evaluate/filters.py:160 bothub/api/v2/examples/filters.py:23
+#: bothub/api/v2/knowledge_base/filters.py:18
+#: bothub/api/v2/knowledge_base/filters.py:54
+#: bothub/api/v2/repository/filters.py:71
+#: bothub/api/v2/repository/filters.py:97
+#: bothub/api/v2/repository/filters.py:208
+#: bothub/api/v2/repository/filters.py:244
+#: bothub/api/v2/repository/filters.py:328
 #: bothub/api/v2/translation/filters.py:20
+#: bothub/api/v2/translator/filters.py:25
 #: bothub/api/v2/versionning/filters.py:18
 msgid "Repository's UUID"
 msgstr "UUID da Inteligência"
@@ -103,46 +81,62 @@ msgid "Filter evaluations with an entity."
 msgstr "Filtrar avaliações com uma entidade."
 
 #: bothub/api/v2/evaluate/filters.py:48 bothub/api/v2/evaluate/filters.py:104
-#: bothub/api/v2/evaluate/filters.py:157 bothub/api/v2/examples/filters.py:60
-#: bothub/api/v2/repository/filters.py:103
+#: bothub/api/v2/evaluate/filters.py:166 bothub/api/v2/examples/filters.py:67
 #: bothub/api/v2/translation/filters.py:35
 msgid "Filter for examples with version id."
 msgstr "Filtrar por frases com id de versão."
 
-#: bothub/api/v2/evaluate/filters.py:70 bothub/api/v2/evaluate/filters.py:127
-#: bothub/api/v2/evaluate/filters.py:175 bothub/api/v2/examples/filters.py:89
-#: bothub/api/v2/repository/filters.py:51
-#: bothub/api/v2/repository/filters.py:77
-#: bothub/api/v2/repository/filters.py:123
-#: bothub/api/v2/repository/filters.py:167
-#: bothub/api/v2/repository/filters.py:205
+#: bothub/api/v2/evaluate/filters.py:70 bothub/api/v2/evaluate/filters.py:133
+#: bothub/api/v2/evaluate/filters.py:190 bothub/api/v2/examples/filters.py:115
+#: bothub/api/v2/knowledge_base/filters.py:32
+#: bothub/api/v2/knowledge_base/filters.py:68
+#: bothub/api/v2/repository/filters.py:83
+#: bothub/api/v2/repository/filters.py:109
+#: bothub/api/v2/repository/filters.py:159
+#: bothub/api/v2/repository/filters.py:227
+#: bothub/api/v2/repository/filters.py:277
 #: bothub/api/v2/translation/filters.py:59
+#: bothub/api/v2/translator/filters.py:40
 #: bothub/api/v2/versionning/filters.py:32
 msgid "Repository {} does not exist"
 msgstr "Inteligência {} não existe"
 
-#: bothub/api/v2/evaluate/filters.py:72 bothub/api/v2/evaluate/filters.py:129
-#: bothub/api/v2/evaluate/filters.py:177 bothub/api/v2/examples/filters.py:91
-#: bothub/api/v2/repository/filters.py:125
+#: bothub/api/v2/evaluate/filters.py:72 bothub/api/v2/evaluate/filters.py:135
+#: bothub/api/v2/evaluate/filters.py:192 bothub/api/v2/examples/filters.py:117
+#: bothub/api/v2/knowledge_base/filters.py:34
+#: bothub/api/v2/knowledge_base/filters.py:70
+#: bothub/api/v2/repository/filters.py:161
 #: bothub/api/v2/translation/filters.py:61
 #: bothub/api/v2/versionning/filters.py:34
 msgid "Invalid repository_uuid"
 msgstr "repository_uuid inválido"
 
-#: bothub/api/v2/evaluate/filters.py:144
+#: bothub/api/v2/evaluate/filters.py:110
+msgid "Filter for repository cross_validation results."
+msgstr ""
+
+#: bothub/api/v2/evaluate/filters.py:153
 msgid "Evaluate Text"
 msgstr "Avaliar Texto"
 
+#: bothub/api/v2/evaluate/filters.py:172
+msgid "Filter for repository cross validation results."
+msgstr ""
+
 #: bothub/api/v2/evaluate/serializers.py:58
-#: bothub/api/v2/repository/filters.py:24
-#: bothub/api/v2/repository/serializers.py:284
-#: bothub/api/v2/repository/serializers.py:708
-#: bothub/api/v2/repository/serializers.py:788
-#: bothub/api/v2/repository/serializers.py:1203
-#: bothub/api/v2/translation/serializers.py:84
-#: bothub/api/v2/translation/serializers.py:110
-#: bothub/api/v2/translation/serializers.py:116
-#: bothub/api/v2/translation/serializers.py:119
+#: bothub/api/v2/repository/filters.py:30
+#: bothub/api/v2/repository/serializers.py:274
+#: bothub/api/v2/repository/serializers.py:295
+#: bothub/api/v2/repository/serializers.py:535
+#: bothub/api/v2/repository/serializers.py:975
+#: bothub/api/v2/repository/serializers.py:1063
+#: bothub/api/v2/repository/serializers.py:1395
+#: bothub/api/v2/repository/serializers.py:1545
+#: bothub/api/v2/translation/serializers.py:82
+#: bothub/api/v2/translation/serializers.py:121
+#: bothub/api/v2/translation/serializers.py:127
+#: bothub/api/v2/translation/serializers.py:130
+#: bothub/api/v2/translator/serializers.py:30
 msgid "Language"
 msgstr "Idioma"
 
@@ -154,47 +148,77 @@ msgstr "A intenção DEVE corresponder às já existentes no treinamento."
 msgid "Entities MUST match existing entities for training."
 msgstr "As entidades DEVEM corresponder às já existentes no treinamento."
 
-#: bothub/api/v2/example/serializers.py:29
-#: bothub/api/v2/repository/serializers.py:938
-#: bothub/api/v2/translation/serializers.py:81
+#: bothub/api/v2/evaluate/validators.py:56
+msgid "You already have this phrase in your tests"
+msgstr ""
+
+#: bothub/api/v2/example/serializers.py:30
+#: bothub/api/v2/repository/serializers.py:1227
+#: bothub/api/v2/translation/serializers.py:79
+#: bothub/api/v2/translator/serializers.py:27
 msgid "Example's ID"
 msgstr "ID de frases"
 
-#: bothub/api/v2/examples/filters.py:32
+#: bothub/api/v2/examples/filters.py:33 bothub/api/v2/translator/filters.py:53
 msgid "Filter for examples with or without translation"
 msgstr "Filtrar por frases com ou sem tradução"
 
-#: bothub/api/v2/examples/filters.py:40
+#: bothub/api/v2/examples/filters.py:47 bothub/api/v2/translator/filters.py:64
 msgid "Order examples with translation by language"
 msgstr "Ordenar frases com tradução por idioma"
 
-#: bothub/api/v2/examples/filters.py:45
+#: bothub/api/v2/examples/filters.py:52 bothub/api/v2/translator/filters.py:69
 msgid "Filter for examples with entities with specific group."
 msgstr "Filtre sentenças com entidades com um grupo específico."
 
-#: bothub/api/v2/examples/filters.py:50
+#: bothub/api/v2/examples/filters.py:57 bothub/api/v2/translator/filters.py:74
 msgid "Filter for examples with entity."
 msgstr "Filtrar por exemplos com entidade."
 
-#: bothub/api/v2/examples/filters.py:55
+#: bothub/api/v2/examples/filters.py:62 bothub/api/v2/translator/filters.py:79
 msgid "Filter for examples with entity by id."
 msgstr "Filtre exemplos com entidade por ID."
 
-#: bothub/api/v2/examples/filters.py:65
+#: bothub/api/v2/examples/filters.py:72
 msgid "Filter by record creation date, example: 2020-08-15 15:35:12.51"
 msgstr ""
 "Filtre pela data de criação do registro, exemplo: 2020-08-15 15:35:12.51"
 
-#: bothub/api/v2/examples/filters.py:70
+#: bothub/api/v2/examples/filters.py:77
 msgid "Filter by record creation date, example: 2020-08-17 15:35:12.51"
 msgstr ""
 "Filtre pela data de criação do registro, exemplo: 2020-08-17 15:35:12.51"
 
-#: bothub/api/v2/examples/filters.py:75
+#: bothub/api/v2/examples/filters.py:82 bothub/api/v2/translator/filters.py:84
 msgid "Filter for examples with intent by text."
 msgstr "Filtre exemplos com intenção pelo texto."
 
-#: bothub/api/v2/nlp/views.py:38
+#: bothub/api/v2/examples/filters.py:87 bothub/api/v2/translator/filters.py:89
+msgid "Filter for examples with intent by id."
+msgstr "Filtre exemplos com intenção por id."
+
+#: bothub/api/v2/examples/filters.py:93 bothub/api/v2/translator/filters.py:95
+msgid ""
+"Filter all translations whose entities are valid, that is, the entities of "
+"the translations that match the entities of the original sentence"
+msgstr ""
+
+#: bothub/api/v2/examples/filters.py:100
+#: bothub/api/v2/translator/filters.py:102
+msgid ""
+"Filter all translations whose entities are invalid, that is, the translation "
+"entities do not match the entities in the original sentence"
+msgstr ""
+
+#: bothub/api/v2/internal/organization/serializers.py:45
+msgid "{} not found!"
+msgstr ""
+
+#: bothub/api/v2/internal/organization/views.py:86
+msgid "Organization deleted with success"
+msgstr "Organização {} removida com sucesso"
+
+#: bothub/api/v2/nlp/views.py:47
 msgid "Invalid token header."
 msgstr "Token inválido."
 
@@ -215,7 +239,7 @@ msgid "You cannot change your own role"
 msgstr "Você não pode mudar seu próprio papel"
 
 #: bothub/api/v2/organization/serializers.py:129
-#: bothub/api/v2/repository/serializers.py:887
+#: bothub/api/v2/repository/serializers.py:1176
 msgid "You cannot set user role 0"
 msgstr "Você não pode configurar o papel 0"
 
@@ -223,61 +247,108 @@ msgstr "Você não pode configurar o papel 0"
 msgid "This organization nickname already exists"
 msgstr "Esse apelido de organização já existe"
 
-#: bothub/api/v2/organization/views.py:105
+#: bothub/api/v2/organization/views.py:108
 msgid "You cannot delete your own user."
 msgstr "Você não pode deletar seu próprio usuário."
 
-#: bothub/api/v2/repository/filters.py:53
-#: bothub/api/v2/repository/filters.py:79
-#: bothub/api/v2/repository/filters.py:169
-#: bothub/api/v2/repository/filters.py:207
+#: bothub/api/v2/repository/filters.py:33
+msgid "Repository Owner Id"
+msgstr "ID do(a) dono(a) da inteligência"
+
+#: bothub/api/v2/repository/filters.py:36
+msgid "Repository Owner Nickname"
+msgstr "Nome de exibição do(a) proprietário(a) da inteligência"
+
+#: bothub/api/v2/repository/filters.py:85
+#: bothub/api/v2/repository/filters.py:111
+#: bothub/api/v2/repository/filters.py:229
+#: bothub/api/v2/repository/filters.py:279
+#: bothub/api/v2/translator/filters.py:42
 msgid "Invalid repository UUID"
 msgstr "UUID de inteligência inválido"
 
-#: bothub/api/v2/repository/filters.py:109
-msgid "Filter for examples with version name."
-msgstr "Filtrar por frases com id de versão."
+#: bothub/api/v2/repository/filters.py:135
+msgid "Knowledge base {} does not exist"
+msgstr "Base de conhecimento {} não existe"
 
-#: bothub/api/v2/repository/filters.py:155
-#: bothub/api/v2/repository/filters.py:191
+#: bothub/api/v2/repository/filters.py:137
+msgid "Invalid Knowledge base"
+msgstr "Base de conhecimento inválida."
+
+#: bothub/api/v2/repository/filters.py:147
+msgid "Text {} does not exist"
+msgstr "Texto {} não existe"
+
+#: bothub/api/v2/repository/filters.py:149
+msgid "Invalid Context"
+msgstr "Contexto inválido."
+
+#: bothub/api/v2/repository/filters.py:171
+
+msgid "RepositoryVersion {} does not exist"
+msgstr "RepositoryVersion {} não existe"
+
+#: bothub/api/v2/repository/filters.py:173
+msgid "Invalid repository_version"
+msgstr "repository_version inválido"
+
+#: bothub/api/v2/repository/filters.py:193
+msgid "RepositoryVersionLanguage {} does not exist"
+msgstr "RepositoryVersionLanguage {} não existe"
+
+#: bothub/api/v2/repository/filters.py:196
+msgid "Invalid repository_version_language"
+msgstr "idioma da versão da inteligência"
+
+#: bothub/api/v2/repository/filters.py:215
+#: bothub/api/v2/repository/filters.py:251
 msgid "Repository Version ID"
 msgstr "ID da versão da inteligência"
 
-#: bothub/api/v2/repository/filters.py:246
+#: bothub/api/v2/repository/filters.py:258
+msgid "Choose the type of processing"
+msgstr ""
+
+#: bothub/api/v2/repository/filters.py:263
+msgid "Filter by Queue ID"
+msgstr ""
+
+#: bothub/api/v2/repository/filters.py:324
 msgid "Filter intents with version id."
 msgstr "Filtrar intenções pelo id da versão."
 
-#: bothub/api/v2/repository/serializers.py:78
+#: bothub/api/v2/repository/serializers.py:93
 msgid "Leave a message for repository administrators"
 msgstr "Deixe uma mensagem para administradores da inteligência"
 
-#: bothub/api/v2/repository/serializers.py:295
-#: bothub/api/v2/repository/serializers.py:719
-#: bothub/api/v2/repository/serializers.py:805
+#: bothub/api/v2/repository/serializers.py:286
+#: bothub/api/v2/repository/serializers.py:546
+#: bothub/api/v2/repository/serializers.py:986
+#: bothub/api/v2/repository/serializers.py:1080
 msgid "Categories"
 msgstr "Categorias"
 
-#: bothub/api/v2/repository/serializers.py:314
-#: bothub/api/v2/repository/serializers.py:675
+#: bothub/api/v2/repository/serializers.py:564
+#: bothub/api/v2/repository/serializers.py:941
 msgid "Algorithm"
 msgstr "Algoritmo"
 
-#: bothub/api/v2/repository/serializers.py:323
-#: bothub/api/v2/repository/serializers.py:680 bothub/common/models.py:298
+#: bothub/api/v2/repository/serializers.py:573
+#: bothub/api/v2/repository/serializers.py:947 bothub/common/models.py:312
 msgid ""
-"When using competing intents the confidence of the prediction is distributed"
-" in all the intents."
+"When using competing intents the confidence of the prediction is distributed "
+"in all the intents."
 msgstr ""
 "Quando intenções concorrentes são usadas, a confidência da predição é \n"
 "distribuída em todas as intenções."
 
-#: bothub/api/v2/repository/serializers.py:327
-#: bothub/api/v2/repository/serializers.py:684 bothub/common/models.py:296
+#: bothub/api/v2/repository/serializers.py:577
+#: bothub/api/v2/repository/serializers.py:951 bothub/common/models.py:310
 msgid "Use competing intents"
 msgstr "Usar intenções concorrentes"
 
-#: bothub/api/v2/repository/serializers.py:333
-#: bothub/api/v2/repository/serializers.py:689 bothub/common/models.py:306
+#: bothub/api/v2/repository/serializers.py:583
+#: bothub/api/v2/repository/serializers.py:956 bothub/common/models.py:320
 msgid ""
 "When enabling name entities you will receive name of people, companies and "
 "places as results of your predictions."
@@ -285,13 +356,13 @@ msgstr ""
 "Quando entidades de nomes estão habilitadas, você identificará nome de \n"
 "pessoas, empresas e lugares como resultados de suas predições."
 
-#: bothub/api/v2/repository/serializers.py:338
-#: bothub/api/v2/repository/serializers.py:694 bothub/common/models.py:304
+#: bothub/api/v2/repository/serializers.py:588
+#: bothub/api/v2/repository/serializers.py:961 bothub/common/models.py:318
 msgid "Use name entities"
 msgstr "Usar entidades de nomes"
 
-#: bothub/api/v2/repository/serializers.py:344
-#: bothub/api/v2/repository/serializers.py:699 bothub/common/models.py:315
+#: bothub/api/v2/repository/serializers.py:594
+#: bothub/api/v2/repository/serializers.py:966 bothub/common/models.py:329
 msgid ""
 "When selected, the algorithm will learn the patterns of individual "
 "characters instead of whole words. This approach works better for some "
@@ -301,64 +372,119 @@ msgstr ""
 "padrões individuais dos caracteres ao invés de apenas palavras inteiras. \n"
 "Essa abordagem funciona melhor para alguns idiomas, como Português do Brasil."
 
-#: bothub/api/v2/repository/serializers.py:349
-#: bothub/api/v2/repository/serializers.py:704 bothub/common/models.py:313
+#: bothub/api/v2/repository/serializers.py:599
+#: bothub/api/v2/repository/serializers.py:971 bothub/common/models.py:327
 msgid "Use analyze char"
 msgstr "Usar análise de caractere"
 
-#: bothub/api/v2/repository/serializers.py:885
+#: bothub/api/v2/repository/serializers.py:935
+msgid "Repository Type"
+msgstr "Tipo da inteligência"
+
+#: bothub/api/v2/repository/serializers.py:1002
+msgid "It's necessary to pass an organization."
+msgstr ""
+
+#: bothub/api/v2/repository/serializers.py:1174
 msgid "The owner role can't be changed."
 msgstr "O papel de dono não pode ser modificado."
 
-#: bothub/api/v2/repository/serializers.py:1027
-#: bothub/api/v2/repository/serializers.py:1040
-msgid "Intention and Sentence already exists"
-msgstr "Intenção e frase já existem"
+#: bothub/api/v2/repository/serializers.py:1321
+#: bothub/api/v2/repository/serializers.py:1331
+msgid "Sentence already exists"
+msgstr "Frase já existe"
 
-#: bothub/api/v2/repository/serializers.py:1179
+#: bothub/api/v2/repository/serializers.py:1396 bothub/common/models.py:272
+msgid "Classifier"
+msgstr ""
+
+#: bothub/api/v2/repository/serializers.py:1521
 msgid "Allows you to define a group for a specific entity"
 msgstr "Permite definir um grupo para uma entidade específica"
 
-#: bothub/api/v2/repository/validators.py:16
-#: bothub/api/v2/repository/validators.py:26
+#: bothub/api/v2/repository/validators.py:17
+#: bothub/api/v2/repository/validators.py:27
 #: bothub/api/v2/translation/validators.py:13
 #: bothub/api/v2/translation/validators.py:26
+#: bothub/api/v2/translator/validators.py:11
+#: bothub/api/v2/translator/validators.py:17
 msgid "You can't contribute in this repository"
 msgstr "Você não pode contribuir nessa inteligência"
 
-#: bothub/api/v2/repository/validators.py:38
+#: bothub/api/v2/repository/validators.py:39
 msgid "Define a intent or one entity"
 msgstr "Defina uma intenção ou uma entidade"
 
-#: bothub/api/v2/repository/validators.py:48
+#: bothub/api/v2/repository/validators.py:49
 msgid "You can't contribute in this organization"
 msgstr "Você não pode contribuir nessa organização"
 
-#: bothub/api/v2/repository/validators.py:61
+#: bothub/api/v2/repository/validators.py:62
 msgid "Group name can't be equal to entity name"
 msgstr "O nome do grupo não pode ser igual ao nome da entidade"
 
-#: bothub/api/v2/repository/validators.py:71 bothub/common/models.py:29
+#: bothub/api/v2/repository/validators.py:72 bothub/common/models.py:36
 msgid ""
-"Enter a valid value consisting of lowercase letters, numbers, underscores or"
-" hyphens."
+"Enter a valid value consisting of lowercase letters, numbers, underscores or "
+"hyphens."
 msgstr "Coloque um valor que tenha letras, números, underscores ou hífens."
 
-#: bothub/api/v2/repository/views.py:192
+#: bothub/api/v2/repository/validators.py:85
+msgid "Enter a valid value that has letters in it"
+msgstr ""
+
+#: bothub/api/v2/repository/validators.py:94
+msgid "Enter a valid value that is in the range of "
+msgstr ""
+
+#: bothub/api/v2/repository/views.py:196 bothub/api/v2/translator/views.py:128
+msgid "This language is not available in machine translation"
+msgstr ""
+
+#: bothub/api/v2/repository/views.py:202 bothub/api/v2/translator/views.py:137
+msgid ""
+"It is not possible to translate the base language into your own language"
+msgstr ""
+
+#: bothub/api/v2/repository/views.py:220 bothub/api/v2/translator/views.py:157
+msgid ""
+"It is only possible to perform an automatic translation per language, a "
+"translation is already running"
+msgstr ""
+
+#: bothub/api/v2/repository/views.py:254 bothub/api/v2/repository/views.py:316
+#: bothub/api/v2/repository/views.py:399
+msgid "Organization not found"
+msgstr "Organização não encontrada"
+
+#: bothub/api/v2/repository/views.py:257 bothub/api/v2/repository/views.py:307
+#: bothub/api/v2/repository/views.py:852
+msgid "Need to pass 'project_uuid' in query params"
+msgstr ""
+
+#: bothub/api/v2/repository/views.py:360
+msgid "Repository or organization is not be included on project"
+msgstr ""
+
+#: bothub/api/v2/repository/views.py:441
+msgid "Repository already added"
+msgstr "Inteligência já adicionada"
+
+#: bothub/api/v2/repository/views.py:565 bothub/api/v2/repository/views.py:599
 msgid "Something unexpected happened! We couldn't analyze your text."
 msgstr "Algo inesperado aconteceu! Não conseguimos analisar seu texto."
 
-#: bothub/api/v2/repository/views.py:228 bothub/api/v2/repository/views.py:264
+#: bothub/api/v2/repository/views.py:635 bothub/api/v2/repository/views.py:671
 msgid "Something unexpected happened! We couldn't debug your text."
 msgstr "Algo inesperado aconteceu! Não conseguimos testar seu texto."
 
-#: bothub/api/v2/repository/views.py:291
-msgid "You need to have at least one registered test phrase"
-msgstr "Você precisa ter ao menos uma frase de teste"
+#: bothub/api/v2/repository/views.py:757
+msgid "Need to pass 'language' in query params"
+msgstr ""
 
-#: bothub/api/v2/repository/views.py:296
-msgid "You need to have at least two registered intents"
-msgstr "Você precisa ter ao menos duas intenções registradas"
+#: bothub/api/v2/tests/test_account.py:107
+msgid "The response parameter is invalid or malformed."
+msgstr "O parâmetro response está inválido ou malformado."
 
 #: bothub/api/v2/translation/validators.py:46
 #, python-brace-format
@@ -382,91 +508,109 @@ msgstr "Apenas letras e números são permitidos"
 msgid "This Repository Version already exists"
 msgstr "Esta versão do repositório já existe"
 
-#: bothub/authentication/models.py:19
+#: bothub/authentication/authorization.py:30
+#: bothub/authentication/authorization.py:79
+msgid "Invalid token."
+msgstr "Token inválido"
+
+#: bothub/authentication/authorization.py:54
+msgid "Invalid token header. No credentials provided."
+msgstr "Cabeçalho de token inválido. Nenhuma credencial providenciada."
+
+#: bothub/authentication/authorization.py:57
+msgid "Invalid token header. Token string should not contain spaces."
+msgstr ""
+
+#: bothub/authentication/authorization.py:64
+msgid ""
+"Invalid token header. Token string should not contain invalid characters."
+msgstr ""
+
+#: bothub/authentication/models.py:17
 msgid ""
 "Enter a valid 'nickname' consisting of letters, numbers, underscores or "
 "hyphens."
 msgstr ""
 "Escolha um 'apelido' válido com letras, números, underscores ou hífens."
 
-#: bothub/authentication/models.py:35
+#: bothub/authentication/models.py:33
 msgid "The user nickname can't be '{}'"
 msgstr "O apelido do usuário não pode ser '{}'"
 
-#: bothub/authentication/models.py:68 bothub/common/models.py:107
+#: bothub/authentication/models.py:66 bothub/common/models.py:114
 msgid "repository organization"
 msgstr "inteligência da organização"
 
-#: bothub/authentication/models.py:72 bothub/common/models.py:46
-#: bothub/common/models.py:273
+#: bothub/authentication/models.py:70 bothub/common/models.py:53
+#: bothub/common/models.py:281
 msgid "name"
 msgstr "nome"
 
-#: bothub/authentication/models.py:72
+#: bothub/authentication/models.py:70
 msgid "User's name."
 msgstr "Nome do usuário."
 
-#: bothub/authentication/models.py:74
+#: bothub/authentication/models.py:72
 msgid "locale"
 msgstr "local"
 
-#: bothub/authentication/models.py:74
+#: bothub/authentication/models.py:72
 msgid "User's locale."
 msgstr "Local do usuário."
 
-#: bothub/authentication/models.py:77
+#: bothub/authentication/models.py:75
 msgid "nickname"
 msgstr "apelido"
 
-#: bothub/authentication/models.py:81
+#: bothub/authentication/models.py:79
 msgid ""
 "User's or Organization nickname, using letters, numbers, underscores and "
 "hyphens without spaces."
 msgstr ""
-"Apelido de usuário ou organização, usando letras, números, underline e hífen"
-" sem espaços."
+"Apelido de usuário ou organização, usando letras, números, underline e hífen "
+"sem espaços."
 
-#: bothub/authentication/models.py:86
+#: bothub/authentication/models.py:84
 msgid "biography"
 msgstr "biografia"
 
-#: bothub/authentication/models.py:87
+#: bothub/authentication/models.py:85
 msgid "joined at"
 msgstr "entrou em"
 
-#: bothub/authentication/models.py:115 bothub/common/models.py:149
-#: bothub/common/models.py:1625
+#: bothub/authentication/models.py:113 bothub/common/models.py:159
+#: bothub/common/models.py:2033
 msgid "user"
 msgstr "usuário"
 
-#: bothub/authentication/models.py:116
+#: bothub/authentication/models.py:114
 msgid "users"
 msgstr "usuários"
 
-#: bothub/authentication/models.py:120
+#: bothub/authentication/models.py:118
 msgid "email"
 msgstr "email"
 
-#: bothub/authentication/models.py:120
+#: bothub/authentication/models.py:118
 msgid "User's email."
 msgstr "Email do usuário."
 
-#: bothub/authentication/models.py:122
+#: bothub/authentication/models.py:120
 msgid "staff status"
 msgstr "status staff"
 
-#: bothub/authentication/models.py:123
+#: bothub/authentication/models.py:121
 msgid "active"
 msgstr "ativo"
 
-#: bothub/authentication/models.py:142
+#: bothub/authentication/models.py:143
 #: bothub/authentication/templates/authentication/emails/welcome.html:7
 #: bothub/authentication/templates/authentication/emails/welcome.html:8
 #: bothub/authentication/templates/authentication/emails/welcome.txt:1
 msgid "Welcome to Bothub"
 msgstr "Bem-vindo ao Bothub"
 
-#: bothub/authentication/models.py:163
+#: bothub/authentication/models.py:164
 msgid "Reset your bothub password"
 msgstr "Resete sua senha do bothub"
 
@@ -486,7 +630,7 @@ msgstr "Você\\"
 msgid "We are happy to have you with us and hope you enjoy Bothub."
 msgstr "Estamos felizes em ter você conosco e espero que aproveite o Bothub."
 
-#: bothub/common/languages.py:193 bothub/settings.py:164
+#: bothub/common/languages.py:193 bothub/settings.py:227
 msgid "English"
 msgstr "Inglês"
 
@@ -494,7 +638,7 @@ msgstr "Inglês"
 msgid "German"
 msgstr "Alemão"
 
-#: bothub/common/languages.py:195
+#: bothub/common/languages.py:195 bothub/settings.py:229
 msgid "Spanish"
 msgstr "Espanhol"
 
@@ -514,7 +658,7 @@ msgstr "Italiano"
 msgid "Dutch"
 msgstr "Holandês"
 
-#: bothub/common/languages.py:200 bothub/settings.py:164
+#: bothub/common/languages.py:200 bothub/settings.py:228
 msgid "Brazilian Portuguese"
 msgstr "Português do Brasil"
 
@@ -1218,148 +1362,156 @@ msgstr "Zhuang"
 msgid "Zulu"
 msgstr "Zulu"
 
-#: bothub/common/languages.py:390
+#: bothub/common/languages.py:502
 msgid "{} is not a supported language."
 msgstr "{} não é um idioma suportado."
 
-#: bothub/common/models.py:38
+#: bothub/common/models.py:45
 msgid "The label can't be named as \"other\""
 msgstr "A categoria não pode ser nomeada de \"other\""
 
-#: bothub/common/models.py:43
+#: bothub/common/models.py:50
 msgid "repository category"
 msgstr "categoria da inteligência"
 
-#: bothub/common/models.py:44
+#: bothub/common/models.py:51
 msgid "repository categories"
 msgstr "categories da inteligência"
 
-#: bothub/common/models.py:47
+#: bothub/common/models.py:54
 msgid "icon"
 msgstr "ícone"
 
-#: bothub/common/models.py:109 bothub/common/models.py:325
+#: bothub/common/models.py:116 bothub/common/models.py:339
 msgid "description"
 msgstr "descrição"
 
-#: bothub/common/models.py:110 bothub/common/models.py:170
-#: bothub/common/models.py:336 bothub/common/models.py:840
-#: bothub/common/models.py:907 bothub/common/models.py:1106
-#: bothub/common/models.py:1142 bothub/common/models.py:1170
-#: bothub/common/models.py:1224 bothub/common/models.py:1241
-#: bothub/common/models.py:1346 bothub/common/models.py:1415
-#: bothub/common/models.py:1478 bothub/common/models.py:1535
-#: bothub/common/models.py:1641 bothub/common/models.py:1787
-#: bothub/common/models.py:1882 bothub/common/models.py:1933
-#: bothub/common/models.py:1979
+#: bothub/common/models.py:117 bothub/common/models.py:179
+#: bothub/common/models.py:350 bothub/common/models.py:984
+#: bothub/common/models.py:1126 bothub/common/models.py:1445
+#: bothub/common/models.py:1486 bothub/common/models.py:1517
+#: bothub/common/models.py:1604 bothub/common/models.py:1629
+#: bothub/common/models.py:1756 bothub/common/models.py:1825
+#: bothub/common/models.py:1888 bothub/common/models.py:1945
+#: bothub/common/models.py:2048 bothub/common/models.py:2194
+#: bothub/common/models.py:2289 bothub/common/models.py:2340
+#: bothub/common/models.py:2386 bothub/common/models.py:2462
+#: bothub/common/models.py:2496 bothub/common/models.py:2533
+#: bothub/common/models.py:2581
 msgid "created at"
 msgstr "criado em"
 
-#: bothub/common/models.py:131
+#: bothub/common/models.py:143
 msgid "organization authorization"
 msgstr "autorização da organização"
 
-#: bothub/common/models.py:132
+#: bothub/common/models.py:144
 msgid "organization authorizations"
 msgstr "autorizações da organização"
 
-#: bothub/common/models.py:148 bothub/common/models.py:1624
+#: bothub/common/models.py:158 bothub/common/models.py:2032
 msgid "not set"
 msgstr "não configurado"
 
-#: bothub/common/models.py:150 bothub/common/models.py:1626
+#: bothub/common/models.py:160 bothub/common/models.py:2034
 msgid "contributor"
 msgstr "contribuidor"
 
-#: bothub/common/models.py:151 bothub/common/models.py:1627
+#: bothub/common/models.py:161 bothub/common/models.py:2035
 msgid "admin"
 msgstr "admin"
 
-#: bothub/common/models.py:152 bothub/common/models.py:1628
-msgid "translate"
-msgstr "Texto de tradução"
-
-#: bothub/common/models.py:156 bothub/common/models.py:267
-#: bothub/common/models.py:1632
+#: bothub/common/models.py:165 bothub/common/models.py:275
+#: bothub/common/models.py:2039 bothub/common/models.py:2447
 msgid "UUID"
 msgstr "UUID"
 
-#: bothub/common/models.py:168 bothub/common/models.py:1639
+#: bothub/common/models.py:177 bothub/common/models.py:2046
 msgid "role"
 msgstr "papel"
 
-#: bothub/common/models.py:227
+#: bothub/common/models.py:231
 msgid "repository"
 msgstr "inteligência"
 
-#: bothub/common/models.py:228
+#: bothub/common/models.py:232
 msgid "repositories"
 msgstr "inteligências"
 
-#: bothub/common/models.py:232
+#: bothub/common/models.py:236
 msgid "Categories for approaching repositories with the same purpose"
 msgstr "Categorias para aproximar inteligências com mesmo propósito"
 
-#: bothub/common/models.py:234
+#: bothub/common/models.py:238
 msgid "Tell what your bot do!"
 msgstr "Diga o que sua inteligência faz!"
 
-#: bothub/common/models.py:246
+#: bothub/common/models.py:250
 msgid "Neural Network with internal vocabulary"
 msgstr "Rede Neural com vocabulário interno"
 
-#: bothub/common/models.py:250
+#: bothub/common/models.py:254
 msgid "Neural Network with external vocabulary (BETA)"
 msgstr "Rede Neural com vocabulário externo (BETA)"
 
-#: bothub/common/models.py:254
+#: bothub/common/models.py:258
 msgid "Transformer Neural Network with internal vocabulary"
 msgstr "Rede Neural de transformadores com vocabulário interno"
 
-#: bothub/common/models.py:258
+#: bothub/common/models.py:262
 msgid "Transformer Neural Network with word embedding external vocabulary"
 msgstr ""
 "Rede neural do transformador com vocabulário externo de incorporação de "
 "palavras"
 
-#: bothub/common/models.py:262
+#: bothub/common/models.py:266
 msgid "Transformer Neural Network with BERT word embedding"
 msgstr "Rede Neural de transformadores com BERT"
 
-#: bothub/common/models.py:273
+#: bothub/common/models.py:272
+msgid "Content"
+msgstr "Conteúdo"
+
+#: bothub/common/models.py:281
 msgid "Repository display name"
 msgstr "Nome de exibição da inteligência"
 
-#: bothub/common/models.py:276
+#: bothub/common/models.py:284
 msgid "slug"
 msgstr "sigla"
 
-#: bothub/common/models.py:278
+#: bothub/common/models.py:286
 msgid "Easy way to found and share repositories"
 msgstr "Forma fácil de encontrar e compartilhar inteligências"
 
-#: bothub/common/models.py:281 bothub/common/models.py:889
-#: bothub/common/models.py:1340
+#: bothub/common/models.py:289
+msgid "repository type"
+msgstr "Tipo da inteligência"
+
+#: bothub/common/models.py:295 bothub/common/models.py:1108
+#: bothub/common/models.py:1750 bothub/common/models.py:2171
+#: bothub/common/models.py:2456 bothub/common/models.py:2528
+#: bothub/common/models.py:2575
 msgid "language"
 msgstr "idioma"
 
-#: bothub/common/models.py:284
+#: bothub/common/models.py:298
 msgid ""
 "Repository's examples language. The examples can be translated to other "
 "languages."
 msgstr ""
-"Idioma de frases da inteligência. As frases podem ser traduzidas para outros"
-" idiomas."
+"Idioma de frases da inteligência. As frases podem ser traduzidas para outros "
+"idiomas."
 
-#: bothub/common/models.py:290 bothub/common/models.py:900
+#: bothub/common/models.py:304 bothub/common/models.py:1119
 msgid "algorithm"
 msgstr "algoritmo"
 
-#: bothub/common/models.py:328
+#: bothub/common/models.py:342
 msgid "private"
 msgstr "privado"
 
-#: bothub/common/models.py:331
+#: bothub/common/models.py:345
 msgid ""
 "Your repository can be private, only you can see and use, or can be public "
 "and all community can see and use."
@@ -1367,64 +1519,81 @@ msgstr ""
 "Sua inteligência pode ser privada, apenas você pode ver e usar, ou pode ser "
 "pública e toda a comunidade pode ver e usá-la."
 
-#: bothub/common/models.py:338
+#: bothub/common/models.py:352
 msgid "Base URL NLP"
 msgstr "URL Base do NLP"
 
-#: bothub/common/models.py:824
+#: bothub/common/models.py:355
+msgid "Authorization count calculated by celery"
+msgstr ""
+
+#: bothub/common/models.py:427
+msgid "You need to have at least one registered test phrase"
+msgstr "Você precisa ter ao menos uma frase de teste"
+
+#: bothub/common/models.py:432 bothub/common/models.py:440
+msgid "You need to have at least two registered intents"
+msgstr "Você precisa ter ao menos duas intenções registradas"
+
+#: bothub/common/models.py:447
+msgid "You need to have at least twenty train phrases for each intent"
+msgstr "Você precisa ter ao menos vinte frases de trainamento para cada intenção"
+
+#: bothub/common/models.py:968
 msgid "repository version"
 msgstr "versão da inteligência"
 
-#: bothub/common/models.py:834 bothub/common/models.py:908
-#: bothub/common/models.py:1242
+#: bothub/common/models.py:978 bothub/common/models.py:1127
+#: bothub/common/models.py:1630 bothub/common/models.py:2497
+#: bothub/common/models.py:2534
 msgid "last update"
 msgstr "última atualização"
 
-#: bothub/common/models.py:841
+#: bothub/common/models.py:985
 msgid "is deleted"
 msgstr "está deletado"
 
-#: bothub/common/models.py:880
+#: bothub/common/models.py:1093
 msgid "repository version language"
 msgstr "idioma da versão da inteligência"
 
-#: bothub/common/models.py:881
+#: bothub/common/models.py:1094
 msgid "repository version languages"
 msgstr "idiomas das versões de inteligência"
 
-#: bothub/common/models.py:892
+#: bothub/common/models.py:1111
 msgid "training started at"
 msgstr "treinamento iniciado em"
 
-#: bothub/common/models.py:894
+#: bothub/common/models.py:1113
 msgid "trained at"
 msgstr "treinado em"
 
-#: bothub/common/models.py:895
+#: bothub/common/models.py:1114
 msgid "failed at"
 msgstr "falhou em"
 
-#: bothub/common/models.py:906
+#: bothub/common/models.py:1125
 msgid "training log"
 msgstr "log de treinamento"
 
-#: bothub/common/models.py:910
+#: bothub/common/models.py:1129
 msgid "total training end"
 msgstr "treinamento final total"
 
-#: bothub/common/models.py:932
+#: bothub/common/models.py:1206 bothub/common/models.py:1258
 msgid "This bot version has already been trained."
 msgstr "Essa versão da inteligência já foi treinada."
 
-#: bothub/common/models.py:934
+#: bothub/common/models.py:1208 bothub/common/models.py:1260
 msgid "This bot version is being trained."
 msgstr "Essa versão da inteligência está sendo treinada."
 
-#: bothub/common/models.py:941
-msgid "All examples need have a intent."
+#: bothub/common/models.py:1213 bothub/common/models.py:1267
+msgid "All examples need to have a intent."
 msgstr "Todas as frases precisam ter uma intenção."
 
-#: bothub/common/models.py:953
+#: bothub/common/models.py:1224 bothub/common/models.py:1280
 msgid ""
 "The \"{}\" intention has only {} sentence\n"
 "Add 1 more sentence to that intention (minimum is {})"
@@ -1432,7 +1601,7 @@ msgstr ""
 "A intenção \"{}\" tem apenas {} frase\n"
 "Adicione mais 1 frase a essa intenção (o mínimo são {})"
 
-#: bothub/common/models.py:973
+#: bothub/common/models.py:1243 bothub/common/models.py:1300
 msgid ""
 "The entity \"{}\" has only {} sentence\n"
 "Add 1 more sentence to that entity (minimum is {})"
@@ -1440,296 +1609,377 @@ msgstr ""
 "A entidade \"{}\" tem apenas {} frase\n"
 "Adicione mais 1 frase a essa entidade (o mínimo são {})"
 
-#: bothub/common/models.py:1010
+#: bothub/common/models.py:1346
 msgid ""
 "You only added 1 intention\n"
-"Add 1 more intention (it is necessary to have at least {} intentions for the algorithm to identify)"
+"Add 1 more intention (it is necessary to have at least {} intentions for the "
+"algorithm to identify)"
 msgstr ""
 "Você apenas adicionou 1 intenção\n"
-"Adicione mais 1 intenção (é necessário ter pelo menos {} intenções para o algoritmo identificar)"
+"Adicione mais 1 intenção (é necessário ter pelo menos {} intenções para o "
+"algoritmo identificar)"
 
-#: bothub/common/models.py:1098
+#: bothub/common/models.py:1437
 msgid "repository nlp train"
 msgstr "repository nlp train"
 
-#: bothub/common/models.py:1101
+#: bothub/common/models.py:1440
 msgid "bot data"
 msgstr "dados da inteligência"
 
-#: bothub/common/models.py:1105
+#: bothub/common/models.py:1444
 msgid "Rasa Version Code"
 msgstr "Código da Versão Rasa"
 
-#: bothub/common/models.py:1111
+#: bothub/common/models.py:1450
 msgid "repository nlp queue train"
 msgstr "repositório da fila do pln"
 
-#: bothub/common/models.py:1116
+#: bothub/common/models.py:1454
 msgid "Ai Platform"
 msgstr "Ai Platform"
 
-#: bothub/common/models.py:1117
-msgid "Celery NLU Worker"
-msgstr "Celery NLU Worker"
+#: bothub/common/models.py:1454
+msgid "Celery"
+msgstr ""
 
-#: bothub/common/models.py:1125
+#: bothub/common/models.py:1461
 msgid "Pending"
 msgstr "Pendente"
 
-#: bothub/common/models.py:1126
+#: bothub/common/models.py:1462
 msgid "Success"
 msgstr "Sucesso"
 
-#: bothub/common/models.py:1127
-msgid "Training"
-msgstr "Treinando"
+#: bothub/common/models.py:1463
+msgid "Processing"
+msgstr ""
 
-#: bothub/common/models.py:1128
+#: bothub/common/models.py:1464
 msgid "Failed"
 msgstr "Falhou"
 
-#: bothub/common/models.py:1134
+#: bothub/common/models.py:1470
+msgid "NLP Tranining"
+msgstr "Treinamento de NLP"
+
+#: bothub/common/models.py:1471
+msgid "Repository Auto Translation"
+msgstr "Auto-tradução da inteligência"
+
+#: bothub/common/models.py:1472
+msgid "Evaluate Cross Validation"
+msgstr ""
+
+#: bothub/common/models.py:1478
 msgid "id queue"
 msgstr "ID da Fila"
 
-#: bothub/common/models.py:1136
+#: bothub/common/models.py:1480
 msgid "From Queue NLP"
 msgstr "Origem da fila"
 
-#: bothub/common/models.py:1139
+#: bothub/common/models.py:1483
 msgid "Status Queue NLP"
 msgstr "Status da Fila PLN"
 
-#: bothub/common/models.py:1141
+#: bothub/common/models.py:1485
 msgid "Machine Learning Units AiPlatform"
 msgstr "Unidades de aprendizado de máquina AiPlatform"
 
-#: bothub/common/models.py:1143
+#: bothub/common/models.py:1487
 msgid "end training"
 msgstr "treinamento final"
 
-#: bothub/common/models.py:1148
+#: bothub/common/models.py:1489
+msgid "Type Processing"
+msgstr ""
+
+#: bothub/common/models.py:1495
 msgid "repository nlp logs"
 msgstr "logs de nlp"
 
-#: bothub/common/models.py:1158
+#: bothub/common/models.py:1505
 msgid "Text"
 msgstr "Texto"
 
-#: bothub/common/models.py:1159
+#: bothub/common/models.py:1506 bothub/common/models.py:2565
 msgid "User Agent"
 msgstr "User Agent"
 
-#: bothub/common/models.py:1168
+#: bothub/common/models.py:1515 bothub/common/models.py:2579
 msgid "NLP Log"
 msgstr "Log NLP"
 
-#: bothub/common/models.py:1180
+#: bothub/common/models.py:1557
 msgid "repository nlp logs intent"
 msgstr "log de intenções da inteligência"
 
-#: bothub/common/models.py:1182
+#: bothub/common/models.py:1559
 msgid "Intent"
 msgstr "Intenção"
 
-#: bothub/common/models.py:1183
+#: bothub/common/models.py:1560 bothub/common/models.py:2563
 msgid "Confidence"
 msgstr "Confidência"
 
-#: bothub/common/models.py:1184
+#: bothub/common/models.py:1561
 msgid "is default, intent selected"
 msgstr "por padrão, intenção selecionada"
 
-#: bothub/common/models.py:1196
+#: bothub/common/models.py:1573
 msgid "repository report"
 msgstr "relatório do repositório"
 
-#: bothub/common/models.py:1197
+#: bothub/common/models.py:1574
 msgid "repository reports"
 msgstr "relatórios do repositório"
 
-#: bothub/common/models.py:1207
+#: bothub/common/models.py:1585
 msgid "report date"
 msgstr "data do relatório"
 
-#: bothub/common/models.py:1212
+#: bothub/common/models.py:1590
 msgid "repository intent"
 msgstr "intenção do repositório"
 
-#: bothub/common/models.py:1213
+#: bothub/common/models.py:1591
 msgid "repository intents"
 msgstr "intenções do repositório"
 
-#: bothub/common/models.py:1218 bothub/common/models.py:1876
-#: bothub/common/models.py:1996
+#: bothub/common/models.py:1598 bothub/common/models.py:2283
+#: bothub/common/models.py:2405
 msgid "intent"
 msgstr "intenção"
 
-#: bothub/common/models.py:1221
+#: bothub/common/models.py:1601
 msgid "Example intent reference"
 msgstr "Intenção referência da frase"
 
-#: bothub/common/models.py:1232
+#: bothub/common/models.py:1612
 msgid "repository example"
 msgstr "frase de inteligência"
 
-#: bothub/common/models.py:1233
+#: bothub/common/models.py:1613
 msgid "repository examples"
 msgstr "frases da inteligência"
 
-#: bothub/common/models.py:1239 bothub/common/models.py:1345
-#: bothub/common/models.py:1782 bothub/common/models.py:1874
+#: bothub/common/models.py:1626 bothub/common/models.py:1755
+#: bothub/common/models.py:2189 bothub/common/models.py:2281
+#: bothub/common/models.py:2526
 msgid "text"
 msgstr "texto"
 
-#: bothub/common/models.py:1239
+#: bothub/common/models.py:1626
 msgid "Example text"
 msgstr "Texto da frase"
 
-#: bothub/common/models.py:1320
+#: bothub/common/models.py:1724
 msgid "repository translated example"
 msgstr "frase traduzida da inteligência"
 
-#: bothub/common/models.py:1321
+#: bothub/common/models.py:1725
 msgid "repository translated examples"
 msgstr "frases traduzidas da inteligência"
 
-#: bothub/common/models.py:1337 bothub/common/models.py:1585
+#: bothub/common/models.py:1747 bothub/common/models.py:1995
 msgid "Example object"
 msgstr "Objeto frase"
 
-#: bothub/common/models.py:1342
+#: bothub/common/models.py:1752
 msgid "Translation language"
 msgstr "Idioma de tradução"
 
-#: bothub/common/models.py:1345
+#: bothub/common/models.py:1755
 msgid "Translation text"
 msgstr "Texto de tradução"
 
-#: bothub/common/models.py:1410
+#: bothub/common/models.py:1820
 msgid "group"
 msgstr "grupo"
 
-#: bothub/common/models.py:1466
+#: bothub/common/models.py:1876
 msgid "entity"
 msgstr "entidade"
 
-#: bothub/common/models.py:1468
+#: bothub/common/models.py:1878
 msgid "Entity name"
 msgstr "Nome de entidade"
 
-#: bothub/common/models.py:1524
+#: bothub/common/models.py:1934
 msgid "repository example entity"
 msgstr "entidade de frase da inteligência"
 
-#: bothub/common/models.py:1525
+#: bothub/common/models.py:1935
 msgid "repository example entities"
 msgstr "entidades de frase da inteligência"
 
-#: bothub/common/models.py:1529
+#: bothub/common/models.py:1939
 msgid "start"
 msgstr "começar"
 
-#: bothub/common/models.py:1529
+#: bothub/common/models.py:1939
 msgid "Start index of entity value in example text"
 msgstr "Índice inicial do valor da entidade na frase"
 
-#: bothub/common/models.py:1532
+#: bothub/common/models.py:1942
 msgid "end"
 msgstr "fim"
 
-#: bothub/common/models.py:1532
+#: bothub/common/models.py:1942
 msgid "End index of entity value in example text"
 msgstr "Índice final do valor da entidade na frase"
 
-#: bothub/common/models.py:1598
+#: bothub/common/models.py:2008
 msgid "Translated example object"
 msgstr "Objeto frase traduzido"
 
-#: bothub/common/models.py:1607
+#: bothub/common/models.py:2017
 msgid "repository authorization"
 msgstr "autorização da inteligência"
 
-#: bothub/common/models.py:1608
+#: bothub/common/models.py:2018
 msgid "repository authorizations"
 msgstr "autorizações da inteligência"
 
-#: bothub/common/models.py:1755
+#: bothub/common/models.py:2140
 msgid "New role in {}"
 msgstr "Novo papel em {}"
 
-#: bothub/common/models.py:1765
+#: bothub/common/models.py:2150
 msgid "repository vote"
 msgstr "voto da inteligência"
 
-#: bothub/common/models.py:1766
+#: bothub/common/models.py:2151
 msgid "repository votes"
 msgstr "votos da inteligência"
 
-#: bothub/common/models.py:1803
+#: bothub/common/models.py:2163
+msgid "repository migrate"
+msgstr "migração de repositório"
+
+#: bothub/common/models.py:2164
+msgid "repository migrates"
+msgstr "migrações do repositório"
+
+#: bothub/common/models.py:2175
+msgid "classifier"
+msgstr ""
+
+#: bothub/common/models.py:2210
 msgid "New authorization request in {}"
 msgstr "Nova solicitação de autorização em {}"
 
-#: bothub/common/models.py:1824
+#: bothub/common/models.py:2231
 msgid "Access denied to {}"
 msgstr "Acesso negado para {}"
 
-#: bothub/common/models.py:1846
+#: bothub/common/models.py:2253
 msgid "Authorization Request Approved to {}"
 msgstr "Solicitação de autorização aprovada para {}"
 
-#: bothub/common/models.py:1862
+#: bothub/common/models.py:2269
 msgid "repository evaluate test"
 msgstr "teste de availiação da inteligência"
 
-#: bothub/common/models.py:1863
+#: bothub/common/models.py:2270
 msgid "repository evaluate tests"
 msgstr "testes de availiação da inteligência"
 
-#: bothub/common/models.py:1874
+#: bothub/common/models.py:2281
 msgid "Evaluate test text"
 msgstr "Frase de avaliação"
 
-#: bothub/common/models.py:1879 bothub/common/models.py:1998
+#: bothub/common/models.py:2286 bothub/common/models.py:2407
 msgid "Evaluate intent reference"
 msgstr "Referência de intenção de avaliação"
 
-#: bothub/common/models.py:1911
+#: bothub/common/models.py:2318
 msgid "evaluate object"
 msgstr "avaliar objeto"
 
-#: bothub/common/models.py:1939 bothub/common/models.py:1940
+#: bothub/common/models.py:2346 bothub/common/models.py:2347
 msgid "evaluate results"
 msgstr "resultados de avaliação"
 
-#: bothub/common/models.py:1966
+#: bothub/common/models.py:2373
 msgid "Intent Confusion Matrix Chart"
 msgstr "Gráfico de Matriz de Confusão por Intenção"
 
-#: bothub/common/models.py:1970
+#: bothub/common/models.py:2377
 msgid "Intent Prediction Confidence Distribution"
 msgstr "Distribuição de confidências de predição por Intenção"
 
-#: bothub/common/models.py:1973
+#: bothub/common/models.py:2380
 msgid "Evaluate Log"
 msgstr "Log de Avaliação"
 
-#: bothub/common/models.py:1976
+#: bothub/common/models.py:2383
 msgid "Version"
 msgstr "Versão"
 
-#: bothub/common/models.py:2049
+#: bothub/common/models.py:2388
+msgid "cross validation"
+msgstr ""
+
+#: bothub/common/models.py:2443
+msgid "repository translator"
+msgstr "tradutor de repositório"
+
+#: bothub/common/models.py:2444
+msgid "repository translators"
+msgstr "tradutores de repositório"
+
+#: bothub/common/models.py:2468
+msgid "repository score"
+msgstr "voto da inteligência"
+
+#: bothub/common/models.py:2469
+msgid "repository scores"
+msgstr "pontuação da inteligência"
+
+#: bothub/common/models.py:2494
+msgid "title"
+msgstr "título"
+
+#: bothub/common/models.py:2494
+msgid "Knowledge Base title"
+msgstr "título da base de conhecimento"
+
+#: bothub/common/models.py:2526
+msgid "QA context text"
+msgstr ""
+
+#: bothub/common/models.py:2530
+msgid "Knowledge Base language"
+msgstr ""
+
+#: bothub/common/models.py:2552
+msgid "repository qa nlp logs"
+msgstr "logs de nlp QA"
+
+#: bothub/common/models.py:2562 bothub/common/models.py:2564
+msgid "Question"
+msgstr "Pergunta"
+
+#: bothub/common/models.py:2601
 msgid "You can change approved_by just one time."
 msgstr "Você pode mudar o \"aprovado por\" apenas uma vez."
+
+#: bothub/common/tasks.py:295
+msgid "Copy"
+msgstr "Cópia"
 
 #: bothub/common/templates/bothub/emails/base.html:31
 #, python-format
 msgid ""
 "You can cancel your e-mail subscription\n"
-"                        <a rel=\"nofollow\" href=\"%(cancel_subscription_url)s\" style=\"color: #FFFFFF;\">here</a>."
+"                        <a rel=\"nofollow\" href="
+"\"%(cancel_subscription_url)s\" style=\"color: #FFFFFF;\">here</a>."
 msgstr ""
 "Você pode cancelar sua inscrição de e-mail\n"
-"<a rel=\"nofollow\" href=\"%(cancel_subscription_url)s\" style=\"color\\: #FFFFFF;\">aqui</a>."
+"<a rel=\"nofollow\" href=\"%(cancel_subscription_url)s\" style=\"color\\: "
+"#FFFFFF;\">aqui</a>."
 
 #: bothub/common/templates/common/emails/new_request.html:7
 #: bothub/common/templates/common/emails/new_request.html:8
@@ -1740,12 +1990,11 @@ msgstr "Nova Solicitação de Autorização"
 #: bothub/common/templates/common/emails/new_request.html:13
 #, python-format
 msgid ""
-"You receive new authorization request from <strong>%(user_name)s</strong> to"
-" repository <strong>%(repository_name)s</strong>."
+"You receive new authorization request from <strong>%(user_name)s</strong> to "
+"repository <strong>%(repository_name)s</strong>."
 msgstr ""
-"Você recebeu uma solicitação de autorização de "
-"<strong>%(user_name)s</strong> para a inteligência "
-"<strong>%(repository_name)s</strong>."
+"Você recebeu uma solicitação de autorização de <strong>%(user_name)s</"
+"strong> para a inteligência <strong>%(repository_name)s</strong>."
 
 #: bothub/common/templates/common/emails/new_request.txt:3
 #, python-format
@@ -1765,11 +2014,11 @@ msgstr "Oi, %(user_name)s"
 #: bothub/common/templates/common/emails/new_role.html:8
 #, python-format
 msgid ""
-"%(responsible_name)s added you as <strong>%(new_role_lower)s</strong> in the"
-" repository <strong>%(repository_name)s</strong>."
+"%(responsible_name)s added you as <strong>%(new_role_lower)s</strong> in the "
+"repository <strong>%(repository_name)s</strong>."
 msgstr ""
-"%(responsible_name)s adicionou você como <strong>%(new_role_lower)s</strong>"
-" na inteligência <strong>%(repository_name)s</strong>."
+"%(responsible_name)s adicionou você como <strong>%(new_role_lower)s</strong> "
+"na inteligência <strong>%(repository_name)s</strong>."
 
 #: bothub/common/templates/common/emails/new_role.txt:3
 #, python-format
@@ -1789,19 +2038,17 @@ msgstr "Solicitação de Autorização Aprovada. "
 #: bothub/common/templates/common/emails/request_approved.html:13
 #, python-format
 msgid ""
-"Your authorization request to repository "
-"<strong>%(repository_name)s</strong> was approved by "
-"<strong>%(admin_name)s</strong>."
+"Your authorization request to repository <strong>%(repository_name)s</"
+"strong> was approved by <strong>%(admin_name)s</strong>."
 msgstr ""
-"Sua solicitação de autorização à inteligência "
-"<strong>%(repository_name)s</strong> foi aprovada por "
-"<strong>%(admin_name)s</strong>."
+"Sua solicitação de autorização à inteligência <strong>%(repository_name)s</"
+"strong> foi aprovada por <strong>%(admin_name)s</strong>."
 
 #: bothub/common/templates/common/emails/request_approved.txt:3
 #, python-format
 msgid ""
-"Your authorization request to repository %(repository_name)s was approved by"
-" %(admin_name)s."
+"Your authorization request to repository %(repository_name)s was approved by "
+"%(admin_name)s."
 msgstr ""
 "Sua solicitação de autorização à inteligência %(repository_name)s foi "
 "aprovado por %(admin_name)s."
@@ -1821,6 +2068,34 @@ msgstr ""
 msgid "Keep up contributing and creating bots with Bothub."
 msgstr "Continue contribuindo e criando inteligências com Bothub."
 
-#: bothub/settings.py:159
+#: bothub/settings.py:222
 msgid "An error has occurred"
 msgstr "Um erro inesperado aconteceu"
+
+#: bothub/utils.py:342
+msgid "{} is not a supported classifier."
+msgstr "{} não é um classificador suportado."
+
+#~ msgid "The request is invalid or malformed."
+#~ msgstr "A solicitação está inválida ou malformada."
+
+#~ msgid "The secret parameter is invalid or malformed."
+#~ msgstr "O parâmetro secret está inválido ou malformado."
+
+#~ msgid "The response parameter is missing."
+#~ msgstr "O parâmetro response precisa ser enviado."
+
+#~ msgid "The secret parameter is missing."
+#~ msgstr "O parâmetro secret precisa ser enviado."
+
+#~ msgid "The response parameter has timed out or has already been used."
+#~ msgstr "O parâmetro de resposta expirou ou já foi usado."
+
+#~ msgid "Filter for examples with version name."
+#~ msgstr "Filtrar por frases com id de versão."
+
+#~ msgid "translate"
+#~ msgstr "Texto de tradução"
+
+#~ msgid "Celery NLU Worker"
+#~ msgstr "Celery NLU Worker"

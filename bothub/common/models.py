@@ -1,3 +1,4 @@
+from typing import Tuple
 import uuid
 from functools import reduce
 
@@ -147,20 +148,17 @@ class OrganizationAuthorization(models.Model):
     LEVEL_READER = 1
     LEVEL_CONTRIBUTOR = 2
     LEVEL_ADMIN = 3
-    LEVEL_TRANSLATE = 4
 
     ROLE_NOT_SETTED = 0
     ROLE_USER = 1
     ROLE_CONTRIBUTOR = 2
     ROLE_ADMIN = 3
-    ROLE_TRANSLATE = 4
 
     ROLE_CHOICES = [
         (ROLE_NOT_SETTED, _("not set")),
         (ROLE_USER, _("user")),
         (ROLE_CONTRIBUTOR, _("contributor")),
         (ROLE_ADMIN, _("admin")),
-        (ROLE_TRANSLATE, _("translate")),
     ]
 
     uuid = models.UUIDField(
@@ -191,9 +189,6 @@ class OrganizationAuthorization(models.Model):
         if self.role == OrganizationAuthorization.ROLE_ADMIN:
             return OrganizationAuthorization.LEVEL_ADMIN
 
-        if self.role == OrganizationAuthorization.ROLE_TRANSLATE:
-            return OrganizationAuthorization.LEVEL_TRANSLATE
-
         return OrganizationAuthorization.LEVEL_NOTHING  # pragma: no cover
 
     @property
@@ -202,7 +197,6 @@ class OrganizationAuthorization(models.Model):
             OrganizationAuthorization.LEVEL_READER,
             OrganizationAuthorization.LEVEL_CONTRIBUTOR,
             OrganizationAuthorization.LEVEL_ADMIN,
-            OrganizationAuthorization.LEVEL_TRANSLATE,
         ]
 
     @property
@@ -221,7 +215,6 @@ class OrganizationAuthorization(models.Model):
         return self.level in [
             OrganizationAuthorization.LEVEL_CONTRIBUTOR,
             OrganizationAuthorization.LEVEL_ADMIN,
-            OrganizationAuthorization.LEVEL_TRANSLATE,
         ]
 
     @property
@@ -912,12 +905,7 @@ class Repository(models.Model):
         if self.owner.is_organization:
             org_auth = self.owner.organization.get_organization_authorization(user)
 
-            # Excluding ROLE_TRANSLATE as it does not correspond to the same role in the client app (connect).
-            # todo: update this conditional with corresponding role rule
-            if (
-                repo_auth.role < org_auth.role
-                and org_auth.role < RepositoryAuthorization.ROLE_TRANSLATE
-            ):
+            if repo_auth.role < org_auth.role:
                 repo_auth.role = org_auth.role
                 repo_auth.save(update_fields=["role"])
         return repo_auth
@@ -926,6 +914,53 @@ class Repository(models.Model):
         return "{}dashboard/{}/{}/".format(
             settings.BOTHUB_WEBAPP_BASE_URL, self.owner.nickname, self.slug
         )
+
+    def clone_self(self, new_owner_id, language) -> Tuple[bool, str, int]:
+        """Clone the current repository and transfer the clone version to a new owner.
+        Returns a Tuple[slug:str, message:str, http_status:int].
+        (The "slug" field refers to the repository clone's slug field).
+        """
+        from celery import group
+        from bothub.common.tasks import clone_repository, clone_version
+        from bothub.utils import unique_slug_generator
+
+        if self.is_private:
+            return (
+                None,
+                "You cannot clone a private repository",
+                status.HTTP_403_FORBIDDEN,
+            )
+
+        try:
+            RepositoryOwner.objects.get(id=new_owner_id)
+        except RepositoryOwner.DoesNotExist:
+            return None, "User does not exist", status.HTTP_404_NOT_FOUND
+
+        slug = unique_slug_generator({"name": self.name})
+        repository_clone = Repository.objects.create(owner_id=new_owner_id, slug=slug)
+
+        # Queue clone_repository and clone_version tasks
+        # Only the default version
+        default_repository_version = (
+            self.versions.filter(is_default=True).order_by("-last_update").first()
+        )
+        if not default_repository_version:
+            return None, "No version found to clone", status.HTTP_404_NOT_FOUND
+
+        clone_repository_version = RepositoryVersion.objects.create(
+            repository_id=repository_clone.pk,
+            name=default_repository_version.name,
+        )
+        group_tasks = group(
+            clone_repository.s(self.pk, repository_clone.pk, new_owner_id, language),
+            clone_version.s(
+                default_repository_version.repository.pk,
+                default_repository_version.pk,
+                clone_repository_version.pk,
+            ),
+        )
+        group_tasks()
+        return repository_clone.pk, "Queued for cloning", status.HTTP_200_OK
 
 
 class RepositoryVersion(models.Model):
@@ -1987,20 +2022,17 @@ class RepositoryAuthorization(models.Model):
     LEVEL_READER = 1
     LEVEL_CONTRIBUTOR = 2
     LEVEL_ADMIN = 3
-    LEVEL_TRANSLATE = 4
 
     ROLE_NOT_SETTED = 0
     ROLE_USER = 1
     ROLE_CONTRIBUTOR = 2
     ROLE_ADMIN = 3
-    ROLE_TRANSLATE = 4
 
     ROLE_CHOICES = [
         (ROLE_NOT_SETTED, _("not set")),
         (ROLE_USER, _("user")),
         (ROLE_CONTRIBUTOR, _("contributor")),
         (ROLE_ADMIN, _("admin")),
-        (ROLE_TRANSLATE, _("translate")),
     ]
 
     uuid = models.UUIDField(
@@ -2046,9 +2078,6 @@ class RepositoryAuthorization(models.Model):
         if role == RepositoryAuthorization.ROLE_ADMIN:
             return RepositoryAuthorization.LEVEL_ADMIN
 
-        if role == RepositoryAuthorization.ROLE_TRANSLATE:
-            return RepositoryAuthorization.LEVEL_TRANSLATE
-
         return RepositoryAuthorization.LEVEL_NOTHING  # pragma: no cover
 
     @property
@@ -2057,7 +2086,6 @@ class RepositoryAuthorization(models.Model):
             RepositoryAuthorization.LEVEL_READER,
             RepositoryAuthorization.LEVEL_CONTRIBUTOR,
             RepositoryAuthorization.LEVEL_ADMIN,
-            RepositoryAuthorization.LEVEL_TRANSLATE,
         ]
 
     @property
@@ -2076,7 +2104,6 @@ class RepositoryAuthorization(models.Model):
         return self.level in [
             RepositoryAuthorization.LEVEL_CONTRIBUTOR,
             RepositoryAuthorization.LEVEL_ADMIN,
-            RepositoryAuthorization.LEVEL_TRANSLATE,
         ]
 
     @property

@@ -9,6 +9,7 @@ from rest_framework import status
 
 from bothub.api.v2.repository.serializers import NewRepositorySerializer
 from bothub.api.v2.repository.views import (
+    CloneRepositoryViewSet,
     RepositoriesContributionsViewSet,
     RepositoryEntitiesViewSet,
     NewRepositoryViewSet,
@@ -49,6 +50,29 @@ from bothub.api.v2.tests.utils import (
 )
 
 
+def get_authorization_header(token=None):
+    return {"HTTP_AUTHORIZATION": "Token {}".format(token)} if token else {}
+
+
+def request_repository_info(factory, repository, token):
+    authorization_header = get_authorization_header(token)
+
+    request = factory.get(
+        "/v2/repository/info/{}/{}/".format(
+            str(repository.uuid), repository.current_version().repository_version.pk
+        ),
+        **authorization_header,
+    )
+    response = NewRepositoryViewSet.as_view({"get": "retrieve"})(
+        request,
+        repository__uuid=repository.uuid,
+        pk=repository.current_version().repository_version.pk,
+    )
+    response.render()
+    content_data = json.loads(response.content)
+    return (response, content_data)
+
+
 class CreateRepositoryAPITestCase(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
@@ -66,9 +90,7 @@ class CreateRepositoryAPITestCase(TestCase):
         )
 
     def request(self, data, token=None):
-        authorization_header = (
-            {"HTTP_AUTHORIZATION": "Token {}".format(token.key)} if token else {}
-        )
+        authorization_header = get_authorization_header(token.key if token else None)
 
         request = self.factory.post(
             "/v2/repository/repository-details/", data, **authorization_header
@@ -120,25 +142,7 @@ class RetriveRepositoryTestCase(TestCase):
         ]
 
     def request(self, repository, token=None):
-        authorization_header = (
-            {"HTTP_AUTHORIZATION": "Token {}".format(token.key)} if token else {}
-        )
-
-        request = self.factory.get(
-            "/v2/repository/info/{}/{}/".format(
-                repository.uuid, repository.current_version().repository_version.pk
-            ),
-            **authorization_header,
-        )
-
-        response = NewRepositoryViewSet.as_view({"get": "retrieve"})(
-            request,
-            repository__uuid=repository.uuid,
-            pk=repository.current_version().repository_version.pk,
-        )
-        response.render()
-        content_data = json.loads(response.content)
-        return (response, content_data)
+        return request_repository_info(self.factory, repository, token)
 
     def test_okay(self):
         for repository in self.repositories:
@@ -169,9 +173,7 @@ class RetriveRepositoryTrainInfoTestCase(TestCase):
         ]
 
     def request(self, repository, token=None):
-        authorization_header = (
-            {"HTTP_AUTHORIZATION": "Token {}".format(token.key)} if token else {}
-        )
+        authorization_header = get_authorization_header(token.key if token else None)
 
         request = self.factory.get(
             "/v2/repository/train/info/{}/{}/".format(
@@ -220,9 +222,7 @@ class UpdateRepositoryTestCase(TestCase):
         ]
 
     def request(self, repository, data={}, token=None):
-        authorization_header = (
-            {"HTTP_AUTHORIZATION": "Token {}".format(token.key)} if token else {}
-        )
+        authorization_header = get_authorization_header(token.key if token else None)
 
         request = self.factory.patch(
             "/v2/repository/repository-details/{}/".format(repository.uuid),
@@ -276,25 +276,7 @@ class RepositoryAuthorizationTestCase(TestCase):
         ]
 
     def request(self, repository, token=None):
-        authorization_header = (
-            {"HTTP_AUTHORIZATION": "Token {}".format(token.key)} if token else {}
-        )
-
-        request = self.factory.get(
-            "/v2/repository/info/{}/{}/".format(
-                repository.uuid, repository.current_version().repository_version.pk
-            ),
-            **authorization_header,
-        )
-
-        response = NewRepositoryViewSet.as_view({"get": "retrieve"})(
-            request,
-            repository__uuid=repository.uuid,
-            pk=repository.current_version().repository_version.pk,
-        )
-        response.render()
-        content_data = json.loads(response.content)
-        return (response, content_data)
+        return request_repository_info(self.factory, repository, token)
 
     def test_authorization_without_user(self):
         for repository in self.repositories:
@@ -336,7 +318,11 @@ class RepositoryAuthorizationTestCase(TestCase):
                 role=RepositoryAuthorization.ROLE_ADMIN,
             )
 
-            user, user_token = (self.owner, self.owner_token) if repository.is_private else (self.user, self.user_token)
+            user, user_token = (
+                (self.owner, self.owner_token)
+                if repository.is_private
+                else (self.user, self.user_token)
+            )
             response, content_data = self.request(repository, user_token)
             authorization = content_data.get("authorization")
             self.assertIsNotNone(authorization)
@@ -344,13 +330,17 @@ class RepositoryAuthorizationTestCase(TestCase):
 
             # Assert owner access vs common user access behavior
             if user is self.owner:
-                self.assertEqual(authorization.get("level"), OrganizationAuthorization.ROLE_ADMIN)
+                self.assertEqual(
+                    authorization.get("level"), OrganizationAuthorization.ROLE_ADMIN
+                )
                 self.assertTrue(authorization.get("can_contribute"))
                 self.assertTrue(authorization.get("can_write"))
                 self.assertTrue(authorization.get("can_translate"))
                 self.assertTrue(authorization.get("is_admin"))
             else:  # is not owner
-                self.assertEqual(authorization.get("level"), OrganizationAuthorization.ROLE_USER)
+                self.assertEqual(
+                    authorization.get("level"), OrganizationAuthorization.ROLE_USER
+                )
                 self.assertFalse(authorization.get("can_contribute"))
                 self.assertFalse(authorization.get("can_write"))
                 self.assertFalse(authorization.get("can_translate"))
@@ -363,14 +353,18 @@ class RepositoryAuthorizationTestCase(TestCase):
             response, content_data = self.request(repository, user_token)
             authorization = content_data.get("authorization")
             self.assertIsNotNone(authorization)
-            self.assertEqual(authorization.get("level"), OrganizationAuthorization.ROLE_USER)
+            self.assertEqual(
+                authorization.get("level"), OrganizationAuthorization.ROLE_USER
+            )
 
             # User should have role==ROLE_USER when they lose their authorization in the repository
             repository_authorization.delete()
             response, content_data = self.request(repository, user_token)
             authorization = content_data.get("authorization")
             self.assertIsNotNone(authorization)
-            self.assertEqual(authorization.get("level"), OrganizationAuthorization.ROLE_USER)
+            self.assertEqual(
+                authorization.get("level"), OrganizationAuthorization.ROLE_USER
+            )
 
 
 class RepositoryAvailableRequestAuthorizationTestCase(TestCase):
@@ -388,25 +382,7 @@ class RepositoryAvailableRequestAuthorizationTestCase(TestCase):
         )
 
     def request(self, repository, token=None):
-        authorization_header = (
-            {"HTTP_AUTHORIZATION": "Token {}".format(token.key)} if token else {}
-        )
-
-        request = self.factory.get(
-            "/v2/repository/info/{}/{}/".format(
-                repository.uuid, repository.current_version().repository_version.pk
-            ),
-            **authorization_header,
-        )
-
-        response = NewRepositoryViewSet.as_view({"get": "retrieve"})(
-            request,
-            repository__uuid=repository.uuid,
-            pk=repository.current_version().repository_version.pk,
-        )
-        response.render()
-        content_data = json.loads(response.content)
-        return (response, content_data)
+        return request_repository_info(self.factory, repository, token)
 
     def test_owner_ever_false(self):
         response, content_data = self.request(self.repository, self.owner_token)
@@ -495,9 +471,7 @@ class RepositoriesViewSetTestCase(TestCase):
         )
 
     def request(self, data={}, token=None):
-        authorization_header = (
-            {"HTTP_AUTHORIZATION": "Token {}".format(token.key)} if token else {}
-        )
+        authorization_header = get_authorization_header(token.key if token else None)
         request = self.factory.get("/v2/repositories/", data, **authorization_header)
         response = RepositoriesViewSet.as_view({"get": "list"})(request)
         response.render()
@@ -549,9 +523,7 @@ class RepositoriesLanguageFilterTestCase(TestCase):
         )
 
     def request(self, data={}, token=None):
-        authorization_header = (
-            {"HTTP_AUTHORIZATION": "Token {}".format(token.key)} if token else {}
-        )
+        authorization_header = get_authorization_header(token.key if token else None)
         request = self.factory.get("/v2/repositories/", data, **authorization_header)
         response = RepositoriesViewSet.as_view({"get": "list"})(request)
         response.render()
@@ -630,10 +602,11 @@ class ListRepositoryVoteTestCase(TestCase):
             user=self.owner, repository=self.repository
         )
 
-    def request(self, param, value, token):
-        authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token)}
+    def request(self, param, value, token=None):
+        authorization_header = get_authorization_header(token)
         request = self.factory.get(
-            "/v2/repository-votes/?{}={}".format(param, value), **authorization_header
+            "/v2/repository/repository-votes/?{}={}".format(param, value),
+            **authorization_header,
         )
         response = RepositoryVotesViewSet.as_view({"get": "list"})(
             request, repository=self.repository.uuid
@@ -652,8 +625,8 @@ class ListRepositoryVoteTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_private_repository_okay(self):
-        response, content_data = self.request("repository", self.repository.uuid, "")
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        response, content_data = self.request("repository", self.repository.uuid)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_user_okay(self):
         response, content_data = self.request(
@@ -665,8 +638,8 @@ class ListRepositoryVoteTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_private_user_okay(self):
-        response, content_data = self.request("user", self.owner.nickname, "")
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        response, content_data = self.request("user", self.owner.nickname)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 
 class NewRepositoryVoteTestCase(TestCase):
@@ -684,7 +657,7 @@ class NewRepositoryVoteTestCase(TestCase):
         )
 
     def request(self, data, token):
-        authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token)}
+        authorization_header = get_authorization_header(token)
         request = self.factory.post(
             "/v2/repository-votes/",
             json.dumps(data),
@@ -733,7 +706,7 @@ class DestroyRepositoryVoteTestCase(TestCase):
         )
 
     def request(self, token):
-        authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token)}
+        authorization_header = get_authorization_header(token)
         request = self.factory.delete(
             "/v2/repository-votes/{}/".format(str(self.repository.uuid)),
             **authorization_header,
@@ -891,7 +864,7 @@ class ListAuthorizationTestCase(TestCase):
         self.user_auth.save()
 
     def request(self, repository, token):
-        authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
+        authorization_header = get_authorization_header(token.key if token else None)
         request = self.factory.get(
             "/v2/repository/authorizations/",
             {"repository": repository.uuid},
@@ -932,7 +905,7 @@ class UpdateAuthorizationRoleTestCase(TestCase):
         )
 
     def request(self, repository, token, user, data):
-        authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
+        authorization_header = get_authorization_header(token.key if token else None)
         request = self.factory.patch(
             "/v2/repository/authorizations/{}/{}/".format(
                 repository.uuid, user.nickname
@@ -1012,9 +985,7 @@ class RepositoryAuthorizationRequestsTestCase(TestCase):
         admin_autho.save()
 
     def request(self, data, token=None):
-        authorization_header = (
-            {"HTTP_AUTHORIZATION": "Token {}".format(token.key)} if token else {}
-        )
+        authorization_header = get_authorization_header(token.key if token else None)
         request = self.factory.get(
             "/v2/repository/authorization-requests/", data, **authorization_header
         )
@@ -1066,9 +1037,7 @@ class RequestAuthorizationTestCase(TestCase):
         )
 
     def request(self, data, token=None):
-        authorization_header = (
-            {"HTTP_AUTHORIZATION": "Token {}".format(token.key)} if token else {}
-        )
+        authorization_header = get_authorization_header(token.key if token else None)
         request = self.factory.post(
             "/v2/repository/authorization-requests/", data, **authorization_header
         )
@@ -1120,9 +1089,7 @@ class ReviewAuthorizationRequestTestCase(TestCase):
         admin_autho.save()
 
     def request_approve(self, ra, token=None):
-        authorization_header = (
-            {"HTTP_AUTHORIZATION": "Token {}".format(token.key)} if token else {}
-        )
+        authorization_header = get_authorization_header(token.key if token else None)
         request = self.factory.put(
             "/v2/repository/authorization-requests/{}/".format(ra.pk),
             self.factory._encode_data({}, MULTIPART_CONTENT),
@@ -1137,9 +1104,7 @@ class ReviewAuthorizationRequestTestCase(TestCase):
         return (response, content_data)
 
     def request_reject(self, ra, token=None):
-        authorization_header = (
-            {"HTTP_AUTHORIZATION": "Token {}".format(token.key)} if token else {}
-        )
+        authorization_header = get_authorization_header(token.key if token else None)
         request = self.factory.delete(
             "/v2/repository/authorization-requests/{}/".format(ra.pk),
             **authorization_header,
@@ -1227,10 +1192,13 @@ class RepositoryExampleRetrieveTestCase(TestCase):
             intent=self.example_intent_2,
         )
 
-    def request(self, example, token):
-        authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
-        request = self.factory.get(
-            "/v2/repository/example/{}/".format(example.id), **authorization_header
+    def request(self, example, token, method="get", data=None):
+        authorization_header = get_authorization_header(token.key if token else None)
+        method = getattr(self.factory, method)
+        request = method(
+            "/v2/repository/example/{}/".format(example.id),
+            data=data,
+            **authorization_header,
         )
         response = RepositoryExampleViewSet.as_view({"get": "retrieve"})(
             request, pk=example.id
@@ -1244,9 +1212,18 @@ class RepositoryExampleRetrieveTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(content_data.get("id"), self.example.id)
 
-    def test_forbidden(self):
+    def test_read_private(self):
         response, content_data = self.request(self.private_example, self.user_token)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_block_update_private(self):
+        data = {"text": "New text"}
+        response, content_data = self.request(self.private_example, self.user_token, "put", data)
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_block_delete_private(self):
+        response, content_data = self.request(self.private_example, self.user_token, "delete")
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_public(self):
         response, content_data = self.request(self.example, self.user_token)
@@ -1290,7 +1267,7 @@ class RepositoryExampleUploadTestCase(TestCase):
         )
 
     def request(self, token):
-        authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
+        authorization_header = get_authorization_header(token.key if token else None)
         examples = b"""[
                     {
                         "text": "yes",
@@ -1389,7 +1366,7 @@ class RepositoryExampleDestroyTestCase(TestCase):
         )
 
     def request(self, example, token):
-        authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
+        authorization_header = get_authorization_header(token.key if token else None)
         request = self.factory.delete(
             "/v2/repository/example/{}/".format(example.id), **authorization_header
         )
@@ -1462,7 +1439,7 @@ class RepositoryExampleUpdateTestCase(TestCase):
         )
 
     def request(self, example, token, data):
-        authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
+        authorization_header = get_authorization_header(token.key if token else None)
         request = self.factory.patch(
             "/v2/repository/example/{}/".format(example.id),
             json.dumps(data),
@@ -1526,7 +1503,7 @@ class NewRepositoryExampleTestCase(TestCase):
         )
 
     def request(self, token, data):
-        authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
+        authorization_header = get_authorization_header(token.key if token else None)
         request = self.factory.post(
             "/v2/repository/example/",
             json.dumps(data),
@@ -1764,21 +1741,7 @@ class RetrieveRepositoryTestCase(TestCase):
         )
 
     def request(self, repository, token):
-        authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
-        request = self.factory.get(
-            "/v2/repository/info/{}/{}/".format(
-                str(repository.uuid), repository.current_version().repository_version.pk
-            ),
-            **authorization_header,
-        )
-        response = NewRepositoryViewSet.as_view({"get": "retrieve"})(
-            request,
-            repository__uuid=repository.uuid,
-            pk=repository.current_version().repository_version.pk,
-        )
-        response.render()
-        content_data = json.loads(response.content)
-        return (response, content_data)
+        return request_repository_info(self.factory, repository, token)
 
     def test_allowed_in_public(self):
         # owner
@@ -1799,9 +1762,7 @@ class RetrieveRepositoryTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_languages_status(self):
-        authorization_header = {
-            "HTTP_AUTHORIZATION": "Token {}".format(self.user_token.key)
-        }
+        authorization_header = get_authorization_header(self.user_token.key)
         request = self.factory.get(
             "/v2/repository/repository-details/{}/languagesstatus/".format(
                 self.repository.uuid
@@ -1865,7 +1826,7 @@ class TrainRepositoryTestCase(TestCase):
         )
 
     def request(self, repository, token, data):
-        authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
+        authorization_header = get_authorization_header(token.key if token else None)
         request = self.factory.post(
             "/v2/repository/repository-details/{}/train/".format(str(repository.uuid)),
             data,
@@ -1905,7 +1866,7 @@ class AnalyzeRepositoryTestCase(TestCase):
         )
 
     def request(self, repository, token, data):
-        authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
+        authorization_header = get_authorization_header(token.key if token else None)
         request = self.factory.post(
             "/v2/repository/repository-details/{}/analyze/".format(
                 str(repository.uuid)
@@ -1974,9 +1935,7 @@ class VersionsTestCase(TestCase):
         current_version.start_training(self.owner)
 
     def request(self, data, token=None):
-        authorization_header = (
-            {"HTTP_AUTHORIZATION": "Token {}".format(token.key)} if token else {}
-        )
+        authorization_header = get_authorization_header(token.key if token else None)
         request = self.factory.get(
             "/v2/repository/version/", data, **authorization_header
         )
@@ -2032,7 +1991,7 @@ class RepositoryEntitiesTestCase(TestCase):
         self.example_entity.entity.save()
 
     def request(self, data, token):
-        authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
+        authorization_header = get_authorization_header(token.key if token else None)
         request = self.factory.get(
             "/v2/repository/entities/", data=data, **authorization_header
         )
@@ -2091,9 +2050,7 @@ class UpdateRepositoryIntentTestCase(TestCase):
         self.repository_version = self.repository.current_version().repository_version
 
     def request(self, id, data={}, token=None):
-        authorization_header = (
-            {"HTTP_AUTHORIZATION": "Token {}".format(token.key)} if token else {}
-        )
+        authorization_header = get_authorization_header(token.key if token else None)
 
         request = self.factory.patch(
             "/v2/repository/intent/{}/".format(id),
@@ -2168,7 +2125,7 @@ class RepositoryExamplesBulkTestCase(TestCase):
         ]
 
     def request(self, token):
-        authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
+        authorization_header = get_authorization_header(token.key if token else None)
         request = self.factory.post(
             "/v2/repository/example-bulk/",
             data=json.dumps(self.data),
@@ -2315,7 +2272,7 @@ class EvaluateAutomaticTestCase(TestCase):
         )
 
     def request(self, repository, data={}, token=None):
-        authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
+        authorization_header = get_authorization_header(token.key if token else None)
 
         request = self.factory.post(
             "/v2/repository/repository-details/{}/automatic_evaluate/".format(
@@ -2362,7 +2319,7 @@ class CheckCanEvaluateAutomaticTestCase(TestCase):
         )
 
     def request(self, repository, data={}, token=None):
-        authorization_header = {"HTTP_AUTHORIZATION": "Token {}".format(token.key)}
+        authorization_header = get_authorization_header(token.key if token else None)
 
         request = self.factory.get(
             "/v2/repository/repository-details/{}/check_can_automatic_evaluate/".format(
@@ -2411,3 +2368,80 @@ class CheckCanEvaluateAutomaticTestCase(TestCase):
         response, content_data = self.request(self.repository, data, self.owner_token)
         self.assertTrue(content_data.get("can_run_evaluate_automatic"))
         self.assertEqual(len(content_data.get("messages")), 0)
+
+
+class RepositoryCloneTestCase(TestCase):
+    """Test repository_clone API and validate the underlying function, validating all repository fields
+    and making sure that new fields, such as foreignkeys and many-to-many relationships will cause test failure,
+    requiring for clone function refactor."""
+
+    def setUp(self) -> None:
+        self.factory = RequestFactory()
+        self.owner, self.owner_token = create_user_and_token("owner")
+        self.user, self.user_token = create_user_and_token("user")
+        self.organization = Organization.objects.create(name="Org1", verificated=True)
+        self.organization.set_user_permission(
+            self.user, OrganizationAuthorization.ROLE_ADMIN
+        )
+
+        # Create categories for repositories
+        self.category_1 = RepositoryCategory.objects.create(name="Category 1")
+        self.category_2 = RepositoryCategory.objects.create(name="Category 2")
+        self.repositories = [
+            create_repository_from_mockup(self.owner, **mockup)
+            for mockup in get_valid_mockups([self.category_1, self.category_2])
+        ]
+        # Create versions and knowledge bases for repositories
+        for repository in self.repositories:
+            RepositoryVersion.objects.create(
+                repository=repository, name="alfa", is_default=False
+            )
+            RepositoryVersion.objects.create(
+                repository=repository, name="beta", is_default=True
+            )
+
+        return super().setUp()
+
+    def request(self, data, token=""):
+        authorization_header = get_authorization_header(token.key if token else None)
+
+        url = "/v2/repository/clone-repository/"
+        request = self.factory.post(url, data, **authorization_header)
+
+        response = CloneRepositoryViewSet.as_view({"post": "create"})(request)
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data)
+
+    def test_cannot_clone_private_repository(self):
+        repository = self.repositories[1]
+        repository.is_private = True
+        repository.save()
+        response, content_data = self.request(
+            {"repository": repository.pk, "owner": self.organization.pk},
+            self.owner_token,
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_cannot_call_api_while_unauthenticated(self):
+        """Validate that only authenticated users can clone repositories with an unauthenticated request"""
+        repository = self.repositories[1]
+        response, content_data = self.request(
+            {"repository": repository.pk, "owner": self.organization.pk}, token=None
+        )
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_cannot_call_api_with_empty_or_incomplete_body(self):
+        repository = self.repositories[0]
+        response, content_data = self.request({}, token=self.user_token)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        response, content_data = self.request(
+            {"repository": repository.pk}, token=self.user_token
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        response, content_data = self.request(
+            {"owner": self.organization.pk}, token=self.user_token
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

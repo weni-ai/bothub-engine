@@ -8,6 +8,8 @@ from django.conf import settings
 from django.db import transaction
 from django.db.models import Q, Count
 from django.utils import timezone
+from django.utils import translation
+from django.utils.translation import gettext_lazy as _
 
 from django_elasticsearch_dsl.registries import registry
 
@@ -96,52 +98,67 @@ def trainings_check_task():
 
 
 @app.task(name="clone_version")
-def clone_version(instance_id, id_clone, repository, *args, **kwargs):
-    clone = RepositoryVersion.objects.get(pk=id_clone, repository=repository)
-    instance = RepositoryVersion.objects.get(pk=instance_id)
+def clone_version(
+    repository_id_from_original_version: str,
+    original_version_id: int,
+    clone_id: int,
+    *args,
+    **kwargs,
+):
+    original_version = RepositoryVersion.objects.get(
+        pk=original_version_id, repository_id=repository_id_from_original_version
+    )
+    clone = RepositoryVersion.objects.get(pk=clone_id)
 
-    bulk_versionlanguages = [
-        RepositoryVersionLanguage(**version, pk=None, repository_version=instance)
-        for version in clone.version_languages.values()
+    # Copy version_languages and direct fields
+    bulk_version_languages = [
+        RepositoryVersionLanguage(**version, pk=None, repository_version=clone)
+        for version in original_version.version_languages.values()
     ]
     RepositoryVersionLanguage.objects.bulk_create(
-        bulk_versionlanguages, ignore_conflicts=True
+        bulk_version_languages, ignore_conflicts=True
     )
 
-    for version in clone.version_languages:
-        version_language = instance.get_version_language(version.language)
-
-        version_language.update_trainer(
-            version.get_bot_data.bot_data, version.get_bot_data.rasa_version
+    # Copy version_languages relations (examples, intents, etc)
+    for original_version_language in original_version.version_languages:
+        clone_version_language = clone.get_version_language(
+            original_version_language.language
         )
 
-        examples = RepositoryExample.objects.filter(repository_version_language=version)
+        clone_version_language.update_trainer(
+            original_version_language.get_bot_data.bot_data,
+            original_version_language.get_bot_data.rasa_version,
+        )
 
-        for example in examples:
+        examples = RepositoryExample.objects.filter(
+            repository_version_language=original_version_language
+        )
+
+        for original_example in examples:
             intent, created = RepositoryIntent.objects.get_or_create(
-                text=example.intent.text,
-                repository_version=version_language.repository_version,
+                text=original_example.intent.text,
+                repository_version=clone_version_language.repository_version,
             )
             example_id = RepositoryExample.objects.create(
-                repository_version_language=version_language,
-                text=example.text,
+                repository_version_language=clone_version_language,
+                text=original_example.text,
                 intent=intent,
-                created_at=example.created_at,
-                last_update=example.last_update,
+                created_at=original_example.created_at,
+                last_update=original_example.last_update,
             )
 
-            example_entites = RepositoryExampleEntity.objects.filter(
-                repository_example=example
+            example_entities = RepositoryExampleEntity.objects.filter(
+                repository_example=original_example
             )
 
-            for example_entity in example_entites:
+            for example_entity in example_entities:
                 if example_entity.entity.group:
                     group, created_group = RepositoryEntityGroup.objects.get_or_create(
-                        repository_version=instance,
+                        repository_version=clone,
                         value=example_entity.entity.group.value,
                     )
                     entity, created_entity = RepositoryEntity.objects.get_or_create(
-                        repository_version=instance,
+                        repository_version=clone,
                         value=example_entity.entity.value,
                         group=group,
                     )
@@ -154,7 +171,7 @@ def clone_version(instance_id, id_clone, repository, *args, **kwargs):
                     )
                 else:
                     entity, created = RepositoryEntity.objects.get_or_create(
-                        repository_version=instance, value=example_entity.entity.value
+                        repository_version=clone, value=example_entity.entity.value
                     )
                     RepositoryExampleEntity.objects.create(
                         repository_example=example_id,
@@ -165,12 +182,12 @@ def clone_version(instance_id, id_clone, repository, *args, **kwargs):
                     )
 
             translated_examples = RepositoryTranslatedExample.objects.filter(
-                original_example=example
+                original_example=original_example
             )
 
             for translated_example in translated_examples:
                 translated = RepositoryTranslatedExample.objects.create(
-                    repository_version_language=instance.get_version_language(
+                    repository_version_language=clone.get_version_language(
                         translated_example.language
                     ),
                     original_example=example_id,
@@ -192,11 +209,11 @@ def clone_version(instance_id, id_clone, repository, *args, **kwargs):
                             group,
                             created_group,
                         ) = RepositoryEntityGroup.objects.get_or_create(
-                            repository_version=instance,
+                            repository_version=clone,
                             value=translated_entity.entity.group.value,
                         )
                         entity, created_entity = RepositoryEntity.objects.get_or_create(
-                            repository_version=instance,
+                            repository_version=clone,
                             value=translated_entity.entity.value,
                             group=group,
                         )
@@ -209,7 +226,7 @@ def clone_version(instance_id, id_clone, repository, *args, **kwargs):
                         )
                     else:
                         entity, created_entity = RepositoryEntity.objects.get_or_create(
-                            repository_version=instance,
+                            repository_version=clone,
                             value=translated_entity.entity.value,
                         )
                         RepositoryTranslatedExampleEntity.objects.create(
@@ -221,12 +238,12 @@ def clone_version(instance_id, id_clone, repository, *args, **kwargs):
                         )
 
         evaluates = RepositoryEvaluate.objects.filter(
-            repository_version_language=version
+            repository_version_language=original_version_language
         )
 
         for evaluate in evaluates:
             evaluate_id = RepositoryEvaluate.objects.create(
-                repository_version_language=version_language,
+                repository_version_language=clone_version_language,
                 text=evaluate.text,
                 intent=evaluate.intent,
                 created_at=evaluate.created_at,
@@ -242,9 +259,90 @@ def clone_version(instance_id, id_clone, repository, *args, **kwargs):
                 bulk_evaluate_entities, ignore_conflicts=True
             )
 
-    instance.is_deleted = False
-    instance.save(update_fields=["is_deleted"])
+    clone.is_deleted = False
+    clone.save(update_fields=["is_deleted"])
     return True
+
+
+@app.task()
+def clone_repository(
+    source_repository_id: str,
+    clone_repository_id: str,
+    new_owner_id: int,
+    language: str = None,
+) -> Repository:
+    """
+    Clone a Repository Instance ans it's related fields.
+    Returns a Repository instance or None
+    """
+    if not language:
+        language = "en"
+
+    source_repository = Repository.objects.get(pk=source_repository_id)
+    clone_repository = Repository.objects.get(pk=clone_repository_id)
+
+    # region 1. clone Repository and direct fields
+
+    # copy fields from source repository to clone repository
+    exclude_fields = ("id", "pk", "uuid", "slug")
+    for field in Repository._meta.fields:
+        if field.name in exclude_fields or field.primary_key:
+            continue
+        setattr(
+            clone_repository,
+            field.name,
+            getattr(source_repository, field.name),
+        )
+
+    # Keep full name if the field's "max_length" allows it, else crop it
+    size = Repository.name.field.max_length
+    translation.activate(language)
+    name = "{name} [{suffix}]".format(
+        name=source_repository.name,
+        suffix=_("Copy"),
+    )
+    translation.deactivate()
+    if len(name) > size:
+        name = name[: size - 3] + "..."
+    clone_repository.name = name
+
+    # Update necessary fields
+    clone_repository.owner_id = new_owner_id
+    clone_repository.is_private = True
+    clone_repository.count_authorizations = 0
+    clone_repository.created_at = timezone.now()
+
+    clone_repository.save()
+    # endregion
+
+    # region 2. ForeignKeys and ManyToManyFields
+    clone_repository.categories.set(source_repository.categories.all())
+
+    score_queue = []
+    score_exclude_fields = ("id", "pk", "uuid", "repository")
+    score_fields = RepositoryScore._meta.fields
+    for original_score in source_repository.repository_score.all():
+        clone_score = RepositoryScore(repository=clone_repository)
+        # copy fields and values
+        for field in score_fields:
+            if not (field.name in score_exclude_fields or field.primary_key):
+                setattr(
+                    clone_score,
+                    field.name,
+                    getattr(original_score, field.name),
+                )
+        score_queue.append(clone_score)
+    RepositoryScore.objects.bulk_create(score_queue)
+    # endregion
+
+    # region 3. reverse ForeignKeys and ManyToManyFields (the ones which reference the Repository)
+    for knowledge_base in source_repository.knowledge_bases.all():
+        knowledge_base.pk = None
+        knowledge_base.repository = clone_repository
+        knowledge_base.save()
+    # endregion
+
+    return clone_repository.pk
 
 
 @app.task()

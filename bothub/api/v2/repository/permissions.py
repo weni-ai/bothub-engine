@@ -117,8 +117,13 @@ class RepositoryExamplePermission(permissions.BasePermission):
             request.user
         )
         if request.method in READ_METHODS:
-            return authorization.can_read
+            return True
         return authorization.can_contribute
+
+    def has_permission(self, request, view):
+        if request.method in READ_METHODS:
+            return True
+        return super().has_permission(request, view)
 
 
 class RepositoryEntityHasPermission(permissions.BasePermission):

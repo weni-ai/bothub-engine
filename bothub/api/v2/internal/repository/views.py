@@ -1,4 +1,4 @@
-from rest_framework import mixins
+from rest_framework import mixins, status
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
 from rest_framework.response import Response
@@ -33,7 +33,10 @@ class InternalRepositoriesViewSet(mixins.ListModelMixin, GenericViewSet):
         auth = self.request.query_params.get("repository_authorization", None)
         repository = Repository.objects.none()
         if auth:
-            repository = Repository.objects.get(authorizations__uuid=auth)
+            try:
+                repository = Repository.objects.get(authorizations__uuid=auth)
+            except Repository.DoesNotExist:
+                return Response({}, status=status.HTTP_404_NOT_FOUND)
         serialized_data = InternalRepositorySerializer(repository)
 
         return Response(serialized_data.data)

@@ -27,7 +27,7 @@
 
 # Requirements
 
-* Python (3.6)
+* Python (3.8.13)
 * Poetry
 * Docker
 * Docker-compose
@@ -183,7 +183,9 @@ You can set environment variables in your OS, write on ```.env``` file or pass v
 | ELASTICSEARCH_LOGS_DELETE_AGE | ```string``` | ```90d``` | Specify the ILM delete age, when the index will be deleted.
 | GUNICORN_WORKERS | ``` int ``` | ``` multiprocessing.cpu_count() * 2 + 1 ``` | Gunicorn number of workers.
 | USE_ELASTICSEARCH | ```boolean``` | ```true``` | Change the logic in requirements_to_train to use either elasticsearch or postgres.
+| ELASTICSEARCH_CUSTOM_QUEUE | ```string``` | ```celery``` | Set a custom celery queue to run "es_handle_save" task. When a non-default value is set, this celery instance must be started separately or the task will not be executed.
 | REPOSITORY_BLOCK_USER_LOGS | ```list``` | ```[]``` | List of repository authorization(api bearer) that won't save logs
+| RUN_AS_DEVELOPMENT_MODE | ```boolean``` | ```false``` | Specifies how to run the server, in production or development mode.
 | TEST_REPOSITORY_ID | ```string``` | ```None``` | The repository from which the RepositoryTokenByUserViewSet will retrieve the logged user's access token.
 
 
