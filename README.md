@@ -35,7 +35,8 @@
 ## Development
 
 Use ```make``` commands to ```check_environment```, ```install_requirements```, ```lint```, ```test```, ```migrate```, ```start```, ```migrations``` and ```collectstatic```.
-
+ 
+ ### Commands
 | Command | Description |
 |--|--|
 | make help | Show make commands help
@@ -77,6 +78,55 @@ Run ```poetry run python ./manage.py start_all_repository_train```
 |---|---|---|---|
 | admin | admin@bothub.it | admin | yes |
 | user | user@bothub.it | user | no |
+
+## Development environment setup
+A step by step guide on how to run the project locally.
+This guide expects that you to:
+ - Have installed and activated [pyenv](https://github.com/pyenv/pyenv) with the correct Python version for the project;
+ - Installed [poetry](https://python-poetry.org/) in that environment;
+ - Installed [redis](https://redis.io/docs/getting-started/installation/) database and it is running;
+ - Installed and configured [docker](https://docs.docker.com/get-docker/);
+ - Installed [make](https://gnuwin32.sourceforge.net/packages/make.htm) if you are on Windows.
+
+> All the commands must be executed at the project root.
+
+
+1. Set up your `.env`  file. You can find the expected and default values below or ask a collaborator for the development file in case you don't have one.
+
+2. Create the *bothub* network inside docker:
+
+    ```docker network create bothub```
+
+3. Run the project's database with docker:
+    
+    ```docker compose up database```
+
+4. Run redis locally:
+
+    ``` sudo service redis-server restart ```
+    
+5. Run engine locally:
+
+    ```poetry run python manage.py runserver```
+
+6. Run migrations and populate script:
+    
+    ``` poetry run python manage.py migrate ```
+
+    ``` poetry run python manage.py fill_db_using_fake_data ```
+
+7. Run celery locally:
+    
+    ``` make start_celery ```
+    
+8. Run elasticsearch with docker:
+    
+    ``` docker compose up es ```
+
+9. Run elasticsearch indexing:
+    
+    ``` make search_index ```
+---
 
 
 ## Production
