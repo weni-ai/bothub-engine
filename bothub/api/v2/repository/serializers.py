@@ -1350,7 +1350,7 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
         entities_data = validated_data.pop("entities")
         validated_data.pop("repository")
         validated_data.pop("repository_version_language")
-        validated_data.pop("language", None)
+        # validated_data.pop("language", None)
         intent_text = validated_data.get("intent", None)
 
         if intent_text:
