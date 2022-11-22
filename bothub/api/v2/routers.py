@@ -182,9 +182,6 @@ router.register("repository/search-repositories", SearchRepositoriesViewSet)
 router.register("repository/repositories-permissions", RepositoriesPermissionsViewSet)
 router.register("repository/authorizations", RepositoryAuthorizationViewSet)
 router.register(
-    "repository/authorization-requests", RepositoryAuthorizationRequestsViewSet
-)
-router.register(
     "repository/authorization-by-user",
     RepositoryTokenByUserViewSet,
     basename="authorization-by-user",
