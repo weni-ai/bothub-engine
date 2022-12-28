@@ -1271,7 +1271,8 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
         style={"show": False},
     )
     language = serializers.ChoiceField(
-        languages.LANGUAGE_CHOICES, allow_blank=True, required=False
+        languages.LANGUAGE_CHOICES, allow_blank=True, required=False,
+        # [language[0] for language in languages.LANGUAGE_CHOICES], allow_blank=True, required=False,
     )
 
     entities = RepositoryExampleEntitySerializer(
@@ -1347,11 +1348,15 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
         return example
 
     def update(self, instance, validated_data):
-        entities_data = validated_data.pop("entities")
-        validated_data.pop("repository")
-        validated_data.pop("repository_version_language")
-        validated_data.pop("language", None)
+        entities_data = validated_data.pop("entities", None)
+        validated_data.pop("repository", None)
+        validated_data.pop("repository_version_language", None)
+        language = validated_data.pop("language", None)
         intent_text = validated_data.get("intent", None)
+
+        if language:
+            repository_version_language = instance.repository_version_language.repository_version.repository.current_version(language)
+            validated_data.update({"repository_version_language": repository_version_language})
 
         if intent_text:
             intent, created = RepositoryIntent.objects.get_or_create(
