@@ -1,6 +1,7 @@
 import json
 
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
@@ -125,6 +126,8 @@ from .serializers import (
 from bothub.api.v2.internal.connect_rest_client import (
     ConnectRESTClient as ConnectClient,
 )
+
+User = get_user_model()
 
 
 class NewRepositoryViewSet(
@@ -1091,19 +1094,22 @@ class RepositoryTokenByUserViewSet(mixins.ListModelMixin, GenericViewSet):
         Get repository access token based on logged user
         """
 
-        repository_id = settings.TEST_REPOSITORY_ID
-        if not repository_id:
+        repository_uuid = request.query_params.get("repository_uuid")
+        if not repository_uuid:
             return Response(
-                {"TEST_REPOSITORY_ID": "Not set"}, status=status.HTTP_400_BAD_REQUEST
+                {"TEST_REPOSITORY_UUID": "Not set"}, status=status.HTTP_400_BAD_REQUEST
             )
         try:
-            repository = Repository.objects.get(pk=repository_id)
+            repository = Repository.objects.get(pk=repository_uuid)
         except Repository.DoesNotExist:
             return Response(
                 {"Repository": "Does Not Exist"}, status=status.HTTP_404_NOT_FOUND
             )
 
-        authorization = repository.get_user_authorization(request.user)
+        user = User.objects.get(email=request.query_params.get("user_email"))
+
+        authorization = repository.get_user_authorization(user)
+
         return Response({"access_token": str(authorization.uuid)})
 
 
