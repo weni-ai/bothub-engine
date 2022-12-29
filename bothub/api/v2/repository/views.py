@@ -439,7 +439,18 @@ class NewRepositoryViewSet(
             organization_authorization = (
                 organization.organization_authorizations.filter(uuid__in=task)
             )
-
+        task = celery_app.send_task(
+            "send_recent_activity",
+            [
+                {
+                    "user": request.user.email,
+                    "entity": "AI",
+                    "action": "INTEGRATE",
+                    "entity_name": repository.name,
+                    "project_uuid": project_uuid
+                }
+            ]
+        )
         if organization_authorization.exists():
             raise ValidationError(_("Repository already added"))
 
@@ -534,6 +545,18 @@ class RepositoryViewSet(
             raise APIException(  # pragma: no cover
                 {"status_code": request.status_code}, code=request.status_code
             )
+        celery_app.send_task(
+            "send_recent_activity",
+            [
+                {
+                    "user": request.user.email,
+                    "entity": "AI",
+                    "action": "TRAIN",
+                    "entity_name": repository.name,
+                    "intelligence_id": repository.owner.organization.id
+                }
+            ]
+        )
         return Response(request.json())  # pragma: no cover
 
     @action(

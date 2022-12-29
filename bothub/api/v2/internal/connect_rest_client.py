@@ -79,3 +79,10 @@ class ConnectRESTClient:
             params={**kwargs, "classifier_type": "bothub"},
         )
         return request.json()
+
+    def create_recent_activity(self, recent_activity_data):
+        requests.post(
+            url=f"{self.base_url}/v1/recent-activity",
+            headers=self.headers,
+            json=recent_activity_data
+        )
