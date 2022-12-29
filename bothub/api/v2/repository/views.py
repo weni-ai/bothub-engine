@@ -536,6 +536,7 @@ class RepositoryViewSet(
         user_authorization = repository.get_user_authorization(request.user)
         serializer = TrainSerializer(data=request.data)  # pragma: no cover
         serializer.is_valid(raise_exception=True)  # pragma: no cover
+        user = request.user
         if not user_authorization.can_write:
             raise PermissionDenied()
         request = repository.request_nlp_train(
@@ -549,7 +550,7 @@ class RepositoryViewSet(
             "send_recent_activity",
             [
                 {
-                    "user": request.user.email,
+                    "user": user.email,
                     "entity": "AI",
                     "action": "TRAIN",
                     "entity_name": repository.name,
