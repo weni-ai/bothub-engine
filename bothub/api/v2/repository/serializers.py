@@ -1016,19 +1016,19 @@ class RepositorySerializer(serializers.ModelSerializer):
             is_default=True, created_by=self.context["request"].user
         )
 
-        if "request" in self.context and "user" in self.context["request"]:
-            celery_app.send_task(
-                "send_recent_activity",
-                [
-                    {
-                        "user": self.context["request"].user,
-                        "entity": "AI",
-                        "action": "CREATE",
-                        "entity_name": repository.name,
-                        "intelligence_id": repository.owner.organization.id
-                    }
-                ]
-            )
+        celery_app.send_task(
+            "send_recent_activity",
+            [
+                {
+                    "user": self.context["request"].user,
+                    "entity": "AI",
+                    "action": "CREATE",
+                    "entity_name": repository.name,
+                    "intelligence_id": repository.owner.organization.id
+                }
+            ]
+        )
+
         return repository
 
     def get_intents(self, obj):
