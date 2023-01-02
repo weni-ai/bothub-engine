@@ -1016,12 +1016,12 @@ class RepositorySerializer(serializers.ModelSerializer):
             is_default=True, created_by=self.context["request"].user
         )
 
-        if owner.user:
+        if "request" in self.context and "user" in self.context["request"]:
             celery_app.send_task(
                 "send_recent_activity",
                 [
                     {
-                        "user": owner.user.email,
+                        "user": self.context["request"].user,
                         "entity": "AI",
                         "action": "CREATE",
                         "entity_name": repository.name,
