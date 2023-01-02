@@ -1020,7 +1020,7 @@ class RepositorySerializer(serializers.ModelSerializer):
             "send_recent_activity",
             [
                 {
-                    "user": self.context["request"].user,
+                    "user": self.context["request"].user.email,
                     "entity": "AI",
                     "action": "CREATE",
                     "entity_name": repository.name,
