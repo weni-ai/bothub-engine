@@ -677,3 +677,9 @@ def create_repository_project(**kwargs):
     grpc_client = ConnectClient()
     grpc_client.create_classifier(**kwargs)
     return kwargs
+
+
+@app.task(name="send_recent_activity")
+def send_recent_activity(recent_activity_data):
+    connect_client = ConnectClient()
+    connect_client.create_recent_activity(recent_activity_data=recent_activity_data)

@@ -439,7 +439,18 @@ class NewRepositoryViewSet(
             organization_authorization = (
                 organization.organization_authorizations.filter(uuid__in=task)
             )
-
+        task = celery_app.send_task(
+            "send_recent_activity",
+            [
+                {
+                    "user": request.user.email,
+                    "entity": "AI",
+                    "action": "INTEGRATE",
+                    "entity_name": repository.name,
+                    "project_uuid": project_uuid
+                }
+            ]
+        )
         if organization_authorization.exists():
             raise ValidationError(_("Repository already added"))
 
@@ -525,6 +536,7 @@ class RepositoryViewSet(
         user_authorization = repository.get_user_authorization(request.user)
         serializer = TrainSerializer(data=request.data)  # pragma: no cover
         serializer.is_valid(raise_exception=True)  # pragma: no cover
+        user = request.user
         if not user_authorization.can_write:
             raise PermissionDenied()
         request = repository.request_nlp_train(
@@ -534,6 +546,18 @@ class RepositoryViewSet(
             raise APIException(  # pragma: no cover
                 {"status_code": request.status_code}, code=request.status_code
             )
+        celery_app.send_task(
+            "send_recent_activity",
+            [
+                {
+                    "user": user.email,
+                    "entity": "AI",
+                    "action": "TRAIN",
+                    "entity_name": repository.name,
+                    "intelligence_id": repository.owner.organization.id
+                }
+            ]
+        )
         return Response(request.json())  # pragma: no cover
 
     @action(
