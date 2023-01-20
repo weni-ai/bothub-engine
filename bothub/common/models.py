@@ -2581,6 +2581,19 @@ class QALogs(models.Model):
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
 
 
+class Project(models.Model):
+    uuid = models.UUIDField(
+        _("UUID"),
+    )
+    name = models.TextField(_("name"), blank=True)
+    organization = models.ForeignKey(
+        Organization,
+        models.CASCADE,
+        null=True,
+        related_name="organization_project",
+    )
+
+
 @receiver(models.signals.pre_save, sender=RequestRepositoryAuthorization)
 def set_user_role_on_approved(instance, **kwargs):
     current = None

@@ -86,3 +86,11 @@ class ConnectRESTClient:
             headers=self.headers,
             json=recent_activity_data
         )
+
+    def get_project_info(self, project_uuid):
+        project_info = requests.get(
+            url=f"{self.base_url}/",
+            headers=self.headers,
+            params={"project_uuid": project_uuid}
+        )
+
