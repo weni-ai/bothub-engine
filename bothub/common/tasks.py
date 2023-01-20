@@ -77,11 +77,17 @@ def trainings_check_task():
                     "from_queue": services.get(train.from_queue),
                 }
             ),
-        ).json()
+        )
+        if result:
+            result = result.json()
+        else:
+            continue
+        
+        status = int(result.get("status"))
 
-        if int(result.get("status")) != train.status:
+        if status != train.status:
             fields = ["status", "ml_units"]
-            train.status = result.get("status")
+            train.status = status
             if train.status == RepositoryQueueTask.STATUS_SUCCESS:
                 train.end_training = timezone.now()
                 fields.append("end_training")
