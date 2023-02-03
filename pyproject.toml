@@ -14,7 +14,7 @@ license = "MPL-2.0"
 
 [tool.poetry.dependencies]
 python = "~=3.8.13"
-django = "~=3.2.6"
+django = "~=3.2.17"
 djangorestframework = "~=3.12.4"
 django-filter = "~=2.4.0"
 django-cors-headers = "~=3.7.0"
