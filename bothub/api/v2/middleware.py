@@ -25,7 +25,7 @@ class ProjectOrganizationMiddleware:
     def __init__(self):
         ...
     
-    def __call__(self, project_uuid) -> Any:
+    def __call__(self, project_uuid, *args, *kwargs):
         from bothub.common.models import Project
         from bothub.api.v2.internal.connect_rest_client import ConnectRESTClient
         from bothub.utils import organization_unique_slug_generator
@@ -35,27 +35,29 @@ class ProjectOrganizationMiddleware:
         if project.exists():
             project = project.first()
             return project
+
         connect_client = ConnectRESTClient()
         response = connect_client.get_project_info(project_uuid=project_uuid)
         if response.status_code == 200:
             project_data = response.get("project")
-            
-            organization_data = response.get("organization")
-            authorizations = response.get("authorizations")
-            owner = response.get("owner")
+            is_template = project_data.get("is_template", False)
+            if not is_template:
+                organization_data = response.get("organization")
+                authorizations = response.get("authorizations")
+                owner = response.get("owner")
 
-            formatted_organization_data = {
-                "name": organization_data.get("name"),
-                "nickname": organization_unique_slug_generator(
-                    organization_data.get("name")
-                ),
-                "description": organization_data.get("description", ""),
-                "locale": organization_data.get("locale", ""),
-            }
-            org = Organization.objects.create(**formatted_organization_data)
+                formatted_organization_data = {
+                    "name": organization_data.get("name"),
+                    "nickname": organization_unique_slug_generator(
+                        organization_data.get("name")
+                    ),
+                    "description": organization_data.get("description", ""),
+                    "locale": organization_data.get("locale", ""),
+                }
+                org = Organization.objects.create(**formatted_organization_data)
 
-            Project.objects.create(
-                uuid=project_data.get("uuid"),
-                name=project_data.get("name"),
-                organization=org
-            )
+                Project.objects.create(
+                    uuid=project_data.get("uuid"),
+                    name=project_data.get("name"),
+                    organization=org
+                )
