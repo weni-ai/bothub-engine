@@ -82,7 +82,7 @@ def trainings_check_task():
             result = result.json()
         else:
             continue
-        
+
         status = int(result.get("status"))
 
         if status != train.status:
