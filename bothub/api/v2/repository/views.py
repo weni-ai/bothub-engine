@@ -874,9 +874,21 @@ class RepositoriesViewSet(mixins.ListModelMixin, GenericViewSet):
     @action(detail=True, methods=["GET"], url_name="list-project-organizatiton")
     def list_project_organizatiton(self, request, **kwargs):
         project_uuid = request.query_params.get("project_uuid")
+        categories = request.query_params.get("categories")
+        choose = request.query_params.get("choose")
+        language = request.query_params.get("choose")
 
         if not project_uuid:
             raise ValidationError(_("Need to pass 'project_uuid' in query params"))
+
+        if categories:
+            categories = categories.split(",")
+        
+        if choose:
+            choose = choose.split(",")
+
+        if language:
+            language = language.split(",")
 
         if settings.USE_GRPC:
             task = celery_app.send_task(
