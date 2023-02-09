@@ -905,6 +905,12 @@ class RepositoriesViewSet(mixins.ListModelMixin, GenericViewSet):
             repositories = Repository.objects.filter(
                 authorizations__uuid__in=authorizations
             )
+            
+            if categories:
+                repositories = repositories.filter(categories__name__in = categories)
+
+            if language:
+                repositories = repositories.filter(language__in = language)
 
         serialized_data = ShortRepositorySerializer(repositories, many=True)
         return Response(serialized_data.data)
