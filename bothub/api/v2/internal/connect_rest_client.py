@@ -89,7 +89,7 @@ class ConnectRESTClient:
 
     def get_project_info(self, project_uuid):
         project_info = requests.get(
-            url=f"{self.base_url}/",
+            url=f"{self.base_url}/v2/internals/connect/organizations/",
             headers=self.headers,
             params={"project_uuid": project_uuid}
         )
