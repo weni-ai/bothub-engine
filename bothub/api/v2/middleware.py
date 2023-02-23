@@ -22,14 +22,14 @@ class UserLanguageMiddleware:
 
 
 class ProjectOrganizationMiddleware:
-    def __init__(self):
-        ...
+    def __init__(self, get_response):
+        self.get_response = get_response
     
-    def __call__(self, project_uuid, *args, *kwargs):
+    def __call__(self, project_uuid, *args, **kwargs):
         from bothub.common.models import Project
         from bothub.api.v2.internal.connect_rest_client import ConnectRESTClient
         from bothub.utils import organization_unique_slug_generator
-        project_uuid = request.params.get("project_uuid")
+        project_uuid = kwargs.get("project_uuid")
         project = Project.objects.filter(uuid=project_uuid)
         
         if project.exists():
