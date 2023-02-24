@@ -31,7 +31,7 @@ class ConnectRESTClient:
         if settings.USE_CONNECT_V2:
             suffix_url = f"v2/projects/{project_uuid}/list-classifier"
         else:
-            suffix_url = "/v1/organization/project/list_classifier/"
+            suffix_url = "v1/organization/project/list_classifier/"
             params.update({"project_uuid": project_uuid})
         request = requests.get(
             url=f"{self.base_url}/{suffix_url}",
