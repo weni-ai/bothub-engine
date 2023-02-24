@@ -27,10 +27,16 @@ class ConnectRESTClient:
     def list_classifiers(
         self, project_uuid: str, user_email: str
     ) -> List[Dict[str, str]]:
+        params = {"user_email": user_email}
+        if settings.USE_CONNECT_V2:
+            suffix_url = f"v2/projects/{project_uuid}/list-classifier"
+        else:
+            suffix_url = "v1/organization/project/list_classifier/"
+            params.update({"project_uuid": project_uuid})
         request = requests.get(
-            url=f"{self.base_url}/v1/organization/project/list_classifier/",
+            url=f"{self.base_url}/{suffix_url}",
             headers=self.headers,
-            params={"project_uuid": project_uuid, "user_email": user_email},
+            params=params,
         )
 
         return request.json()["data"]
@@ -64,8 +70,13 @@ class ConnectRESTClient:
             authorization_uuid,
             user_email,
         )
+
+        if settings.USE_CONNECT_V2:
+            suffix_url = f"v2/projects/{project_uuid}/delete-classifier"
+        else:
+            suffix_url = "v1/organization/project/destroy_classifier/"
         request = requests.delete(
-            url=f"{self.base_url}/v1/organization/project/destroy_classifier/",
+            url=f"{self.base_url}/{suffix_url}",
             headers=self.headers,
             params={"uuid": classifier_uuid, "user_email": user_email},
         )
@@ -73,8 +84,13 @@ class ConnectRESTClient:
         return request.json()
 
     def create_classifier(self, **kwargs):
+        project_uuid = kwargs.get("project_uuid")
+        if settings.USE_CONNECT_V2:
+            suffix_url = f"v2/projects/{project_uuid}/create-classifier"
+        else:
+            suffix_url = "v1/organization/project/create_classifier/"
         request = requests.post(
-            url=f"{self.base_url}/v1/organization/project/create_classifier/",
+            url=f"{self.base_url}/{suffix_url}",
             headers=self.headers,
             params={**kwargs, "classifier_type": "bothub"},
         )

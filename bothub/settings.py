@@ -107,6 +107,7 @@ env = environ.Env(
     CSP_CONNECT_SRC=(tuple, "CSP_CONNECT_SRC"),
     CSP_WORKER_SRC=(tuple, "CSP_WORKER_SRC"),
     CSP_IMG_SRC=(tuple, "CSP_IMG_SRC"),
+    USE_CONNECT_V2=(bool, False),
 )
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -635,3 +636,5 @@ ELASTICSEARCH_DSL_SIGNAL_PROCESSOR = ELASTICSEARCH_SIGNAL_PROCESSOR_CLASSES[
 REPOSITORY_BLOCK_USER_LOGS = env.list("REPOSITORY_BLOCK_USER_LOGS", default=[])
 
 TEST_REPOSITORY_ID = env("TEST_REPOSITORY_ID", default=None)
+
+USE_CONNECT_V2 = env.bool("USE_CONNECT_V2")
