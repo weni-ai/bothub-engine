@@ -107,6 +107,16 @@ env = environ.Env(
     CSP_CONNECT_SRC=(tuple, "CSP_CONNECT_SRC"),
     CSP_WORKER_SRC=(tuple, "CSP_WORKER_SRC"),
     CSP_IMG_SRC=(tuple, "CSP_IMG_SRC"),
+    AI_BINARY_ANWSERS = (str, "")
+    AI_FAREWELL_N_GREETINGS = (str, "")
+    AI_CRISTAL = (str, "")
+    AI_NAME_IDENTIFICATION = (str, "")
+    AI_SUSANA_V3 = (str, "")
+    AI_SHORT_FAREWELL_N_GREETINGS = (str, "")
+    AI_NAME_CALLING_IDENTIFICATION = (str, "")
+    AI_ODONTOLOGICAL_PLAN = (str, "")
+    AI_FINANCE_LEADS = (str, "")
+    AI_SENTIMENT_ANALYSIS = (str, "")
 )
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
