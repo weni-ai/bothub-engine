@@ -912,10 +912,10 @@ class RepositoriesViewSet(mixins.ListModelMixin, GenericViewSet):
             if language:
                 repositories = repositories.filter(language__in=language)
 
-            if 'most_used' in choose:
+            if choose and 'most_used' in choose:
                 repositories = repositories.order_by("count_interations")
 
-            if 'recommended' in choose:
+            if choose and 'recommended' in choose:
                 repositories = repositories.filter(uuid__in=settings.RECOMMENDED_AIS.get("AI_UUID"))
 
         serialized_data = ShortRepositorySerializer(repositories, many=True)
