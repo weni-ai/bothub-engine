@@ -916,7 +916,7 @@ class RepositoriesViewSet(mixins.ListModelMixin, GenericViewSet):
                 repositories = repositories.order_by("count_interations")
 
             if 'recommended' in choose:
-                repositories = repositories.filter(uuid__in=settings.RECOMMENDED_AIS)
+                repositories = repositories.filter(uuid__in=settings.RECOMMENDED_AIS.get("AI_UUID"))
 
         serialized_data = ShortRepositorySerializer(repositories, many=True)
         return Response(serialized_data.data)
