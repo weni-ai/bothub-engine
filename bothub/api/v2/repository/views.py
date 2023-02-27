@@ -883,7 +883,7 @@ class RepositoriesViewSet(mixins.ListModelMixin, GenericViewSet):
 
         if categories:
             categories = categories.split(",")
-        
+
         if choose:
             choose = choose.split(",")
 
@@ -905,12 +905,18 @@ class RepositoriesViewSet(mixins.ListModelMixin, GenericViewSet):
             repositories = Repository.objects.filter(
                 authorizations__uuid__in=authorizations
             )
-            
+
             if categories:
-                repositories = repositories.filter(categories__name__in = categories)
+                repositories = repositories.filter(categories__name__in=categories)
 
             if language:
-                repositories = repositories.filter(language__in = language)
+                repositories = repositories.filter(language__in=language)
+
+            if 'most_used' in choose:
+                repositories = repositories.order_by("count_interations")
+
+            if 'recommended' in choose:
+                repositories = repositories.filter(uuid__in=settings.RECOMMENDED_AIS)
 
         serialized_data = ShortRepositorySerializer(repositories, many=True)
         return Response(serialized_data.data)

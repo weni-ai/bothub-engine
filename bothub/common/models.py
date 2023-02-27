@@ -962,6 +962,10 @@ class Repository(models.Model):
         group_tasks()
         return repository_clone.pk, "Queued for cloning", status.HTTP_200_OK
 
+    @property
+    def count_interations(self):
+        return RepositoryNLPLog.objects.filter(repository_version_language__repository_version__repository=self).count()
+
 
 class RepositoryVersion(models.Model):
     class Meta:
