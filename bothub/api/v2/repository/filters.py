@@ -24,7 +24,7 @@ from bothub.common.models import RequestRepositoryAuthorization
 class RepositoriesFilter(filters.FilterSet):
     class Meta:
         model = Repository
-        fields = ["name", "categories", "owner_id", "nickname"]
+        fields = ["name", "categories", "owner_id", "nickname", "recommended"]
 
     language = filters.CharFilter(
         field_name="language", method="filter_language", help_text=_("Language")
@@ -34,6 +34,14 @@ class RepositoriesFilter(filters.FilterSet):
     )
     nickname = filters.CharFilter(
         method="filter_nickname", help_text=_("Repository Owner Nickname")
+    )
+
+    categories = filters.CharFilter(
+        methods="filter_categories", help_text=_("Repository category")
+    )
+
+    recommended = filters.CharFilter(
+        methods="filter_recommended", help_text=_("Weni AIs Recommended")
     )
 
     def __filter_by_owner(self, queryset, owner):
@@ -58,6 +66,15 @@ class RepositoriesFilter(filters.FilterSet):
     def filter_nickname(self, queryset, name, value):
         owner = get_object_or_404(RepositoryOwner, nickname=value)
         return self.__filter_by_owner(queryset, owner)
+
+    def filter_categories(self, queryset, name, value):
+        return queryset.filter(categories__name=value)
+
+    def filter_recommended(self, queryset, name, value):
+        if value == "True":
+            uuids = [uuid for uuid in settings.RECOMMENDED_AIS.get("AI_UUID") if len(uuid) > 0]
+            return queryset.filter(uuid__in=uuids)
+        return queryset
 
 
 class RepositoryAuthorizationFilter(filters.FilterSet):
