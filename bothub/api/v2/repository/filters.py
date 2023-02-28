@@ -37,11 +37,11 @@ class RepositoriesFilter(filters.FilterSet):
     )
 
     categories = filters.CharFilter(
-        methods="filter_categories", help_text=_("Repository category")
+        method="filter_categories", help_text=_("Repository category")
     )
 
     recommended = filters.CharFilter(
-        methods="filter_recommended", help_text=_("Weni AIs Recommended")
+        method="filter_recommended", help_text=_("Weni AIs Recommended")
     )
 
     def __filter_by_owner(self, queryset, owner):
