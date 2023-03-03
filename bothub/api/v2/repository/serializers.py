@@ -1047,7 +1047,7 @@ class RepositorySerializer(serializers.ModelSerializer):
         }
 
     def get_repository_score(self, obj):
-        score, created = obj.repository.repository_score.get_or_create()
+        score, created = obj.repository_score.get_or_create()
         return RepositoryScoreSerializer(score).data
 
 
