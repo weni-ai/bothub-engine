@@ -994,7 +994,7 @@ class RepositorySerializer(serializers.ModelSerializer):
     )
     categories_list = serializers.SerializerMethodField(style={"show": False})
     version_default = serializers.SerializerMethodField(style={"show": False})
-    repository_score = serializers.SerializerMethodField()
+    repository_score = serializers.SerializerMethodField(style={"show": False})
 
     def create(self, validated_data):
         organization = validated_data.pop("organization", None)
