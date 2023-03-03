@@ -922,6 +922,7 @@ class RepositorySerializer(serializers.ModelSerializer):
             "use_analyze_char",
             "organization",
             "version_default",
+            "repository_score",
         ]
         read_only = ["uuid", "created_at"]
         ref_name = None
@@ -993,6 +994,7 @@ class RepositorySerializer(serializers.ModelSerializer):
     )
     categories_list = serializers.SerializerMethodField(style={"show": False})
     version_default = serializers.SerializerMethodField(style={"show": False})
+    repository_score = serializers.SerializerMethodField()
 
     def create(self, validated_data):
         organization = validated_data.pop("organization", None)
@@ -1043,6 +1045,11 @@ class RepositorySerializer(serializers.ModelSerializer):
             "repository_version_language_id": obj.current_version().pk,
             "name": obj.current_version().repository_version.name,
         }
+
+    def get_repository_score(self, obj):
+        score, created = obj.repository.repository_score.get_or_create()
+        return RepositoryScoreSerializer(score).data
+
 
 
 class RepositoryPermissionSerializer(serializers.ModelSerializer):
