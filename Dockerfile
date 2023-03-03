@@ -11,7 +11,7 @@ RUN apt-get update \
 RUN apt-get install make
 
 RUN pip install -U pip==21.2.2 setuptools==57.4.0
-RUN pip install poetry==1.1.12
+RUN pip install poetry==1.2.2
 RUN pip install gunicorn==19.9.0
 RUN pip install gevent==21.12.0
 RUN pip install psycopg2-binary
