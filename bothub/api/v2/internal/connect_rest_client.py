@@ -93,4 +93,5 @@ class ConnectRESTClient:
             headers=self.headers,
             params={"project_uuid": project_uuid}
         )
+        return project_info
 
