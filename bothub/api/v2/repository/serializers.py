@@ -42,6 +42,7 @@ from bothub.common.models import (
     RepositoryVote,
     RequestRepositoryAuthorization,
     RepositoryVersionLanguage,
+    QAKnowledgeBase,
 )
 from bothub.utils import classifier_choice
 from .validators import (
@@ -923,6 +924,7 @@ class RepositorySerializer(serializers.ModelSerializer):
             "organization",
             "version_default",
             "repository_score",
+            "count_knowledge_bases",
         ]
         read_only = ["uuid", "created_at"]
         ref_name = None
@@ -995,6 +997,7 @@ class RepositorySerializer(serializers.ModelSerializer):
     categories_list = serializers.SerializerMethodField(style={"show": False})
     version_default = serializers.SerializerMethodField(style={"show": False})
     repository_score = serializers.SerializerMethodField(style={"show": False})
+    count_knowledge_bases = serializers.SerializerMethodField(style={"show": False})
 
     def create(self, validated_data):
         organization = validated_data.pop("organization", None)
@@ -1049,6 +1052,9 @@ class RepositorySerializer(serializers.ModelSerializer):
     def get_repository_score(self, obj):
         score, created = obj.repository_score.get_or_create()
         return RepositoryScoreSerializer(score).data
+
+    def get_count_knowledge_bases(self, obj):
+        return QAKnowledgeBase.objects.filter(repository=obj).count()
 
 
 class RepositoryPermissionSerializer(serializers.ModelSerializer):
@@ -1144,6 +1150,7 @@ class ShortRepositorySerializer(serializers.ModelSerializer):
             "votes",
             "version_default",
             "repository_score",
+            "count_knowledge_bases",
         ]
         read_only = fields
         ref_name = None
@@ -1160,6 +1167,7 @@ class ShortRepositorySerializer(serializers.ModelSerializer):
     votes = RepositoryVotesSerializer(many=True, read_only=True)
     version_default = serializers.SerializerMethodField(style={"show": False})
     repository_score = serializers.SerializerMethodField(style={"show": False})
+    count_knowledge_bases = serializers.SerializerMethodField(style={"show": False})
 
     def get_intents(self, obj):
         return obj.get_formatted_intents()
@@ -1177,6 +1185,9 @@ class ShortRepositorySerializer(serializers.ModelSerializer):
     def get_repository_score(self, obj):
         score, created = obj.repository_score.get_or_create()
         return RepositoryScoreSerializer(score).data
+
+    def get_count_knowledge_bases(self, obj):
+        return QAKnowledgeBase.objects.filter(repository=obj).count()
 
 
 class RepositoryContributionsSerializer(serializers.ModelSerializer):
