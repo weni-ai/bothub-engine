@@ -157,7 +157,7 @@ class User(AbstractBaseUser, RepositoryOwner, PermissionsMixin):
             return False  # pragma: no cover
         token = self.make_password_reset_token()
         reset_url = "{}reset-password/{}/{}/".format(
-            settings.BOTHUB_WEBAPP_BASE_URL, self.nickname, token
+            settings.CONNECT_WEBAPP_BASE_URL, self.nickname, token
         )
         context = {"reset_url": reset_url, "base_url": settings.BASE_URL}
         send_mail(
