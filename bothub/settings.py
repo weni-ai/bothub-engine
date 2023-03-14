@@ -118,6 +118,7 @@ env = environ.Env(
     AI_ODONTOLOGICAL_PLAN=(str, ""),
     AI_FINANCE_LEADS=(str, ""),
     AI_SENTIMENT_ANALYSIS=(str, ""),
+    CONNECT_WEBAPP_BASE_URL=(str, "http://localhost:8080")
 )
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -314,7 +315,7 @@ SEND_EMAILS = env.bool("SEND_EMAILS")
 # webapp
 
 BOTHUB_WEBAPP_BASE_URL = env.str("BOTHUB_WEBAPP_BASE_URL")
-
+CONNECT_WEBAPP_BASE_URL = env.str("CONNECT_WEBAPP_BASE_URL")
 
 # NLP
 
