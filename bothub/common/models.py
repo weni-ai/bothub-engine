@@ -2581,6 +2581,23 @@ class QALogs(models.Model):
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
 
 
+class ZeroShotOptions(models.Model):
+    option_uuid = models.UUIDField(default=uuid.uuid4())
+    key = models.TextField(help_text="option key")
+
+
+class ZeroShotOptionsText(models.Model):
+    text = models.TextField(help_text="text make reference to a option")
+    option = models.ForeignKey(ZeroShotOptions, models.CASCADE)
+
+
+class RepositoryZeroShot(models.Model):
+    text = models.TextField(help_text=_("Text to analyze"))
+    user = models.ForeignKey(User, models.CASCADE)
+    repository = models.ForeignKey(Repository, models.CASCADE)
+
+
+
 @receiver(models.signals.pre_save, sender=RequestRepositoryAuthorization)
 def set_user_role_on_approved(instance, **kwargs):
     current = None
