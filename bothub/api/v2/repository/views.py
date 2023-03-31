@@ -139,10 +139,7 @@ class NewRepositoryViewSet(
 
     queryset = (
         RepositoryVersion.objects.all()
-        .select_related(
-            "repository",
-            "repository__owner",
-        )
+        .select_related("repository", "repository__owner")
         .prefetch_related("repository__categories")
     )
     lookup_field = "repository__uuid"
@@ -282,8 +279,8 @@ class NewRepositoryViewSet(
 
         if organization:
 
-            organization_authorization = (
-                organization.organization_authorizations.filter(uuid__in=authorizations)
+            organization_authorization = organization.organization_authorizations.filter(
+                uuid__in=authorizations
             )
             data["in_project"] = (
                 data["in_project"] or organization_authorization.exists()
@@ -429,15 +426,15 @@ class NewRepositoryViewSet(
             )
             task.wait()
 
-            organization_authorization = (
-                organization.organization_authorizations.filter(uuid__in=task.result)
+            organization_authorization = organization.organization_authorizations.filter(
+                uuid__in=task.result
             )
         else:
             task = ConnectClient().list_authorizations(
                 project_uuid=project_uuid, user_email=request.user.email
             )
-            organization_authorization = (
-                organization.organization_authorizations.filter(uuid__in=task)
+            organization_authorization = organization.organization_authorizations.filter(
+                uuid__in=task
             )
         task = celery_app.send_task(
             "send_recent_activity",
@@ -447,9 +444,9 @@ class NewRepositoryViewSet(
                     "entity": "AI",
                     "action": "INTEGRATE",
                     "entity_name": repository.name,
-                    "project_uuid": project_uuid
+                    "project_uuid": project_uuid,
                 }
-            ]
+            ],
         )
         if organization_authorization.exists():
             raise ValidationError(_("Repository already added"))
@@ -554,9 +551,9 @@ class RepositoryViewSet(
                     "entity": "AI",
                     "action": "TRAIN",
                     "entity_name": repository.name,
-                    "intelligence_id": repository.owner.organization.id
+                    "intelligence_id": repository.owner.organization.id,
                 }
-            ]
+            ],
         )
         return Response(request.json())  # pragma: no cover
 
@@ -1294,10 +1291,7 @@ class RepositoryNLPLogViewSet(DocumentViewSet):
         },
     }
     nested_filter_fields = {
-        "intent": {
-            "field": "nlp_log.intent.name.raw",
-            "path": "nlp_log",
-        },
+        "intent": {"field": "nlp_log.intent.name.raw", "path": "nlp_log"},
         "confidence": {
             "field": "nlp_log.intent.confidence",
             "path": "nlp_log",

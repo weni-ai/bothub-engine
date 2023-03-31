@@ -288,13 +288,11 @@ class RepositoryTranslatedExporterViewSet(
                     entity_validation = False
 
                     for entity in utils.find_entities_in_example(text_translated):
-                        original_text_count_entity = (
-                            RepositoryExampleEntity.objects.filter(
-                                repository_example=example,
-                                entity__repository_version=kwargs.get("pk"),
-                                entity__value=entity.get("entity"),
-                            ).count()
-                        )
+                        original_text_count_entity = RepositoryExampleEntity.objects.filter(
+                            repository_example=example,
+                            entity__repository_version=kwargs.get("pk"),
+                            entity__value=entity.get("entity"),
+                        ).count()
 
                         if original_text_count_entity == 0:
                             entity_validation = True

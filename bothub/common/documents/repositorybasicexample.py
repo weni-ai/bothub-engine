@@ -28,19 +28,16 @@ class RepositoryExampleDocument(Document):
         properties={
             "entity": fields.ObjectField(
                 properties={
-                    "value": fields.TextField(fields={"raw": fields.KeywordField()}),
+                    "value": fields.TextField(fields={"raw": fields.KeywordField()})
                 }
-            ),
+            )
         }
     )
     pk = fields.IntegerField()
 
     class Django:
         model = RepositoryExample
-        fields = [
-            "id",
-            "text",
-        ]
+        fields = ["id", "text"]
         related_models = [
             RepositoryVersionLanguage,
             RepositoryIntent,
@@ -51,14 +48,8 @@ class RepositoryExampleDocument(Document):
         return (
             super(RepositoryExampleDocument, self)
             .get_queryset()
-            .select_related(
-                "repository_version_language",
-                "intent",
-            )
-            .prefetch_related(
-                "entities",
-                "translations",
-            )
+            .select_related("repository_version_language", "intent")
+            .prefetch_related("entities", "translations")
         )
 
     def get_instances_from_related(self, related_instance):

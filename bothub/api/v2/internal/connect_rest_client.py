@@ -34,9 +34,7 @@ class ConnectRESTClient:
             suffix_url = "v1/organization/project/list_classifier/"
             params.update({"project_uuid": project_uuid})
         request = requests.get(
-            url=f"{self.base_url}/{suffix_url}",
-            headers=self.headers,
-            params=params,
+            url=f"{self.base_url}/{suffix_url}", headers=self.headers, params=params
         )
 
         return request.json()["data"]
@@ -66,9 +64,7 @@ class ConnectRESTClient:
         self, project_uuid: str, authorization_uuid: str, user_email: str
     ):
         classifier_uuid = self.get_authorization_classifier(
-            project_uuid,
-            authorization_uuid,
-            user_email,
+            project_uuid, authorization_uuid, user_email
         )
 
         if settings.USE_CONNECT_V2:
@@ -100,5 +96,5 @@ class ConnectRESTClient:
         requests.post(
             url=f"{self.base_url}/v1/recent-activity",
             headers=self.headers,
-            json=recent_activity_data
+            json=recent_activity_data,
         )

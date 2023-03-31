@@ -3,10 +3,7 @@ from django_grpc_framework.test import RPCTransactionTestCase
 from bothub.api.v2.tests.utils import create_user_and_token
 from bothub.authentication.models import User
 from bothub.common.models import Organization, OrganizationAuthorization
-from weni.protobuf.intelligence import (
-    authentication_pb2_grpc,
-    authentication_pb2,
-)
+from weni.protobuf.intelligence import authentication_pb2_grpc, authentication_pb2
 
 
 class UserServiceTest(RPCTransactionTestCase):
@@ -25,8 +22,8 @@ class UserServiceTest(RPCTransactionTestCase):
 
         super().setUp()
 
-        self.user_permission_stub = (
-            authentication_pb2_grpc.UserPermissionControllerStub(self.channel)
+        self.user_permission_stub = authentication_pb2_grpc.UserPermissionControllerStub(
+            self.channel
         )
         self.user_stub = authentication_pb2_grpc.UserControllerStub(self.channel)
 

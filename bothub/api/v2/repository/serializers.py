@@ -1029,9 +1029,9 @@ class RepositorySerializer(serializers.ModelSerializer):
                     "entity": "AI",
                     "action": "CREATE",
                     "entity_name": repository.name,
-                    "intelligence_id": repository.owner.organization.id
+                    "intelligence_id": repository.owner.organization.id,
                 }
-            ]
+            ],
         )
 
         return repository
@@ -1307,7 +1307,9 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
         style={"show": False},
     )
     language = serializers.ChoiceField(
-        languages.LANGUAGE_CHOICES, allow_blank=True, required=False,
+        languages.LANGUAGE_CHOICES,
+        allow_blank=True,
+        required=False,
         # [language[0] for language in languages.LANGUAGE_CHOICES], allow_blank=True, required=False,
     )
 
@@ -1391,8 +1393,12 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
         intent_text = validated_data.get("intent", None)
 
         if language:
-            repository_version_language = instance.repository_version_language.repository_version.repository.current_version(language)
-            validated_data.update({"repository_version_language": repository_version_language})
+            repository_version_language = instance.repository_version_language.repository_version.repository.current_version(
+                language
+            )
+            validated_data.update(
+                {"repository_version_language": repository_version_language}
+            )
 
         if intent_text:
             intent, created = RepositoryIntent.objects.get_or_create(

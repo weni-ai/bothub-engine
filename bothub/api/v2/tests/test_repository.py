@@ -1218,11 +1218,15 @@ class RepositoryExampleRetrieveTestCase(TestCase):
 
     def test_block_update_private(self):
         data = {"text": "New text"}
-        response, content_data = self.request(self.private_example, self.user_token, "put", data)
+        response, content_data = self.request(
+            self.private_example, self.user_token, "put", data
+        )
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_block_delete_private(self):
-        response, content_data = self.request(self.private_example, self.user_token, "delete")
+        response, content_data = self.request(
+            self.private_example, self.user_token, "delete"
+        )
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_public(self):

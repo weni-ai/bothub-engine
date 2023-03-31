@@ -269,7 +269,12 @@ class Repository(models.Model):
 
     TYPE_CLASSIFIER = "classifier"
     TYPE_CONTENT = "content"
-    TYPE_CHOICES = [(TYPE_CLASSIFIER, _("Classifier")), (TYPE_CONTENT, _("Content"))]
+    TYPE_ZEROSHOT = "zeroshot"
+    TYPE_CHOICES = [
+        (TYPE_CLASSIFIER, _("Classifier")),
+        (TYPE_CONTENT, _("Content")),
+        (TYPE_ZEROSHOT, _("Zero shot")),
+    ]
 
     uuid = models.UUIDField(
         _("UUID"), primary_key=True, default=uuid.uuid4, editable=False
@@ -948,8 +953,7 @@ class Repository(models.Model):
             return None, "No version found to clone", status.HTTP_404_NOT_FOUND
 
         clone_repository_version = RepositoryVersion.objects.create(
-            repository_id=repository_clone.pk,
-            name=default_repository_version.name,
+            repository_id=repository_clone.pk, name=default_repository_version.name
         )
         group_tasks = group(
             clone_repository.s(self.pk, repository_clone.pk, new_owner_id, language),
@@ -1223,9 +1227,7 @@ class RepositoryVersionLanguage(models.Model):
                     _(
                         'The "{}" intention has only {} sentence\nAdd 1 more sentence to that intention (minimum is {})'
                     ).format(
-                        intent["key"],
-                        intent["doc_count"],
-                        self.MIN_EXAMPLES_PER_INTENT,
+                        intent["key"], intent["doc_count"], self.MIN_EXAMPLES_PER_INTENT
                     )
                 )
 
@@ -1242,9 +1244,7 @@ class RepositoryVersionLanguage(models.Model):
                     _(
                         'The entity "{}" has only {} sentence\nAdd 1 more sentence to that entity (minimum is {})'
                     ).format(
-                        intent["key"],
-                        intent["doc_count"],
-                        self.MIN_EXAMPLES_PER_INTENT,
+                        intent["key"], intent["doc_count"], self.MIN_EXAMPLES_PER_INTENT
                     )
                 )
 
@@ -1682,13 +1682,7 @@ class RepositoryExample(models.Model):
         entities = self.entities.all()
         entity_reduced_list = []
         for entity in entities:
-            reduced_entity_obj = dict_to_obj(
-                {
-                    "entity": {
-                        "value": entity.entity.value,
-                    },
-                }
-            )
+            reduced_entity_obj = dict_to_obj({"entity": {"value": entity.entity.value}})
             entity_reduced_list.append(reduced_entity_obj)
 
         return entity_reduced_list
@@ -2572,13 +2566,33 @@ class QALogs(models.Model):
         null=True,
     )
     language = models.CharField(
-        _("language"),
-        max_length=5,
-        validators=[languages.validate_language],
+        _("language"), max_length=5, validators=[languages.validate_language]
     )
     nlp_log = models.TextField(help_text=_("NLP Log"), blank=True)
     user = models.ForeignKey(RepositoryOwner, models.CASCADE)
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
+
+
+class ZeroShotOptions(models.Model):
+    option_uuid = models.UUIDField(default=uuid.uuid4())
+    key = models.TextField(help_text="option key")
+
+
+class ZeroShotOptionsText(models.Model):
+    text = models.TextField(help_text="text make reference to a option")
+    option = models.ForeignKey(ZeroShotOptions, models.CASCADE)
+
+
+class RepositoryZeroShot(models.Model):
+    text = models.TextField(help_text=_("Text to analyze"))
+    user = models.ForeignKey(User, models.CASCADE)
+    repository = models.ForeignKey(Repository, models.CASCADE)
+    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
+    zeroshot_log = models.TextField(help_text=_("NLP Log"), blank=True)
+    ended_at = models.DateTimeField(_("ended at"), blank=True)
+    options = models.ManyToManyField(
+        ZeroShotOptionsText, related_name="repository_options", blank=True
+    )
 
 
 @receiver(models.signals.pre_save, sender=RequestRepositoryAuthorization)

@@ -101,8 +101,7 @@ class ListQALogTestCase(DefaultSetUpKnowledgeBaseMixin, TestCase):
 
     def test_okay(self):
         response, content_data = self.request(
-            {"context": int(self.context_1.pk)},
-            self.owner_token,
+            {"context": int(self.context_1.pk)}, self.owner_token
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)

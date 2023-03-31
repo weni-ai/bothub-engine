@@ -28,9 +28,7 @@ class RepositoryQANLPLogDocument(TimeBasedDocument):
         }
     )
     text = fields.IntegerField()
-    repository_uuid = fields.TextField(
-        fields={"raw": fields.KeywordField()},
-    )
+    repository_uuid = fields.TextField(fields={"raw": fields.KeywordField()})
 
     pk = fields.IntegerField()
 

@@ -70,7 +70,11 @@ class RepositoriesFilter(filters.FilterSet):
 
     def filter_recommended(self, queryset, name, value):
         if value == "True":
-            uuids = [uuid for uuid in settings.RECOMMENDED_AIS.get("AI_UUID") if len(uuid) > 0]
+            uuids = [
+                uuid
+                for uuid in settings.RECOMMENDED_AIS.get("AI_UUID")
+                if len(uuid) > 0
+            ]
             return queryset.filter(uuid__in=uuids)
         return queryset
 

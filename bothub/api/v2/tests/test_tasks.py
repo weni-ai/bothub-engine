@@ -60,8 +60,7 @@ class RepositoryCloneTestCase(TestCase):
             for repository_version in [rv1, rv2]:
                 for language in languages:
                     version_language = RepositoryVersionLanguage.objects.create(
-                        repository_version=repository_version,
-                        language=language,
+                        repository_version=repository_version, language=language
                     )
                     intent = RepositoryIntent.objects.create(
                         text=uuid4().hex, repository_version=repository_version
@@ -141,8 +140,8 @@ class RepositoryCloneTestCase(TestCase):
         repository_versions = self.main_repository.versions.all().values_list(
             "id", flat=True
         )
-        repository_knowledge_bases = (
-            self.main_repository.knowledge_bases.all().values_list("id", flat=True)
+        repository_knowledge_bases = self.main_repository.knowledge_bases.all().values_list(
+            "id", flat=True
         )
         self.assertEqual(
             set(original_data.get("categories_ids")), set(repository_categories)
@@ -197,8 +196,7 @@ class RepositoryCloneTestCase(TestCase):
             .first()
         )
         clone = RepositoryVersion.objects.create(
-            repository_id=repository_clone.pk,
-            name=default_repository_version.name,
+            repository_id=repository_clone.pk, name=default_repository_version.name
         )
         success = clone_version(
             repository_id_from_original_version=self.main_repository.pk,

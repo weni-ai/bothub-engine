@@ -402,9 +402,7 @@ def filter_validate_entities(queryset, value):
 
     result_queryset = queryset.annotate(
         original_entities_count=Count(
-            "entities",
-            filter=Q(translations__language=value),
-            distinct=True,
+            "entities", filter=Q(translations__language=value), distinct=True
         )
     ).annotate(
         entities_count=Count(
