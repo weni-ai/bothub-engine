@@ -269,7 +269,8 @@ class Repository(models.Model):
 
     TYPE_CLASSIFIER = "classifier"
     TYPE_CONTENT = "content"
-    TYPE_CHOICES = [(TYPE_CLASSIFIER, _("Classifier")), (TYPE_CONTENT, _("Content"))]
+    TYPE_ZEROSHOT = "zeroshot"
+    TYPE_CHOICES = [(TYPE_CLASSIFIER, _("Classifier")), (TYPE_CONTENT, _("Content")), (TYPE_ZEROSHOT, _("Zero shot"))]
 
     uuid = models.UUIDField(
         _("UUID"), primary_key=True, default=uuid.uuid4, editable=False
@@ -2595,6 +2596,10 @@ class RepositoryZeroShot(models.Model):
     text = models.TextField(help_text=_("Text to analyze"))
     user = models.ForeignKey(User, models.CASCADE)
     repository = models.ForeignKey(Repository, models.CASCADE)
+    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
+    zeroshot_log = models.TextField(help_text=_("NLP Log"), blank=True)
+    ended_at = models.DateTimeField(_("ended at"), blank=True)
+    options = models.ManyToManyField(ZeroShotOptionsText, related_name="repository_options", blank=True)
 
 
 
