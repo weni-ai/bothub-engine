@@ -7,10 +7,7 @@ from rest_framework import status
 
 from bothub.api.v2.internal.repository.views import InternalRepositoriesViewSet
 from bothub.api.v2.tests.utils import create_user_and_token
-from bothub.common.models import (
-    Organization,
-    OrganizationAuthorization,
-)
+from bothub.common.models import Organization, OrganizationAuthorization
 from bothub.common.models import RepositoryCategory
 
 from bothub.api.v2.tests.utils import get_valid_mockups, create_repository_from_mockup
@@ -48,9 +45,7 @@ class InternalRepositoryListTestCase(InternalRepositoryTestCase):
         )
 
         request = self.factory.get(
-            "/v2/internal/repository/",
-            params,
-            **authorization_header,
+            "/v2/internal/repository/", params, **authorization_header
         )
         response = InternalRepositoriesViewSet.as_view({"get": "list"})(request)
         response.render()

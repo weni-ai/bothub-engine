@@ -228,10 +228,8 @@ class RepositoryAuthorizationTrainLanguagesViewSet(
         for language in settings.SUPPORTED_LANGUAGES:
 
             if repository_version:
-                current_version = (
-                    repository_authorization.repository.get_specific_version_id(
-                        repository_version, language
-                    )
+                current_version = repository_authorization.repository.get_specific_version_id(
+                    repository_version, language
                 )
             else:
                 current_version = repository_authorization.repository.current_version(

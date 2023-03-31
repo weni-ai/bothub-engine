@@ -1,13 +1,12 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import authentication, permissions
-from django.contrib.auth.models import User
+from rest_framework import permissions
 
 from bothub.common.models import (
     ZeroShotOptionsText,
     ZeroShotOptions,
     RepositoryZeroShot,
-    Repository
+    Repository,
 )
 
 
@@ -19,14 +18,9 @@ class ZeroShotOptionsTextAPIView(APIView):
     def post(self, request):
         data = request.data
 
-        option = ZeroShotOptions.objects.create(
-            key=data.get("option_key")
-        )
+        option = ZeroShotOptions.objects.create(key=data.get("option_key"))
 
-        ZeroShotOptionsText.objects.create(
-            text=data.get("option_text"),
-            option=option
-        )
+        ZeroShotOptionsText.objects.create(text=data.get("option_text"), option=option)
         return Response(status=200)
 
     def get(self, request):
@@ -35,8 +29,9 @@ class ZeroShotOptionsTextAPIView(APIView):
             data.append({"text": option.text, "option": option.option.key})
         return Response(status=200, data=data)
 
+
 class ZeroShotRepositoryAPIView(APIView):
-    
+
     queryset = RepositoryZeroShot.objects
     permission_classes = [permissions.IsAuthenticated]
 
@@ -49,16 +44,14 @@ class ZeroShotRepositoryAPIView(APIView):
             description=data.get("description"),
             slug=data.get("slug"),
             language=data.get("language"),
-            type=Repository.TYPE_ZEROSHOT
+            type=Repository.TYPE_ZEROSHOT,
         )
 
         RepositoryZeroShot.objects.create(
-            text=data.get("text"),
-            user = user,
-            repository= repository
+            text=data.get("text"), user=user, repository=repository
         )
         return Response(status=200)
-    
+
     def get(self, request):
         uuid = request.data.get("uuid")
         if not uuid:
@@ -67,6 +60,6 @@ class ZeroShotRepositoryAPIView(APIView):
         data = {
             "name": repo.repository.name,
             "language": repo.repository.language,
-            "created_at": repo.created_at
+            "created_at": repo.created_at,
         }
         return Response(status=200, data=data)

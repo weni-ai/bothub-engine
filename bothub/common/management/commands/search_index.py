@@ -29,14 +29,12 @@ class Command(search_index.Command):
                         "date": {
                             "field": settings.ES_TIMESTAMP_PIPELINE_FIELD,
                             "formats": ["ISO8601"],
-                        },
+                        }
                     }
                 ]
             }
             r = requests.put(
-                pipeline_url,
-                json.dumps(pipeline_body),
-                headers=self.req_content_type,
+                pipeline_url, json.dumps(pipeline_body), headers=self.req_content_type
             )
 
             self.stdout.write(
@@ -58,7 +56,7 @@ class Command(search_index.Command):
                             "min_age": "0ms",
                             "actions": {
                                 "rollover": {
-                                    "max_age": settings.ELASTICSEARCH_LOGS_ROLLOVER_AGE,  # 1d
+                                    "max_age": settings.ELASTICSEARCH_LOGS_ROLLOVER_AGE  # 1d
                                 }
                             },
                         },
@@ -70,9 +68,7 @@ class Command(search_index.Command):
                 }
             }
             r = requests.put(
-                ilm_url,
-                json.dumps(ilm_body),
-                headers=self.req_content_type,
+                ilm_url, json.dumps(ilm_body), headers=self.req_content_type
             )
             self.stdout.write(
                 f"[{r.status_code}] {settings.ELASTICSEARCH_DELETE_ILM_NAME} ILM Policy created"

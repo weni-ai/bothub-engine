@@ -203,10 +203,8 @@ def clone_version(
                     clone_repository=True,
                 )
 
-                translated_entity_examples = (
-                    RepositoryTranslatedExampleEntity.objects.filter(
-                        repository_translated_example=translated_example
-                    )
+                translated_entity_examples = RepositoryTranslatedExampleEntity.objects.filter(
+                    repository_translated_example=translated_example
                 )
 
                 for translated_entity in translated_entity_examples:
@@ -294,19 +292,12 @@ def clone_repository(
     for field in Repository._meta.fields:
         if field.name in exclude_fields or field.primary_key:
             continue
-        setattr(
-            clone_repository,
-            field.name,
-            getattr(source_repository, field.name),
-        )
+        setattr(clone_repository, field.name, getattr(source_repository, field.name))
 
     # Keep full name if the field's "max_length" allows it, else crop it
     size = Repository.name.field.max_length
     translation.activate(language)
-    name = "{name} [{suffix}]".format(
-        name=source_repository.name,
-        suffix=_("Copy"),
-    )
+    name = "{name} [{suffix}]".format(name=source_repository.name, suffix=_("Copy"))
     translation.deactivate()
     if len(name) > size:
         name = name[: size - 3] + "..."
@@ -332,11 +323,7 @@ def clone_repository(
         # copy fields and values
         for field in score_fields:
             if not (field.name in score_exclude_fields or field.primary_key):
-                setattr(
-                    clone_score,
-                    field.name,
-                    getattr(original_score, field.name),
-                )
+                setattr(clone_score, field.name, getattr(original_score, field.name))
         score_queue.append(clone_score)
     RepositoryScore.objects.bulk_create(score_queue)
     # endregion

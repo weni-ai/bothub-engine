@@ -22,7 +22,7 @@ from .serializers import QAKnowledgeBaseSerializer, QAtextSerializer
                 required=True,
                 type=openapi.TYPE_STRING,
                 format="uuid",
-            ),
+            )
         ]
     ),
 )
@@ -51,7 +51,7 @@ class QAKnowledgeBaseViewSet(
                 required=True,
                 type=openapi.TYPE_STRING,
                 format="uuid",
-            ),
+            )
         ]
     ),
 )

@@ -713,10 +713,8 @@ class RepositoryAuthorizationTestCase(TestCase):
             role=RepositoryAuthorization.ROLE_USER,
         )
         # Set user's role to a high level at the Organization
-        collaborator_organization_auth = (
-            self.organization.organization_authorizations.create(
-                user=self.collaborator, role=initial_organization_role
-            )
+        collaborator_organization_auth = self.organization.organization_authorizations.create(
+            user=self.collaborator, role=initial_organization_role
         )
 
         # Validate that their access level corresponds to their role in the Organization and not the Repository, as it is higher at this point.

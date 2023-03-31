@@ -274,21 +274,12 @@ class CreateExamplesAPITestCase(DefaultExamplesAPITestCase):
             "repository_version": self.repository.current_version().repository_version.pk,
             "text": "testing 123 yés ///????³³²²¹¹£  ++++-----",
             "language": "en",
-            "entities": [
-                {
-                    "start": 9,
-                    "end": 11,
-                    "entity": "numero",
-                }
-            ],
+            "entities": [{"start": 9, "end": 11, "entity": "numero"}],
             "intent": str(self.example_intent_1.pk),
             "is_corrected": False,
         }
 
-        response, content_data = self.request(
-            data,
-            self.owner_token,
-        )
+        response, content_data = self.request(data, self.owner_token)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_text_without_letters(self):
@@ -297,20 +288,11 @@ class CreateExamplesAPITestCase(DefaultExamplesAPITestCase):
             "repository_version": self.repository.current_version().repository_version.pk,
             "text": " ---- //// -----",
             "language": "en",
-            "entities": [
-                {
-                    "start": 9,
-                    "end": 11,
-                    "entity": "numero",
-                }
-            ],
+            "entities": [{"start": 9, "end": 11, "entity": "numero"}],
             "intent": str(self.example_intent_1.pk),
             "is_corrected": False,
         }
-        response, content_data = self.request(
-            data,
-            self.owner_token,
-        )
+        response, content_data = self.request(data, self.owner_token)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -322,19 +304,10 @@ class CreateExamplesAPITestCase(DefaultExamplesAPITestCase):
             "repository_version": self.repository.current_version().repository_version.pk,
             "text": text,
             "language": "en",
-            "entities": [
-                {
-                    "start": 9,
-                    "end": 11,
-                    "entity": "numero",
-                }
-            ],
+            "entities": [{"start": 9, "end": 11, "entity": "numero"}],
             "intent": str(self.example_intent_1.pk),
             "is_corrected": False,
         }
-        response, content_data = self.request(
-            data,
-            self.owner_token,
-        )
+        response, content_data = self.request(data, self.owner_token)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
