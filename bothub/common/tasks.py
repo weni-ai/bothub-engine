@@ -381,7 +381,7 @@ def repositories_count_authorizations():
 
 @app.task(name="auto_translation")
 def auto_translation(
-    repository_version, source_language, target_language, *args, **kwargs
+    repository_version, source_language, target_language, selected_ids, *args, **kwargs
 ):
 
     repository_version = RepositoryVersion.objects.get(pk=repository_version)
@@ -398,6 +398,7 @@ def auto_translation(
         RepositoryExample.objects.filter(
             repository_version_language__repository_version=repository_version,
             repository_version_language__language=source_language,
+            pk__icontains=selected_ids
         )
         .annotate(
             translation_count=Count(
