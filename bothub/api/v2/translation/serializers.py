@@ -94,12 +94,7 @@ class RepositoryTranslatedExampleSerializer(serializers.ModelSerializer):
         return obj.has_valid_entities
 
     def get_original_example_text(self, obj):
-        example_text = RepositoryExample.objects.filter(id=self.original_example)
-        if example_text:
-            example_text = example_text.first()
-            return example_text.text
-        else:
-            return None
+        return obj.original_example.text
 
     def create(self, validated_data):
         entities_data = validated_data.pop("entities")
