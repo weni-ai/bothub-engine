@@ -393,20 +393,33 @@ def auto_translation(
         from_queue=RepositoryQueueTask.QUEUE_CELERY,
         type_processing=RepositoryQueueTask.TYPE_PROCESSING_AUTO_TRANSLATE,
     )
-
-    examples = (
-        RepositoryExample.objects.filter(
-            repository_version_language__repository_version=repository_version,
-            repository_version_language__language=source_language,
-            pk__icontains=selected_ids
-        )
-        .annotate(
-            translation_count=Count(
-                "translations", filter=Q(translations__language=target_language)
+    if len(selected_ids) > 0:
+        examples = (
+            RepositoryExample.objects.filter(
+                repository_version_language__repository_version=repository_version,
+                repository_version_language__language=source_language,
+                pk__icontains=selected_ids
             )
+            .annotate(
+                translation_count=Count(
+                    "translations", filter=Q(translations__language=target_language)
+                )
+            )
+            .filter(translation_count=0)
         )
-        .filter(translation_count=0)
-    )
+    else:
+        examples = (
+            RepositoryExample.objects.filter(
+                repository_version_language__repository_version=repository_version,
+                repository_version_language__language=source_language,
+            )
+            .annotate(
+                translation_count=Count(
+                    "translations", filter=Q(translations__language=target_language)
+                )
+            )
+            .filter(translation_count=0)
+        )
 
     for example in examples:
         if example.translations.filter(language=target_language).count() > 0:
