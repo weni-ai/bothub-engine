@@ -51,7 +51,7 @@ class LoginViewSet(mixins.CreateModelMixin, GenericViewSet):
                 body={
                     "grant_type": "password",
                     "username": request.data.get("username"),
-                    "password": request.data.password,
+                    "password": request.data.get("password"),
                     "client_id": settings.OIDC_RP_CLIENT_ID,
                 }
             )
