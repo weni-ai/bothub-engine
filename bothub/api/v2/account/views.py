@@ -50,13 +50,13 @@ class LoginViewSet(mixins.CreateModelMixin, GenericViewSet):
                 url=settings.OIDC_OP_USER_ENDPOINT,
                 body={
                     "grant_type": "password",
-                    "username": request.data.username,
+                    "username": request.data.get("username"),
                     "password": request.data.password,
                     "client_id": settings.OIDC_RP_CLIENT_ID,
                 }
             )
             if response.status_code == 200:
-                user = User.objects.create(request.data.username, nickname=request.data.username)
+                user = User.objects.create(request.data.get("username"), nickname=request.data.get("username"))
             else:
                 return Response(status=status.HTTP_404_NOT_FOUND, message="user not found")
 
