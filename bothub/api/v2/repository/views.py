@@ -227,6 +227,7 @@ class NewRepositoryViewSet(
                 repository_version.pk,
                 repository_version.repository.language,
                 target_language,
+                request.data.get("ids", [])
             ],
         )
 
