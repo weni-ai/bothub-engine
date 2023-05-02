@@ -398,7 +398,7 @@ def auto_translation(
             RepositoryExample.objects.filter(
                 repository_version_language__repository_version=repository_version,
                 repository_version_language__language=source_language,
-                pk__icontains=selected_ids
+                pk__in=selected_ids
             )
             .annotate(
                 translation_count=Count(
