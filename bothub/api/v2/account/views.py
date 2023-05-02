@@ -43,7 +43,7 @@ class LoginViewSet(mixins.CreateModelMixin, GenericViewSet):
             data=request.data, context={"request": request}
         )
         try:
-            serializer.is_valid(raise_exception=True)
+            serializer.is_valid()
             user = serializer.validated_data["user"]
         except:
             response = requests.get(
