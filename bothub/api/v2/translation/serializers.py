@@ -62,6 +62,7 @@ class RepositoryTranslatedExampleSerializer(serializers.ModelSerializer):
             "has_valid_entities",
             "entities",
             "created_at",
+            "original_example_text"
         ]
         ref_name = None
 
@@ -84,12 +85,16 @@ class RepositoryTranslatedExampleSerializer(serializers.ModelSerializer):
     entities = RepositoryTranslatedExampleEntitySeralizer(
         many=True, style={"text_field": "text"}
     )
+    original_example_text = serializers.SerializerMethodField()
 
     def get_from_language(self, obj):
         return obj.original_example.repository_version_language.language
 
     def get_has_valid_entities(self, obj):
         return obj.has_valid_entities
+
+    def get_original_example_text(self, obj):
+        return obj.original_example.text
 
     def create(self, validated_data):
         entities_data = validated_data.pop("entities")
