@@ -56,7 +56,7 @@ class LoginViewSet(mixins.CreateModelMixin, GenericViewSet):
                 user.set_password(request.data.get("password"))
                 user.save()
         else:
-            return Response(status=status.HTTP_404_NOT_FOUND, message="user not found")
+            return Response(dict(message="user not found"), status=status.HTTP_404_NOT_FOUND)
 
         user.last_login = timezone.now()
         user.save(update_fields=["last_login"])
