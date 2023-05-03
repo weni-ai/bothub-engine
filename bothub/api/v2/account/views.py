@@ -43,7 +43,7 @@ class LoginViewSet(mixins.CreateModelMixin, GenericViewSet):
             data=request.data, context={"request": request}
         )
         try:
-            serializer.is_valid()
+            serializer.is_valid(raise_exception=True)
             user = serializer.validated_data["user"]
         except:
             response = requests.get(
@@ -56,7 +56,8 @@ class LoginViewSet(mixins.CreateModelMixin, GenericViewSet):
                 }
             )
             if response.status_code == 200:
-                user = User.objects.create(request.data.get("username"), nickname=request.data.get("username"))
+                user = User.objects.create(email=request.data.get("username"), nickname=request.data.get("username"))
+                user.set_password(request.data.get("password"))
             else:
                 return Response(status=status.HTTP_404_NOT_FOUND, message="user not found")
 
