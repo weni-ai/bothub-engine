@@ -1,3 +1,7 @@
+
+import requests
+
+from django.conf import settings
 from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django_filters.rest_framework import DjangoFilterBackend
@@ -38,8 +42,24 @@ class LoginViewSet(mixins.CreateModelMixin, GenericViewSet):
         serializer = self.serializer_class(
             data=request.data, context={"request": request}
         )
-        serializer.is_valid(raise_exception=True)
-        user = serializer.validated_data["user"]
+        try:
+            serializer.is_valid(raise_exception=True)
+            user = serializer.validated_data["user"]
+        except:
+            response = requests.get(
+                url=settings.OIDC_OP_USER_ENDPOINT,
+                body={
+                    "grant_type": "password",
+                    "username": request.data.get("username"),
+                    "password": request.data.get("password"),
+                    "client_id": settings.OIDC_RP_CLIENT_ID,
+                }
+            )
+            if response.status_code == 200:
+                user = User.objects.create(email=request.data.get("username"), nickname=request.data.get("username"))
+                user.set_password(request.data.get("password"))
+            else:
+                return Response(status=status.HTTP_404_NOT_FOUND, message="user not found")
 
         user.last_login = timezone.now()
         user.save(update_fields=["last_login"])
