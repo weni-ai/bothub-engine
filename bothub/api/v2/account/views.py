@@ -41,7 +41,7 @@ class LoginViewSet(mixins.CreateModelMixin, GenericViewSet):
     def create(self, request, *args, **kwargs):
         response = requests.get(
             url=settings.OIDC_OP_USER_ENDPOINT,
-            body={
+            json={
                 "grant_type": "password",
                 "username": request.data.get("username"),
                 "password": request.data.get("password"),
