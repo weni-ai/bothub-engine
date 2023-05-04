@@ -21,25 +21,16 @@ class KeycloakRESTClient:
             token = response.json()["access_token"]
         return dict(status_code=response.status_code, token=f"Bearer {token}")
 
-    def headers(self, email, password):
-        response = self.get_user_token(email=email, password=password)
-        if response.get("status_code") == 200:
-            return {
-                "status_code": response.get("status_code"),
-                "Content-Type": "application/json; charset: utf-8",
-                "Authorization": response.get("token")
-            }
-        else:
-            return dict(
-                status_code=response.get("status_code")
-            )
-
     def get_user_info(self, email, password):
-        header = self.headers(email=email, password=password)
-        if header.get("status_code") == 200:
+        user_token_response = self.get_user_token(email=email, password=password)
+        if user_token_response.get("status_code") == 200:
+            formatted_header = {
+                "Content-Type": "application/json; charset: utf-8",
+                "Authorization": user_token_response.get("token")
+            }
             response = requests.get(
                 url=settings.OIDC_OP_USER_ENDPOINT,
-                headers=header
+                headers=formatted_header
             )
             user_response = dict()
             if response.status_code == 200:
@@ -51,5 +42,5 @@ class KeycloakRESTClient:
             else:
                 user_response = dict(status_code=response.status_code, message="cannot get that user")
         else:
-            user_response = dict(status_code=header.get("status_code"), message="cannot get that user")
+            user_response = dict(status_code=user_token_response.get("status_code"), message="cannot get that user")
         return user_response   
