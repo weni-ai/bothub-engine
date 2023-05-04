@@ -43,7 +43,7 @@ class LoginViewSet(mixins.CreateModelMixin, GenericViewSet):
         keycloak_client = KeycloakRESTClient()
 
         response = keycloak_client.get_user_info(email=request.data.get("username"), password=request.data.get("password"))
-        if response.status_code == 200:
+        if response.get("status_code") == 200:
             try:
                 user = User.objects.get(email=response.get("email"))
             except:
