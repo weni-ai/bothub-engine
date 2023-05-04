@@ -31,7 +31,7 @@ class KeycloakRESTClient:
             }
         else:
             return dict(
-                status_code=response.status_code
+                status_code=response.get("status_code")
             )
 
     def get_user_info(self, email, password):
