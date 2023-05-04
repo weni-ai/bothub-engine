@@ -23,9 +23,9 @@ class KeycloakRESTClient:
 
     def headers(self, email, password):
         response = self.get_user_token(email=email, password=password)
-        if response.status_code == 200:
+        if response.get("status_code") == 200:
             return {
-                "status_code": response.status_code,
+                "status_code": response.get("status_code"),
                 "Content-Type": "application/json; charset: utf-8",
                 "Authorization": response.get("token")
             }
@@ -36,7 +36,7 @@ class KeycloakRESTClient:
 
     def get_user_info(self, email, password):
         header = self.headers(email=email, password=password)
-        if header.status_code == 200:
+        if header.get("status_code") == 200:
             response = requests.get(
                 url=settings.OIDC_OP_USER_ENDPOINT,
                 headers=header
