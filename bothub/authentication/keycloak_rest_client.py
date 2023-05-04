@@ -19,7 +19,7 @@ class KeycloakRESTClient:
         token = None
         if response.status_code == 200:
             token = response.json()["access_token"]
-        return dict(status=response.status_code, token=f"Bearer {token}")
+        return dict(status_code=response.status_code, token=f"Bearer {token}")
 
     def headers(self, email, password):
         response = self.get_user_token(email=email, password=password)
