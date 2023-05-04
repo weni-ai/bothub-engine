@@ -15,6 +15,7 @@ from rest_framework.viewsets import GenericViewSet
 
 from bothub.api.v2.metadata import Metadata
 from bothub.authentication.models import User, RepositoryOwner
+from bothub.authentication.keycloak_rest_client import KeycloakRESTClient
 from bothub.common.models import Repository, RepositoryVersion
 from .serializers import ChangePasswordSerializer
 from .serializers import LoginSerializer
@@ -39,20 +40,14 @@ class LoginViewSet(mixins.CreateModelMixin, GenericViewSet):
     metadata_class = Metadata
 
     def create(self, request, *args, **kwargs):
-        response = requests.get(
-            url=settings.OIDC_OP_USER_ENDPOINT,
-            json={
-                "grant_type": "password",
-                "username": request.data.get("username"),
-                "password": request.data.get("password"),
-                "client_id": settings.OIDC_RP_CLIENT_ID,
-            }
-        )
+        keycloak_client = KeycloakRESTClient()
+
+        response = keycloak_client.get_user_info(email=request.data.get("username"), password=request.data.get("password"))
         if response.status_code == 200:
             try:
-                user = User.objects.get(email=request.data.get("username"))
+                user = User.objects.get(email=response.get("email"))
             except:
-                user = User.objects.create(email=request.data.get("username"), nickname=request.data.get("username"))
+                user = User.objects.create(email=response.get("email"), nickname=response.get("email"))
                 user.set_password(request.data.get("password"))
                 user.save()
         else:
