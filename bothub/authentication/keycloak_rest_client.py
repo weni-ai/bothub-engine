@@ -51,5 +51,5 @@ class KeycloakRESTClient:
             else:
                 user_response = dict(status_code=response.status_code, message="cannot get that user")
         else:
-            user_response = dict(status_code=response.status_code, message="cannot get that user")
+            user_response = dict(status_code=header.get("status_code"), message="cannot get that user")
         return user_response   
