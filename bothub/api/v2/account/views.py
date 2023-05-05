@@ -1,3 +1,6 @@
+import requests
+
+from django.conf import settings
 from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django_filters.rest_framework import DjangoFilterBackend
@@ -11,6 +14,7 @@ from rest_framework.viewsets import GenericViewSet
 
 from bothub.api.v2.metadata import Metadata
 from bothub.authentication.models import User, RepositoryOwner
+from bothub.authentication.keycloak_rest_client import KeycloakRESTClient
 from bothub.common.models import Repository, RepositoryVersion
 from .serializers import ChangePasswordSerializer
 from .serializers import LoginSerializer
@@ -35,11 +39,18 @@ class LoginViewSet(mixins.CreateModelMixin, GenericViewSet):
     metadata_class = Metadata
 
     def create(self, request, *args, **kwargs):
-        serializer = self.serializer_class(
-            data=request.data, context={"request": request}
-        )
-        serializer.is_valid(raise_exception=True)
-        user = serializer.validated_data["user"]
+        keycloak_client = KeycloakRESTClient()
+
+        response = keycloak_client.get_user_info(email=request.data.get("username"), password=request.data.get("password"))
+        if response.get("status_code") == 200:
+            try:
+                user = User.objects.get(email=response.get("email"))
+            except:
+                user = User.objects.create(email=response.get("email"), nickname=response.get("email"))
+                user.set_password(request.data.get("password"))
+                user.save()
+        else:
+            return Response(dict(message="user not found"), status=status.HTTP_404_NOT_FOUND)
 
         user.last_login = timezone.now()
         user.save(update_fields=["last_login"])
