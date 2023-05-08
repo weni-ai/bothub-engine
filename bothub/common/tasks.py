@@ -436,6 +436,11 @@ def auto_translation(
         translated = RepositoryTranslatedExample.objects.create(
             original_example=example, language=target_language, text=example_translated
         )
+        example = RepositoryExample.objects.create(
+            repository_version_language=repository_version.repositoryversionlanguage_set.filter(language=target_language).first(),
+            text=example_translated,
+            intent=example.intent
+        )
         entities = example.get_entities(language=source_language)
 
         for entity in entities:
