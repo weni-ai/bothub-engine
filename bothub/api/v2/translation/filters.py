@@ -39,6 +39,11 @@ class TranslationsFilter(filters.FilterSet):
         method="filter_original_example_id",
         help_text="Filter by original example id",
     )
+    search = filter.CharField(
+        field_name="search",
+        method="filter_search",
+        help_text="filter by text"
+    )
 
     def filter_repository_uuid(self, queryset, name, value):
         request = self.request
@@ -75,3 +80,6 @@ class TranslationsFilter(filters.FilterSet):
 
     def filter_original_example_id(self, queryset, name, value):
         return queryset.filter(original_example__pk=value)
+
+    def filter_search(self, queryset, name, value):
+        return queryset.filter(text__icontains=value)
