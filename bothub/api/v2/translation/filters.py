@@ -95,7 +95,7 @@ class TranslationsFilter(filters.FilterSet):
         return queryset.filter(text__icontains=value)
 
     def filter_intent(self, queryset, name, value):
-        return queryset.filter(repository_version_language__repository_version__version_intents__text=value)
+        return queryset.filter(original_example__intent__text=value)
 
     def filter_entity(self, queryset, name, value):
         return queryset.filter(repository_version_language__repository_version__entities__value=value)
