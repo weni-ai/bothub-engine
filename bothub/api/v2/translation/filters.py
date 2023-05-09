@@ -98,4 +98,10 @@ class TranslationsFilter(filters.FilterSet):
         return queryset.filter(original_example__intent__text=value)
 
     def filter_entity(self, queryset, name, value):
-        return queryset.filter(repository_version_language__repository_version__entities__value=value)
+        valid_pk = []
+        for rte in queryset:
+            for entitie in rte.entities.all():
+                if entitie.value == value:
+                    valid_pk.append(rte.pk)
+                    break
+        return queryset.filter(pk__in=valid_pk)
