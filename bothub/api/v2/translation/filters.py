@@ -39,7 +39,7 @@ class TranslationsFilter(filters.FilterSet):
         method="filter_original_example_id",
         help_text="Filter by original example id",
     )
-    search = filter.CharField(
+    search = filters.CharFilter(
         field_name="search",
         method="filter_search",
         help_text="filter by text"
