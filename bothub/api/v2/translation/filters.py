@@ -44,6 +44,16 @@ class TranslationsFilter(filters.FilterSet):
         method="filter_search",
         help_text="filter by text"
     )
+    intent = filters.CharFilter(
+        field_name="",
+        method="filter_intent",
+        help_text="filter by intent"
+    )
+    entity = filters.CharFilter(
+        field_name="",
+        method="filter_entity",
+        help_text="filter by entity"
+    )
 
     def filter_repository_uuid(self, queryset, name, value):
         request = self.request
@@ -83,3 +93,9 @@ class TranslationsFilter(filters.FilterSet):
 
     def filter_search(self, queryset, name, value):
         return queryset.filter(text__icontains=value)
+
+    def filter_intent(self, queryset, name, value):
+        return queryset.filter(repository_version_language__repository_version__version_intents__text=value)
+
+    def filter_entity(self, queryset, name, value):
+        return queryset.filter(repository_version_language__repository_version__entities__value=value)
