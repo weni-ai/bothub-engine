@@ -45,12 +45,12 @@ class TranslationsFilter(filters.FilterSet):
         help_text="filter by text"
     )
     intent = filters.CharFilter(
-        field_name="",
+        field_name="intent",
         method="filter_intent",
         help_text="filter by intent"
     )
     entity = filters.CharFilter(
-        field_name="",
+        field_name="entity",
         method="filter_entity",
         help_text="filter by entity"
     )
