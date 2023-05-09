@@ -39,6 +39,21 @@ class TranslationsFilter(filters.FilterSet):
         method="filter_original_example_id",
         help_text="Filter by original example id",
     )
+    search = filters.CharFilter(
+        field_name="search",
+        method="filter_search",
+        help_text="filter by text"
+    )
+    intent = filters.CharFilter(
+        field_name="intent",
+        method="filter_intent",
+        help_text="filter by intent"
+    )
+    entity = filters.CharFilter(
+        field_name="entity",
+        method="filter_entity",
+        help_text="filter by entity"
+    )
 
     def filter_repository_uuid(self, queryset, name, value):
         request = self.request
@@ -75,3 +90,18 @@ class TranslationsFilter(filters.FilterSet):
 
     def filter_original_example_id(self, queryset, name, value):
         return queryset.filter(original_example__pk=value)
+
+    def filter_search(self, queryset, name, value):
+        return queryset.filter(text__icontains=value)
+
+    def filter_intent(self, queryset, name, value):
+        return queryset.filter(original_example__intent__text=value)
+
+    def filter_entity(self, queryset, name, value):
+        valid_pk = []
+        for rte in queryset:
+            for entitie in rte.entities.all():
+                if entitie.value == value:
+                    valid_pk.append(rte.pk)
+                    break
+        return queryset.filter(pk__in=valid_pk)

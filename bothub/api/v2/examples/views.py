@@ -4,14 +4,14 @@ from django.utils.decorators import method_decorator
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg2 import openapi
 from drf_yasg2.utils import swagger_auto_schema
-from rest_framework import mixins
+from rest_framework import mixins, status
 from rest_framework.decorators import action
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import PermissionDenied, NotFound
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from bothub.common.models import RepositoryExample
+from bothub.common.models import RepositoryExample, RepositoryAuthorization, Repository, RepositoryVersion, RepositoryVersionLanguage
 
 from ..example.serializers import (
     RepositoriesSearchExamplesResponseSerializer,
@@ -98,3 +98,32 @@ class ExamplesViewSet(mixins.ListModelMixin, GenericViewSet):
                 ]
             }
         )
+
+
+    @action(
+        detail=True,
+        methods=["GET"],
+        url_name="untrained-examples"
+    )
+    def get_untrained_examples(self, request, **kwargs):
+        repository_uuid = request.data.get("repository_uuid")
+        user = request.user
+        
+        if len(RepositoryAuthorization.objects.filter(user=user, repository__uuid=repository_uuid)) == 0:
+            raise PermissionDenied("You don't have permission on that repository.")
+
+        repository = None
+        try:
+            repository = Repository.objects.get(uuid=repository_uuid)
+        except:
+            raise NotFound("Repository does not exists")
+        
+        repository_version = RepositoryVersion.objects.get(repository=repository)
+        response = []
+        for repository_language in repository_version.version_languages.all():
+            response.append({
+                "language": repository_language.language,
+                "is_trained": len(repository_language.training_log) > 0,
+                "texts": [example.text for example in repository_language.examples]
+            })
+        return Response({"data": response}, status=status.HTTP_200_OK)
