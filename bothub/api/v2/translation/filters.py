@@ -101,7 +101,7 @@ class TranslationsFilter(filters.FilterSet):
         valid_pk = []
         for rte in queryset:
             for entitie in rte.entities.all():
-                if entitie.value == value:
+                if entitie.to_dict.get("entity") == value:
                     valid_pk.append(rte.pk)
                     break
         return queryset.filter(pk__in=valid_pk)
