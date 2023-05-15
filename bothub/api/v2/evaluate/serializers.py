@@ -118,13 +118,18 @@ class RepositoryEvaluateSerializer(serializers.ModelSerializer):
 class RepositoryEvaluateResultVersionsSerializer(serializers.ModelSerializer):
     class Meta:
         model = RepositoryEvaluateResult
-        fields = ["id", "language", "created_at", "version", "cross_validation"]
+        fields = ["id", "language", "created_at", "version", "cross_validation", "accuracy"]
         ref_name = None
 
     language = serializers.SerializerMethodField()
+    accuracy = serializers.SerializerMethodField()
 
     def get_language(self, obj):
         return obj.repository_version_language.language
+    
+    def get_accuracy(self, obj):
+        return obj.intent_results.accuracy
+
 
 
 class RepositoryEvaluateResultScore(serializers.ModelSerializer):
