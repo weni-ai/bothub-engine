@@ -61,6 +61,8 @@ from bothub.common.models import (
     RequestRepositoryAuthorization,
     RepositoryVersionLanguage,
     Organization,
+    RepositoryEvaluate,
+    RepositoryEvaluateResult,
 )
 
 from ..metadata import Metadata
@@ -729,7 +731,28 @@ class RepositoryViewSet(
             raise APIException(
                 {"status_code": request.status_code}, code=request.status_code
             )  # pragma: no cover
-        return Response(request.json())  # pragma: no cover
+        
+        response = request.json()
+
+        evaluate_id = response.get("evaluate_id")
+        evaluate = RepositoryEvaluateResult.objects.get(pk=evaluate_id)
+        
+        logs = json.loads(evaluate.log)
+        intent_count = 0
+        intent_success = 0
+        
+        for res in logs:
+            intent_count += 1
+            intent_success += 1 if res.get("intent_status") == "success" else 0
+        
+        result_data = {
+            "accuracy": evaluate.intent_results.accuracy,
+            "intents_count": intent_count,
+            "intents_success": intent_success,
+        }
+        response.update(result_data)
+
+        return Response(response)  # pragma: no cover
 
     @action(
         detail=True,
@@ -760,7 +783,10 @@ class RepositoryViewSet(
             raise APIException(
                 {"status_code": request.status_code}, code=request.status_code
             )  # pragma: no cover
-        return Response(request.json())  # pragma: no cover
+
+        response = request.json()
+        
+        return Response(response)  # pragma: no cover
 
     @action(
         detail=True,
