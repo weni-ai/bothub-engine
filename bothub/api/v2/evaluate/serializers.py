@@ -45,7 +45,7 @@ class RepositoryEvaluateSerializer(serializers.ModelSerializer):
             "intent",
             "entities",
             "created_at",
-            "evaluete_type",
+            "evaluate_type",
         ]
         read_only_fields = ["created_at"]
         ref_name = None
