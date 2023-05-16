@@ -2274,7 +2274,7 @@ class RepositoryEvaluate(models.Model):
     ]
 
     evaluate_type = models.PositiveIntegerField(
-        _("role"), choices=EVALUATE_TYPES_CHOICE, default=TYPE_MANUAL
+        _("role"), choices=EVALUATE_TYPES_CHOICE, default=TYPE_MANUAL, blank=True, null=True
     )
 
     repository_version_language = models.ForeignKey(
