@@ -197,6 +197,7 @@ class RepositoryEvaluateResultSerializer(serializers.ModelSerializer):
             "intent_results",
             "entity_results",
             "cross_validation",
+            "accuracy",
         ]
         ref_name = None
 
@@ -206,6 +207,7 @@ class RepositoryEvaluateResultSerializer(serializers.ModelSerializer):
     repository_version = serializers.SerializerMethodField()
     intent_results = RepositoryEvaluateResultScore(read_only=True)
     entity_results = RepositoryEvaluateResultScore(read_only=True)
+    accuracy = serializers.SerializerMethodField()
 
     def get_intents_list(self, obj):
         return RepositoryEvaluateResultIntentSerializer(
@@ -302,3 +304,6 @@ class RepositoryEvaluateResultSerializer(serializers.ModelSerializer):
             }
 
         return {"total_pages": 0, "current_page": 1, "results": []}
+
+    def get_accuracy(self, obj):
+        return obj.intent_results.accuracy
