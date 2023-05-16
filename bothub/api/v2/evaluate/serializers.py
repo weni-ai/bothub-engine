@@ -78,6 +78,8 @@ class RepositoryEvaluateSerializer(serializers.ModelSerializer):
         language = validated_data.pop("language")
         version_id = validated_data.get("repository_version_language")
 
+        print(validated_data)
+
         if version_id:
             repository_version_language = repository.get_specific_version_id(
                 repository_version=version_id.pk, language=language or None

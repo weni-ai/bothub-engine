@@ -129,6 +129,12 @@ class EvaluateViewSet(
     permission_classes = [IsAuthenticatedOrReadOnly, RepositoryEvaluatePermission]
     metadata_class = Metadata
 
+    def post(self, request, *args, **kwargs):
+        print("args: ", args)
+        print("kwargs:", kwargs)
+        print("data:", request.data)
+        return super().post(request, args, kwargs)
+
     def list(self, request, *args, **kwargs):
         self.filter_class = EvaluatesFilter
         self.filter_backends = [OrderingFilter, SearchFilter, DjangoFilterBackend]
