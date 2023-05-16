@@ -2264,6 +2264,18 @@ class RepositoryEvaluate(models.Model):
         verbose_name_plural = _("repository evaluate tests")
         ordering = ["-created_at"]
         db_table = "common_repository_evaluate"
+    
+    TYPE_MANUAL = 0
+    TYPE_AUTOMATIC = 1
+
+    EVALUATE_TYPES_CHOICE = [
+        (TYPE_MANUAL, "manual"),
+        (TYPE_AUTOMATIC, "automatic")
+    ]
+
+    evaluate_type = models.PositiveIntegerField(
+        _("role"), choices=EVALUATE_TYPES_CHOICE, default=TYPE_MANUAL
+    )
 
     repository_version_language = models.ForeignKey(
         RepositoryVersionLanguage,
@@ -2588,10 +2600,10 @@ class RepositoryZeroShot(models.Model):
     user = models.ForeignKey(User, models.CASCADE)
     repository = models.ForeignKey(Repository, models.CASCADE)
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
-    zeroshot_log = models.TextField(help_text=_("NLP Log"), blank=True)
-    ended_at = models.DateTimeField(_("ended at"), blank=True)
+    zeroshot_log = models.TextField(help_text=_("NLP Log"), blank=True, null=True)
+    ended_at = models.DateTimeField(_("ended at"), blank=True, null=True)
     options = models.ManyToManyField(
-        ZeroShotOptionsText, related_name="repository_options", blank=True
+        ZeroShotOptionsText, related_name="repository_options", blank=True, null=True
     )
 
 

@@ -27,7 +27,7 @@ class ZeroShotOptionsTextAPIView(APIView):
 
     def get(self, request):
         data = []
-        for option in self.queryset.filter(repository__uuid=request.data.get("repository_uuid")):
+        for option in self.queryset.filter(repository_options__uuid=request.data.get("repository_uuid")):
             data.append({"text": option.text, "option": option.option.key})
         return Response(status=200, data=data)
 
