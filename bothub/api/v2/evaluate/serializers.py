@@ -199,6 +199,7 @@ class RepositoryEvaluateResultSerializer(serializers.ModelSerializer):
             "accuracy",
             "evaluate_type",
             "qualitity",
+            "recommendations",
         ]
         ref_name = None
 
@@ -211,6 +212,7 @@ class RepositoryEvaluateResultSerializer(serializers.ModelSerializer):
     accuracy = serializers.SerializerMethodField()
     evaluate_type = serializers.IntegerField(required=False, help_text="type from evaluate")
     qualitity = serializers.SerializerMethodField()
+    recommendations = serializers.SerializerMethodField()
 
     def get_intents_list(self, obj):
         return RepositoryEvaluateResultIntentSerializer(
@@ -317,3 +319,26 @@ class RepositoryEvaluateResultSerializer(serializers.ModelSerializer):
         for intent in intents:
             success_count += 1 if intent.get("intent_status") == "success" else 0
         return (success_count * 100) / len(intents)
+
+def get_recommendations(obj):
+    intents = json.loads(obj.log)
+    count_intents = {}
+    intent_keys = []
+    reccommendations = []
+    sum_intents = 0
+    qnt_intents = 0
+
+    for intent in intents:
+        if intent.get("intent") not in count_intents:
+            qnt_intents += 1
+            count_intents[intent.get("intent")] = 0
+            intent_keys.append(intent.get("intent"))
+        count_intents[intent.get("intent")] += 1
+        sum_intents += 1
+
+    avg_intents = sum_intents / qnt_intents
+
+    for intent in count_intents:
+        if count_intents.get(intent) < avg_intents:
+            reccommendations.append(intent)
+    return {"add_phares_to": reccommendations}
