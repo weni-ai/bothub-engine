@@ -60,6 +60,8 @@ from bothub.common.models import (
     RepositoryVote,
     RequestRepositoryAuthorization,
     RepositoryVersionLanguage,
+    RepositoryEvaluate,
+    RepositoryEvaluateResult,
     Organization,
 )
 
@@ -719,17 +721,41 @@ class RepositoryViewSet(
         serializer.is_valid(raise_exception=True)  # pragma: no cover
 
         try:
-            request = repository.request_nlp_manual_evaluate(  # pragma: no cover
+            nlp_request = repository.request_nlp_manual_evaluate(  # pragma: no cover
                 user_authorization, serializer.data
             )
         except DjangoValidationError as e:
             raise APIException(e.message, code=400)
 
-        if request.status_code != status.HTTP_200_OK:  # pragma: no cover
+        if nlp_request.status_code != status.HTTP_200_OK:  # pragma: no cover
             raise APIException(
-                {"status_code": request.status_code}, code=request.status_code
+                {"status_code": nlp_request.status_code}, code=nlp_request.status_code
             )  # pragma: no cover
-        return Response(request.json())  # pragma: no cover
+        
+        response = nlp_request.json()
+
+        evaluate_id = response.get("evaluate_id")
+        evaluate_result = RepositoryEvaluateResult.objects.get(pk=evaluate_id)
+        if request.data.get("evaluate_type", False):
+            evaluate_result.evaluate_type = request.data.get("evaluate_type")
+            evaluate_result.save()
+        logs = json.loads(evaluate_result.log)
+        intent_count = 0
+        intent_success = 0
+
+        for res in logs:
+            intent_count += 1
+            intent_success += 1 if res.get("intent_status") == "success" else 0
+
+        result_data = {
+            "accuracy": evaluate_result.intent_results.accuracy,
+            "intents_count": intent_count,
+            "intents_success": intent_success,
+            "evalute_type": evaluate_result.evaluate_type,
+        }
+        response.update(result_data)
+
+        return Response(response)  # pragma: no cover
 
     @action(
         detail=True,
