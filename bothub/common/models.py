@@ -2573,16 +2573,6 @@ class QALogs(models.Model):
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
 
 
-class ZeroShotOptions(models.Model):
-    option_uuid = models.UUIDField(default=uuid.uuid4())
-    key = models.TextField(help_text="option key")
-
-
-class ZeroShotOptionsText(models.Model):
-    text = models.TextField(help_text="text make reference to a option")
-    option = models.ForeignKey(ZeroShotOptions, models.CASCADE, related_name='option_key')
-
-
 class RepositoryZeroShot(models.Model):
     text = models.TextField(help_text=_("Text to analyze"))
     user = models.ForeignKey(User, models.CASCADE)
@@ -2590,8 +2580,17 @@ class RepositoryZeroShot(models.Model):
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
     zeroshot_log = models.TextField(help_text=_("NLP Log"), blank=True)
     ended_at = models.DateTimeField(_("ended at"), blank=True)
-    options = models.ForeignKey(ZeroShotOptions, models.CASCADE, related_name="repository_options", blank=True, null=True)
 
+
+class ZeroShotOptions(models.Model):
+    option_uuid = models.UUIDField(default=uuid.uuid4())
+    key = models.TextField(help_text="option key")
+    repository_zeroshot = models.ForeignKey(RepositoryZeroShot, models.CASCADE, related_name="repository_options", blank=True, null=True)
+
+
+class ZeroShotOptionsText(models.Model):
+    text = models.TextField(help_text="text make reference to a option")
+    option = models.ForeignKey(ZeroShotOptions, models.CASCADE, related_name='option_key')
 
 @receiver(models.signals.pre_save, sender=RequestRepositoryAuthorization)
 def set_user_role_on_approved(instance, **kwargs):
