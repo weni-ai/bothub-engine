@@ -197,7 +197,8 @@ class RepositoryEvaluateResultSerializer(serializers.ModelSerializer):
             "entity_results",
             "cross_validation",
             "accuracy",
-            "evaluate_type"
+            "evaluate_type",
+            "qualitity",
         ]
         ref_name = None
 
@@ -209,6 +210,7 @@ class RepositoryEvaluateResultSerializer(serializers.ModelSerializer):
     entity_results = RepositoryEvaluateResultScore(read_only=True)
     accuracy = serializers.SerializerMethodField()
     evaluate_type = serializers.IntegerField(required=False, help_text="type from evaluate")
+    qualitity = serializers.SerializerMethodField()
 
     def get_intents_list(self, obj):
         return RepositoryEvaluateResultIntentSerializer(
@@ -308,3 +310,10 @@ class RepositoryEvaluateResultSerializer(serializers.ModelSerializer):
 
     def get_accuracy(self, obj):
         return obj.intent_results.accuracy
+    
+    def get_qualitity(self, obj):
+        intents = json.loads(obj.log)
+        
+        for intent in intents:
+            success_count += 1 if intent.get("intent_status") == "success" else 0
+        return (success_count * 100) / len(intents)
