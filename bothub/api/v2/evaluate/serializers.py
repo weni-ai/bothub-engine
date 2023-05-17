@@ -118,13 +118,17 @@ class RepositoryEvaluateSerializer(serializers.ModelSerializer):
 class RepositoryEvaluateResultVersionsSerializer(serializers.ModelSerializer):
     class Meta:
         model = RepositoryEvaluateResult
-        fields = ["id", "language", "created_at", "version", "cross_validation"]
+        fields = ["id", "language", "created_at", "version", "cross_validation", "accuracy"]
         ref_name = None
 
     language = serializers.SerializerMethodField()
+    accuracy = serializers.SerializerMethodField()
 
     def get_language(self, obj):
         return obj.repository_version_language.language
+
+    def get_accuracy(self, obj):
+        return obj.intent_results.accuracy
 
 
 class RepositoryEvaluateResultScore(serializers.ModelSerializer):
@@ -192,6 +196,8 @@ class RepositoryEvaluateResultSerializer(serializers.ModelSerializer):
             "intent_results",
             "entity_results",
             "cross_validation",
+            "accuracy",
+            "evaluate_type"
         ]
         ref_name = None
 
@@ -201,6 +207,8 @@ class RepositoryEvaluateResultSerializer(serializers.ModelSerializer):
     repository_version = serializers.SerializerMethodField()
     intent_results = RepositoryEvaluateResultScore(read_only=True)
     entity_results = RepositoryEvaluateResultScore(read_only=True)
+    accuracy = serializers.SerializerMethodField()
+    evaluate_type = serializers.IntegerField(required=False, help_text="type from evaluate")
 
     def get_intents_list(self, obj):
         return RepositoryEvaluateResultIntentSerializer(
@@ -297,3 +305,6 @@ class RepositoryEvaluateResultSerializer(serializers.ModelSerializer):
             }
 
         return {"total_pages": 0, "current_page": 1, "results": []}
+
+    def get_accuracy(self, obj):
+        return obj.intent_results.accuracy
