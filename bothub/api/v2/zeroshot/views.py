@@ -32,9 +32,37 @@ class ZeroShotOptionsTextAPIView(APIView):
 
     def get(self, request):
         data = []
-        for option in self.queryset.filter(option_key__repository_zeroshot__repository__uuid=request.data.get("repository_uuid")):
+        for option in self.queryset.filter(option__repository_zeroshot__repository__uuid=request.data.get("repository_uuid")):
             data.append({"text": option.text, "option": option.option.key})
         return Response(status=200, data=data)
+
+
+class ZeroShotOptionsAPIView(APIView):
+    queryset = ZeroShotOptions.objects
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        data = request.data
+        zeroshot = None
+        try:
+            zeroshot = RepositoryZeroShot.objects.get(repository__uuid=data.get("repository_uuid"))
+        except:
+            return Response(status=404, data={"error": "repository not found"})
+
+        option = ZeroShotOptions.objects.create(key=data.get("option_key", repository_zeroshot=zeroshot))
+        return Response(status=200, data={"key": option.key})
+    
+    def get(self, request):
+        data = request.data
+        zeroshot = None
+        try:
+            zeroshot = RepositoryZeroShot.objects.get(repository__uuid=data.get("repository_uuid"))
+        except:
+            return Response(status=404, data={"error": "repository not found"})
+        options = []
+        for option in self.queryset.filter(repository_zeroshot=zeroshot):
+            options.append({"key": option.key})
+        return Response(status=200, data=options)
 
 
 class ZeroShotRepositoryAPIView(APIView):
