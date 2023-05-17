@@ -749,7 +749,7 @@ class RepositoryViewSet(
             "accuracy": evaluate_result.intent_results.accuracy,
             "intents_count": intent_count,
             "intents_success": intent_success,
-            "evalute_type": ,
+            "evalute_type": evaluate_result.evaluate_type,
         }
         response.update(result_data)
 
