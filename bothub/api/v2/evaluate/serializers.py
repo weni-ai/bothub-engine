@@ -313,7 +313,7 @@ class RepositoryEvaluateResultSerializer(serializers.ModelSerializer):
     
     def get_qualitity(self, obj):
         intents = json.loads(obj.log)
-        
+        success_count = 0
         for intent in intents:
             success_count += 1 if intent.get("intent_status") == "success" else 0
         return (success_count * 100) / len(intents)
