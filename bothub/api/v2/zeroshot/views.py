@@ -20,15 +20,13 @@ class ZeroShotOptionsTextAPIView(APIView):
 
         try:
             RepositoryZeroShot.objects.get(repository__uuid=data.get("repository_uuid"))
-            option = ZeroShotOptions.objects.get_or_create(key=data.get("option_key"))
-            ZeroShotOptionsText.objects.create(text=data.get("option_text"), option=option)
         except:
             return Response(status=404, data={"error": "repository not found"})
 
-        option = ZeroShotOptions.objects.create(key=data.get("option_key"))
 
-        ZeroShotOptionsText.objects.create(text=data.get("option_text"), option=option)
-        return Response(status=200)
+        option = ZeroShotOptions.objects.get_or_create(key=data.get("option_key"))
+        option_synonym = ZeroShotOptionsText.objects.create(text=data.get("option_text"), option=option)
+        return Response(status=200, data={"option": option.key, "text": option_synonym.text})
 
     def get(self, request):
         data = []
