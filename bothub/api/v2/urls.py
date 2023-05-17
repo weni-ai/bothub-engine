@@ -3,7 +3,7 @@ from django.urls import path, include
 from . import views
 from .routers import router
 
-from .zeroshot.views import ZeroShotRepositoryAPIView, ZeroShotOptionsTextAPIView
+from .zeroshot.views import ZeroShotRepositoryAPIView, ZeroShotOptionsTextAPIView, ZeroShotOptionsAPIView
 
 
 urlpatterns = [
@@ -22,8 +22,9 @@ urlpatterns = [
         "repository/nlp/zeroshot", ZeroShotRepositoryAPIView.as_view(), name="zeroshot"
     ),
     path(
-        "repository/nlp/zeroshot/options",
+        "repository/nlp/zeroshot/options-synonym",
         ZeroShotOptionsTextAPIView.as_view(),
-        name="zeroshot-options",
+        name="zeroshot-options-synonym",
     ),
+    path("repository/nlp/zeroshot/option", ZeroShotOptionsAPIView.as_view(), name="zeroshot-option")
 ]
