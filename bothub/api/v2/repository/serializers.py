@@ -43,6 +43,7 @@ from bothub.common.models import (
     RequestRepositoryAuthorization,
     RepositoryVersionLanguage,
     QAKnowledgeBase,
+    RepositoryEvaluateResult,
 )
 from bothub.utils import classifier_choice
 from .validators import (
@@ -1489,7 +1490,6 @@ class TrainSerializer(serializers.Serializer):
 class EvaluateSerializer(serializers.Serializer):
     language = serializers.ChoiceField(LANGUAGE_CHOICES, required=True)
     repository_version = serializers.IntegerField(required=False)
-    evaluate_type = serializers.ChoiceField(RepositoryEvaluate.EVALUATE_TYPES_CHOICE, required=False)
 
 
 class RepositoryAutoTranslationSerializer(serializers.Serializer):

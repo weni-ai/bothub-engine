@@ -2264,18 +2264,6 @@ class RepositoryEvaluate(models.Model):
         verbose_name_plural = _("repository evaluate tests")
         ordering = ["-created_at"]
         db_table = "common_repository_evaluate"
-    
-    TYPE_MANUAL = 0
-    TYPE_AUTOMATIC = 1
-
-    EVALUATE_TYPES_CHOICE = [
-        (TYPE_MANUAL, "manual"),
-        (TYPE_AUTOMATIC, "automatic")
-    ]
-
-    evaluate_type = models.PositiveIntegerField(
-        _("role"), choices=EVALUATE_TYPES_CHOICE, default=TYPE_MANUAL, blank=True, null=True
-    )
 
     repository_version_language = models.ForeignKey(
         RepositoryVersionLanguage,
@@ -2392,6 +2380,19 @@ class RepositoryEvaluateResult(models.Model):
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
 
     cross_validation = models.BooleanField(_("cross validation"), default=False)
+
+    TYPE_MANUAL = 0
+    TYPE_AUTOMATIC = 1
+
+    EVALUATE_TYPES_CHOICE = [
+        (TYPE_MANUAL, "manual"),
+        (TYPE_AUTOMATIC, "automatic")
+    ]
+
+    evaluate_type = models.PositiveIntegerField(
+        _("role"), choices=EVALUATE_TYPES_CHOICE, default=TYPE_MANUAL, blank=True, null=True
+    )
+
 
     def save(self, *args, **kwargs):
         repository = self.repository_version_language.repository_version.repository

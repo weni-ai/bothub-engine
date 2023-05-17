@@ -48,12 +48,6 @@ class EvaluatesFilter(filters.FilterSet):
         help_text=_("Filter for examples with version id."),
     )
 
-    type = filters.CharFilter(
-        field_name="type", 
-        method="filter_evaluate_type",
-        help_text=_("Filter by evaluate type")
-    )
-
     def filter_repository_uuid(self, queryset, name, value):
         request = self.request
         try:
@@ -91,9 +85,6 @@ class EvaluatesFilter(filters.FilterSet):
     def filter_entity(self, queryset, name, value):
         return queryset.filter(entities__entity__value=value)
 
-    def filter_evaluate_type(self, queryset, name, value):
-        return queryset.filter(evaluate_type=value)
-
 class EvaluateResultsFilter(filters.FilterSet):
     class Meta:
         model = RepositoryEvaluateResult
@@ -116,6 +107,12 @@ class EvaluateResultsFilter(filters.FilterSet):
         field_name="cross_validation",
         method="filter_repository_cross_validation",
         help_text=_("Filter for repository cross_validation results."),
+    )
+
+    type = filters.CharFilter(
+        field_name="type", 
+        method="filter_evaluate_type",
+        help_text=_("Filter by evaluate type")
     )
 
     def filter_repository_uuid(self, queryset, name, value):
@@ -147,6 +144,9 @@ class EvaluateResultsFilter(filters.FilterSet):
 
     def filter_repository_cross_validation(self, queryset, name, value):
         return queryset.filter(cross_validation=value)
+
+    def filter_evaluate_type(self, queryset, name, value):
+        return queryset.filter(evaluate_type=value)
 
 
 class EvaluateResultFilter(filters.FilterSet):

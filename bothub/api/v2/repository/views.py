@@ -735,9 +735,9 @@ class RepositoryViewSet(
         response = request.json()
 
         evaluate_id = response.get("evaluate_id")
-        evaluate = RepositoryEvaluateResult.objects.get(pk=evaluate_id)
-        
-        logs = json.loads(evaluate.log)
+        evaluate_result = RepositoryEvaluateResult.objects.get(pk=evaluate_id)
+
+        logs = json.loads(evaluate_result.log)
         intent_count = 0
         intent_success = 0
         
@@ -746,9 +746,10 @@ class RepositoryViewSet(
             intent_success += 1 if res.get("intent_status") == "success" else 0
         
         result_data = {
-            "accuracy": evaluate.intent_results.accuracy,
+            "accuracy": evaluate_result.intent_results.accuracy,
             "intents_count": intent_count,
             "intents_success": intent_success,
+            "evalute_type": ,
         }
         response.update(result_data)
 
