@@ -2580,7 +2580,7 @@ class ZeroShotOptions(models.Model):
 
 class ZeroShotOptionsText(models.Model):
     text = models.TextField(help_text="text make reference to a option")
-    option = models.ForeignKey(ZeroShotOptions, models.CASCADE)
+    option = models.ForeignKey(ZeroShotOptions, models.CASCADE, related_name='option_key')
 
 
 class RepositoryZeroShot(models.Model):
@@ -2590,9 +2590,7 @@ class RepositoryZeroShot(models.Model):
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
     zeroshot_log = models.TextField(help_text=_("NLP Log"), blank=True)
     ended_at = models.DateTimeField(_("ended at"), blank=True)
-    options = models.ManyToManyField(
-        ZeroShotOptionsText, related_name="repository_options", blank=True
-    )
+    options = models.ForeignKey(ZeroShotOptions, models.CASCADE, related_name="repository_options", blank=True, null=True)
 
 
 @receiver(models.signals.pre_save, sender=RequestRepositoryAuthorization)
