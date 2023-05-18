@@ -719,44 +719,51 @@ class RepositoryViewSet(
         user_authorization = repository.get_user_authorization(request.user)
         if not user_authorization.can_write:
             raise PermissionDenied()
-        serializer = EvaluateSerializer(data=request.data)  # pragma: no cover
-        serializer.is_valid(raise_exception=True)  # pragma: no cover
+        data = request.data
+        response = []
+        for version_language in repository.versions.version_languages:
+            if "language" in data:
+                data["language"] = version_language.language
+            else:
+                data.update({"language": version_language.language})
+            serializer = EvaluateSerializer(data=data)  # pragma: no cover
+            serializer.is_valid(raise_exception=True)  # pragma: no cover
 
-        try:
-            nlp_request = repository.request_nlp_manual_evaluate(  # pragma: no cover
-                user_authorization, serializer.data
-            )
-        except DjangoValidationError as e:
-            raise APIException(e.message, code=400)
+            try:
+                nlp_request = repository.request_nlp_manual_evaluate(  # pragma: no cover
+                    user_authorization, serializer.data
+                )
+            except DjangoValidationError as e:
+                raise APIException(e.message, code=400)
 
-        if nlp_request.status_code != status.HTTP_200_OK:  # pragma: no cover
-            raise APIException(
-                {"status_code": nlp_request.status_code}, code=nlp_request.status_code
-            )  # pragma: no cover
-        
-        response = nlp_request.json()
+            if nlp_request.status_code != status.HTTP_200_OK:  # pragma: no cover
+                raise APIException(
+                    {"status_code": nlp_request.status_code}, code=nlp_request.status_code
+                )  # pragma: no cover
+            
+            nlp_response = nlp_request.json()
 
-        evaluate_id = response.get("evaluate_id")
-        evaluate_result = RepositoryEvaluateResult.objects.get(pk=evaluate_id)
-        if request.data.get("evaluate_type", False):
-            evaluate_result.evaluate_type = request.data.get("evaluate_type")
-            evaluate_result.save()
-        logs = json.loads(evaluate_result.log)
-        intent_count = 0
-        intent_success = 0
+            evaluate_id = nlp_response.get("evaluate_id")
+            evaluate_result = RepositoryEvaluateResult.objects.get(pk=evaluate_id)
+            if request.data.get("evaluate_type", False):
+                evaluate_result.evaluate_type = request.data.get("evaluate_type")
+                evaluate_result.save()
+            logs = json.loads(evaluate_result.log)
+            intent_count = 0
+            intent_success = 0
 
-        for res in logs:
-            intent_count += 1
-            intent_success += 1 if res.get("intent_status") == "success" else 0
+            for res in logs:
+                intent_count += 1
+                intent_success += 1 if res.get("intent_status") == "success" else 0
 
-        result_data = {
-            "accuracy": evaluate_result.intent_results.accuracy,
-            "intents_count": intent_count,
-            "intents_success": intent_success,
-            "evalute_type": evaluate_result.evaluate_type,
-        }
-        response.update(result_data)
-
+            result_data = {
+                "accuracy": evaluate_result.intent_results.accuracy,
+                "intents_count": intent_count,
+                "intents_success": intent_success,
+                "evalute_type": evaluate_result.evaluate_type,
+            }
+            nlp_response.update(result_data)
+            response.append(nlp_response)
         return Response(response)  # pragma: no cover
 
     @action(
