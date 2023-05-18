@@ -320,25 +320,23 @@ class RepositoryEvaluateResultSerializer(serializers.ModelSerializer):
             success_count += 1 if intent.get("intent_status") == "success" else 0
         return (success_count * 100) / len(intents)
 
-def get_recommendations(obj):
-    intents = json.loads(obj.log)
-    count_intents = {}
-    intent_keys = []
-    reccommendations = []
-    sum_intents = 0
-    qnt_intents = 0
+    def get_recommendations(self, obj):
+        intents = json.loads(obj.log)
+        count_intents = {}
+        reccommendations = []
+        sum_intents = 0
+        qnt_intents = 0
 
-    for intent in intents:
-        if intent.get("intent") not in count_intents:
-            qnt_intents += 1
-            count_intents[intent.get("intent")] = 0
-            intent_keys.append(intent.get("intent"))
-        count_intents[intent.get("intent")] += 1
-        sum_intents += 1
+        for intent in intents:
+            if intent.get("intent") not in count_intents:
+                qnt_intents += 1
+                count_intents[intent.get("intent")] = 0
+            count_intents[intent.get("intent")] += 1
+            sum_intents += 1
 
-    avg_intents = sum_intents / qnt_intents
+        avg_intents = sum_intents / qnt_intents
 
-    for intent in count_intents:
-        if count_intents.get(intent) < avg_intents:
-            reccommendations.append(intent)
-    return {"add_phares_to": reccommendations}
+        for intent in count_intents:
+            if count_intents.get(intent) < avg_intents:
+                reccommendations.append(intent)
+        return {"add_phares_to": reccommendations}
