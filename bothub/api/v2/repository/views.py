@@ -721,7 +721,8 @@ class RepositoryViewSet(
             raise PermissionDenied()
         data = request.data
         response = []
-        for version_language in repository.versions.version_languages:
+        version_languages = RepositoryVersionLanguage.objects.filter(repository_version__pk=data.get("repository_version"))
+        for version_language in version_languages:
             if "language" in data:
                 data["language"] = version_language.language
             else:
