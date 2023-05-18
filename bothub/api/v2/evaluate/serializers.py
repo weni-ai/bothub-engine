@@ -312,7 +312,7 @@ class RepositoryEvaluateResultSerializer(serializers.ModelSerializer):
 
     def get_accuracy(self, obj):
         return obj.intent_results.accuracy
-    
+
     def get_qualitity(self, obj):
         intents = json.loads(obj.log)
         success_count = 0
@@ -323,7 +323,6 @@ class RepositoryEvaluateResultSerializer(serializers.ModelSerializer):
     def get_recommendations(self, obj):
         intents = json.loads(obj.log)
         count_intents = {}
-        intent_keys = []
         reccommendations = []
         sum_intents = 0
         qnt_intents = 0
@@ -332,7 +331,6 @@ class RepositoryEvaluateResultSerializer(serializers.ModelSerializer):
             if intent.get("intent") not in count_intents:
                 qnt_intents += 1
                 count_intents[intent.get("intent")] = 0
-                intent_keys.append(intent.get("intent"))
             count_intents[intent.get("intent")] += 1
             sum_intents += 1
 

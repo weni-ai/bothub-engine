@@ -129,6 +129,8 @@ from bothub.api.v2.internal.connect_rest_client import (
     ConnectRESTClient as ConnectClient,
 )
 
+from bothub.utils import levenshtein_distance
+
 User = get_user_model()
 
 
@@ -813,6 +815,47 @@ class RepositoryViewSet(
         except DjangoValidationError as e:
             response = {"can_run_evaluate_automatic": False, "messages": e}
         return Response(response)  # pragma: no cover
+
+
+    @action(
+        detail=True,
+        methods=["GET"],
+        url_name="get-recommendations-repository",
+    )
+    def get_recommendations_repository(self, request, **kwargs):
+        repository = self.get_object()
+        user_authorization = repository.get_user_authorization(request.user)
+        if not user_authorization.can_write:
+            raise PermissionDenied()
+        
+        examples = RepositoryExample.objects.filter(repository_version_language__repository_version__repository=repository)
+        intents = {}
+        sum_intents = 0
+        qnt_intents = 0
+        sum_distance = 0
+
+        for example in examples:
+            if example.intent.text not in intents:
+                intents[example.intent.text] = {"text": [], "count": 0, "distance": 0}
+            intents[example.intent.text]["text"].append(example.text)
+            intents[example.intent.text]["count"] += 1
+            sum_intents += 1
+            qnt_intents += 1
+        response = {"add_phares_to": [], "more_diversity": []}
+        avg_intents = (sum_intents/qnt_intents)
+        for intent in intents:
+            for i in range(0, intents[intent]['count']):
+                for j in range(i, intents[intent]['count']):
+                    intents[intent]['distance'] += levenshtein_distance(intents[intent]['text'][i], intents[intent]['text'][j])
+            sum_distance += intents[intent]['distance']
+            
+        avg_distance = sum_distance / qnt_intents
+        for intent in intents:
+            if intents[intent]['count'] < avg_intents:
+                response["add_phares_to"].append(intent)
+            if intents[intent]['distance'] < avg_distance:
+                response["more_diversity"].append(intent)
+        return Response(data=response)
 
 
 @method_decorator(
