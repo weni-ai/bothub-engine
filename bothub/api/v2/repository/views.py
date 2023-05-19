@@ -723,6 +723,8 @@ class RepositoryViewSet(
         response = []
         version_languages = RepositoryVersionLanguage.objects.filter(repository_version__pk=data.get("repository_version"))
         for version_language in version_languages:
+            if not repository.have_at_least_one_test_phrase_registered(version_language.language):
+                continue
             if "language" in data:
                 data["language"] = version_language.language
             else:
