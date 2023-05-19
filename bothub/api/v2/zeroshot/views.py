@@ -1,6 +1,7 @@
+from rest_framework import permissions
+from rest_framework.exceptions import NotFound
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import permissions
 
 from bothub.common.models import (
     ZeroShotOptionsText,
@@ -39,8 +40,27 @@ class ZeroShotOptionsTextAPIView(APIView):
         if request.data.get("option_key"):
             current_queryset = current_queryset.filter(option__key=request.data.get("option_key"))
         for option in current_queryset:
-            data.append({"text": option.text, "option": option.option.key})
+            data.append({"id": option.pk, "text": option.text, "option": option.option.key})
         return Response(status=200, data=data)
+
+    def patch(self, request):
+        option_id = request.data.get("id")
+        try:
+            option = ZeroShotOptionsText.objects.get(pk=option_id)
+        except:
+            raise NotFound(f"Synonym {option_id} not found")
+        option.text = request.data.get("text")
+        option.save(update_fields=["text"])
+        return Response(status=200, data={"id": option.pk, "text": option.text, "option": option.option.key})
+
+    def delete(self, request):
+        option_id = request.data.get("id")
+        try:
+            option = ZeroShotOptionsText.objects.get(pk=option_id)
+        except:
+            raise NotFound(f"Synonym {option_id} not found")
+        option.delete()
+        return Response(status=200, data={"message": f"Synonym {option_id} has been deleted!"})
 
 
 class ZeroShotOptionsAPIView(APIView):
@@ -56,7 +76,7 @@ class ZeroShotOptionsAPIView(APIView):
             return Response(status=404, data={"error": "repository not found"})
 
         option = ZeroShotOptions.objects.create(key=data.get("option_key"), repository_zeroshot=zeroshot)
-        return Response(status=200, data={"key": option.key})
+        return Response(status=200, data={"id": option.pk, "key": option.key})
     
     def get(self, request):
         data = request.data
@@ -67,8 +87,39 @@ class ZeroShotOptionsAPIView(APIView):
             return Response(status=404, data={"error": "repository not found"})
         options = []
         for option in self.queryset.filter(repository_zeroshot=zeroshot):
-            options.append({"key": option.key})
+            options.append({"id": option.pk, "key": option.key})
         return Response(status=200, data=options)
+    
+    def patch(self, request):
+        data = request.data
+        zeroshot = None
+        try:
+            zeroshot = RepositoryZeroShot.objects.get(repository__uuid=data.get("repository_uuid"))
+        except:
+            return Response(status=404, data={"error": "repository not found"})
+        option = None
+        try:
+            option = ZeroShotOptions.objects.get(key=data.get("option_key"), repository_zeroshot=zeroshot)
+        except:
+            raise NotFound(f"Intent not found")
+        option.key = data.get("option_key")
+        option.save(update_fields=["key"])
+        return Response(status=200, data={"id": option.pk, "key": option.key})
+
+    def delete(self, request):
+        data = request.data
+        zeroshot = None
+        try:
+            zeroshot = RepositoryZeroShot.objects.get(repository__uuid=data.get("repository_uuid"))
+        except:
+            return Response(status=404, data={"error": "repository not found"})
+        option = None
+        try:
+            option = ZeroShotOptions.objects.get(key=data.get("option_key"), repository_zeroshot=zeroshot)
+        except:
+            raise NotFound(f"Intent not found")
+        option.delete()
+        return Response(status=200, data={"message": f"Intent {data.get('option_key')} has been deleted!"})
 
 
 class ZeroShotRepositoryAPIView(APIView):
