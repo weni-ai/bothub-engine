@@ -26,7 +26,7 @@ class ZeroShotOptionsTextAPIView(APIView):
             zeroshot = RepositoryZeroShot.objects.get(repository__uuid=data.get("repository_uuid"))
         except:
             return Response(status=404, data={"error": "repository not found"})
-        
+
         try:
             option = ZeroShotOptions.objects.get(key=data.get("option_key"), repository_zeroshot=zeroshot)
         except:
@@ -80,7 +80,7 @@ class ZeroShotOptionsAPIView(APIView):
 
         option = ZeroShotOptions.objects.create(key=data.get("option_key"), repository_zeroshot=zeroshot)
         return Response(status=200, data={"id": option.pk, "key": option.key})
-    
+
     def get(self, request):
         data = request.data
         zeroshot = None
@@ -92,7 +92,7 @@ class ZeroShotOptionsAPIView(APIView):
         for option in self.queryset.filter(repository_zeroshot=zeroshot):
             options.append({"id": option.pk, "key": option.key})
         return Response(status=200, data=options)
-    
+
     def patch(self, request):
         data = request.data
         zeroshot = None
@@ -160,19 +160,19 @@ class ZeroShotRepositoryAPIView(APIView):
         return Response(status=200, data=data)
 
 class ZeroShotPredictAPIView(APIView):
-    
+
     permission_classes = [permissions.IsAuthenticated]
-    
+
     def post(self, request):
         user = request.user
         data = request.data
-        
+
         repository = Repository.objects.get(uuid=data.get("uuid"))
         auth = repository.get_user_authorization(user)
-        
+
         if auth == None:
             return Response(status=400, data={"message": "you don't have permission"})
-        
+
         zero_shot_repository = RepositoryZeroShot.objects.get(repository=repository)
 
         options = ZeroShotOptionsText.objects.filter(option__repository_zeroshot=zero_shot_repository)
@@ -193,4 +193,3 @@ class ZeroShotPredictAPIView(APIView):
         )
 
         return Response(status=response_nlp.status_code, data=response_nlp.json() if response_nlp.status_code == 200 else {"error": response_nlp.text})
-
