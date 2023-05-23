@@ -99,7 +99,7 @@ class ZeroShotOptionsAPIView(APIView):
             return Response(status=404, data={"error": "repository not found"})
         option = None
         try:
-            option = ZeroShotOptions.objects.get(key=data.get("option_id"), repository_zeroshot=zeroshot)
+            option = ZeroShotOptions.objects.get(pk=data.get("option_id"), repository_zeroshot=zeroshot)
         except:
             raise NotFound(f"Intent not found")
         option.key = data.get("option_key")
