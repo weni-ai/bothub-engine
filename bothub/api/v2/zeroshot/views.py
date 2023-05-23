@@ -178,7 +178,7 @@ class ZeroShotPredictAPIView(APIView):
         options = ZeroShotOptionsText.objects.filter(option__repository_zeroshot=zero_shot_repository)
         options_body = {}
         for option_text in options:
-            if option_text.option.key in options_body:
+            if option_text.option.key not in options_body:
                 options_body.update({option_text.option.key: []})
             options_body[option_text.option.key].append(option_text.text)
 
