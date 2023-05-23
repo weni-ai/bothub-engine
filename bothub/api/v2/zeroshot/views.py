@@ -189,7 +189,7 @@ class ZeroShotPredictAPIView(APIView):
 
         response_nlp = requests.post(
             url=f"{settings.ZEROSHOT_BASE_NLP_URL}/z_shot",
-            body=body
+            json=body
         )
 
         return Response(status=response_nlp.status_code, data=response_nlp.json() if response_nlp.status_code == 200 else {"error": response_nlp.text})
