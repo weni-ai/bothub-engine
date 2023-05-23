@@ -1,3 +1,6 @@
+import requests
+
+from django.conf import settings
 from rest_framework import permissions
 from rest_framework.exceptions import NotFound
 from rest_framework.views import APIView
@@ -155,3 +158,39 @@ class ZeroShotRepositoryAPIView(APIView):
             "created_at": repo.created_at,
         }
         return Response(status=200, data=data)
+
+class ZeroShotPredictAPIView(APIView):
+    
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def post(self, request):
+        user = request.user
+        data = request.data
+        
+        repository = Repository.objects.get(uuid=data.get("uuid"))
+        auth = repository.get_user_authorization(user)
+        
+        if auth == None:
+            return Response(status=400, data={"message": "you don't have permission"})
+        
+        zero_shot_repository = RepositoryZeroShot.objects.get(repository=repository)
+
+        options = ZeroShotOptionsText.objects.filter(option__repository_zeroshot=zero_shot_repository)
+        options_body = {}
+        for option_text in options:
+            if option_text.option.key in options_body:
+                options_body[option_text.option.key] = []
+            options_body[option_text.option.key].append(option_text.text)
+
+        body = {
+            "text": data.get("text"),
+            "classes": options_body
+        }
+
+        response_nlp = requests.post(
+            url=f"{settings.ZEROSHOT_BASE_NLP_URL}/zshot",
+            body=body
+        )
+        
+        return Response(status=response_nlp.status_code, data=response_nlp.json() if response_nlp.status_code == 200 else {"error": response_nlp.text})
+
