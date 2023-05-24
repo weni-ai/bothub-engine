@@ -5,6 +5,7 @@ from rest_framework import permissions
 from rest_framework.exceptions import NotFound
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from bothub.api.v2.zeroshot.permissions import ZeroshotOptionsPermission, ZeroshotOptionsTextPermission
 
 from bothub.common.models import (
     ZeroShotOptionsText,
@@ -17,7 +18,7 @@ from bothub.common.models import (
 class ZeroShotOptionsTextAPIView(APIView):
 
     queryset = ZeroShotOptionsText.objects
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [ZeroshotPermission]
 
     def post(self, request):
         data = request.data
@@ -67,8 +68,9 @@ class ZeroShotOptionsTextAPIView(APIView):
 
 
 class ZeroShotOptionsAPIView(APIView):
+
     queryset = ZeroShotOptions.objects
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [ZeroshotOptionsPermission]
 
     def post(self, request):
         data = request.data
@@ -159,10 +161,9 @@ class ZeroShotRepositoryAPIView(APIView):
         }
         return Response(status=200, data=data)
 
+
 class ZeroShotPredictAPIView(APIView):
-
-    permission_classes = [permissions.IsAuthenticated]
-
+    
     def post(self, request):
         user = request.user
         data = request.data
@@ -170,26 +171,26 @@ class ZeroShotPredictAPIView(APIView):
         repository = Repository.objects.get(uuid=data.get("repository_uuid"))
         auth = repository.get_user_authorization(user)
 
-        if auth == None:
-            return Response(status=400, data={"message": "you don't have permission"})
+        if  auth.can_read or auth.can_contribute:
+            zero_shot_repository = RepositoryZeroShot.objects.get(repository=repository)
 
-        zero_shot_repository = RepositoryZeroShot.objects.get(repository=repository)
+            options = ZeroShotOptionsText.objects.filter(option__repository_zeroshot=zero_shot_repository)
+            options_body = {}
+            for option_text in options:
+                if option_text.option.key not in options_body:
+                    options_body.update({option_text.option.key: []})
+                options_body[option_text.option.key].append(option_text.text)
 
-        options = ZeroShotOptionsText.objects.filter(option__repository_zeroshot=zero_shot_repository)
-        options_body = {}
-        for option_text in options:
-            if option_text.option.key not in options_body:
-                options_body.update({option_text.option.key: []})
-            options_body[option_text.option.key].append(option_text.text)
+            body = {
+                "text": data.get("text"),
+                "classes": options_body
+            }
 
-        body = {
-            "text": data.get("text"),
-            "classes": options_body
-        }
+            response_nlp = requests.post(
+                url=f"{settings.ZEROSHOT_BASE_NLP_URL}/z_shot",
+                json=body
+            )
 
-        response_nlp = requests.post(
-            url=f"{settings.ZEROSHOT_BASE_NLP_URL}/z_shot",
-            json=body
-        )
+            return Response(status=response_nlp.status_code, data=response_nlp.json() if response_nlp.status_code == 200 else {"error": response_nlp.text})
 
-        return Response(status=response_nlp.status_code, data=response_nlp.json() if response_nlp.status_code == 200 else {"error": response_nlp.text})
+        return Response(status=400, data={"message": "you don't have permission"})
