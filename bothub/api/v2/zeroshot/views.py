@@ -18,7 +18,7 @@ from bothub.common.models import (
 class ZeroShotOptionsTextAPIView(APIView):
 
     queryset = ZeroShotOptionsText.objects
-    permission_classes = ZeroshotOptionsTextPermission, )
+    permission_classes = (ZeroshotOptionsTextPermission, )
 
     def post(self, request):
         data = request.data
