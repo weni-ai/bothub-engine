@@ -18,11 +18,10 @@ from bothub.common.models import (
 class ZeroShotOptionsTextAPIView(APIView):
 
     queryset = ZeroShotOptionsText.objects
-    permission_classes = (ZeroshotOptionsTextPermission, )
+    permission_classes = [ZeroshotOptionsTextPermission]
 
     def post(self, request):
         data = request.data
-
         try:
             zeroshot = RepositoryZeroShot.objects.get(repository__uuid=data.get("repository_uuid"))
         except:
@@ -70,7 +69,7 @@ class ZeroShotOptionsTextAPIView(APIView):
 class ZeroShotOptionsAPIView(APIView):
 
     queryset = ZeroShotOptions.objects
-    permission_classes = (ZeroshotOptionsPermission, )
+    permission_classes = [ZeroshotOptionsPermission]
 
     def post(self, request):
         data = request.data
@@ -164,7 +163,7 @@ class ZeroShotRepositoryAPIView(APIView):
 
 class ZeroShotPredictAPIView(APIView):
     
-    permission_classes = (ZeroshotPredictPermission,)
+    permission_classes = [ZeroshotPredictPermission]
 
     def post(self, request):
         data = request.data
