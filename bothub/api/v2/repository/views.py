@@ -1494,7 +1494,7 @@ class RasaUploadViewSet(
             }
         }
 
-        return Response(202, data=output_data)
+        return Response(output_data, status=202)
 
 
 class RepositoryTaskQueueViewSet(mixins.ListModelMixin, GenericViewSet):
