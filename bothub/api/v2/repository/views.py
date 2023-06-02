@@ -1381,7 +1381,9 @@ class RasaUploadViewSet(
 
         serializer_rasa = RasaSerializer(data=json.load(request.data.get("file")))
         serializer_rasa.is_valid(raise_exception=True)
-
+        
+        errors = []
+        
         for example in serializer_rasa.data.get("rasa_nlu_data", {}).get(
             "common_examples", []
         ):
@@ -1402,8 +1404,18 @@ class RasaUploadViewSet(
             )
             if serializer_example.is_valid():
                 serializer_example.save()
+            else:
+                errors.append(example)
 
-        return Response(202)
+        output_data = {
+            "rasa_nlu_data": {
+                "regex_features": serializer_rasa.data.get("regex_features", []),
+                "entity_synonyms": serializer_rasa.data.get("entity_synonyms", []),
+                "common_examples": errors
+            }
+        }
+
+        return Response(output_data, status=202)
 
 
 class RepositoryTaskQueueViewSet(mixins.ListModelMixin, GenericViewSet):
