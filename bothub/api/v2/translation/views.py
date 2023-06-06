@@ -9,9 +9,10 @@ from drf_yasg2.utils import swagger_auto_schema
 from openpyxl.drawing.image import Image
 from openpyxl.writer.excel import save_virtual_workbook
 from rest_framework import mixins
-from rest_framework import permissions
+from rest_framework import permissions, status
 from rest_framework.exceptions import APIException
 from rest_framework.parsers import MultiPartParser
+from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from bothub import utils, settings
@@ -160,37 +161,15 @@ class RepositoryTranslatedExporterViewSet(
 
         examples = examples.order_by("created_at")
 
-        workbook = openpyxl.load_workbook(
-            f"{settings.STATIC_ROOT}/bothub/exporter/example.xlsx"
-        )
-        worksheet = workbook.get_sheet_by_name("Translate")
-
-        img = Image(f"{settings.STATIC_ROOT}/bothub/exporter/bothub.png")
-        img.width = 210.21
-        img.height = 60.69
-
-        worksheet.add_image(img, "B1")
 
         entities_list = []
+        example_list = []
 
-        for count, example in enumerate(examples, start=14):
-            worksheet.insert_rows(count)
-            worksheet.cell(row=count, column=2, value=str(example.pk))
-            worksheet.cell(
-                row=count,
-                column=3,
-                value=str(example.repository_version_language.repository_version.pk),
-            )
-            worksheet.cell(
-                row=count,
-                column=4,
-                value=str(example.repository_version_language.language),
-            )
-
-            text = example.text
+        for example in examples:
             entities = RepositoryExampleEntity.objects.filter(
                 repository_example=example
             ).order_by("start")
+            text = example.text
             count_entity = 0
             for entity in entities:
                 if entity.entity.value not in entities_list:
@@ -202,11 +181,11 @@ class RepositoryTranslatedExporterViewSet(
                     end=entity.end + count_entity,
                 )
                 count_entity += len(entity.entity.value) + 4
-            worksheet.cell(row=count, column=5, value=str(text))
-
+            
             translated = RepositoryTranslatedExample.objects.filter(
                 original_example=example.pk, language=for_the_language
             )
+
             if translated:
                 translated = translated.first()
                 text_translated = translated.text
@@ -222,18 +201,17 @@ class RepositoryTranslatedExporterViewSet(
                         end=entity.end + count_entity,
                     )
                     count_entity += len(entity.entity.value) + 4
-                worksheet.cell(row=count, column=6, value=str(text_translated))
 
-        for count, entity in enumerate(entities_list, start=4):
-            worksheet.insert_rows(count)
-            worksheet.cell(row=count, column=2, value=str(entity))
+            example_list.append({
+                "id": str(example.pk),
+                "repository_version": str(example.repository_version_language.repository_version.pk),
+                "language": example.repository_version_language.language,
+                "original_text": str(text),
+                "translate": str(text_translated),
+                "translation_error": ""
+            })
 
-        response = HttpResponse(
-            content=save_virtual_workbook(workbook),
-            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        )
-        response["Content-Disposition"] = "attachment; filename=bothub.xlsx"
-        return response
+        return Response({"data": {"entities": entities_list, "examples": example_list}}, status=status.HTTP_200_OK)
 
     def update(self, request, *args, **kwargs):  # pragma: no cover
         serializer = RepositoryTranslatedExporterSerializer(data=request.data)
