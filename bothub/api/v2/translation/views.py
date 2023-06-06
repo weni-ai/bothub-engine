@@ -213,7 +213,7 @@ class RepositoryTranslatedExporterViewSet(
                 "translation_error": ""
             })
 
-        return Response({"data": {"entities": entities_list, "examples": example_list}}, status=status.HTTP_200_OK)
+        return Response({"data": {"entities": entities_list, "translations": example_list}}, status=status.HTTP_200_OK)
 
     def update(self, request, *args, **kwargs):  # pragma: no cover
         serializer = RepositoryTranslatedExporterSerializer(data=request.data)
