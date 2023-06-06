@@ -118,13 +118,17 @@ class RepositoryEvaluateSerializer(serializers.ModelSerializer):
 class RepositoryEvaluateResultVersionsSerializer(serializers.ModelSerializer):
     class Meta:
         model = RepositoryEvaluateResult
-        fields = ["id", "language", "created_at", "version", "cross_validation"]
+        fields = ["id", "language", "created_at", "version", "cross_validation", "accuracy"]
         ref_name = None
 
     language = serializers.SerializerMethodField()
+    accuracy = serializers.SerializerMethodField()
 
     def get_language(self, obj):
         return obj.repository_version_language.language
+
+    def get_accuracy(self, obj):
+        return obj.intent_results.accuracy
 
 
 class RepositoryEvaluateResultScore(serializers.ModelSerializer):
@@ -192,6 +196,10 @@ class RepositoryEvaluateResultSerializer(serializers.ModelSerializer):
             "intent_results",
             "entity_results",
             "cross_validation",
+            "accuracy",
+            "evaluate_type",
+            "qualitity",
+            "recommendations",
         ]
         ref_name = None
 
@@ -201,6 +209,10 @@ class RepositoryEvaluateResultSerializer(serializers.ModelSerializer):
     repository_version = serializers.SerializerMethodField()
     intent_results = RepositoryEvaluateResultScore(read_only=True)
     entity_results = RepositoryEvaluateResultScore(read_only=True)
+    accuracy = serializers.SerializerMethodField()
+    evaluate_type = serializers.IntegerField(required=False, help_text="type from evaluate")
+    qualitity = serializers.SerializerMethodField()
+    recommendations = serializers.SerializerMethodField()
 
     def get_intents_list(self, obj):
         return RepositoryEvaluateResultIntentSerializer(
@@ -297,3 +309,34 @@ class RepositoryEvaluateResultSerializer(serializers.ModelSerializer):
             }
 
         return {"total_pages": 0, "current_page": 1, "results": []}
+
+    def get_accuracy(self, obj):
+        return obj.intent_results.accuracy
+    
+    def get_qualitity(self, obj):
+        intents = json.loads(obj.log)
+        success_count = 0
+        for intent in intents:
+            success_count += 1 if intent.get("intent_status") == "success" else 0
+        return (success_count * 100) / len(intents)
+
+    def get_recommendations(self, obj):
+        intents = json.loads(obj.log)
+        count_intents = {}
+        reccommendations = []
+        sum_intents = 0
+        qnt_intents = 0
+
+        for intent in intents:
+            if intent.get("intent") not in count_intents:
+                qnt_intents += 1
+                count_intents[intent.get("intent")] = 0
+            count_intents[intent.get("intent")] += 1
+            sum_intents += 1
+
+        avg_intents = sum_intents / qnt_intents
+
+        for intent in count_intents:
+            if count_intents.get(intent) < avg_intents:
+                reccommendations.append(intent)
+        return {"add_phares_to": reccommendations}
