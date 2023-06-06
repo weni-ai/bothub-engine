@@ -186,6 +186,8 @@ class RepositoryTranslatedExporterViewSet(
                 original_example=example.pk, language=for_the_language
             )
 
+            text_translated = ""
+
             if translated:
                 translated = translated.first()
                 text_translated = translated.text
