@@ -125,6 +125,8 @@ from .serializers import (
     RepositoryCloneSerializer,
 )
 
+from bothub.api.v2.evaluate.serializers import RepositoryEvaluateSerializer
+
 from bothub.api.v2.internal.connect_rest_client import (
     ConnectRESTClient as ConnectClient,
 )
@@ -1471,20 +1473,33 @@ class RasaUploadViewSet(
                 text=example["text"],
                 intent__text=example["intent"],
                 repository_version_language__language=serializer.data.get("language"),
-            ).count():
-                continue
+            ).count() == 0:
+                example["repository"] = kwargs.get("repository__uuid")
+                example["repository_version"] = kwargs.get("pk")
+                example["language"] = serializer.data.get("language")
 
-            example["repository"] = kwargs.get("repository__uuid")
-            example["repository_version"] = kwargs.get("pk")
-            example["language"] = serializer.data.get("language")
+                serializer_example = RepositoryExampleSerializer(
+                    data=example, context={"request": request}
+                )
 
-            serializer_example = RepositoryExampleSerializer(
-                data=example, context={"request": request}
-            )
-            if serializer_example.is_valid():
-                serializer_example.save()
-            else:
-                errors.append(example)
+
+                if serializer_example.is_valid():
+                    serializer_example.save()
+                else:
+                    errors.append(example)
+            if RepositoryEvaluate.objects.filter(
+                repository_version_language__repository_version=kwargs.get("pk"),
+                text=example["text"],
+                intent__text=example["intent"],
+                repository_version_language__language=serializer.data.get("language")
+            ).count() == 0:
+                
+                serializer_evaluate = RepositoryEvaluateSerializer(
+                    data=example, context={"request": request}
+                )
+                if serializer_evaluate.is_valid():
+                    serializer_evaluate.save()
+                
 
         output_data = {
             "rasa_nlu_data": {
