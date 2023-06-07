@@ -879,7 +879,7 @@ class NewRepositorySerializer(serializers.ModelSerializer):
 
     def get_has_training(self, obj):
         logs = RepositoryNLPLog.objects.filter(
-            repository_version_language__repository_version__repository=obj
+            repository_version_language__repository_version__repository=obj.repository
         )
         return logs.exists()
 
