@@ -43,6 +43,7 @@ from bothub.common.models import (
     RequestRepositoryAuthorization,
     RepositoryVersionLanguage,
     QAKnowledgeBase,
+    RepositoryNLPLog,
 )
 from bothub.utils import classifier_choice
 from .validators import (
@@ -504,6 +505,7 @@ class NewRepositorySerializer(serializers.ModelSerializer):
             "count_authorizations",
             "repository_version_language",
             "repository_type",
+            "has_training",
         ]
         ref_name = None
 
@@ -617,6 +619,7 @@ class NewRepositorySerializer(serializers.ModelSerializer):
     repository_type = serializers.CharField(
         style={"show": False}, read_only=True, source="repository.repository_type"
     )
+    has_training = serializers.SerializerMethodField()
 
     def get_authorizations(self, obj):
         auths = RepositoryAuthorization.objects.filter(
@@ -873,6 +876,12 @@ class NewRepositorySerializer(serializers.ModelSerializer):
 
     def get_repository_version_language(self, obj):
         return obj.repositoryversionlanguage_set.all().values("id", "language")
+
+    def get_has_training(self, obj):
+        logs = RepositoryNLPLog.objects.filter(
+            repository_version_language__repository_version__repository=obj
+        )
+        return logs.exists()
 
 
 class RepositoryTrainInfoSerializer(serializers.ModelSerializer):
