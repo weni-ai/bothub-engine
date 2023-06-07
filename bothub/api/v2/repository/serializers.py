@@ -487,6 +487,7 @@ class NewRepositorySerializer(serializers.ModelSerializer):
             "repository_score",
             "repository_version_language",
             "repository_type",
+            "has_training",
         ]
         read_only = [
             "uuid",
@@ -505,7 +506,6 @@ class NewRepositorySerializer(serializers.ModelSerializer):
             "count_authorizations",
             "repository_version_language",
             "repository_type",
-            "has_training",
         ]
         ref_name = None
 
