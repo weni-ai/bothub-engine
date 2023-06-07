@@ -200,6 +200,7 @@ class RepositoryEvaluateResultSerializer(serializers.ModelSerializer):
             "evaluate_type",
             "qualitity",
             "recommendations",
+            "count_logs"
         ]
         ref_name = None
 
@@ -213,6 +214,7 @@ class RepositoryEvaluateResultSerializer(serializers.ModelSerializer):
     evaluate_type = serializers.IntegerField(required=False, help_text="type from evaluate")
     qualitity = serializers.SerializerMethodField()
     recommendations = serializers.SerializerMethodField()
+    count_logs = serializers.SerializerMethodField()
 
     def get_intents_list(self, obj):
         return RepositoryEvaluateResultIntentSerializer(
@@ -340,3 +342,6 @@ class RepositoryEvaluateResultSerializer(serializers.ModelSerializer):
             if count_intents.get(intent) < avg_intents:
                 reccommendations.append(intent)
         return {"add_phares_to": reccommendations}
+
+    def get_count_logs(self, obj):
+        return len(json.loads(obj.log))
