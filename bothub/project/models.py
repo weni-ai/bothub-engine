@@ -21,7 +21,7 @@ class Project(models.Model):
         blank=True,
         null=True,
     )
-    date_fomat = models.CharField(
+    date_format = models.CharField(
         verbose_name=_("Date Format"),
         max_length=1
     )
