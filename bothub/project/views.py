@@ -47,7 +47,7 @@ class ProjectAPIView(APIView):
         data = request.data
 
         try:
-            project = Project.objects.get(uuid=data("project_uuid"), is_active=True)
+            project = Project.objects.get(uuid=data.get("project_uuid"), is_active=True)
         except Exception:
             raise NotFound("Project not found!")
 
@@ -58,7 +58,7 @@ class ProjectAPIView(APIView):
         data = request.data
 
         try:
-            project = Project.objects.get(uuid=data("project_uuid"), is_active=True)
+            project = Project.objects.get(uuid=data.get("project_uuid"), is_active=True)
         except Exception:
             raise NotFound("Project not found")
         updated_fields = []
