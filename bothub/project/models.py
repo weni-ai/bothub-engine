@@ -10,8 +10,9 @@ from bothub.common.models import Organization
 
 User = get_user_model()
 
+
 class Project(models.Model):
-    
+
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
     created_by = models.ForeignKey(
         User,
