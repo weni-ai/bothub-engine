@@ -13,3 +13,5 @@ class ProjectSerializer(serializers.ModelSerializer):
             "timezone",
         ]
         ref_name = None
+
+    timezone = serializers.CharField()
