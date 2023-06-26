@@ -27,7 +27,9 @@ from .exceptions import RepositoryUpdateAlreadyStartedTraining
 from .exceptions import RepositoryUpdateAlreadyTrained
 from .exceptions import TrainingNotAllowed
 from .. import utils
+import logging
 
+logger = logging.getLogger(__name__)
 
 item_key_regex = _lazy_re_compile(r"^[-a-z0-9_]+\Z")
 validate_item_key = RegexValidator(
@@ -2638,3 +2640,12 @@ def save_log_nlp(instance, created, **kwargs):
         )
         report.count_reports += 1
         report.save(update_fields=["count_reports"])
+
+@receiver(models.signals.post_save, sender=RequestRepositoryAuthorization)
+def logger_request_repo_auth(instance, created, **kwargs):
+    logger.info(f"[+] RequestRepositoryAuthorization criado: {created} | Usuário: {instance.user} | Repository: {instance.repository} | Text: {instance.text} | Approved by: {instance.approved_by}")
+
+
+@receiver(models.signals.post_save, sender=RepositoryAuthorization)
+def logger_request_repo_auth(instance, created, **kwargs):
+    logger.info(f"[&] RepositoryAuthorization criado: {created} | Usuário: {instance.user} | Repository: {instance.repository} | Role: {instance.role}")
