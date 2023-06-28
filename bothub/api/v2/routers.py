@@ -67,6 +67,7 @@ from .repository.views import (
     RepositoryViewSet,
     RepositoryVotesViewSet,
     SearchRepositoriesViewSet,
+    CursorRepositoriesViewSet,
 )
 from .translation.views import (
     RepositoryTranslatedExampleViewSet,
@@ -166,6 +167,7 @@ router.register("repository/info", NewRepositoryViewSet)
 router.register("repository/train/info", RepositoryTrainInfoViewSet)
 router.register("repository/repository-votes", RepositoryVotesViewSet)
 router.register("repository/repositories", RepositoriesViewSet)
+router.register("repository/repositories-cursor", CursorRepositoriesViewSet)
 router.register(
     "repository/repositories-contributions", RepositoriesContributionsViewSet
 )
