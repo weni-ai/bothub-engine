@@ -907,7 +907,7 @@ class CursorRepositoriesViewSet(mixins.ListModelMixin, GenericViewSet):
     filter_class = RepositoriesFilter
     filter_backends = [DjangoFilterBackend, SearchFilter]
     search_fields = ["$name", "^name", "=name"]
-    pagination_classes = CursorPagination
+    pagination_class = CursorPagination
 
     @action(detail=True, methods=["GET"], url_name="list-project-organizatiton")
     def list_project_organizatiton(self, request, **kwargs):
