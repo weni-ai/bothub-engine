@@ -2574,7 +2574,7 @@ class QALogs(models.Model):
 
 
 class ZeroShotOptions(models.Model):
-    option_uuid = models.UUIDField(default=uuid.uuid4())
+    option_uuid = models.UUIDField(default=uuid.uuid4)
     key = models.TextField(help_text="option key")
 
 
