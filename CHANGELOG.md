@@ -1,3 +1,7 @@
+# 5.6.6
+  ## *Fix*
+    - translate report
+
 # 5.6.5
   ## *Fix*
     - validation error in RASA imported files now are reported
