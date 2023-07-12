@@ -62,11 +62,7 @@ class RepositoryQuerySet(models.QuerySet):
         return self.filter(is_private=False)
 
     def order_by_relevance(self):
-        return self.annotate(
-            trainings_count=Sum(
-                "versions__repositoryversionlanguage__total_training_end"
-            )
-        ).order_by("-trainings_count", "-created_at")
+        return self.order_by("-count_trainings", "-created_at")
 
     def supported_language(self, language):
         valid_examples = RepositoryExample.objects.all()
@@ -358,6 +354,10 @@ class Repository(models.Model):
 
     count_authorizations = models.IntegerField(
         _("Authorization count calculated by celery"), default=0
+    )
+
+    count_trainings = models.IntegerField(
+        _("Total trainings repository count"), default=0
     )
 
     objects = RepositoryManager()
