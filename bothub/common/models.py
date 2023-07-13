@@ -966,7 +966,7 @@ class Repository(models.Model):
         group_tasks()
         return repository_clone.pk, "Queued for cloning", status.HTTP_200_OK
 
-    def increment_trains(self):
+    def increment_trainings(self):
         self.count_repository_train += 1
         self.save(update_fields=["count_repository_train"])
 
@@ -1426,7 +1426,7 @@ class RepositoryVersionLanguage(models.Model):
         self.save(
             update_fields=["total_training_end", "training_end_at", "last_update"]
         )
-        self.repository_version.repository.increment_trains()
+        self.repository_version.repository.increment_trainings()
 
     @property
     def get_bot_data(self):
