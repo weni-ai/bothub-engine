@@ -62,11 +62,7 @@ class RepositoryQuerySet(models.QuerySet):
         return self.filter(is_private=False)
 
     def order_by_relevance(self):
-        return self.annotate(
-            trainings_count=Sum(
-                "versions__repositoryversionlanguage__total_training_end"
-            )
-        ).order_by("-trainings_count", "-created_at")
+        return self.order_by("-count_repository_train", "-created_at")
 
     def supported_language(self, language):
         valid_examples = RepositoryExample.objects.all()
@@ -358,6 +354,10 @@ class Repository(models.Model):
 
     count_authorizations = models.IntegerField(
         _("Authorization count calculated by celery"), default=0
+    )
+
+    count_repository_train = models.IntegerField(
+        _("Train count"), default=0
     )
 
     objects = RepositoryManager()
@@ -966,6 +966,10 @@ class Repository(models.Model):
         group_tasks()
         return repository_clone.pk, "Queued for cloning", status.HTTP_200_OK
 
+    def increment_trainings(self):
+        self.count_repository_train += 1
+        self.save(update_fields=["count_repository_train"])
+
 
 class RepositoryVersion(models.Model):
     class Meta:
@@ -1422,6 +1426,7 @@ class RepositoryVersionLanguage(models.Model):
         self.save(
             update_fields=["total_training_end", "training_end_at", "last_update"]
         )
+        self.repository_version.repository.increment_trainings()
 
     @property
     def get_bot_data(self):
