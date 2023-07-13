@@ -1,3 +1,7 @@
+# 5.8.0
+  ## *Add*
+    - Field to count the trainings of a repository and `order_by_relevance` method now uses this field
+
 # 5.7.0
   ## *Add*
     - Project model
