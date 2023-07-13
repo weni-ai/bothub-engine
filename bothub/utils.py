@@ -39,8 +39,6 @@ def send_bot_data_file_aws(id, bot_data):
 
     if all(
         [
-            settings.AWS_ACCESS_KEY_ID,
-            settings.AWS_SECRET_ACCESS_KEY,
             settings.AWS_BUCKET_NAME,
         ]
     ):
@@ -51,8 +49,6 @@ def send_bot_data_file_aws(id, bot_data):
         s3_client = boto3.client(
             "s3",
             endpoint_url=settings.AWS_ACCESS_ENDPOINT_URL,
-            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
             region_name=settings.AWS_REGION_NAME,
         )
         try:
