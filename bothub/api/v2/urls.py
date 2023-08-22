@@ -29,7 +29,7 @@ urlpatterns = [
     ),
     path("project", ProjectAPIView.as_view(), name="project"),
     path(
-        "repository/nlp/zeroshot/zeroshot-predict",
+        "repository/nlp/zeroshot/zeroshot-fast-predict",
         ZeroShotFastPredictAPIView.as_view(),
         name="zeroshot-fast-prediction"
     )
