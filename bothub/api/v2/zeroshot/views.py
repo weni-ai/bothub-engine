@@ -76,7 +76,7 @@ class ZeroShotFastPredictAPIView(APIView):
 
         auth = data.get("token")
 
-        if auth is not settings.FLOWS_TOKEN_ZEROSHOT:
+        if auth != settings.FLOWS_TOKEN_ZEROSHOT:
             return Response(status=401, data={"error": "You don't have permission to do this."})
 
         classes = {}
