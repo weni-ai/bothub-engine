@@ -100,7 +100,7 @@ class RepositoryTranslatedExampleSerializer(serializers.ModelSerializer):
 
     def get_is_trained(self, obj):
         version_language = obj.original_example.repository_version_language
-        return len(version_language.training_log) > 0 or (version_language.training_end_at != None and version_language.faield_at == None) or (version_language.training_end_at != None and version_language.failed_at != None and version_language.training_end_at > version_language.failed_at)
+        return len(version_language.training_log) > 0 or (version_language.training_end_at is not None and version_language.faield_at is None) or (version_language.training_end_at is not None and version_language.failed_at is not None and version_language.training_end_at > version_language.failed_at)
 
     def create(self, validated_data):
         entities_data = validated_data.pop("entities")

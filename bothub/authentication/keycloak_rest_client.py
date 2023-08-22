@@ -2,6 +2,7 @@ import requests
 
 from django.conf import settings
 
+
 class KeycloakRESTClient:
 
     def get_user_token(self, email, password):
@@ -43,4 +44,4 @@ class KeycloakRESTClient:
                 user_response = dict(status_code=response.status_code, message="cannot get that user")
         else:
             user_response = dict(status_code=user_token_response.get("status_code"), message="cannot get that user")
-        return user_response   
+        return user_response

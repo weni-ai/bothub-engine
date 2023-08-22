@@ -11,7 +11,7 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from bothub.common.models import RepositoryExample, RepositoryAuthorization, Repository, RepositoryVersion, RepositoryVersionLanguage
+from bothub.common.models import RepositoryExample, RepositoryAuthorization, Repository, RepositoryVersion
 
 from ..example.serializers import (
     RepositoriesSearchExamplesResponseSerializer,
@@ -99,7 +99,6 @@ class ExamplesViewSet(mixins.ListModelMixin, GenericViewSet):
             }
         )
 
-
     @action(
         detail=True,
         methods=["GET"],
@@ -108,16 +107,16 @@ class ExamplesViewSet(mixins.ListModelMixin, GenericViewSet):
     def get_untrained_examples(self, request, **kwargs):
         repository_uuid = request.data.get("repository_uuid")
         user = request.user
-        
+
         if len(RepositoryAuthorization.objects.filter(user=user, repository__uuid=repository_uuid)) == 0:
             raise PermissionDenied("You don't have permission on that repository.")
 
         repository = None
         try:
             repository = Repository.objects.get(uuid=repository_uuid)
-        except:
-            raise NotFound("Repository does not exists")
-        
+        except Exception as err:
+            raise NotFound(f"Repository does not exists: {err}")
+
         repository_version = RepositoryVersion.objects.get(repository=repository)
         response = []
         for repository_language in repository_version.version_languages.all():

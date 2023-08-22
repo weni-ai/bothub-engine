@@ -1,6 +1,3 @@
-import requests
-
-from django.conf import settings
 from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django_filters.rest_framework import DjangoFilterBackend
@@ -45,10 +42,11 @@ class LoginViewSet(mixins.CreateModelMixin, GenericViewSet):
         if response.get("status_code") == 200:
             try:
                 user = User.objects.get(email=response.get("email"))
-            except:
+            except Exception as err:
                 user = User.objects.create(email=response.get("email"), nickname=response.get("email"))
                 user.set_password(request.data.get("password"))
                 user.save()
+                print(f"[ + ] error: {err}")
         else:
             return Response(dict(message="user not found"), status=status.HTTP_404_NOT_FOUND)
 

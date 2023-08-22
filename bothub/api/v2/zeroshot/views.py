@@ -1,3 +1,7 @@
+import requests
+
+from django.conf import settings
+
 from rest_framework import permissions
 from rest_framework.exceptions import NotFound
 from rest_framework.views import APIView
@@ -21,13 +25,14 @@ class ZeroShotOptionsTextAPIView(APIView):
 
         try:
             zeroshot = RepositoryZeroShot.objects.get(repository__uuid=data.get("repository_uuid"))
-        except:
-            return Response(status=404, data={"error": "repository not found"})
-        
+        except Exception as err:
+            return Response(status=404, data={"error": f"repository not found {err}"})
+
         try:
             option = ZeroShotOptions.objects.get(key=data.get("option_key"), repository_zeroshot=zeroshot)
-        except:
+        except Exception as err:
             option = ZeroShotOptions.objects.create(key=data.get("option_key"), repository_zeroshot=zeroshot)
+            print(f"[ + ] err: {err}")
         synonyms = []
         for synonym in data.get("option_text"):
             option_synonym = ZeroShotOptionsText.objects.create(text=synonym, option=option)
@@ -47,7 +52,8 @@ class ZeroShotOptionsTextAPIView(APIView):
         option_id = request.data.get("id")
         try:
             option = ZeroShotOptionsText.objects.get(pk=option_id)
-        except:
+        except Exception as err:
+            print(f'error: {err}')
             raise NotFound(f"Synonym {option_id} not found")
         option.text = request.data.get("text")
         option.save(update_fields=["text"])
@@ -57,7 +63,8 @@ class ZeroShotOptionsTextAPIView(APIView):
         option_id = request.data.get("id")
         try:
             option = ZeroShotOptionsText.objects.get(pk=option_id)
-        except:
+        except Exception as err:
+            print(f"error: {err}")
             raise NotFound(f"Synonym {option_id} not found")
         option.delete()
         return Response(status=200, data={"message": f"Synonym {option_id} has been deleted!"})
@@ -72,36 +79,37 @@ class ZeroShotOptionsAPIView(APIView):
         zeroshot = None
         try:
             zeroshot = RepositoryZeroShot.objects.get(repository__uuid=data.get("repository_uuid"))
-        except:
-            return Response(status=404, data={"error": "repository not found"})
+        except Exception as err:
+            return Response(status=404, data={"error": f"repository not found {err}"})
 
         option = ZeroShotOptions.objects.create(key=data.get("option_key"), repository_zeroshot=zeroshot)
         return Response(status=200, data={"id": option.pk, "key": option.key})
-    
+
     def get(self, request):
         data = request.data
         zeroshot = None
         try:
             zeroshot = RepositoryZeroShot.objects.get(repository__uuid=data.get("repository_uuid"))
-        except:
-            return Response(status=404, data={"error": "repository not found"})
+        except Exception as err:
+            return Response(status=404, data={"error": f"repository not found {err}"})
         options = []
         for option in self.queryset.filter(repository_zeroshot=zeroshot):
             options.append({"id": option.pk, "key": option.key})
         return Response(status=200, data=options)
-    
+
     def patch(self, request):
         data = request.data
         zeroshot = None
         try:
             zeroshot = RepositoryZeroShot.objects.get(repository__uuid=data.get("repository_uuid"))
-        except:
-            return Response(status=404, data={"error": "repository not found"})
+        except Exception as err:
+            return Response(status=404, data={"error": f"repository not found {err}"})
         option = None
         try:
             option = ZeroShotOptions.objects.get(key=data.get("option_key"), repository_zeroshot=zeroshot)
-        except:
-            raise NotFound(f"Intent not found")
+        except Exception as err:
+            print(f"error: {err}")
+            raise NotFound("Intent not found")
         option.key = data.get("option_key")
         option.save(update_fields=["key"])
         return Response(status=200, data={"id": option.pk, "key": option.key})
@@ -111,13 +119,14 @@ class ZeroShotOptionsAPIView(APIView):
         zeroshot = None
         try:
             zeroshot = RepositoryZeroShot.objects.get(repository__uuid=data.get("repository_uuid"))
-        except:
-            return Response(status=404, data={"error": "repository not found"})
+        except Exception as err:
+            return Response(status=404, data={"error": f"repository not found {err}"})
         option = None
         try:
             option = ZeroShotOptions.objects.get(key=data.get("option_key"), repository_zeroshot=zeroshot)
-        except:
-            raise NotFound(f"Intent not found")
+        except Exception as err:
+            print(f"[ + ] error: {err}")
+            raise NotFound("Intent not found")
         option.delete()
         return Response(status=200, data={"message": f"Intent {data.get('option_key')} has been deleted!"})
 
@@ -156,6 +165,7 @@ class ZeroShotRepositoryAPIView(APIView):
         }
         return Response(status=200, data=data)
 
+
 class ZeroShotPredictAPIView(APIView):
 
     permission_classes = [permissions.IsAuthenticated]
@@ -167,7 +177,7 @@ class ZeroShotPredictAPIView(APIView):
         repository = Repository.objects.get(uuid=data.get("uuid"))
         auth = repository.get_user_authorization(user)
 
-        if auth == None:
+        if auth is None:
             return Response(status=400, data={"message": "you don't have permission"})
 
         zero_shot_repository = RepositoryZeroShot.objects.get(repository=repository)
@@ -189,4 +199,36 @@ class ZeroShotPredictAPIView(APIView):
             body=body
         )
 
+        return Response(status=response_nlp.status_code, data=response_nlp.json() if response_nlp.status_code == 200 else {"error": response_nlp.text})
+
+
+class ZeroShotFastPredictAPIView(APIView):
+
+    def post(self, request):
+        data = request.data
+
+        auth = data.get("token")
+
+        if auth is not settings.FLOWS_TOKEN_ZEROSHOT:
+            return Response(status=401, data={"error": "You don't have permission to do this."})
+
+        classes = {}
+
+        for categorie in data.get("categories"):
+            option = categorie.get("option")
+            classes[option] = []
+            for synonym in categorie.get("synonyms"):
+                classes[option].append(synonym)
+
+        body = {
+            "text": data.get("text"),
+            "classes": classes
+        }
+        try:
+            response_nlp = requests.post(
+                url=f"{settings.ZEROSHOT_BASE_NLP_URL}/zshot",
+                json=body
+            )
+        except Exception as error:
+            print(f'error: {error}')
         return Response(status=response_nlp.status_code, data=response_nlp.json() if response_nlp.status_code == 200 else {"error": response_nlp.text})

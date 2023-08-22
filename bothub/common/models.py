@@ -2592,6 +2592,7 @@ class ZeroShotOptionsText(models.Model):
     text = models.TextField(help_text="text make reference to a option")
     option = models.ForeignKey(ZeroShotOptions, models.CASCADE, related_name='option_key')
 
+
 @receiver(models.signals.pre_save, sender=RequestRepositoryAuthorization)
 def set_user_role_on_approved(instance, **kwargs):
     current = None
