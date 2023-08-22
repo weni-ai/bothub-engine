@@ -31,6 +31,6 @@ urlpatterns = [
     path(
         "repository/nlp/zeroshot/zeroshot-predict",
         ZeroShotFastPredictAPIView.as_view(),
-        name="zroshot-fast-prediction"
+        name="zeroshot-fast-prediction"
     )
 ]
