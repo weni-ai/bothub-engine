@@ -155,6 +155,7 @@ INSTALLED_APPS = [
     "bothub.authentication",
     "bothub.common",
     "bothub.api",
+    "bothub.project",
     "bothub.common.migrate_classifiers",
     "django_celery_results",
     "django_celery_beat",

@@ -4,6 +4,7 @@ from . import views
 from .routers import router
 
 from .zeroshot.views import ZeroShotRepositoryAPIView, ZeroShotOptionsTextAPIView
+from bothub.project.views import ProjectAPIView
 
 
 urlpatterns = [
@@ -26,4 +27,5 @@ urlpatterns = [
         ZeroShotOptionsTextAPIView.as_view(),
         name="zeroshot-options",
     ),
+    path("project", ProjectAPIView.as_view(), name="project"),
 ]
