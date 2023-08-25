@@ -126,7 +126,7 @@ from .serializers import (
 from bothub.api.v2.internal.connect_rest_client import (
     ConnectRESTClient as ConnectClient,
 )
-from bothub.api.v2.repository.paginations import CreatedAtCursorPagination
+from bothub.api.v2.repository.paginations import CustomCursorPagination
 
 User = get_user_model()
 
@@ -907,7 +907,7 @@ class CursorRepositoriesViewSet(mixins.ListModelMixin, GenericViewSet):
     filter_class = RepositoriesFilter
     filter_backends = [DjangoFilterBackend, SearchFilter]
     search_fields = ["$name", "^name", "=name"]
-    pagination_class = CreatedAtCursorPagination
+    pagination_class = CustomCursorPagination
 
     @action(detail=True, methods=["GET"], url_name="list-project-organizatiton")
     def list_project_organizatiton(self, request, **kwargs):
