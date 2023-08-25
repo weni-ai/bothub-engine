@@ -869,44 +869,6 @@ class RepositoriesViewSet(mixins.ListModelMixin, GenericViewSet):
     filter_class = RepositoriesFilter
     filter_backends = [DjangoFilterBackend, SearchFilter]
     search_fields = ["$name", "^name", "=name"]
-
-    @action(detail=True, methods=["GET"], url_name="list-project-organizatiton")
-    def list_project_organizatiton(self, request, **kwargs):
-        project_uuid = request.query_params.get("project_uuid")
-
-        if not project_uuid:
-            raise ValidationError(_("Need to pass 'project_uuid' in query params"))
-
-        if settings.USE_GRPC:
-            task = celery_app.send_task(
-                name="get_project_organization", args=[project_uuid, request.user.email]
-            )
-            task.wait()
-            repositories = Repository.objects.filter(
-                authorizations__uuid__in=task.result
-            )
-        else:
-            authorizations = ConnectClient().list_authorizations(
-                project_uuid=project_uuid, user_email=request.user.email
-            )
-            repositories = Repository.objects.filter(
-                authorizations__uuid__in=authorizations
-            )
-
-        serialized_data = ShortRepositorySerializer(repositories, many=True)
-        return Response(serialized_data.data)
-
-
-class CursorRepositoriesViewSet(mixins.ListModelMixin, GenericViewSet):
-    """
-    List all public repositories.
-    """
-
-    serializer_class = ShortRepositorySerializer
-    queryset = Repository.objects.all().publics().order_by_relevance()
-    filter_class = RepositoriesFilter
-    filter_backends = [DjangoFilterBackend, SearchFilter]
-    search_fields = ["$name", "^name", "=name"]
     pagination_class = CustomCursorPagination
 
     @action(detail=True, methods=["GET"], url_name="list-project-organizatiton")
