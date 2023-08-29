@@ -2,9 +2,7 @@ import amqp
 from sentry_sdk import capture_exception
 
 from ..usecases import (
-    TemplateTypeIntegrationUseCase,
     ProjectCreationUseCase,
-    AppSetupHandlerUseCase,
     ProjectCreationDTO,
 )
 
