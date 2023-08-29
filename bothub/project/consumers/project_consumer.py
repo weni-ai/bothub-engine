@@ -24,6 +24,7 @@ class ProjectConsumer(EDAConsumer):  # pragma: no cover
                 date_format=body.get("date_format"),
                 template_type_uuid=body.get("template_type_uuid"),
                 timezone=body.get("timezone"),
+                organization_id=body.get("organization_id")
             )
 
             project_creation = ProjectCreationUseCase()
