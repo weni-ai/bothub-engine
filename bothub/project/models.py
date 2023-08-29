@@ -11,6 +11,14 @@ from bothub.common.models import Organization, Repository
 User = get_user_model()
 
 
+class TemplateType(models.Model):
+    uuid = models.UUIDField(
+        _("UUID"), null=True, blank=True
+    )
+    name = models.CharField(max_length=255)
+    setup = models.JSONField(default=dict)
+
+
 class Project(models.Model):
 
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
@@ -38,6 +46,8 @@ class Project(models.Model):
     uuid = models.UUIDField(
         _("UUID"), primary_key=True, default=uuid.uuid4
     )
+    template_type = models.ForeignKey(TemplateType, models.SET_NULL, null=True, related_name="template_type")
+
 
 class ProjectIntelligence(models.Model):
     uuid = models.UUIDField(
