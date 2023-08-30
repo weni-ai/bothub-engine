@@ -36,7 +36,7 @@ class Project(models.Model):
     is_template = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     name = models.TextField(_("name"))
-    template_type = models.ForeignKey(TemplateType, models.SET_NULL, null=True, related_name="template_type")
+    template_type = models.ForeignKey(TemplateType, models.SET_NULL, null=True, related_name="projects")
     timezone = TimeZoneField(verbose_name=_("Timezone"))
     organization = models.ForeignKey(
         Organization,
@@ -57,3 +57,10 @@ class ProjectIntelligence(models.Model):
     access_token = models.CharField(verbose_name="Access token", max_length=255, null=True, blank=True)
     name = models.TextField(_("name"))
     integrated_at = models.DateTimeField(_("created at"), auto_now_add=True)
+    integrated_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        related_name="integrations",
+        blank=True,
+        null=True,
+    )
