@@ -54,7 +54,7 @@ class ProjectIntelligence(models.Model):
         _("UUID"), primary_key=True, default=uuid.uuid4
     )
     project = models.ForeignKey(Project, related_name="intelligences", on_delete=models.CASCADE)
-    repositories = models.ForeignKey(Repository, related_name="project_intelligence", on_delete=models.CASCADE)
+    repository = models.ForeignKey(Repository, related_name="project_intelligences", on_delete=models.CASCADE)
     access_token = models.CharField(verbose_name="Access token", max_length=255, null=True, blank=True)
     name = models.TextField(_("name"))
     integrated_at = models.DateTimeField(_("created at"), auto_now_add=True)
