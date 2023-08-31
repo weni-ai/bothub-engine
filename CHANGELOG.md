@@ -1,3 +1,12 @@
+# 6.0.0
+## *Add*
+  - event driven architecture setup
+  - model of template type
+  - model of project intelligence
+  - parsers
+  - eda consumer
+  
+
 # 5.8.0
   ## *Add*
     - Field to count the trainings of a repository and `order_by_relevance` method now uses this field
