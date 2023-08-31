@@ -7,14 +7,18 @@ class TemplateTypeCreationUseCase:
         info = {"repositories": []}
         p_intelligence_queryset = ProjectIntelligence.objects.filter(project__uuid=project_uuid)
         for project_intelligence in p_intelligence_queryset:
-            info["repositories"].append(project_intelligence.repository.uuid)
+            info["repositories"].append(str(project_intelligence.repository.uuid))
         return info
 
     def create_template_type(self, template_type_dto: TemplateTypeDTO):
-        setup = self.get_repository_info_by_project_uuid(template_type_dto.project_uuid)
-        template_type, created = TemplateType.objects.get_or_create(uuid=template_type_dto.uuid, defaults=dict(name=template_type_dto.name, setup=setup))
-        if not created:
-            template_type.setup = setup
-            template_type.name = template_type_dto.name
-            template_type.save()
-        return template_type
+        try:
+            setup = self.get_repository_info_by_project_uuid(template_type_dto.project_uuid)
+            print(f"[ AI Template Type Consumer] get repositories info")
+            template_type, created = TemplateType.objects.get_or_create(uuid=template_type_dto.uuid, defaults=dict(name=template_type_dto.name, setup=setup))
+            if not created:
+                template_type.setup = setup
+                template_type.name = template_type_dto.name
+                template_type.save()
+            return template_type
+        except Exception as err:
+            print(f"Can't create project `{template_type_dto.project_uuid}`: {err}")
