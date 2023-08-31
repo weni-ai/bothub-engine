@@ -1,4 +1,5 @@
 import json
+import uuid
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -126,6 +127,8 @@ from .serializers import (
 from bothub.api.v2.internal.connect_rest_client import (
     ConnectRESTClient as ConnectClient,
 )
+
+from bothub.project.models import ProjectIntelligence, Project
 
 User = get_user_model()
 
@@ -405,14 +408,14 @@ class NewRepositoryViewSet(
 
         if not organization_authorization.can_contribute:
             raise PermissionDenied()
-
+        access_token = str(
+            repository.get_user_authorization(
+                organization_authorization.organization
+            ).uuid
+        )
         serializer_data = dict(
             user=request.user.email,
-            access_token=str(
-                repository.get_user_authorization(
-                    organization_authorization.organization
-                ).uuid
-            ),
+            access_token=access_token,
             **request.data,
         )
 
@@ -451,6 +454,24 @@ class NewRepositoryViewSet(
         )
         if organization_authorization.exists():
             raise ValidationError(_("Repository already added"))
+
+        if settings.USE_EDA:
+            try:
+                project = Project.objects.get(uuid=project_uuid)
+                print(f"[ AI Integration ] Starting integrating ai {repository.name} to project {project.name}")
+                ProjectIntelligence.objects.create(
+                    uuid=uuid.uuid4(),
+                    access_token=access_token,
+                    integrated_by=request.user,
+                    project=project,
+                    name=repository.name,
+                    repository=repository
+                )
+            except Project.DoesNotExist:
+                print(f"[ AI Integration ] Cannot create ai integration because project {project_uuid} does not exists!")
+            except Exception as err:
+                print(f"[ AI Integration ] Cannot create ai integration: {err}")
+            
 
         data = serializer.save()
 
