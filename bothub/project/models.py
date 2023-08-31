@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
-from bothub.common.models import Organization
+from bothub.common.models import Organization, Repository
 
 
 User = get_user_model()
@@ -38,3 +38,13 @@ class Project(models.Model):
     uuid = models.UUIDField(
         _("UUID"), primary_key=True, default=uuid.uuid4
     )
+
+class ProjectIntelligence(models.Model):
+    uuid = models.UUIDField(
+        _("UUID"), primary_key=True, default=uuid.uuid4
+    )
+    project = models.ForeignKey(Project, related_name="intelligences", on_delete=models.CASCADE)
+    repositories = models.ForeignKey(Repository, related_name="project_intelligence", on_delete=models.CASCADE)
+    access_token = models.CharField(verbose_name="Access token", max_length=255, null=True, blank=True)
+    name = models.TextField(_("name"))
+    integrated_at = models.DateTimeField(_("created at"), auto_now_add=True)
