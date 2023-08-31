@@ -16,6 +16,5 @@ class TemplateTypeConsumer(EDAConsumer):  # pragma: no cover
 
         template_type_creation = TemplateTypeCreationUseCase()
         template_type_creation.create_template_type(template_type_dto)
-        
 
         message.channel.basic_ack(message.delivery_tag)
