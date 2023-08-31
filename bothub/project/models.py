@@ -11,6 +11,14 @@ from bothub.common.models import Organization, Repository
 User = get_user_model()
 
 
+class TemplateType(models.Model):
+    uuid = models.UUIDField(
+        _("UUID"), null=True, blank=True
+    )
+    name = models.CharField(max_length=255)
+    setup = models.JSONField(default=dict)
+
+
 class Project(models.Model):
 
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
@@ -28,6 +36,7 @@ class Project(models.Model):
     is_template = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     name = models.TextField(_("name"))
+    template_type = models.ForeignKey(TemplateType, models.SET_NULL, null=True, related_name="template_type")
     timezone = TimeZoneField(verbose_name=_("Timezone"))
     organization = models.ForeignKey(
         Organization,
@@ -44,7 +53,7 @@ class ProjectIntelligence(models.Model):
         _("UUID"), primary_key=True, default=uuid.uuid4
     )
     project = models.ForeignKey(Project, related_name="intelligences", on_delete=models.CASCADE)
-    repositories = models.ForeignKey(Repository, related_name="project_intelligence", on_delete=models.CASCADE)
+    repository = models.ForeignKey(Repository, related_name="project_intelligences", on_delete=models.CASCADE, blank=True, null=True)
     access_token = models.CharField(verbose_name="Access token", max_length=255, null=True, blank=True)
     name = models.TextField(_("name"))
     integrated_at = models.DateTimeField(_("created at"), auto_now_add=True)
