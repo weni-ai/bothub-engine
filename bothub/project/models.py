@@ -48,6 +48,7 @@ class Project(models.Model):
         _("UUID"), primary_key=True, default=uuid.uuid4
     )
 
+
 class ProjectIntelligence(models.Model):
     uuid = models.UUIDField(
         _("UUID"), primary_key=True, default=uuid.uuid4
