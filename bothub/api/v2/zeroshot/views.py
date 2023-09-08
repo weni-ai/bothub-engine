@@ -91,9 +91,19 @@ class ZeroShotFastPredictAPIView(APIView):
             "text": data.get("text"),
             "classes": classes
         }
+
+        headers = {
+            "Content-Type": "application/json; charset: utf-8",
+            "Authorization": f"Bearer {settings.ZEROSHOT_TOKEN}",
+        }
+
         try:
+            url = settings.ZEROSHOT_BASE_NLP_URL
+            if len(settings.ZEROSHOT_SUFFIX) > 0:
+                url += settings.ZEROSHOT_SUFFIX
             response_nlp = requests.post(
-                url=f"{settings.ZEROSHOT_BASE_NLP_URL}/zshot",
+                headers=headers,
+                url=url,
                 json=body
             )
         except Exception as error:
