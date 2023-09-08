@@ -88,8 +88,10 @@ class ZeroShotFastPredictAPIView(APIView):
                 classes[option].append(synonym)
 
         body = {
-            "text": data.get("text"),
-            "classes": classes
+            "input": {
+                "text": data.get("text"),
+                "classes": classes
+            }
         }
 
         headers = {
