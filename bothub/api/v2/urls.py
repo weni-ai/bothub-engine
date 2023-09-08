@@ -3,7 +3,7 @@ from django.urls import path, include
 from . import views
 from .routers import router
 
-from .zeroshot.views import ZeroShotRepositoryAPIView, ZeroShotOptionsTextAPIView
+from .zeroshot.views import ZeroShotRepositoryAPIView, ZeroShotOptionsTextAPIView, ZeroShotFastPredictAPIView
 from bothub.project.views import ProjectAPIView
 
 
@@ -28,4 +28,9 @@ urlpatterns = [
         name="zeroshot-options",
     ),
     path("project", ProjectAPIView.as_view(), name="project"),
+    path(
+        "repository/nlp/zeroshot/zeroshot-fast-predict",
+        ZeroShotFastPredictAPIView.as_view(),
+        name="zeroshot-fast-prediction"
+    )
 ]

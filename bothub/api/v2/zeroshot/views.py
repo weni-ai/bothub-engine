@@ -1,3 +1,7 @@
+import requests
+
+from django.conf import settings
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import permissions
@@ -63,3 +67,47 @@ class ZeroShotRepositoryAPIView(APIView):
             "created_at": repo.created_at,
         }
         return Response(status=200, data=data)
+
+
+class ZeroShotFastPredictAPIView(APIView):
+
+    def post(self, request):
+        data = request.data
+
+        auth = data.get("token")
+
+        if auth != settings.FLOWS_TOKEN_ZEROSHOT:
+            return Response(status=401, data={"error": "You don't have permission to do this."})
+
+        classes = {}
+
+        for categorie in data.get("categories"):
+            option = categorie.get("option")
+            classes[option] = []
+            for synonym in categorie.get("synonyms"):
+                classes[option].append(synonym)
+
+        body = {
+            "input": {
+                "text": data.get("text"),
+                "classes": classes
+            }
+        }
+
+        headers = {
+            "Content-Type": "application/json; charset: utf-8",
+            "Authorization": f"Bearer {settings.ZEROSHOT_TOKEN}",
+        }
+
+        try:
+            url = settings.ZEROSHOT_BASE_NLP_URL
+            if len(settings.ZEROSHOT_SUFFIX) > 0:
+                url += settings.ZEROSHOT_SUFFIX
+            response_nlp = requests.post(
+                headers=headers,
+                url=url,
+                json=body
+            )
+        except Exception as error:
+            print(f'error: {error}')
+        return Response(status=response_nlp.status_code, data=response_nlp.json() if response_nlp.status_code == 200 else {"error": response_nlp.text})
