@@ -22,7 +22,7 @@ class RabbitMQPublisher:
                     routing_key=routing_key,
                     msg=amqp.Message(
                         body=json.dumps(body),
-                        properties={"delivery_mode": 2}
+                        properties={"delivery_mode": 2},
                         content_type="application/json",
                         content_encoding= "utf-8"
                     )
