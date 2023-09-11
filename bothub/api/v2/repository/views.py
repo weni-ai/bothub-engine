@@ -470,9 +470,9 @@ class NewRepositoryViewSet(
             ],
         )
         
-        data = serializer.save()
+        
 
-        return Response(data)
+        return Response(serializer.data)
 
 
 class RepositoryTrainInfoViewSet(
