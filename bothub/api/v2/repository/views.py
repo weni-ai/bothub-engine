@@ -430,7 +430,9 @@ class NewRepositoryViewSet(
 
         try:
             project = Project.objects.get(uuid=project_uuid)
-            
+            if ProjectIntelligence.objects.filter(project=project, repository=repository, access_token=access_token).exists():
+                raise ValidationError(_("Repository already added"))
+
             project_intelligence = ProjectIntelligence.objects.create(
                 uuid=uuid.uuid4(),
                 project=project,
@@ -467,9 +469,7 @@ class NewRepositoryViewSet(
                 }
             ],
         )
-        if organization_authorization.exists():
-            raise ValidationError(_("Repository already added"))
-
+        
         data = serializer.save()
 
         return Response(data)

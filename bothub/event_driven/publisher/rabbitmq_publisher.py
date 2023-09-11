@@ -20,9 +20,14 @@ class RabbitMQPublisher:
                 self.rabbitmq_connection.channel.basic_publish(
                     exchange=exchange,
                     routing_key=routing_key,
-                    body=body
+                    msg=amqp.Message(
+                        body=json.dumps(body),
+                        properties={"delivery_mode": 2}
+                        content_type="application/json",
+                        content_encoding= "utf-8"
+                    )
                 )
             except Exception as err:
                 print(f"error: {err}")
-                self.rabbitmq_connection.make_connection()
+                self.rabbitmq_connection._establish_connection()
             sleep(settings.EDA_WAIT_TIME_RETRY)
