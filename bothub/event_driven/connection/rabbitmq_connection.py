@@ -30,3 +30,8 @@ class RabbitMQConnection:
             print("Error while connecting to RabbitMQ:", str(e))
             time.sleep(5)  # Espera antes de tentar reconectar
             self._establish_connection()
+    
+    def make_connection(self):
+        if self.connection.is_closing:
+            self._establish_connection()
+        return self.connection.is_alive
