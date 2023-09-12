@@ -26,6 +26,7 @@ class RabbitMQPublisher:
                         content_type="application/octet-stream",
                     )
                 )
+                sended = True
             except Exception as err:
                 print(f"error: {err}")
                 self.rabbitmq_connection._establish_connection()
