@@ -23,8 +23,7 @@ class RabbitMQPublisher:
                     msg=amqp.Message(
                         body=bytes(json.dumps(body), "utf-8"),
                         properties={"delivery_mode": 2},
-                        content_type="application/json",
-                        content_encoding= "utf-8"
+                        content_type="application/octet-stream",
                     )
                 )
             except Exception as err:
