@@ -446,7 +446,7 @@ class NewRepositoryViewSet(
                 "access_token": str(project_intelligence.access_token),
                 "name": project_intelligence.name,
                 "repository": str(repository.uuid),
-                "project": str(project_intelligence.project.uuid),
+                "project_uuid": str(project_intelligence.project.uuid),
                 "user_email": request.user.email,
             }
             publisher = RabbitMQPublisher()
