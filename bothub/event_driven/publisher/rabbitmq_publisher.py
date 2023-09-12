@@ -21,7 +21,7 @@ class RabbitMQPublisher:
                     exchange=exchange,
                     routing_key=routing_key,
                     msg=amqp.Message(
-                        body=bytes(json.dumps(body), "utf-8"),
+                        body=json.dumps(body).encode(),
                         properties={"delivery_mode": 2},
                         content_type="application/octet-stream",
                     )
