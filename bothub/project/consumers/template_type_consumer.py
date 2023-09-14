@@ -9,7 +9,7 @@ from ..usecases.template_type.template_type_dto import TemplateTypeDTO
 
 class TemplateTypeConsumer(EDAConsumer):  # pragma: no cover
     def consume(self, message: amqp.Message):
-        print(f"[TemplateTypeConsumer] - Consuming a message. Body: {body}")
+        print(f"[TemplateTypeConsumer] - Consuming a message. Body: {message.body}")
         try:
             body = JSONParser.parse(message.body)
 
