@@ -9,13 +9,21 @@ from ..usecases.template_type.template_type_dto import TemplateTypeDTO
 
 class TemplateTypeConsumer(EDAConsumer):  # pragma: no cover
     def consume(self, message: amqp.Message):
+        print(f"[TemplateTypeConsumer] - Consuming a message. Body: {body}")
         try:
-            print(f"[TemplateTypeConsumer] - Consuming a message. Body: {body}")
             body = JSONParser.parse(message.body)
-            template_type_dto = TemplateTypeDTO(uuid=body.get("uuid"), name=body.get("name"), project_uuid=body.get("project_uuid"))
+
+            template_type_dto = TemplateTypeDTO(
+                uuid=body.get("uuid"),
+                name=body.get("name"),
+                project_uuid=body.get("project_uuid")
+            )
+
             template_type_creation = TemplateTypeCreationUseCase()
             template_type_creation.create_template_type(template_type_dto)
+
             message.channel.basic_ack(message.delivery_tag)
+
         except Exception as exception:
             capture_exception(exception)
             message.channel.basic_reject(message.delivery_tag, requeue=False)
