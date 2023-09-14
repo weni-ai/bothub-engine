@@ -3,19 +3,20 @@ from django.contrib.auth import get_user_model
 from .projectdto import ProjectCreationDTO
 
 from bothub.common.models import Organization
-from bothub.project.usecases.exceptions import InvalidProjectData
+from ..exceptions import InvalidProjectData
 
 from bothub.project.models import Project
 
 User = get_user_model()
+
 
 class ProjectCreationUseCase:
 
     def get_or_create_user_by_email(self, email: str) -> tuple:
         return User.objects.get_or_create(email=email)
 
-    def get_organization_by_id(self, organization_id):
-        try: 
+    def get_organization_by_id(self, organization_id) -> Organization:
+        try:
             return Organization.objects.get(pk=organization_id)
         except Organization.DoesNotExist:
             raise InvalidProjectData(f"Organization {organization_id} does not exists!")
@@ -24,7 +25,7 @@ class ProjectCreationUseCase:
 
         return Project.objects.get_or_create(
             uuid=project_dto.uuid,
-            defaults=dict(      
+            defaults=dict(
                 name=project_dto.name,
                 date_format=project_dto.date_format,
                 timezone=project_dto.timezone,
