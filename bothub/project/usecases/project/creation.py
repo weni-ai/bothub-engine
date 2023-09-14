@@ -15,7 +15,7 @@ class ProjectCreationUseCase:
     def get_or_create_user_by_email(self, email: str) -> tuple:
         return User.objects.get_or_create(email=email)
 
-    def get_organization_by_id(self, organization_id):
+    def get_organization_by_id(self, organization_id) -> Organization:
         try:
             return Organization.objects.get(pk=organization_id)
         except Organization.DoesNotExist:
