@@ -1,1 +1,1 @@
-from .json_parser import JSONParser
+from .json_parser import JSONParser # noqa
