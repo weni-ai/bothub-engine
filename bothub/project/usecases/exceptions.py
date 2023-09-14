@@ -1,0 +1,2 @@
+class InvalidProjectData(Exception):
+    pass
