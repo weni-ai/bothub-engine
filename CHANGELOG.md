@@ -1,3 +1,10 @@
+# 6.1.0
+## *Add*
+- Project consumer
+- Template type consumer
+- Data Transfer Object to project and template type
+- Use case to add project creation, template type creation and exceptions
+
 # 6.0.0
 ## *Add*
   - event driven architecture setup
