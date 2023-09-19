@@ -1,3 +1,7 @@
+# 6.2.0
+## *Add*
+  - Zeroshot flows integration with fast prediction endpoint
+
 # 6.1.0
 ## *Add*
 - Project consumer
