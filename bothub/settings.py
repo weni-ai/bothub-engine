@@ -118,7 +118,11 @@ env = environ.Env(
     AI_ODONTOLOGICAL_PLAN=(str, ""),
     AI_FINANCE_LEADS=(str, ""),
     AI_SENTIMENT_ANALYSIS=(str, ""),
-    CONNECT_WEBAPP_BASE_URL=(str, "http://localhost:8080")
+    CONNECT_WEBAPP_BASE_URL=(str, "http://localhost:8080"),
+    ZEROSHOT_BASE_NLP_URL=(str, ""),
+    FLOWS_TOKEN_ZEROSHOT=(str, ""),
+    ZEROSHOT_SUFFIX=(str, ""),
+    ZEROSHOT_TOKEN=(str, "")
 )
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -678,6 +682,11 @@ RECOMMENDED_AIS = {
         AI_SENTIMENT_ANALYSIS,
     ]
 }
+
+ZEROSHOT_BASE_NLP_URL = env.str("ZEROSHOT_BASE_NLP_URL")
+FLOWS_TOKEN_ZEROSHOT = env.str("FLOWS_TOKEN_ZEROSHOT")
+ZEROSHOT_SUFFIX = env.str("ZEROSHOT_SUFFIX")
+ZEROSHOT_TOKEN = env.str("ZEROSHOT_TOKEN")
 
 # Event Driven Architecture configurations
 
