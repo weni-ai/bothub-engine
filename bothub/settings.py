@@ -701,3 +701,7 @@ if USE_EDA:
     EDA_BROKER_PORT = env.int("EDA_BROKER_PORT", default=5672)
     EDA_BROKER_USER = env("EDA_BROKER_USER", default="guest")
     EDA_BROKER_PASSWORD = env("EDA_BROKER_PASSWORD", default="guest")
+
+
+# Chat GPT
+GPT_MAX_TOKENS = env.int("GPT_MAX_TOKENS", default=4096)
