@@ -683,7 +683,6 @@ RECOMMENDED_AIS = {
     ]
 }
 
-
 # Event Driven Architecture configurations
 
 USE_EDA = env.bool("USE_EDA", default=False)
