@@ -11,7 +11,7 @@ User = get_user_model()
 
 class TemplateTypeIntegrationUseCase:
 
-    def integrate_template_type_in_project(project: Project, template_type_uuid: str, user: User) -> bool:
+    def integrate_template_type_in_project(self, project: Project, template_type_uuid: str, user: User) -> bool:
         if project.template_type is not None:
             raise InvalidTemplateTypeData(f"The project `{project.uuid}` already has an integrated template!")
 
@@ -36,7 +36,7 @@ class TemplateTypeIntegrationUseCase:
                 ).uuid
             )
 
-            ProjectIntelligence.objects.create(
+            project_intelligence = ProjectIntelligence.objects.create(
                 uuid=uuid.uuid4(),
                 access_token=access_token,
                 integrated_by=user,
@@ -44,3 +44,4 @@ class TemplateTypeIntegrationUseCase:
                 name=repository.name,
                 repository=repository,
             )
+            print(f"[ TemplateTypeIntegration ] - addint integration to `{project.uuid}` with access token `{project_intelligence.access_token}` and uuid `{project_intelligence.uuid}`")
