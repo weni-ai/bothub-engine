@@ -441,17 +441,6 @@ class NewRepositoryViewSet(
                 name=repository.name,
                 integrated_by=request.user
             )
-            body = {
-                "uuid": str(project_intelligence.uuid),
-                "access_token": str(project_intelligence.access_token),
-                "name": project_intelligence.name,
-                "repository": str(repository.uuid),
-                "project_uuid": str(project_intelligence.project.uuid),
-                "user_email": request.user.email,
-            }
-            publisher = RabbitMQPublisher()
-            publisher.send_message(body=body, exchange="intelligences.topic", routing_key="")
-
         except Project.DoesNotExist:
                 print(f"[ AI Integration ] Cannot create ai integration because project {project_uuid} does not exists!")
         except Exception as err:

@@ -19,7 +19,7 @@ class PyAMQPConnectionBackend:
     def start_consuming(self):
         while True:
             try:
-                channel = self.rabbitmq_instance.connection.channel()
+                channel = self.rabbitmq_instance.channel
 
                 self._handle_consumers(channel)
 
