@@ -23,7 +23,9 @@ class TemplateTypeIntegrationUseCase:
         except TemplateType.DoesNotExist:
             raise InvalidTemplateTypeData(f"Template Type with uuid `{template_type_uuid}` does not exists!")
 
-        for repository_uuid in template_type.setup["repositories"]:
+        for repository_data in template_type.setup["repositories"]:
+            repository_uuid = repository_data.get("uuid")
+
             repository = Repository.objects.get(uuid=repository_uuid)
 
             organization_authorization = project.organization.get_organization_authorization(user)        
