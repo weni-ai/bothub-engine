@@ -1,4 +1,7 @@
-from bothub.api.v2.repository.validators import ExampleTextHasLettersValidator
+from bothub.api.v2.repository.validators import (
+    ExampleTextHasLettersValidator,
+    ChatGPTTokenLimitValidator
+)
 from rest_framework import serializers
 
 from bothub.common import languages
@@ -52,7 +55,7 @@ class QAtextSerializer(serializers.ModelSerializer):
         read_only_fields = ["created_at", "last_update"]
 
     text = serializers.CharField(
-        required=False, validators=[ExampleTextHasLettersValidator()]
+        required=False, validators=[ExampleTextHasLettersValidator(), ChatGPTTokenLimitValidator()]
     )
     knowledge_base = serializers.PrimaryKeyRelatedField(
         queryset=QAKnowledgeBase.objects
