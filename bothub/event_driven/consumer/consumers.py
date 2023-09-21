@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 
 import amqp
 
-from bothub.event_driven.singnals import message_started, message_finished
+from bothub.event_driven.signals import message_started, message_finished
 
 class EDAConsumer(ABC):  # pragma: no cover
     def handle(self, message: amqp.Message):
