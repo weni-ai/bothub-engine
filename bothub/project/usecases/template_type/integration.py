@@ -46,4 +46,4 @@ class TemplateTypeIntegrationUseCase:
                 name=repository.name,
                 repository=repository,
             )
-            print(f"[ TemplateTypeIntegration ] - addint integration to `{project.uuid}` with access token `{project_intelligence.access_token}` and uuid `{project_intelligence.uuid}`")
+            print(f"[ TemplateTypeIntegration ] - adding integration to `{project.uuid}` with access token `{project_intelligence.access_token}` and uuid `{project_intelligence.uuid}`")

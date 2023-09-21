@@ -19,3 +19,4 @@ def integrate_ai(sender, instance, created, **kwargs):
             "user_email": instance.integrated_by.email,
         }
         rabbitmq_publisher.send_message(body=body, exchange="intelligences.topic", routing_key="")
+        print(f"[ intelligencePublisher ] message sent - {body} to intelligences.topic")
