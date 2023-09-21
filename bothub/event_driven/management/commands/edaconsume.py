@@ -9,13 +9,4 @@ connection_backend = import_string(settings.EDA_CONNECTION_BACKEND)(handle_consu
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
-
-        connection_params = dict(
-            host=settings.EDA_BROKER_HOST,
-            port=settings.EDA_BROKER_PORT,
-            userid=settings.EDA_BROKER_USER,
-            password=settings.EDA_BROKER_PASSWORD,
-            virtual_host=settings.EDA_VIRTUAL_HOST,
-        )
-
-        connection_backend.start_consuming(connection_params)
+        connection_backend.start_consuming()

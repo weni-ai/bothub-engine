@@ -683,11 +683,6 @@ RECOMMENDED_AIS = {
     ]
 }
 
-ZEROSHOT_BASE_NLP_URL = env.str("ZEROSHOT_BASE_NLP_URL")
-FLOWS_TOKEN_ZEROSHOT = env.str("FLOWS_TOKEN_ZEROSHOT")
-ZEROSHOT_SUFFIX = env.str("ZEROSHOT_SUFFIX")
-ZEROSHOT_TOKEN = env.str("ZEROSHOT_TOKEN")
-
 # Event Driven Architecture configurations
 
 USE_EDA = env.bool("USE_EDA", default=False)
@@ -701,7 +696,12 @@ if USE_EDA:
     EDA_BROKER_PORT = env.int("EDA_BROKER_PORT", default=5672)
     EDA_BROKER_USER = env("EDA_BROKER_USER", default="guest")
     EDA_BROKER_PASSWORD = env("EDA_BROKER_PASSWORD", default="guest")
-
+    EDA_WAIT_TIME_RETRY = env("EDA_WAIT_TIME_RETRY", default=5)
 
 # Chat GPT
 GPT_MAX_TOKENS = env.int("GPT_MAX_TOKENS", default=4096)
+   
+ZEROSHOT_BASE_NLP_URL = env.str("ZEROSHOT_BASE_NLP_URL")
+FLOWS_TOKEN_ZEROSHOT = env.str("FLOWS_TOKEN_ZEROSHOT")
+ZEROSHOT_SUFFIX = env.str("ZEROSHOT_SUFFIX")
+ZEROSHOT_TOKEN = env.str("ZEROSHOT_TOKEN")
