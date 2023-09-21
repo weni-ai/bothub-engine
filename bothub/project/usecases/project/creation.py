@@ -10,13 +10,14 @@ from bothub.project.models import Project
 
 User = get_user_model()
 
+
 class ProjectCreationUseCase:
 
     def get_or_create_user_by_email(self, email: str) -> tuple:
         return User.objects.get_or_create(email=email)
 
-    def get_organization_by_id(self, organization_id):
-        try: 
+    def get_organization_by_id(self, organization_id) -> Organization:
+        try:
             return Organization.objects.get(pk=organization_id)
         except Organization.DoesNotExist:
             raise InvalidProjectData(f"Organization {organization_id} does not exists!")
@@ -25,7 +26,7 @@ class ProjectCreationUseCase:
 
         return Project.objects.get_or_create(
             uuid=project_dto.uuid,
-            defaults=dict(      
+            defaults=dict(
                 name=project_dto.name,
                 date_format=project_dto.date_format,
                 timezone=project_dto.timezone,
@@ -38,10 +39,10 @@ class ProjectCreationUseCase:
     def create_project(self, project_dto: ProjectCreationDTO, user_email: str) -> None:
         user, _ = self.get_or_create_user_by_email(user_email)
         organization = self.get_organization_by_id(project_dto.organization_id)
-        
+
         if not organization.get_organization_authorization(user).can_contribute:
             raise InvalidProjectData(f"User `{user.email}` don't have permission on Organization `{organization.pk}`!")
-        
+
         project, _ = self.get_or_create_project(project_dto, user, organization)
 
         if project.is_template:

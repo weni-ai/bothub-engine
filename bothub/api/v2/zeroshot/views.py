@@ -1,4 +1,5 @@
 import requests
+import logging
 
 from django.conf import settings
 
@@ -13,6 +14,8 @@ from bothub.common.models import (
     Repository,
 )
 
+
+logger = logging.getLogger(__name__)
 
 class ZeroShotOptionsTextAPIView(APIView):
 
@@ -83,7 +86,7 @@ class ZeroShotFastPredictAPIView(APIView):
 
         for categorie in data.get("categories"):
             option = categorie.get("option")
-            classes[option] = []
+            classes[option] = [option]
             for synonym in categorie.get("synonyms"):
                 classes[option].append(synonym)
 
@@ -109,5 +112,5 @@ class ZeroShotFastPredictAPIView(APIView):
                 json=body
             )
         except Exception as error:
-            print(f'error: {error}')
+            logger.error(f"[ - ] Zeroshot fast predict: {error}")
         return Response(status=response_nlp.status_code, data=response_nlp.json() if response_nlp.status_code == 200 else {"error": response_nlp.text})
