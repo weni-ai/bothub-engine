@@ -30,4 +30,4 @@ class RabbitMQPublisher:
             except Exception as err:
                 print(f"error: {err}")
                 self.rabbitmq_connection._establish_connection()
-            sleep(settings.EDA_WAIT_TIME_RETRY)
+                sleep(settings.EDA_WAIT_TIME_RETRY)
