@@ -3,9 +3,14 @@ from bothub.api.v2.repository.validators import (
     ChatGPTTokenLimitValidator
 )
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 
 from bothub.common import languages
 from bothub.common.models import Repository, QAKnowledgeBase, QAtext
+from bothub.common.helpers import ChatGPTTokenText
+
+from django.conf import settings
+from django.utils.translation import ugettext_lazy as _
 
 
 class QAKnowledgeBaseSerializer(serializers.ModelSerializer):
@@ -65,3 +70,16 @@ class QAtextSerializer(serializers.ModelSerializer):
 
     def get_title(self, obj):
         return obj.get_title()
+
+    def validate(self):
+        value = self.instance.text
+        validator = ChatGPTTokenText()
+        count, chunks = validator.count_tokens(value)
+        if count > settings.GPT_MAX_TOKENS:
+            raise ValidationError({
+                "message": _(
+                    f"Enter a valid value that is in the range of {settings.GPT_MAX_TOKENS} tokens"
+                ),
+                "chunks": "".join(chunks)
+                }
+            )
