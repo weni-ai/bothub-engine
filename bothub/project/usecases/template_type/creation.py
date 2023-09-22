@@ -23,7 +23,7 @@ class TemplateTypeCreationUseCase:
             project = Project.objects.get(uuid=template_type_dto.project_uuid)
         except Project.DoesNotExist:
             raise InvalidTemplateTypeData(f"Project `{template_type_dto.project_uuid}` does not exists!")
-        setup = self.get_repository_info_by_project_uuid(project)
+        setup = self.get_repository_info_by_project(project)
         template_type, created = TemplateType.objects.get_or_create(uuid=template_type_dto.uuid, defaults=dict(name=template_type_dto.name, setup=setup))
         if not created:
             template_type.setup = setup
