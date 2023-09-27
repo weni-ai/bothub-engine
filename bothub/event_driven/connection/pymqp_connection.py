@@ -31,8 +31,9 @@ class PyAMQPConnectionBackend:
                 print(f"[-] Connection error: {error}")
                 print("    [+] Reconnecting in 5 seconds...")
                 time.sleep(5)
-
+                self.rabbitmq_instance._establish_connection()
             except Exception as error:
                 # TODO: Handle exceptions with RabbitMQ
                 print("error on drain_events:", type(error), error)
                 time.sleep(5)
+                self.rabbitmq_instance._establish_connection()
