@@ -58,3 +58,4 @@ class ProjectIntelligence(models.Model):
     access_token = models.CharField(verbose_name="Access token", max_length=255, null=True, blank=True)
     name = models.TextField(_("name"))
     integrated_at = models.DateTimeField(_("created at"), auto_now_add=True)
+    integrated_by = models.ForeignKey(User, related_name="project_intelligences", on_delete=models.SET_NULL, blank=True, null=True)

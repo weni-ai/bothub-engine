@@ -3,7 +3,8 @@ from django.contrib.auth import get_user_model
 from .projectdto import ProjectCreationDTO
 
 from bothub.common.models import Organization
-from ..exceptions import InvalidProjectData
+from bothub.project.usecases.exceptions import InvalidProjectData
+from bothub.project.usecases.template_type.integration import TemplateTypeIntegrationUseCase
 
 from bothub.project.models import Project
 
@@ -38,4 +39,13 @@ class ProjectCreationUseCase:
     def create_project(self, project_dto: ProjectCreationDTO, user_email: str) -> None:
         user, _ = self.get_or_create_user_by_email(user_email)
         organization = self.get_organization_by_id(project_dto.organization_id)
+
+        if not organization.get_organization_authorization(user).can_contribute:
+            raise InvalidProjectData(f"User `{user.email}` don't have permission on Organization `{organization.pk}`!")
+
         project, _ = self.get_or_create_project(project_dto, user, organization)
+
+        if project.is_template:
+            print(f"[ ProjectCreation ] - integrating template `{project.uuid}`")
+            template_type = TemplateTypeIntegrationUseCase()
+            template_type.integrate_template_type_in_project(project=project, template_type_uuid=project_dto.template_type_uuid, user=user)

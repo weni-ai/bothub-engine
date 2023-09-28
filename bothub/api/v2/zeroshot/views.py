@@ -86,7 +86,7 @@ class ZeroShotFastPredictAPIView(APIView):
 
         for categorie in data.get("categories"):
             option = categorie.get("option")
-            classes[option] = []
+            classes[option] = [option]
             for synonym in categorie.get("synonyms"):
                 classes[option].append(synonym)
 
