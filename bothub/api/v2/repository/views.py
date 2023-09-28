@@ -442,9 +442,9 @@ class NewRepositoryViewSet(
                 integrated_by=request.user
             )
         except Project.DoesNotExist:
-                print(f"[ AI Integration ] Cannot create ai integration because project {project_uuid} does not exists!")
+            raise NotFound(f"[ AI Integration ] Cannot create ai integration because project {project_uuid} does not exists!")
         except Exception as err:
-            print(f"[ AI Integration ] Cannot create ai integration: {err}")
+            raise Exception(f"[ AI Integration ] Cannot create ai integration: {err}")
 
         task = celery_app.send_task(
             "send_recent_activity",
