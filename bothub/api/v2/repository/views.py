@@ -380,6 +380,9 @@ class NewRepositoryViewSet(
             task = ConnectClient().list_authorizations(
                 project_uuid=project_uuid, user_email=request.user.email
             )
+            project_intelligence_queryset = ProjectIntelligence.objects.filter(project__uuid=project_uuid, repository=repository)
+            if project_intelligence_queryset.exists():
+                project_intelligence_queryset.delete()
             for authorization_uuid in authorizations_uuids:
                 ConnectClient().remove_authorization(
                     project_uuid, authorization_uuid, request.user.email
@@ -442,9 +445,9 @@ class NewRepositoryViewSet(
                 integrated_by=request.user
             )
         except Project.DoesNotExist:
-                print(f"[ AI Integration ] Cannot create ai integration because project {project_uuid} does not exists!")
+            raise NotFound(f"[ AI Integration ] Cannot create ai integration because project {project_uuid} does not exists!")
         except Exception as err:
-            print(f"[ AI Integration ] Cannot create ai integration: {err}")
+            raise Exception(f"[ AI Integration ] Cannot create ai integration: {err}")
 
         task = celery_app.send_task(
             "send_recent_activity",
