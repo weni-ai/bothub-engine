@@ -1,3 +1,12 @@
+# 6.3.0
+## Add
+  - New format with singleton to create rabbitmq connection
+  - Rabbitmq publisher
+  - Integrate AI/project using `ProjectIntelligence` objects
+  - When `remove` integration on dash, delete `ProjectIntelligence`
+  - Publishing messages when integrate an `AI` with `Project`
+  - `integrated_by` field from `ProjectIntelligence`
+
 # 6.2.0
 ## *Add*
   - Zeroshot flows integration with fast prediction endpoint
