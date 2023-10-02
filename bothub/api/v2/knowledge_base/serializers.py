@@ -1,8 +1,16 @@
-from bothub.api.v2.repository.validators import ExampleTextHasLettersValidator
+from bothub.api.v2.repository.validators import (
+    ExampleTextHasLettersValidator,
+    ChatGPTTokenLimitValidator
+)
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 
 from bothub.common import languages
 from bothub.common.models import Repository, QAKnowledgeBase, QAtext
+from bothub.common.helpers import ChatGPTTokenText
+
+from django.conf import settings
+from django.utils.translation import ugettext_lazy as _
 
 
 class QAKnowledgeBaseSerializer(serializers.ModelSerializer):
@@ -52,7 +60,7 @@ class QAtextSerializer(serializers.ModelSerializer):
         read_only_fields = ["created_at", "last_update"]
 
     text = serializers.CharField(
-        required=False, validators=[ExampleTextHasLettersValidator()]
+        required=False, validators=[ExampleTextHasLettersValidator(), ChatGPTTokenLimitValidator()]
     )
     knowledge_base = serializers.PrimaryKeyRelatedField(
         queryset=QAKnowledgeBase.objects
@@ -62,3 +70,16 @@ class QAtextSerializer(serializers.ModelSerializer):
 
     def get_title(self, obj):
         return obj.get_title()
+
+    def validate(self):
+        value = self.instance.text
+        validator = ChatGPTTokenText()
+        count, chunks = validator.count_tokens(value)
+        if count > settings.GPT_MAX_TOKENS:
+            raise ValidationError({
+                "message": _(
+                    f"Enter a valid value that is in the range of {settings.GPT_MAX_TOKENS} tokens"
+                ),
+                "chunks": "".join(chunks)
+                }
+            )

@@ -8,6 +8,7 @@ from rest_framework.exceptions import PermissionDenied, APIException
 from rest_framework.exceptions import ValidationError
 
 from bothub.common.models import Organization
+from bothub.common.helpers import ChatGPTTokenText
 
 
 class CanContributeInRepositoryValidator(object):
@@ -105,3 +106,16 @@ class APIExceptionCustom(APIException):
         APIException.__init__(self, detail)
         self.status_code = status.HTTP_400_BAD_REQUEST
         self.message = detail
+
+
+class ChatGPTTokenLimitValidator(object):
+    def __call__(self, value):
+        validator = ChatGPTTokenText()
+        count, chunks = validator.count_tokens(value)
+
+        if count > settings.GPT_MAX_TOKENS:
+            raise ValidationError(
+                _(
+                    f"Enter a valid value that is in the range of {settings.GPT_MAX_TOKENS} tokens"
+                )
+            )
