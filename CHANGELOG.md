@@ -1,3 +1,32 @@
+# 6.3.0
+## Add
+  - New format with singleton to create rabbitmq connection
+  - Rabbitmq publisher
+  - Integrate AI/project using `ProjectIntelligence` objects
+  - When `remove` integration on dash, delete `ProjectIntelligence`
+  - Publishing messages when integrate an `AI` with `Project`
+  - `integrated_by` field from `ProjectIntelligence`
+
+# 6.2.0
+## *Add*
+  - Zeroshot flows integration with fast prediction endpoint
+
+# 6.1.0
+## *Add*
+- Project consumer
+- Template type consumer
+- Data Transfer Object to project and template type
+- Use case to add project creation, template type creation and exceptions
+
+# 6.0.0
+## *Add*
+  - event driven architecture setup
+  - model of template type
+  - model of project intelligence
+  - parsers
+  - eda consumer
+  
+
 # 5.8.0
   ## *Add*
     - Field to count the trainings of a repository and `order_by_relevance` method now uses this field
