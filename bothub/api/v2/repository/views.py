@@ -1,4 +1,5 @@
 import json
+import uuid
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -31,6 +32,7 @@ from rest_framework.exceptions import (
     PermissionDenied,
     UnsupportedMediaType,
     ValidationError,
+    NotFound
 )
 from rest_framework.filters import SearchFilter
 from rest_framework.parsers import MultiPartParser
@@ -123,9 +125,12 @@ from .serializers import (
     RepositoryCloneSerializer,
 )
 
+from bothub.project.models import Project, ProjectIntelligence
+
 from bothub.api.v2.internal.connect_rest_client import (
     ConnectRESTClient as ConnectClient,
 )
+from bothub.event_driven.publisher.rabbitmq_publisher import RabbitMQPublisher
 
 User = get_user_model()
 
@@ -375,6 +380,9 @@ class NewRepositoryViewSet(
             task = ConnectClient().list_authorizations(
                 project_uuid=project_uuid, user_email=request.user.email
             )
+            project_intelligence_queryset = ProjectIntelligence.objects.filter(project__uuid=project_uuid, repository=repository)
+            if project_intelligence_queryset.exists():
+                project_intelligence_queryset.delete()
             for authorization_uuid in authorizations_uuids:
                 ConnectClient().remove_authorization(
                     project_uuid, authorization_uuid, request.user.email
@@ -405,14 +413,16 @@ class NewRepositoryViewSet(
 
         if not organization_authorization.can_contribute:
             raise PermissionDenied()
+        
+        access_token = str(
+            repository.get_user_authorization(
+                organization_authorization.organization
+            ).uuid
+        )
 
         serializer_data = dict(
             user=request.user.email,
-            access_token=str(
-                repository.get_user_authorization(
-                    organization_authorization.organization
-                ).uuid
-            ),
+            access_token=access_token,
             **request.data,
         )
 
@@ -421,22 +431,24 @@ class NewRepositoryViewSet(
 
         project_uuid = serializer.validated_data.get("project_uuid")
 
-        if settings.USE_GRPC:
-            task = celery_app.send_task(
-                name="get_project_organization", args=[project_uuid]
-            )
-            task.wait()
+        try:
+            project = Project.objects.get(uuid=project_uuid)
+            if ProjectIntelligence.objects.filter(project=project, repository=repository, access_token=access_token).exists():
+                raise ValidationError(_("Repository already added"))
 
-            organization_authorization = organization.organization_authorizations.filter(
-                uuid__in=task.result
+            project_intelligence = ProjectIntelligence.objects.create(
+                uuid=uuid.uuid4(),
+                project=project,
+                repository=repository,
+                access_token=access_token,
+                name=repository.name,
+                integrated_by=request.user
             )
-        else:
-            task = ConnectClient().list_authorizations(
-                project_uuid=project_uuid, user_email=request.user.email
-            )
-            organization_authorization = organization.organization_authorizations.filter(
-                uuid__in=task
-            )
+        except Project.DoesNotExist:
+            raise NotFound(f"[ AI Integration ] Cannot create ai integration because project {project_uuid} does not exists!")
+        except Exception as err:
+            raise Exception(f"[ AI Integration ] Cannot create ai integration: {err}")
+
         task = celery_app.send_task(
             "send_recent_activity",
             [
@@ -449,12 +461,10 @@ class NewRepositoryViewSet(
                 }
             ],
         )
-        if organization_authorization.exists():
-            raise ValidationError(_("Repository already added"))
+        
+        
 
-        data = serializer.save()
-
-        return Response(data)
+        return Response(serializer.data)
 
 
 class RepositoryTrainInfoViewSet(

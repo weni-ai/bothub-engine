@@ -14,6 +14,8 @@ from bothub.common.models import (
     Repository,
 )
 
+from bothub.api.v2.zeroshot.permissions import ZeroshotTokenPermission
+
 
 logger = logging.getLogger(__name__)
 
@@ -74,19 +76,16 @@ class ZeroShotRepositoryAPIView(APIView):
 
 class ZeroShotFastPredictAPIView(APIView):
 
+    permission_classes = [ZeroshotTokenPermission]
+
     def post(self, request):
         data = request.data
-
-        auth = data.get("token")
-
-        if auth != settings.FLOWS_TOKEN_ZEROSHOT:
-            return Response(status=401, data={"error": "You don't have permission to do this."})
 
         classes = {}
 
         for categorie in data.get("categories"):
             option = categorie.get("option")
-            classes[option] = []
+            classes[option] = [option]
             for synonym in categorie.get("synonyms"):
                 classes[option].append(synonym)
 
