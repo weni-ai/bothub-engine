@@ -76,9 +76,10 @@ class ZeroShotRepositoryAPIView(APIView):
 
 class ZeroShotFastPredictAPIView(APIView):
 
-    permission_classes = [ZeroshotTokenPermission]
+    # permission_classes = [ZeroshotTokenPermission]
 
     def post(self, request):
+        print(request.META)
         data = request.data
 
         classes = {}

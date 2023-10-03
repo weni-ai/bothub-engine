@@ -4,7 +4,7 @@ from rest_framework import permissions
 
 from django.conf import settings
 
-logger = logging.getLogger("bothub.health.checks")
+logger = logging.getLogger(__name__)
 
 
 class ZeroshotTokenPermission(permissions.BasePermission):
