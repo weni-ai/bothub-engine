@@ -1,9 +1,15 @@
+import logging
+
 from rest_framework import permissions
 
 from django.conf import settings
 
+logger = logging.getLogger("bothub.health.checks")
+
+
 class ZeroshotTokenPermission(permissions.BasePermission):
     def has_permission(self, request, view):
+        logger.info(request.META)
         token = request.META.get('HTTP_AUTHORIZATION')
 
         if token:
