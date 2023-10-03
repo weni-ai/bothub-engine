@@ -110,6 +110,7 @@ class ZeroShotFastPredictAPIView(APIView):
                 url=url,
                 json=body
             )
+            return Response(status=response_nlp.status_code, data=response_nlp.json() if response_nlp.status_code == 200 else {"error": response_nlp.text})
         except Exception as error:
             logger.error(f"[ - ] Zeroshot fast predict: {error}")
-        return Response(status=response_nlp.status_code, data=response_nlp.json() if response_nlp.status_code == 200 else {"error": response_nlp.text})
+            raise  error
