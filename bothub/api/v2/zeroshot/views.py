@@ -79,6 +79,7 @@ class ZeroShotFastPredictAPIView(APIView):
     # permission_classes = [ZeroshotTokenPermission]
 
     def post(self, request):
+        logger.info(f"request data: {request.META}")
         print(request.META)
         data = request.data
 
