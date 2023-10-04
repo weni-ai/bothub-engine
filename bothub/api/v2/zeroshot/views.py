@@ -17,7 +17,7 @@ from bothub.common.models import (
 from bothub.api.v2.zeroshot.permissions import ZeroshotTokenPermission
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("bohtub")
 
 class ZeroShotOptionsTextAPIView(APIView):
 
@@ -76,7 +76,7 @@ class ZeroShotRepositoryAPIView(APIView):
 
 class ZeroShotFastPredictAPIView(APIView):
 
-    # permission_classes = [ZeroshotTokenPermission]
+    permission_classes = [ZeroshotTokenPermission]
 
     def post(self, request):
         logger.info(f"request data: {request.META}")
