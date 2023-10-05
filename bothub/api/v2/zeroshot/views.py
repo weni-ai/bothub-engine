@@ -101,7 +101,7 @@ class ZeroShotFastPredictAPIView(APIView):
             "Content-Type": "application/json; charset: utf-8",
             "Authorization": f"Bearer {settings.ZEROSHOT_TOKEN}",
         }
-
+        response_nlp = None
         try:
             url = settings.ZEROSHOT_BASE_NLP_URL
             if len(settings.ZEROSHOT_SUFFIX) > 0:
@@ -111,6 +111,7 @@ class ZeroShotFastPredictAPIView(APIView):
                 url=url,
                 json=body
             )
+            return Response(status=response_nlp.status_code, data=response_nlp.json() if response_nlp.status_code == 200 else {"error": response_nlp.text})
         except Exception as error:
             logger.error(f"[ - ] Zeroshot fast predict: {error}")
-        return Response(status=response_nlp.status_code, data=response_nlp.json() if response_nlp.status_code == 200 else {"error": response_nlp.text})
+            return Response(status=response_nlp.status_code if response_nlp else 500, data={"error": error})
