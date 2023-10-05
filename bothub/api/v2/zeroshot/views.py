@@ -14,6 +14,7 @@ from bothub.common.models import (
     Repository,
 )
 
+from bothub.api.v2.zeroshot.permissions import ZeroshotTokenPermission
 
 logger = logging.getLogger(__name__)
 
@@ -73,6 +74,9 @@ class ZeroShotRepositoryAPIView(APIView):
 
 
 class ZeroShotFastPredictAPIView(APIView):
+
+    authentication_classes = []
+    permission_classes = [ZeroshotTokenPermission]
 
     def post(self, request):
         data = request.data
