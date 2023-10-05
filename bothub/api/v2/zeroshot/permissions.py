@@ -10,6 +10,3 @@ class ZeroshotTokenPermission(permissions.BasePermission):
             return token == f'Bearer {settings.FLOWS_TOKEN_ZEROSHOT}'
         else:
             return False
-
-    def has_object_permission(self, request, view, obj):
-        return self.has_object_permission(request, view, obj)
