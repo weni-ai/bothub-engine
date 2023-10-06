@@ -33,7 +33,7 @@ jobs:
             echo "COMMIT_SHA=$GITHUB_SHA" | tee -a "${GITHUB_ENV}"
             echo "IMAGE_TAG=bothubit/bothub-engine:${TAG}" | tee -a "${GITHUB_ENV}"
             echo "IMAGE_SOURCE_URL=https://github.com/Ilhasoft/bothub-engine" | tee -a "${GITHUB_ENV}"
-            echo "MANIFESTS_REPOSITORY=Ilhasoft/kubernetes-manifests-artificial-intelligence" | tee -a "${GITHUB_ENV}"
+            echo "MANIFESTS_REPOSITORY=weni-ai/kubernetes-manifests-artificial-intelligence" | tee -a "${GITHUB_ENV}"
             echo "MANIFESTS_APPLICATION=engine" | tee -a "${GITHUB_ENV}"
             echo "MANIFESTS_PATCH_TARGET=deployment-engine.json" | tee -a "${GITHUB_ENV}"
 
