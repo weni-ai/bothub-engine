@@ -1,3 +1,7 @@
+# 6.4.0
+## Add
+  - New format to validate flows token on zeroshot
+
 # 6.3.0
 ## Add
   - New format with singleton to create rabbitmq connection
