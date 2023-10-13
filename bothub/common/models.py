@@ -8,7 +8,7 @@ from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.core.validators import RegexValidator, _lazy_re_compile
 from django.db import models
-from django.db.models import Sum, Q, IntegerField, Case, When, Count
+from django.db.models import Sum, Q, IntegerField, Case, When, Count, Prefetch
 from django.dispatch import receiver
 from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
@@ -69,7 +69,7 @@ class RepositoryQuerySet(models.QuerySet):
         valid_updates = RepositoryVersionLanguage.objects.filter(
             added__in=valid_examples
         )
-        return self.filter(
+        return Repository.objects.filter(
             models.Q(language=language)
             | models.Q(
                 versions__repositoryversionlanguage__in=valid_updates,
@@ -79,7 +79,10 @@ class RepositoryQuerySet(models.QuerySet):
                 versions__repositoryversionlanguage__in=valid_updates,
                 versions__repositoryversionlanguage__added__translations__language=language,
             )
-        )
+        ).prefetch_related(
+            'versions',
+            Prefetch('versions', queryset=RepositoryVersion.objects.all(), to_attr='repositoryversionlanguage'),
+            Prefetch('versions', queryset=RepositoryVersion.objects.all(), to_attr='repositoryversionlanguage__added__translations'))
 
     def count_logs(self, start_date=None, end_date=None, user=None, *args, **kwargs):
         return self.annotate(
