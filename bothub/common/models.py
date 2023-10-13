@@ -69,7 +69,7 @@ class RepositoryQuerySet(models.QuerySet):
         valid_updates = RepositoryVersionLanguage.objects.filter(
             added__in=valid_examples
         )
-        return self.filter(
+        return Repository.objects.filter(
             models.Q(language=language)
             | models.Q(
                 versions__repositoryversionlanguage__in=valid_updates,
