@@ -8,7 +8,7 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework import exceptions
 from rest_framework import mixins, pagination
 from rest_framework.decorators import action
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import PermissionDenied, ValidationError as DRFValidationError
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
@@ -18,6 +18,8 @@ from bothub.api.v2.nlp.serializers import (
     RepositoryNLPLogSerializer,
     RepositoryQANLPLogSerializer,
 )
+from bothub.api.v2.knowledge_base.serializers import QAtextSerializer
+
 from bothub.authentication.authorization import NLPAuthentication
 from bothub.authentication.models import User
 from bothub.common import languages
@@ -744,6 +746,13 @@ class RepositoryAuthorizationKnowledgeBaseViewSet(
         )
 
         context = get_object_or_404(knowledge_base.texts.all(), language=language)
+
+        serializer = QAtextSerializer(context)
+
+        try:
+            serializer.validate()
+        except DRFValidationError as e:
+            return Response(status=500, data=e.__dict__)
 
         return Response(
             {
