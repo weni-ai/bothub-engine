@@ -1,3 +1,9 @@
+# 6.5.0
+# Add
+  - Zeroshot elastic docs
+  - Zeroshot log data
+  - Zeroshot index declared
+
 # 6.4.0
 ## Add
   - New format to validate flows token on zeroshot
