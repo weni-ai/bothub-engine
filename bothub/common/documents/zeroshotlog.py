@@ -6,11 +6,11 @@ from bothub.utils import TimeBasedDocument
 
 from bothub.common.models import ZeroshotLogs
 
-REPOSITORYQANLPLOG_INDEX_NAME = settings.ELASTICSEARCH_INDEX_NAMES[__name__]
-REPOSITORYQANLPLOG_INDEX = Index(REPOSITORYQANLPLOG_INDEX_NAME)
+REPOSITORYZEROSHOTLOG_INDEX_NAME = settings.ELASTICSEARCH_INDEX_NAMES[__name__]
+REPOSITORYZEROSHOTLOG_INDEX = Index(REPOSITORYZEROSHOTLOG_INDEX_NAME)
 
 
-@REPOSITORYQANLPLOG_INDEX.doc_type
+@REPOSITORYZEROSHOTLOG_INDEX.doc_type
 class ZeroshotLogDocument(TimeBasedDocument):
     time_based = True
 
