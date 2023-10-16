@@ -88,6 +88,7 @@ env = environ.Env(
     ELASTICSEARCH_CUSTOM_QUEUE=(str, "celery"),
     ELASTICSEARCH_REPOSITORYQANLPLOG_INDEX=(str, "ai_repository_qa_nlplog"),
     ELASTICSEARCH_REPOSITORYBASICEXAMPLE_INDEX=(str, "ai_repositorybasicexample"),
+    ELASTICSEARCH_ZEROSHOT_INDEX=(str, "ai_zeroshot_log"),
     ELASTICSEARCH_NUMBER_OF_SHARDS=(int, 1),
     ELASTICSEARCH_NUMBER_OF_REPLICAS=(int, 0),
     ELASTICSEARCH_SIGNAL_PROCESSOR=(str, "realtime"),
@@ -639,6 +640,10 @@ ELASTICSEARCH_INDEX_NAMES = {
         "ELASTICSEARCH_REPOSITORYBASICEXAMPLE_INDEX",
         default="ai_repositorybasicexample",
     ),
+    "bothub.common.documents.zeroshotlog": env.str(
+        "ELASTICSEARCH_ZEROSHOT_INDEX",
+        default="ai_zeroshot_log"
+    )
 }
 
 ELASTICSEARCH_SIGNAL_PROCESSOR_CLASSES = {
