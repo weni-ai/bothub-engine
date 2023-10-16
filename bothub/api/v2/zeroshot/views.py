@@ -1,5 +1,6 @@
 import requests
 import logging
+import json
 
 from django.conf import settings
 
@@ -12,6 +13,7 @@ from bothub.common.models import (
     ZeroShotOptions,
     RepositoryZeroShot,
     Repository,
+    ZeroshotLogs
 )
 
 from bothub.api.v2.zeroshot.permissions import ZeroshotTokenPermission
@@ -111,6 +113,15 @@ class ZeroShotFastPredictAPIView(APIView):
                 url=url,
                 json=body
             )
+            if response_nlp.status_code == 200:
+                classification_data = response_nlp.json().get("output")
+                ZeroshotLogs.objects.create(
+                    text=data.get("text"),
+                    classification=classification_data.get("classification"),
+                    other=classification_data.get("other"),
+                    categories=classes,
+                    nlp_log=json.dumps(response_nlp.json())
+                )
             return Response(status=response_nlp.status_code, data=response_nlp.json() if response_nlp.status_code == 200 else {"error": response_nlp.text})
         except Exception as error:
             logger.error(f"[ - ] Zeroshot fast predict: {error}")
