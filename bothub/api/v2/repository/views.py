@@ -889,21 +889,14 @@ class RepositoriesViewSet(mixins.ListModelMixin, GenericViewSet):
         if not project_uuid:
             raise ValidationError(_("Need to pass 'project_uuid' in query params"))
 
-        if settings.USE_GRPC:
-            task = celery_app.send_task(
-                name="get_project_organization", args=[project_uuid, request.user.email]
-            )
-            task.wait()
-            repositories = Repository.objects.filter(
-                authorizations__uuid__in=task.result
-            )
-        else:
-            authorizations = ConnectClient().list_authorizations(
-                project_uuid=project_uuid, user_email=request.user.email
-            )
-            repositories = Repository.objects.filter(
-                authorizations__uuid__in=authorizations
-            )
+        project = None
+
+        try:
+            project = Project.objects.get(uuid=project_uuid)
+        except Project.DoesNotExist:
+            raise NotFound(f"project `{project_uuid}` does not exist!")
+
+        repositories = Repository.objects.filter(project_intelligences__project=project)
 
         serialized_data = ShortRepositorySerializer(repositories, many=True)
         return Response(serialized_data.data)
