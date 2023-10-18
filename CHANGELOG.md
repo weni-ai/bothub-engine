@@ -1,5 +1,9 @@
+# 6.6.0
+## Change
+  - list AI integration to project by project_intelligence model without flows communication
+
 # 6.5.0
-# Add
+## Add
   - Zeroshot elastic docs
   - Zeroshot log data
   - Zeroshot index declared
