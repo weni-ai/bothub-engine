@@ -5,7 +5,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from bothub.authentication.models import User
-from bothub.common.models import Organization, OrganizationAuthorization
+from bothub.common.models import Organization, OrganizationAuthorization, QAKnowledgeBase, Repository
 
 
 class OrganizationSerializer(serializers.ModelSerializer):
@@ -81,3 +81,30 @@ class OrgUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Organization
         fields = ["id", "name"]
+
+
+class KnowledgeBaseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = QAKnowledgeBase
+        fields = ["knowledge_base_id", "knowledge_base_title", "texts", "intelligence_name", "intelligence_uuid"]
+    
+    knowledge_base_id = serializers.SerializerMethodField()
+    knowledge_base_title = serializers.SerializerMethodField()
+    texts = serializers.SerializerMethodField()
+    intelligence_name = serializers.SerializerMethodField()
+    intelligence_uuid = serializers.SerializerMethodField()
+
+    def get_knowledge_base_id(self, knowledge_base: QAKnowledgeBase):
+        return knowledge_base.id
+
+    def get_knowledge_base_title(self, knowledge_base: QAKnowledgeBase):
+        return knowledge_base.title
+
+    def get_texts(self, knowledge_base: QAKnowledgeBase):
+        return [{"text": text.text, "language": text.language} for text in knowledge_base.texts.all()]
+
+    def get_intelligence_name(self, knowledge_base: QAKnowledgeBase): 
+        return knowledge_base.repository.name,
+
+    def get_intelligence_uuid(self, knowledge_base: QAKnowledgeBase):
+        return str(knowledge_base.repository.uuid)

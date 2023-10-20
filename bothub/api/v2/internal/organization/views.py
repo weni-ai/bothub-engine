@@ -16,6 +16,8 @@ from bothub.api.v2.internal.permissions import ModuleHasPermission
 from bothub.api.v2.internal.organization.permissions import (
     InternalOrganizationAdminHasPermission,
 )
+from rest_framework.decorators import action
+from django.shortcuts import get_object_or_404
 
 
 class InternalOrganizationViewSet(
@@ -98,3 +100,21 @@ class InternalOrganizationViewSet(
         org = self.get_object()
         response = {"repositories_count": org.repositories.count()}
         return Response(response)
+
+    @action(detail=False, methods=["GET"], url_name="list_content_intelligences")
+    def list_content_intelligences(self, request, *args, **kwargs):
+        from bothub.api.v2.internal.organization.serializers import KnowledgeBaseSerializer
+        from bothub.project.models import Project, Repository
+
+        uuid = request.query_params.get("project")
+
+        organization = get_object_or_404(Project, uuid=uuid).organization
+        repositories = organization.repositories.filter(repository_type=Repository.TYPE_CONTENT)
+        ias = []
+
+        for repository in repositories:
+            for knowledge_base in repository.knowledge_bases.all():
+                serializer = KnowledgeBaseSerializer(knowledge_base)
+
+                ias.append(serializer.data)
+        return Response(ias)
