@@ -71,7 +71,7 @@ class QAtextSerializer(serializers.ModelSerializer):
     def get_title(self, obj):
         return obj.get_title()
 
-    def validate(self):
+    def validate_gpt_tokens(self):
         value = self.instance.text
         validator = ChatGPTTokenText()
         count, chunks = validator.count_tokens(value)
