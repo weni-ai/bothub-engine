@@ -88,6 +88,7 @@ env = environ.Env(
     ELASTICSEARCH_CUSTOM_QUEUE=(str, "celery"),
     ELASTICSEARCH_REPOSITORYQANLPLOG_INDEX=(str, "ai_repository_qa_nlplog"),
     ELASTICSEARCH_REPOSITORYBASICEXAMPLE_INDEX=(str, "ai_repositorybasicexample"),
+    ELASTICSEARCH_ZEROSHOT_INDEX=(str, "ai_zeroshot_log"),
     ELASTICSEARCH_NUMBER_OF_SHARDS=(int, 1),
     ELASTICSEARCH_NUMBER_OF_REPLICAS=(int, 0),
     ELASTICSEARCH_SIGNAL_PROCESSOR=(str, "realtime"),
@@ -639,6 +640,10 @@ ELASTICSEARCH_INDEX_NAMES = {
         "ELASTICSEARCH_REPOSITORYBASICEXAMPLE_INDEX",
         default="ai_repositorybasicexample",
     ),
+    "bothub.common.documents.zeroshotlog": env.str(
+        "ELASTICSEARCH_ZEROSHOT_INDEX",
+        default="ai_zeroshot_log"
+    )
 }
 
 ELASTICSEARCH_SIGNAL_PROCESSOR_CLASSES = {
@@ -683,11 +688,6 @@ RECOMMENDED_AIS = {
     ]
 }
 
-ZEROSHOT_BASE_NLP_URL = env.str("ZEROSHOT_BASE_NLP_URL")
-FLOWS_TOKEN_ZEROSHOT = env.str("FLOWS_TOKEN_ZEROSHOT")
-ZEROSHOT_SUFFIX = env.str("ZEROSHOT_SUFFIX")
-ZEROSHOT_TOKEN = env.str("ZEROSHOT_TOKEN")
-
 # Event Driven Architecture configurations
 
 USE_EDA = env.bool("USE_EDA", default=False)
@@ -701,7 +701,12 @@ if USE_EDA:
     EDA_BROKER_PORT = env.int("EDA_BROKER_PORT", default=5672)
     EDA_BROKER_USER = env("EDA_BROKER_USER", default="guest")
     EDA_BROKER_PASSWORD = env("EDA_BROKER_PASSWORD", default="guest")
-
+    EDA_WAIT_TIME_RETRY = env("EDA_WAIT_TIME_RETRY", default=5)
 
 # Chat GPT
 GPT_MAX_TOKENS = env.int("GPT_MAX_TOKENS", default=4096)
+
+ZEROSHOT_BASE_NLP_URL = env.str("ZEROSHOT_BASE_NLP_URL")
+FLOWS_TOKEN_ZEROSHOT = env.str("FLOWS_TOKEN_ZEROSHOT")
+ZEROSHOT_SUFFIX = env.str("ZEROSHOT_SUFFIX")
+ZEROSHOT_TOKEN = env.str("ZEROSHOT_TOKEN")

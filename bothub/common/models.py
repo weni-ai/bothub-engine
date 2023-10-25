@@ -2599,6 +2599,25 @@ class RepositoryZeroShot(models.Model):
         ZeroShotOptionsText, related_name="repository_options", blank=True
     )
 
+class ZeroshotLogs(models.Model):
+    
+    class Meta:
+        verbose_name = _("zeroshot nlp logs")
+        indexes = [
+            models.Index(
+                name="common_zeroshot_log_idx",
+                fields=["nlp_log"]
+            )
+        ]
+    
+    text = models.TextField(help_text=_("Text to analyze"))
+    classification = models.TextField()
+    other = models.BooleanField()
+    categories = models.JSONField()
+    nlp_log = models.TextField(blank=True)
+    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
+
+
 
 @receiver(models.signals.pre_save, sender=RequestRepositoryAuthorization)
 def set_user_role_on_approved(instance, **kwargs):

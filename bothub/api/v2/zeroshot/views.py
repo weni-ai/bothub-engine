@@ -1,5 +1,6 @@
 import requests
 import logging
+import json
 
 from django.conf import settings
 
@@ -12,8 +13,10 @@ from bothub.common.models import (
     ZeroShotOptions,
     RepositoryZeroShot,
     Repository,
+    ZeroshotLogs
 )
 
+from bothub.api.v2.zeroshot.permissions import ZeroshotTokenPermission
 
 logger = logging.getLogger(__name__)
 
@@ -74,19 +77,18 @@ class ZeroShotRepositoryAPIView(APIView):
 
 class ZeroShotFastPredictAPIView(APIView):
 
+    authentication_classes = []
+    permission_classes = [ZeroshotTokenPermission]
+
     def post(self, request):
+
         data = request.data
-
-        auth = data.get("token")
-
-        if auth != settings.FLOWS_TOKEN_ZEROSHOT:
-            return Response(status=401, data={"error": "You don't have permission to do this."})
 
         classes = {}
 
         for categorie in data.get("categories"):
             option = categorie.get("option")
-            classes[option] = []
+            classes[option] = [option]
             for synonym in categorie.get("synonyms"):
                 classes[option].append(synonym)
 
@@ -101,7 +103,7 @@ class ZeroShotFastPredictAPIView(APIView):
             "Content-Type": "application/json; charset: utf-8",
             "Authorization": f"Bearer {settings.ZEROSHOT_TOKEN}",
         }
-
+        response_nlp = None
         try:
             url = settings.ZEROSHOT_BASE_NLP_URL
             if len(settings.ZEROSHOT_SUFFIX) > 0:
@@ -111,6 +113,16 @@ class ZeroShotFastPredictAPIView(APIView):
                 url=url,
                 json=body
             )
+            if response_nlp.status_code == 200:
+                classification_data = response_nlp.json().get("output")
+                ZeroshotLogs.objects.create(
+                    text=data.get("text"),
+                    classification=classification_data.get("classification"),
+                    other=classification_data.get("other"),
+                    categories=classes,
+                    nlp_log=json.dumps(response_nlp.json())
+                )
+            return Response(status=response_nlp.status_code, data=response_nlp.json() if response_nlp.status_code == 200 else {"error": response_nlp.text})
         except Exception as error:
             logger.error(f"[ - ] Zeroshot fast predict: {error}")
-        return Response(status=response_nlp.status_code, data=response_nlp.json() if response_nlp.status_code == 200 else {"error": response_nlp.text})
+            return Response(status=response_nlp.status_code if response_nlp else 500, data={"error": error})

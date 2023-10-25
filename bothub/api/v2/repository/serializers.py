@@ -4,6 +4,8 @@ from django.shortcuts import get_object_or_404
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied, ValidationError
+from rest_framework.exceptions import NotFound
+
 from django_elasticsearch_dsl_drf.serializers import DocumentSerializer
 
 from bothub import utils
@@ -63,6 +65,7 @@ from ..translation.validators import (
 from bothub.api.v2.internal.connect_rest_client import (
     ConnectRESTClient as ConnectClient,
 )
+from bothub.project.models import ProjectIntelligence, Project
 
 
 class RequestRepositoryAuthorizationSerializer(serializers.ModelSerializer):
@@ -1704,16 +1707,6 @@ class AddRepositoryProjectSerializer(serializers.Serializer):
     user = serializers.EmailField(required=True)
     access_token = serializers.CharField(required=True)
     project_uuid = serializers.CharField(required=True)
-
-    def create(self, validated_data):
-        if settings.USE_GRPC:
-            task = celery_app.send_task(
-                name="create_repository_project", kwargs=validated_data
-            )
-            task.wait()
-        else:
-            task = ConnectClient().create_classifier(**validated_data)
-        return validated_data
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
