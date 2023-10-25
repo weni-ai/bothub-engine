@@ -750,7 +750,7 @@ class RepositoryAuthorizationKnowledgeBaseViewSet(
         serializer = QAtextSerializer(context)
 
         try:
-            serializer.validate()
+            serializer.validate_gpt_tokens()
         except DRFValidationError as e:
             return Response(status=500, data=e.__dict__)
 
