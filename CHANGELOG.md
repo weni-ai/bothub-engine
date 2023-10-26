@@ -1,3 +1,7 @@
+# 6.6.0
+# Add
+  - Token limit validation to content AI
+
 # 6.5.0
 # Add
   - Zeroshot elastic docs
