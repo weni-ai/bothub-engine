@@ -2616,7 +2616,7 @@ class ZeroshotLogs(models.Model):
     categories = models.JSONField()
     nlp_log = models.TextField(blank=True)
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
-
+    language = models.CharField(verbose_name=_("Language"),max_length=64, null=True, blank=True)
 
 
 @receiver(models.signals.pre_save, sender=RequestRepositoryAuthorization)

@@ -10,6 +10,7 @@ from rest_framework import status
 
 from bothub.api.v2.nlp.views import RepositoryNLPLogsViewSet
 from bothub.api.v2.repository.views import RepositoryNLPLogViewSet
+from bothub.api.v2.zeroshot.views import ZeroShotFastPredictAPIView
 from bothub.api.v2.tests.utils import create_user_and_token
 from bothub.common import languages
 from bothub.common.models import (
@@ -250,3 +251,59 @@ class ListRepositoryNLPLogTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(content_data.get("count"), 1)
         self.assertEqual(len(content_data.get("results")[0].get("log_intent")), 4)
+
+
+class ZeroShotLogTestCase(TestCase):
+    def setUp(self) -> None:
+        self.factory = RequestFactory()
+
+    def request(self, data):
+        authorization_header = (
+            {"HTTP_AUTHORIZATION": f"Bearer {settings.FLOWS_TOKEN_ZEROSHOT}"}
+        )
+
+        request = self.factory.post(
+            "v2/repository/nlp/zeroshot/zeroshot-fast-predict",
+            json.dumps(data), content_type="application/json",
+            **authorization_header
+        )
+
+        response = ZeroShotFastPredictAPIView.as_view()(request)
+        response.render()
+        content_data = json.loads(response.content)
+        return (response, content_data)
+
+    def test_send_request_with_language(self):
+        payload = {
+            "text": "yes",
+            "language": "en",
+            "categories": [
+                {
+                    "option": "Affirmative",
+                    "synonyms": ["yes"]
+                },
+                {
+                    "option": "Negative",
+                    "synonyms": ["no"]
+                }
+            ]
+        }
+        response, _ = self.request(payload)
+        self.assertEquals(response.status_code, 200)
+
+    def test_send_request_without_language(self):
+        payload = {
+            "text": "yes",
+            "categories": [
+                {
+                    "option": "Affirmative",
+                    "synonyms": ["yes"]
+                },
+                {
+                    "option": "Negative",
+                    "synonyms": ["no"]
+                }
+            ]
+        }
+        response, _ = self.request(payload)
+        self.assertEquals(response.status_code, 200)
