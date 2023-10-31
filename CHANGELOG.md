@@ -1,3 +1,6 @@
+# 6.7.0
+# Add
+  - zeroshot support to language
 # 6.6.0
 # Add
   - Token limit validation to content AI
