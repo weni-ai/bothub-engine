@@ -95,6 +95,7 @@ class ZeroShotFastPredictAPIView(APIView):
         body = {
             "input": {
                 "text": data.get("text"),
+                "language": data.get("language"),
                 "classes": classes
             }
         }
@@ -120,7 +121,8 @@ class ZeroShotFastPredictAPIView(APIView):
                     classification=classification_data.get("classification"),
                     other=classification_data.get("other"),
                     categories=classes,
-                    nlp_log=json.dumps(response_nlp.json())
+                    nlp_log=json.dumps(response_nlp.json()),
+                    language=data.get("language"),
                 )
             return Response(status=response_nlp.status_code, data=response_nlp.json() if response_nlp.status_code == 200 else {"error": response_nlp.text})
         except Exception as error:
