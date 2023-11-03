@@ -99,7 +99,6 @@ class ExamplesViewSet(mixins.ListModelMixin, GenericViewSet):
             }
         )
 
-
     @action(
         detail=True,
         methods=["GET"],
@@ -108,7 +107,7 @@ class ExamplesViewSet(mixins.ListModelMixin, GenericViewSet):
     def get_untrained_examples(self, request, **kwargs):
         repository_uuid = request.data.get("repository_uuid")
         user = request.user
-        
+
         if len(RepositoryAuthorization.objects.filter(user=user, repository__uuid=repository_uuid)) == 0:
             raise PermissionDenied("You don't have permission on that repository.")
 
@@ -117,7 +116,7 @@ class ExamplesViewSet(mixins.ListModelMixin, GenericViewSet):
             repository = Repository.objects.get(uuid=repository_uuid)
         except:
             raise NotFound("Repository does not exists")
-        
+
         repository_version = RepositoryVersion.objects.get(repository=repository)
         response = []
         for repository_language in repository_version.version_languages.all():
