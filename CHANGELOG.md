@@ -1,3 +1,8 @@
+# 6.7.1
+## *Fix*
+  - Fixing get filter for existing phrases that need training
+  - Fix auto versioning after editing existing phrases
+
 # 6.7.0
 # Add
   - zeroshot support to language
