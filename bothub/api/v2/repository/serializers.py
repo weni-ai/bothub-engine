@@ -1391,13 +1391,14 @@ class RepositoryExampleSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         entities_data = validated_data.pop("entities", None)
         validated_data.pop("repository", None)
-        validated_data.pop("repository_version_language", None)
+        version_id = validated_data.pop("repository_version_language", None)
         language = validated_data.pop("language", None)
         intent_text = validated_data.get("intent", None)
 
         if language:
-            repository_version_language = instance.repository_version_language.repository_version.repository.current_version(
-                language
+            repository_version_language = instance.repository_version_language.repository_version.repository.get_specific_version_id(
+                language=language,
+                repository_version=version_id.pk,
             )
             validated_data.update(
                 {"repository_version_language": repository_version_language}

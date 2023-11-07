@@ -68,12 +68,12 @@ class ExamplesFilter(DefaultExamplesFilter):
         help_text=_("Filter for examples with version id."),
     )
     start_created_at = filters.DateTimeFilter(
-        field_name="created_at",
+        field_name="last_update",
         lookup_expr="gte",
         help_text=_("Filter by record creation date, example: 2020-08-15 15:35:12.51"),
     )
     end_created_at = filters.DateTimeFilter(
-        field_name="created_at",
+        field_name="last_update",
         lookup_expr="lte",
         help_text=_("Filter by record creation date, example: 2020-08-17 15:35:12.51"),
     )
