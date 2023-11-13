@@ -2386,6 +2386,18 @@ class RepositoryEvaluateResult(models.Model):
 
     cross_validation = models.BooleanField(_("cross validation"), default=False)
 
+    TYPE_MANUAL = 0
+    TYPE_AUTOMATIC = 1
+
+    EVALUATE_TYPES_CHOICE = [
+        (TYPE_MANUAL, "manual"),
+        (TYPE_AUTOMATIC, "automatic")
+    ]
+
+    evaluate_type = models.PositiveIntegerField(
+        _("role"), choices=EVALUATE_TYPES_CHOICE, default=TYPE_MANUAL, blank=True, null=True
+    )
+
     def save(self, *args, **kwargs):
         repository = self.repository_version_language.repository_version.repository
         self.version = repository.evaluations_results().count() + 1
