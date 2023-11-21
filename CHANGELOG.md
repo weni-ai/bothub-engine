@@ -1,3 +1,7 @@
+# 6.8.0
+## *Add*
+  - Create api repository filters for catergory and repository_type
+
 # 6.7.1
 ## *Fix*
   - Fixing get filter for existing phrases that need training
