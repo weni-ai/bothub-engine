@@ -964,15 +964,14 @@ class RepositoryCategoriesView(mixins.ListModelMixin, GenericViewSet):
 )
 class SearchRepositoriesViewSet(mixins.ListModelMixin, GenericViewSet):
     """
-    List all user's repositories
+    List all organization repositories by owner_id
     """
-
-    queryset = Repository.objects
+    queryset = Repository.objects.select_related("owner")
     serializer_class = RepositorySerializer
     lookup_field = "nickname"
     filter_class = RepositoriesFilter
     filter_backends = [DjangoFilterBackend, SearchFilter]
-    search_fields = ["$name", "^name", "=name"]
+    search_fields = ["$name", "^name", "=name", "=categories", "=repository_type"]
 
     def get_queryset(self, *args, **kwargs):
         try:
