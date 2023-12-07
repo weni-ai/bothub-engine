@@ -3,6 +3,7 @@ from sentry_sdk import capture_exception
 
 from ..usecases.project.projectdto import ProjectCreationDTO
 from ..usecases.project.creation import ProjectCreationUseCase
+from ..usecases.organization.creation import OrganizationAuthorizationCreateUsecase
 
 from bothub.event_driven.parsers import JSONParser
 from bothub.event_driven.consumer.consumers import EDAConsumer
@@ -27,6 +28,11 @@ class ProjectConsumer(EDAConsumer):  # pragma: no cover
 
             project_creation = ProjectCreationUseCase()
             project_creation.create_project(project_dto, body.get("user_email"))
+            auth_creation = OrganizationAuthorizationCreateUsecase()
+            auth_creation.eda_consume_organization_authorization(
+                authorizations=body.get("authorizations"),
+                organization_id=body.get("organization_id")
+            )
 
             message.channel.basic_ack(message.delivery_tag)
 
