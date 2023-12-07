@@ -86,6 +86,10 @@ class ZeroShotFastPredictAPIView(APIView):
     def post(self, request):
 
         data = request.data
+
+        if data.get("language", "") not in ["es", "en", "pt", "pt-br"]:
+            data["language"] = "pt-br"
+
         prompt_formatter = FormatPrompt()
         prompt = prompt_formatter.generate_prompt(data.get("language"), data)
 
