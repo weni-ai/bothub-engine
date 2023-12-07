@@ -2613,7 +2613,7 @@ class ZeroshotLogs(models.Model):
     text = models.TextField(help_text=_("Text to analyze"))
     classification = models.TextField()
     other = models.BooleanField()
-    categories = models.JSONField()
+    options = models.JSONField()
     nlp_log = models.TextField(blank=True)
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
     language = models.CharField(verbose_name=_("Language"),max_length=64, null=True, blank=True)

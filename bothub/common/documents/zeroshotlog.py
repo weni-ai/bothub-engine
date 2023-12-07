@@ -38,7 +38,7 @@ class ZeroshotLogDocument(TimeBasedDocument):
         fields = [
             "id",
             "text",
-            "categories",
+            "options",
             "classification",
             "other",
             "created_at",

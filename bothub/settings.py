@@ -123,7 +123,14 @@ env = environ.Env(
     ZEROSHOT_BASE_NLP_URL=(str, ""),
     FLOWS_TOKEN_ZEROSHOT=(str, ""),
     ZEROSHOT_SUFFIX=(str, ""),
-    ZEROSHOT_TOKEN=(str, "")
+    ZEROSHOT_TOKEN=(str, ""),
+    ZEROSHOT_MAX_TOKENS = (int, 20),
+    ZEROSHOT_N = (int, 1),
+    ZEROSHOT_TOP_P = (float, 0.95),
+    ZEROSHOT_TOK_K = (int, 10),
+    ZEROSHOT_TEMPERATURE = (float, 0.1),
+    ZEROSHOT_DO_SAMPLE = (bool, False),
+    ZEROSHOT_STOP = (str, "\n"),
 )
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -710,3 +717,10 @@ ZEROSHOT_BASE_NLP_URL = env.str("ZEROSHOT_BASE_NLP_URL")
 FLOWS_TOKEN_ZEROSHOT = env.str("FLOWS_TOKEN_ZEROSHOT")
 ZEROSHOT_SUFFIX = env.str("ZEROSHOT_SUFFIX")
 ZEROSHOT_TOKEN = env.str("ZEROSHOT_TOKEN")
+ZEROSHOT_MAX_TOKENS = env.int("ZEROSHOT_MAX_TOKENS")
+ZEROSHOT_N = env.int("ZEROSHOT_N")
+ZEROSHOT_TOP_P = env.float("ZEROSHOT_TOP_P")
+ZEROSHOT_TOK_K = env.int("ZEROSHOT_TOK_K")
+ZEROSHOT_TEMPERATURE = env.float("ZEROSHOT_TEMPERATURE")
+ZEROSHOT_DO_SAMPLE = env.bool("ZEROSHOT_DO_SAMPLE")
+ZEROSHOT_STOP = env.str("ZEROSHOT_STOP")
