@@ -1,7 +1,7 @@
 
 class FormatPrompt:
     const_prompt_data = {
-        "pt_br": {
+        "pt-br": {
             "prompt_context": "Você é muito especialista em ",
             "prompt_has_classes": ". Você possui as classes:\n\n",
             "prompt_class_prefix": "Classe: ",
@@ -37,7 +37,8 @@ class FormatPrompt:
     }
 
     def generate_prompt(self, language: str, zeroshot_data: dict):
-        
+        if language == 'pt':
+            language = "pt-br"
         translated_text = self.const_prompt_data[language]
         prompt = translated_text.get("prompt_context") + zeroshot_data.get("context") + translated_text.get("prompt_has_classes")
         for option in zeroshot_data.get("options"):
