@@ -91,8 +91,6 @@ class ZeroShotFastPredictAPIView(APIView):
 
         body = {
             "input": {
-                "text": data.get("text"),
-                "language": data.get("language"),
                 "prompt": prompt,
                 "sampling_params": {
                     "max_tokens": settings.ZEROSHOT_MAX_TOKENS,
@@ -124,9 +122,10 @@ class ZeroShotFastPredictAPIView(APIView):
 
             response = {"output": {}}
             if response_nlp.status_code == 200:
-                formatted_classification = FormatClassification(
-                    response_nlp.json().get("output")
-                ).get_classify(language=data.get("language"), options=data.get("options"))
+                classification = response_nlp.json().get("output")
+                classification_formatter = FormatClassification(classification)
+
+                formatted_classification = classification_formatter.get_classify(language=data.get("language"), options=data.get("options"))
                 
                 response["output"] = formatted_classification
 
