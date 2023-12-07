@@ -17,6 +17,7 @@ from bothub.common.models import (
 )
 
 from .usecases.format_prompt import FormatPrompt
+from .usecases.format_classification import FormatClassification
 
 from bothub.api.v2.zeroshot.permissions import ZeroshotTokenPermission
 
@@ -85,8 +86,8 @@ class ZeroShotFastPredictAPIView(APIView):
     def post(self, request):
 
         data = request.data
-        formatter = FormatPrompt()
-        prompt = formatter.generate_prompt(data.get("language"), data)
+        prompt_formatter = FormatPrompt()
+        prompt = prompt_formatter.generate_prompt(data.get("language"), data)
 
         body = {
             "input": {
@@ -121,25 +122,18 @@ class ZeroShotFastPredictAPIView(APIView):
                 json=body
             )
 
-            response = {}
-            other = False
-            classification = None
-
+            response = {"output": {}}
             if response_nlp.status_code == 200:
-                classification_data = response_nlp.json().get("output")
-                classification = classification_data.get("text")[0].strip()
-                other = formatter.get_none_class(language=data.get("language")) in classification
-                response = {
-                    "output": {
-                        "classification": classification,
-                        "other": other
-                    }
-                }
+                formatted_classification = FormatClassification(
+                    response_nlp.json().get("output")
+                ).get_classify(language=data.get("language"), options=data.get("options"))
+                
+                response["output"] = formatted_classification
 
             ZeroshotLogs.objects.create(
                 text=data.get("text"),
-                classification=classification,
-                other=other,
+                classification=response["output"].get("classification"),
+                other=response["output"].get("other", False),
                 options=data.get("options"),
                 nlp_log=str(response_nlp.json()),
                 language=data.get("language")
