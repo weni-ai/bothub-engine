@@ -16,6 +16,8 @@ from bothub.common.models import (
     ZeroshotLogs
 )
 
+from .usecases.format_prompt import FormatPrompt
+
 from bothub.api.v2.zeroshot.permissions import ZeroshotTokenPermission
 
 logger = logging.getLogger(__name__)
@@ -83,20 +85,24 @@ class ZeroShotFastPredictAPIView(APIView):
     def post(self, request):
 
         data = request.data
-
-        classes = {}
-
-        for categorie in data.get("categories"):
-            option = categorie.get("option")
-            classes[option] = [option]
-            for synonym in categorie.get("synonyms"):
-                classes[option].append(synonym)
+        formatter = FormatPrompt()
+        prompt = formatter.generate_prompt(data.get("language"), data)
 
         body = {
             "input": {
                 "text": data.get("text"),
                 "language": data.get("language"),
-                "classes": classes
+                "prompt": prompt,
+                "sampling_params": {
+                    "max_tokens": settings.ZEROSHOT_MAX_TOKENS,
+                    "n": settings.ZEROSHOT_N,
+                    "top_p": settings.ZEROSHOT_TOP_P,
+                    "tok_k": settings.ZEROSHOT_TOK_K,
+                    "temperature": settings.ZEROSHOT_TEMPERATURE,
+                    "do_sample": settings.ZEROSHOT_DO_SAMPLE,
+                    "stop": settings.ZEROSHOT_STOP
+                }
+
             }
         }
 
@@ -114,17 +120,32 @@ class ZeroShotFastPredictAPIView(APIView):
                 url=url,
                 json=body
             )
+
+            response = {}
+            other = False
+            classification = None
+
             if response_nlp.status_code == 200:
                 classification_data = response_nlp.json().get("output")
-                ZeroshotLogs.objects.create(
-                    text=data.get("text"),
-                    classification=classification_data.get("classification"),
-                    other=classification_data.get("other"),
-                    categories=classes,
-                    nlp_log=json.dumps(response_nlp.json()),
-                    language=data.get("language"),
-                )
-            return Response(status=response_nlp.status_code, data=response_nlp.json() if response_nlp.status_code == 200 else {"error": response_nlp.text})
+                classification = classification_data.get("text")[0].strip()
+                other = formatter.get_none_class(language=data.get("language")) in classification
+                response = {
+                    "output": {
+                        "classification": classification,
+                        "other": other
+                    }
+                }
+
+            ZeroshotLogs.objects.create(
+                text=data.get("text"),
+                classification=classification,
+                other=other,
+                options=data.get("options"),
+                nlp_log=str(response_nlp.json()),
+                language=data.get("language")
+            )
+
+            return Response(status=response_nlp.status_code, data=response if response_nlp.status_code == 200 else {"error": response_nlp.text})
         except Exception as error:
             logger.error(f"[ - ] Zeroshot fast predict: {error}")
             return Response(status=response_nlp.status_code if response_nlp else 500, data={"error": error})
