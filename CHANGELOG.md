@@ -1,3 +1,11 @@
+# 6.9.0
+## *Add*
+  - usecases classes to format prompt and classification
+
+## *Change*
+  - zeroshotlog receive options
+  - now we send prompts to zeroshot
+
 # 6.8.0
 ## *Add*
   - Create api repository filters for catergory and repository_type
