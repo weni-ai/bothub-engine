@@ -989,7 +989,6 @@ class SearchRepositoriesViewSet(mixins.ListModelMixin, GenericViewSet):
             integrated_repositories = self.queryset.filter(
                 project_intelligences__project=project
             )
-
             combined_queryset = integrated_repositories
 
         if not owner_id and not nickname:
@@ -998,10 +997,26 @@ class SearchRepositoriesViewSet(mixins.ListModelMixin, GenericViewSet):
             if queryset_owner.exists():
                 combined_queryset = combined_queryset.union(queryset_owner)
 
+        if owner_id:
+            queryset_owner = self.queryset.filter(owner__id=owner_id)
+
+            if queryset_owner.exists():
+                combined_queryset = combined_queryset.union(queryset_owner)
+
         if combined_queryset:
-            return combined_queryset.distinct()
+            return combined_queryset
         else:
             return super().get_queryset()
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
 
 class RepositoriesPermissionsViewSet(mixins.ListModelMixin, GenericViewSet):
