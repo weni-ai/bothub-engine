@@ -978,7 +978,7 @@ class SearchRepositoriesViewSet(mixins.ListModelMixin, GenericViewSet):
         owner_id = self.request.query_params.get("owner_id")
         nickname = self.request.query_params.get("nickname")
 
-        combined_queryset = None
+        combined_queryset = Repository.objects.none()
 
         if project_uuid:
             try:
