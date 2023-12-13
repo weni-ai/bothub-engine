@@ -974,14 +974,34 @@ class SearchRepositoriesViewSet(mixins.ListModelMixin, GenericViewSet):
     search_fields = ["$name", "^name", "=name", "=categories", "=repository_type"]
 
     def get_queryset(self, *args, **kwargs):
-        try:
-            if not self.request.query_params.get(
-                "nickname", None
-            ) and not self.request.query_params.get("owner_id", None):
-                return self.queryset.filter(owner=self.request.user).distinct()
+        project_uuid = self.request.query_params.get("project_uuid")
+        owner_id = self.request.query_params.get("owner_id")
+        nickname = self.request.query_params.get("nickname")
+
+        combined_queryset = None
+
+        if project_uuid:
+            try:
+                project = Project.objects.get(uuid=project_uuid)
+            except Project.DoesNotExist:
+                raise ValidationError(_("Project not found"))
+
+            integrated_repositories = self.queryset.filter(
+                project_intelligences__project=project
+            )
+
+            combined_queryset = integrated_repositories
+
+        if not owner_id and not nickname:
+            queryset_owner = self.queryset.filter(owner=self.request.user)
+
+            if queryset_owner.exists():
+                combined_queryset = combined_queryset.union(queryset_owner)
+
+        if combined_queryset:
+            return combined_queryset.distinct()
+        else:
             return super().get_queryset()
-        except TypeError:
-            return self.queryset.none()
 
 
 class RepositoriesPermissionsViewSet(mixins.ListModelMixin, GenericViewSet):
