@@ -992,7 +992,7 @@ class SearchRepositoriesViewSet(mixins.ListModelMixin, GenericViewSet):
             combined_queryset = integrated_repositories
 
         if not owner_id and not nickname:
-            queryset_owner = self.queryset.filter(owner=self.request.user)
+            queryset_owner = self.queryset.filter(owner=self.request.user).distinct()
 
             if queryset_owner.exists():
                 combined_queryset = combined_queryset.union(queryset_owner)
@@ -1003,10 +1003,7 @@ class SearchRepositoriesViewSet(mixins.ListModelMixin, GenericViewSet):
             if queryset_owner.exists():
                 combined_queryset = combined_queryset.union(queryset_owner)
 
-        if combined_queryset:
-            return combined_queryset
-        else:
-            return super().get_queryset()
+        return combined_queryset
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
