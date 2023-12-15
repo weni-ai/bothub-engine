@@ -1,3 +1,7 @@
+# 6.9.1
+## *Change*
+  - improving the zeroshot prompt
+
 # 6.9.0
 ## *Add*
   - usecases classes to format prompt and classification
