@@ -19,7 +19,7 @@ class FormatPrompt:
             "is_class_context_prefix": False,
             "prompt_context_classes": " class context",
             "prompt_none_name": "None",
-            "prompt_none_definition": "Class: None\\n\\nNone class context: Use when a sentence doesn't align with any of the classes above.\\n",
+            "prompt_none_definition": "Class: None\\n\\nNone class context: The none class is an indication of absence or lack of something, generally used to express the non-existence of certain information or option and when the message does not fit into any of the other classes.\\n",
             "prompt_phrase_prefix": "Sentence: ",
             "prompt_analyse_text": "Stop, think carefully and analyze what the best class answer to the sentence is, only answer if you are very sure.\\n\\nClass:"
         },
@@ -30,7 +30,7 @@ class FormatPrompt:
             "is_class_context_prefix": True,
             "prompt_context_classes": "Contexto de la clase ",
             "prompt_none_name": "Ninguna",
-            "prompt_none_definition": "Clase: Ninguna\\n\\nContexto de la clase Ninguna: Aplicable si el tema no corresponde con las clases establecidas.",
+            "prompt_none_definition": "Clase: Ninguna\\n\\nContexto de la clase Ninguna: La clase ninguna es una indicación de ausencia o falta de algo, generalmente utilizada para expresar la inexistencia de cierta información u opción y cuando el mensaje no encaja en ninguna de las otras clases.",
             "prompt_phrase_prefix": "Frase: ",
             "prompt_analyse_text": "Detente, piensa detenidamente y analiza cuál es la mejor respuesta de clase a la frase, responde sólo si estás muy seguro.\\n\\nClase:"
         }
@@ -54,3 +54,11 @@ class FormatPrompt:
     def get_none_class(self, language: str):
         data = self.const_prompt_data.get(language)
         return data.get("prompt_none_name", "Nenhuma")
+
+    def get_language(self, language: str):
+        if "es" in language:
+            return "es"
+        elif "en" in language:
+            return "en"
+        else:
+            return "pt-br"
