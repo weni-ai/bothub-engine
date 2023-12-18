@@ -4,3 +4,7 @@ class InvalidProjectData(Exception):
 
 class InvalidTemplateTypeData(Exception):
     pass
+
+
+class InvalidOrganizationData(Exception):
+    pass
