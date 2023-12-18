@@ -1,3 +1,21 @@
+# 6.9.2
+## *change*
+  - get language now is a method on prompt_formatter and use the language prefix to define the language, default is pt-br
+  - in post processing now get the first word and normalize special characters to compare with normalize classes
+  - improving the none template text in `en` and `es` languages
+
+# 6.9.1
+## *Change*
+  - improving the zeroshot prompt
+
+# 6.9.0
+## *Add*
+  - usecases classes to format prompt and classification
+
+## *Change*
+  - zeroshotlog receive options
+  - now we send prompts to zeroshot
+
 # 6.8.0
 ## *Add*
   - Create api repository filters for catergory and repository_type
