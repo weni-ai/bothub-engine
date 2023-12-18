@@ -10,7 +10,7 @@ class FormatPrompt:
             "prompt_none_name": "Nenhuma",
             "prompt_none_definition": "Classe: Nenhuma\\nContexto da classe Nenhuma: A classe nenhuma é uma indicação de ausência ou falta de algo, geralmente utilizada para expressar a inexistência de determinada informação ou opção e quando a mensagem não se encaixa em nenhuma das outras classes\\n\\n",
             "prompt_phrase_prefix": "Frase: ",
-            "prompt_analyse_text": "Pare, pense bem e analise qual é a melhor resposta de classe para a frase, responda só se você tiver muita certeza.\\n\\nClasse: "
+            "prompt_analyse_text": "Pare, pense bem e analise qual é a melhor resposta de classe para a frase, responda só se você tiver muita certeza.\\n\\nClasse:"
         }, 
         "en": {
             "prompt_context": "You are very expert in ",
