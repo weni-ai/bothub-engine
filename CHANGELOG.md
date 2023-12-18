@@ -1,3 +1,9 @@
+# 6.10.0
+## *Add*
+  - Authorization creation using EDA consumer
+## *change*
+  - removing space that is messing up the classify
+
 # 6.9.2
 ## *change*
   - get language now is a method on prompt_formatter and use the language prefix to define the language, default is pt-br
