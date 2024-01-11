@@ -1370,6 +1370,7 @@ class RepositoryNLPLogExportViewSet(DocumentViewSet):
         NestedFilteringFilterBackend,
     ]
     pagination_class = LimitOffsetPagination
+    limit = settings.REPOSITORY_NLP_LOG_LIMIT
     search_fields = ["text"]
     filter_fields = {
         "repository_uuid": "repository_uuid",
