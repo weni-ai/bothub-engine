@@ -64,6 +64,7 @@ from bothub.common.models import (
     RepositoryVersionLanguage,
     Organization,
 )
+from bothub.common.usecase.repositorylog.export import ExportRepositoryLogUseCase
 
 from ..metadata import Metadata
 from .filters import (
@@ -1357,6 +1358,56 @@ class RepositoryNLPLogViewSet(DocumentViewSet):
         }
         RepositoryNLPLogFilter(params=params, user=self.request.user)
         return super().get_queryset().sort("-created_at")
+
+
+class RepositoryNLPLogExportViewSet(DocumentViewSet):
+    document = RepositoryNLPLogDocument
+    serializer_class = RepositoryNLPLogSerializer
+    permission_classes = [permissions.IsAuthenticated, RepositoryLogPermission]
+    filter_backends = [
+        CompoundSearchFilterBackend,
+        FilteringFilterBackend,
+        NestedFilteringFilterBackend,
+    ]
+    pagination_class = LimitOffsetPagination
+    search_fields = ["text"]
+    filter_fields = {
+        "repository_uuid": "repository_uuid",
+        "language": "language",
+        "repository_version": "repository_version",
+        "repository_version_language": "repository_version_language",
+        "created_at": {
+            "field": "created_at",
+            "lookups": [LOOKUP_FILTER_RANGE, LOOKUP_QUERY_LTE, LOOKUP_QUERY_GTE],
+        },
+    }
+    nested_filter_fields = {
+        "intent": {"field": "nlp_log.intent.name.raw", "path": "nlp_log"},
+        "confidence": {
+            "field": "nlp_log.intent.confidence",
+            "path": "nlp_log",
+            "lookups": [LOOKUP_FILTER_RANGE, LOOKUP_QUERY_LTE, LOOKUP_QUERY_GTE],
+        },
+    }
+
+    def filter_queryset(self, queryset):
+        queryset = super().filter_queryset(queryset)
+        return queryset[: self.limit]
+
+    def get_queryset(self):
+        params = {
+            "repository_uuid": self.request.query_params.get("repository_uuid", None),
+            "repository_version": self.request.query_params.get(
+                "repository_version", None
+            ),
+            "repository_version_language": self.request.query_params.get(
+                "repository_version_language", None
+            ),
+        }
+        usecase = ExportRepositoryLogUseCase()
+        RepositoryNLPLogFilter(params=params, user=self.request.user)
+        xlsx = usecase.create_xlsx_response(super().get_queryset().sort("-created_at"))
+        return xlsx
 
 
 class RepositoryQANLPLogViewSet(DocumentViewSet):

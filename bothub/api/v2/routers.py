@@ -59,6 +59,7 @@ from .repository.views import (
     RepositoryMigrateViewSet,
     RepositoryNLPLogReportsViewSet,
     RepositoryNLPLogViewSet,
+    RepositoryNLPLogExportViewSet,
     RepositoryQANLPLogViewSet,
     RepositoryTaskQueueViewSet,
     RepositoryTokenByUserViewSet,
@@ -198,6 +199,7 @@ router.register("repository/translation", RepositoryTranslatedExampleViewSet)
 router.register("repository/translation-export", RepositoryTranslatedExporterViewSet)
 router.register("repository/version", RepositoryVersionViewSet)
 router.register("repository/log", RepositoryNLPLogViewSet, basename="es-repository-log")
+router.register("repository/log/export", RepositoryNLPLogExportViewSet, basename="es-repository-log-export")
 router.register(
     "repository/qalog", RepositoryQANLPLogViewSet, basename="es-repository-qa-log"
 )
