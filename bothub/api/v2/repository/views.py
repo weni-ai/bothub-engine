@@ -1404,10 +1404,18 @@ class RepositoryNLPLogExportViewSet(DocumentViewSet):
                 "repository_version_language", None
             ),
         }
-        usecase = ExportRepositoryLogUseCase()
         RepositoryNLPLogFilter(params=params, user=self.request.user)
-        xlsx = usecase.create_xlsx_response(super().get_queryset().sort("-created_at"))
-        return xlsx
+        return super().get_queryset()
+
+    def get_xlsx(self, queryset):
+        usecase = ExportRepositoryLogUseCase()
+        xlsx_response = usecase.create_xlsx_response(queryset)
+        return xlsx_response
+
+    def get(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        xlsx_response = self.get_xlsx(queryset)
+        return xlsx_response
 
 
 class RepositoryQANLPLogViewSet(DocumentViewSet):
