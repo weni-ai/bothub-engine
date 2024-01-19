@@ -181,7 +181,7 @@ class RepositoryTranslatedExporterViewSet(
                     end=entity.end + count_entity,
                 )
                 count_entity += len(entity.entity.value) + 4
-            
+
             translated = RepositoryTranslatedExample.objects.filter(
                 original_example=example.pk, language=for_the_language
             )

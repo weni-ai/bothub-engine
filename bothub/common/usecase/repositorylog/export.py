@@ -1,6 +1,7 @@
 from django.http import HttpResponse
 
 from openpyxl import Workbook
+from openpyxl.writer.excel import save_virtual_workbook
 
 
 class ExportRepositoryLogUseCase:
@@ -13,17 +14,23 @@ class ExportRepositoryLogUseCase:
         wb = Workbook()
         ws = wb.active
 
-        ws['A1'] = 'Repository'
-        ws['B1'] = 'Date'
-        ws['C1'] = 'Action'
-        ws['D1'] = 'User'
+        ws['A1'] = 'Text'
+        ws['B1'] = 'Created At'
+        ws['C1'] = 'Intent'
+        ws['D1'] = 'Confidence'
+        ws['E1'] = 'Entities'
+        ws['F1'] = 'Entities List'
+
+        if repository_logs is None:
+            return wb
 
         row = 2
         for repository_log in repository_logs:
-            ws['A{}'.format(row)] = repository_log.repository.name
-            ws['B{}'.format(row)] = repository_log.date
-            ws['C{}'.format(row)] = repository_log.action
-            ws['D{}'.format(row)] = repository_log.user.username
+            ws['A{}'.format(row)] = repository_log.nlp_log.text
+            ws['B{}'.format(row)] = repository_log.created_at
+            ws['C{}'.format(row)] = repository_log.nlp_log.intent.name
+            ws['D{}'.format(row)] = repository_log.nlp_log.intent.confidence
+            ws['F{}'.format(row)] = repository_log.nlp_log.entities
             row += 1
 
         return wb
@@ -34,8 +41,10 @@ class ExportRepositoryLogUseCase:
     ) -> HttpResponse:
 
         wb = self._create_xlsx_workbook(repository_logs)
-        response = HttpResponse(content_type='application/vnd.ms-excel')
+        response = HttpResponse(
+            content=save_virtual_workbook(wb),
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
         response['Content-Disposition'] = 'attachment; filename=repository_logs.xlsx'
-        wb.save(response)
 
         return response
