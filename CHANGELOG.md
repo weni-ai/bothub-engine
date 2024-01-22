@@ -1,3 +1,7 @@
+# 6.11.0
+## *Add*
+  - Endpoint that can export repository nlp logs into a xlsx file
+
 # 6.10.0
 ## *Add*
   - Authorization creation using EDA consumer
