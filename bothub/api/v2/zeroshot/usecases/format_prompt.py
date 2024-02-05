@@ -15,7 +15,7 @@ class FormatPrompt:
         "en": {
             "prompt_context": "You are very expert in ",
             "prompt_has_classes": ". You have the following classes:\\n\\n",
-            "prompt_class_suffix": "Class: ",
+            "prompt_class_prefix": "Class: ",
             "is_class_context_prefix": False,
             "prompt_context_classes": " class context",
             "prompt_none_name": "None",
