@@ -1,7 +1,7 @@
 
 class FormatPrompt:
     const_prompt_data = {
-        "pt-br": {
+        "por": {
             "prompt_context": "Você é muito especialista em ",
             "prompt_has_classes": ". Você possui as classes:\\n\\n",
             "prompt_class_prefix": "Classe: ",
@@ -12,7 +12,7 @@ class FormatPrompt:
             "prompt_phrase_prefix": "Frase: ",
             "prompt_analyse_text": "Pare, pense bem e analise qual é a melhor resposta de classe para a frase, responda só se você tiver muita certeza.\\n\\nClasse:"
         }, 
-        "en": {
+        "eng": {
             "prompt_context": "You are very expert in ",
             "prompt_has_classes": ". You have the following classes:\\n\\n",
             "prompt_class_prefix": "Class: ",
@@ -23,7 +23,7 @@ class FormatPrompt:
             "prompt_phrase_prefix": "Sentence: ",
             "prompt_analyse_text": "Stop, think carefully and analyze what the best class answer to the sentence is, only answer if you are very sure.\\n\\nClass:"
         },
-        "es": {
+        "spa": {
             "prompt_context": "Eres muy experto en ",
             "prompt_has_classes": ". Usted posee las clases:\\n\\n",
             "prompt_class_prefix": "Clase: ",
