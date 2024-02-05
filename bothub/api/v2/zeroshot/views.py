@@ -89,9 +89,7 @@ class ZeroShotFastPredictAPIView(APIView):
 
         prompt_formatter = FormatPrompt()
         
-        data["language"] = prompt_formatter.get_language(data.get("language", "pt-br"))
-        
-        prompt = prompt_formatter.generate_prompt(data.get("language"), data)
+        prompt = prompt_formatter.generate_prompt(data.get("language", "por"), data)
 
         body = {
             "input": {
