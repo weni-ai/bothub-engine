@@ -1413,7 +1413,7 @@ class RepositoryNLPLogExportViewSet(DocumentViewSet):
         xlsx_response = usecase.create_xlsx_response(queryset)
         return xlsx_response
 
-    def get(self, request, *args, **kwargs):
+    def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         xlsx_response = self.get_xlsx(queryset)
         return xlsx_response
