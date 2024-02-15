@@ -1,3 +1,7 @@
+# 6.12.2
+## *Fix*
+  - Wrong override method name on the export logs viewset
+
 # 6.11.0
 ## *Add*
   - Endpoint that can export repository nlp logs into a xlsx file
