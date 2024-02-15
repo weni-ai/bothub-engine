@@ -26,11 +26,18 @@ class ExportRepositoryLogUseCase:
 
         row = 2
         for repository_log in repository_logs:
+            entities = repository_log.nlp_log.entities.to_dict()
+            entities_list = []
+            for entity_type, entities in entities.items():
+                for entity in entities:
+                    entities_list.append(f"{entity['entity']}:{entity['value']}")
+            entities_str = ', '.join(entities_list)
+
             ws['A{}'.format(row)] = repository_log.nlp_log.text
             ws['B{}'.format(row)] = repository_log.created_at
             ws['C{}'.format(row)] = repository_log.nlp_log.intent.name
             ws['D{}'.format(row)] = repository_log.nlp_log.intent.confidence
-            ws['F{}'.format(row)] = repository_log.nlp_log.entities
+            ws['F{}'.format(row)] = entities_str
             row += 1
 
         return wb
