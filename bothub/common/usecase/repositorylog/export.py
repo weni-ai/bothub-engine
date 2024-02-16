@@ -1,7 +1,12 @@
-from django.http import HttpResponse
+import io
+
+from rest_framework import status
+from rest_framework.response import Response
 
 from openpyxl import Workbook
 from openpyxl.writer.excel import save_virtual_workbook
+
+from .storage import s3FileDatabase
 
 
 class ExportRepositoryLogUseCase:
@@ -42,16 +47,26 @@ class ExportRepositoryLogUseCase:
 
         return wb
 
+    def xlsx_storage(
+            self,
+            xlsx_file
+    ) -> str:
+        file_database = s3FileDatabase()
+        xlsx_file_object = io.BytesIO(xlsx_file)
+        created_file = file_database.add_file(xlsx_file_object)
+        temp_url = file_database.create_presigned_url(created_file.file_name)
+        return temp_url
+
     def create_xlsx_response(
             self,
             repository_logs
-    ) -> HttpResponse:
+    ) -> Response:
 
         wb = self._create_xlsx_workbook(repository_logs)
-        response = HttpResponse(
-            content=save_virtual_workbook(wb),
-            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        temp_url = self.xlsx_storage(save_virtual_workbook(wb))
+        response = Response(
+            data={"file": temp_url},
+            status=status.HTTP_200_OK
         )
-        response['Content-Disposition'] = 'attachment; filename=repository_logs.xlsx'
 
         return response
