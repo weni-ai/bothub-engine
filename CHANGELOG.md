@@ -1,3 +1,11 @@
+# 6.13.0
+## *Add*
+  - Create a storage usecase for xlsx logs
+## *Change*
+  - Change xlsx logs api export to return to s3 boto temp link
+## *Fix*
+  - Fix xlsx logs type to file, it was currently returning bytes
+
 # 6.12.2
 ## *Fix*
   - Wrong override method name on the export logs viewset
