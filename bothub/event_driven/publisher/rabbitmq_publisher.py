@@ -8,6 +8,7 @@ from django.conf import settings
 
 from bothub.event_driven.connection.rabbitmq_connection import RabbitMQConnection
 
+
 class RabbitMQPublisher:
 
     def __init__(self) -> None:
