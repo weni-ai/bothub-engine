@@ -695,3 +695,4 @@ def send_recent_activity(recent_activity_data):
         exchange="recent_activities.topic",
         routing_key="",
     )
+    print(f"[ intelligencePublisher ] message sent - {recent_activity_data} to recent_activities.topic")
