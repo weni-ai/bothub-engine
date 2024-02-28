@@ -692,7 +692,7 @@ def send_recent_activity(recent_activity_data):
     rabbitmq_publisher = RabbitMQPublisher()
     rabbitmq_publisher.send_message(
         body=recent_activity_data,
-        exchange="recent_activities.topic",
+        exchange="recent-activities.topic",
         routing_key="",
     )
     print(f"[ intelligencePublisher ] message sent - {recent_activity_data} to recent_activities.topic")
