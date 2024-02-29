@@ -32,8 +32,7 @@ class FormatPrompt:
         }
     }
 
-    def generate_prompt(self, zeroshot_data: dict):
-        language = zeroshot_data.get("language", self.get_default_language())
+    def generate_prompt(self, language: str, zeroshot_data: dict):
         translated_text = self.const_prompt_data[language]
         context = zeroshot_data.get("context")
         input = zeroshot_data.get("text")

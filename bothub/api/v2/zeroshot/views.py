@@ -88,9 +88,11 @@ class ZeroShotFastPredictAPIView(APIView):
         data = request.data
 
         prompt_formatter = FormatPrompt()
-        prompt = prompt_formatter.generate_prompt(data)
 
-        body = {
+        language = data.get("language", prompt_formatter.get_default_language())
+        prompt = prompt_formatter.generate_prompt(language, data)
+
+        payload = json.dumps({
             "input": {
                 "prompt": prompt,
                 "sampling_params": {
@@ -104,7 +106,7 @@ class ZeroShotFastPredictAPIView(APIView):
                 }
 
             }
-        }
+        })
 
         headers = {
             "Content-Type": "application/json; charset: utf-8",
@@ -118,15 +120,14 @@ class ZeroShotFastPredictAPIView(APIView):
             response_nlp = requests.post(
                 headers=headers,
                 url=url,
-                json=body
+                data=payload
             )
 
             response = {"output": {}}
             if response_nlp.status_code == 200:
-                classification = response_nlp.json().get("output")
-                classification_formatter = FormatClassification(classification)
-
-                formatted_classification = classification_formatter.get_classify(language=data.get("language"), options=data.get("options"))
+                classification = response_nlp.json()
+                classification_formatter = FormatClassification(language, classification)
+                formatted_classification = classification_formatter.get_classify(data)
                 
                 response["output"] = formatted_classification
 
