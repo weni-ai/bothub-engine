@@ -1,64 +1,60 @@
+BASE_PROMPT = """<s>[INST] {context_description} {context}
+{reflection}
+
+# {classes_title}
+{all_classes}
+
+# {sentence_title} {input}
+# {class_id_title} [/INST]"""
 
 class FormatPrompt:
     const_prompt_data = {
         "por": {
-            "prompt_context": "Você é muito especialista em ",
-            "prompt_has_classes": ". Você possui as classes:\\n\\n",
-            "prompt_class_prefix": "Classe: ",
-            "prompt_context_classes": "Contexto da classe ",
-            "is_class_context_prefix": True,
-            "prompt_none_name": "Nenhuma",
-            "prompt_none_definition": "Classe: Nenhuma\\nContexto da classe Nenhuma: A classe nenhuma é uma indicação de ausência ou falta de algo, geralmente utilizada para expressar a inexistência de determinada informação ou opção e quando a mensagem não se encaixa em nenhuma das outras classes\\n\\n",
-            "prompt_phrase_prefix": "Frase: ",
-            "prompt_analyse_text": "Pare, pense bem e analise qual é a melhor resposta de classe para a frase, responda só se você tiver muita certeza.\\n\\nClasse:"
+            "context_description": "Você é muito especialista em classificar a frase do usuário em um chatbot sobre:",
+            "reflection": "Pare, pense bem e responda com APENAS UM ÚNICO `id` da classe que melhor represente a intenção para a frase do usuário de acordo com a análise de seu contexto, responda APENAS com o `id` da classe só se você tiver muita certeza e não explique o motivo. Na ausência, falta de informações ou caso a frase do usuário não se enquadre em nenhuma classe, classifique como \"-1\".",
+            "classes_title": "Essas são as Classes com seus Id e Contexto:",
+            "sentence_title": "Frase do usuário:",
+            "class_id_title": "Id da Classe:"
         }, 
         "eng": {
-            "prompt_context": "You are very expert in ",
-            "prompt_has_classes": ". You have the following classes:\\n\\n",
-            "prompt_class_prefix": "Class: ",
-            "is_class_context_prefix": False,
-            "prompt_context_classes": " class context",
-            "prompt_none_name": "None",
-            "prompt_none_definition": "Class: None\\n\\nNone class context: The none class is an indication of absence or lack of something, generally used to express the non-existence of certain information or option and when the message does not fit into any of the other classes.\\n",
-            "prompt_phrase_prefix": "Sentence: ",
-            "prompt_analyse_text": "Stop, think carefully and analyze what the best class answer to the sentence is, only answer if you are very sure.\\n\\nClass:"
+            "context_description": "You are very expert in classifying the user sentence in a chatbot about:",
+            "reflection": "Stop, think carefully, and respond with ONLY ONE SINGLE `id` of the class that best represents the intention for the user's sentence according to the analysis of its context, respond ONLY with the `id` of the class if you are very sure and do not explain the reason. In the absence, lack of information, or if the user's sentence does not fit into any class, classify as \"-1\".",
+            "classes_title": "These are the Classes and its Context:",
+            "sentence_title": "User's sentence:",
+            "class_id_title": "Class Id:"
         },
         "spa": {
-            "prompt_context": "Eres muy experto en ",
-            "prompt_has_classes": ". Usted posee las clases:\\n\\n",
-            "prompt_class_prefix": "Clase: ",
-            "is_class_context_prefix": True,
-            "prompt_context_classes": "Contexto de la clase ",
-            "prompt_none_name": "Ninguna",
-            "prompt_none_definition": "Clase: Ninguna\\n\\nContexto de la clase Ninguna: La clase ninguna es una indicación de ausencia o falta de algo, generalmente utilizada para expresar la inexistencia de cierta información u opción y cuando el mensaje no encaja en ninguna de las otras clases.",
-            "prompt_phrase_prefix": "Frase: ",
-            "prompt_analyse_text": "Detente, piensa detenidamente y analiza cuál es la mejor respuesta de clase a la frase, responde sólo si estás muy seguro.\\n\\nClase:"
+            "context_description": "Eres muy experto en clasificar la frase del usuario en un chatbot sobre:",
+            "reflection": "Deténgase, piense bien y responda con SOLO UN ÚNICO `id` de la clase que mejor represente la intención para la frase del usuario de acuerdo con el análisis de su contexto, responda SOLO con el `id` de la clase si está muy seguro y no explique el motivo. En ausencia, falta de información o en caso de que la frase del usuario no se ajuste a ninguna clase, clasifique como \"-1\".",
+            "classes_title": "Estas son las Clases con sus Id y Contexto:",
+            "sentence_title": "Frase del usuario:",
+            "class_id_title": "Id de la Clase:"
         }
     }
 
     def generate_prompt(self, language: str, zeroshot_data: dict):
         translated_text = self.const_prompt_data[language]
-        prompt = translated_text.get("prompt_context") + zeroshot_data.get("context") + translated_text.get("prompt_has_classes")
-        for option in zeroshot_data.get("options"):
-            prompt += translated_text.get("prompt_class_prefix") + option.get("class", "").capitalize() + "\\n"
-            if translated_text.get("is_class_context_prefix"):
-                prompt += translated_text.get("prompt_context_classes") + option.get("class", "").capitalize() + ": "
-            else:
-                prompt += option.get("class", "").capitalize() + translated_text.get("prompt_context_classes") + ": "
-            prompt += option.get("context") + "\\n"
-        prompt += translated_text.get("prompt_none_definition") + translated_text.get("prompt_phrase_prefix")
-        prompt += zeroshot_data.get("text") + "\\n" + translated_text.get("prompt_analyse_text")
+        context = zeroshot_data.get("context")
+        input = zeroshot_data.get("text")
+        all_classes = self.setup_ids_on_classes(zeroshot_data.get("options"))
+
+        prompt = BASE_PROMPT.format(context_description=translated_text.get("context_description"),
+                                    reflection=translated_text.get("reflection"),
+                                    classes_title=translated_text.get("classes_title"),
+                                    sentence_title=translated_text.get("sentence_title"),
+                                    class_id_title=translated_text.get("class_id_title"),
+                                    context=context,
+                                    all_classes=all_classes,
+                                    input=input)
 
         return prompt
     
-    def get_none_class(self, language: str):
-        data = self.const_prompt_data.get(language)
-        return data.get("prompt_none_name", "Nenhuma")
+    def setup_ids_on_classes(self, all_classes):
+        for index, class_obj in enumerate(all_classes):
+            id = index + 1
+            class_obj["id"] = id
 
-    def get_language(self, language: str):
-        if "es" in language:
-            return "es"
-        elif "en" in language:
-            return "en"
-        else:
-            return "pt-br"
+        return all_classes
+
+    def get_default_language(self):
+        return "por"
