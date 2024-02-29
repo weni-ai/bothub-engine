@@ -1,3 +1,7 @@
+# 6.14.0
+## *Change*
+  - Send recent activities using amqp connection instead of REST
+
 # 6.13.0
 ## *Add*
   - Create a storage usecase for xlsx logs
