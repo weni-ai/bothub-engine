@@ -88,8 +88,7 @@ class ZeroShotFastPredictAPIView(APIView):
         data = request.data
 
         prompt_formatter = FormatPrompt()
-        
-        prompt = prompt_formatter.generate_prompt(data.get("language", "por"), data)
+        prompt = prompt_formatter.generate_prompt(data)
 
         body = {
             "input": {
