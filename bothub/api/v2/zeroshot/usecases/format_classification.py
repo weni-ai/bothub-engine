@@ -42,6 +42,7 @@ class FormatClassification:
             all_classes = zeroshot_data.get("options")
             for class_obj in all_classes:
                 if output == str(class_obj.get("id")):
+                    classify["other"] = False
                     classify["classification"] = class_obj.get("class")
                     break
 
