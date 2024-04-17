@@ -1039,6 +1039,21 @@ class RepositorySerializer(serializers.ModelSerializer):
 
         return repository
 
+    def perform_destroy(self, instance):
+        celery_app.send_task(
+            "send_recent_activity",
+            [
+                {
+                    "user": self.context["request"].user.email,
+                    "entity": "AI",
+                    "action": "DELETE",
+                    "entity_name": instance.name,
+                    "intelligence_id": instance.owner.organization.id,
+                }
+            ],
+        )
+        return super().perform_destroy(instance)
+
     def get_intents(self, obj):
         return obj.get_formatted_intents()
 
