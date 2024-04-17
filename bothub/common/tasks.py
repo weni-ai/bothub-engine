@@ -13,6 +13,7 @@ from django.utils.translation import gettext_lazy as _
 
 from django_elasticsearch_dsl.registries import registry
 
+from bothub.event_driven.publisher.rabbitmq_publisher import RabbitMQPublisher
 from bothub import translate
 from bothub.celery import app
 from bothub.common.models import (
@@ -688,5 +689,10 @@ def create_repository_project(**kwargs):
 
 @app.task(name="send_recent_activity")
 def send_recent_activity(recent_activity_data):
-    connect_client = ConnectClient()
-    connect_client.create_recent_activity(recent_activity_data=recent_activity_data)
+    rabbitmq_publisher = RabbitMQPublisher()
+    rabbitmq_publisher.send_message(
+        body=recent_activity_data,
+        exchange="recent-activities.topic",
+        routing_key="",
+    )
+    print(f"[ intelligencePublisher ] message sent - {recent_activity_data} to recent-activities.topic")
