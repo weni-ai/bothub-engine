@@ -23,7 +23,7 @@ class AuthorizationsUsecase:
         try:
             return User.objects.get(email=user_email)
         except User.DoesNotExist:
-            raise UserDoesNotExist(f"User with email {user_email} does not exist")
+            return User.objects.create(email=user_email)
 
     def __get_org(self, org_id: int) -> Organization:
         try:
