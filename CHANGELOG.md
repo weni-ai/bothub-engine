@@ -1,3 +1,7 @@
+# 6.15.1
+## *Fix* 
+  - create user if not exist
+
 # 6.15.0
 ## *Add*
   - Consumers to handle permissions via EDA
