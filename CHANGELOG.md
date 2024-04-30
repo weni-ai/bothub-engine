@@ -1,3 +1,7 @@
+# 6.15.0
+## *Add*
+  - Consumers to handle permissions via EDA
+
 # 6.14.0
 ## *Change*
   - Send recent activities using amqp connection instead of REST
