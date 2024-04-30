@@ -9,7 +9,7 @@ from bothub.authorizations.usecases.dto import OrgAuthDTO
 
 class OrgAuthConsumer(EDAConsumer):  # pragma: no cover
     def consume(self, message: amqp.Message):
-        print(f"[ProjectConsumer] - Consuming a message. Body: {message.body}")
+        print(f"[OrgAuthConsumer] - Consuming a message. Body: {message.body}")
 
         try:
             body = JSONParser.parse(message.body)
@@ -30,4 +30,4 @@ class OrgAuthConsumer(EDAConsumer):  # pragma: no cover
         except Exception as exception:
             capture_exception(exception)
             message.channel.basic_reject(message.delivery_tag, requeue=False)
-            print(f"[ProjectConsumer] - Message rejected by: {exception}")
+            print(f"[OrgAuthConsumer] - Message rejected by: {exception}")
