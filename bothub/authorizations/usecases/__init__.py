@@ -1,0 +1,1 @@
+from bothub.authorizations.usecases.usecase import AuthorizationsUsecase
