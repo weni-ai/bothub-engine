@@ -18,7 +18,7 @@ class OrgAuthConsumer(EDAConsumer):  # pragma: no cover
 
             org_auth_dto = OrgAuthDTO(
                 user=body.get("user_email"),
-                org_id=body.get("organization_intelligence"),
+                org_id=body.get("org_intelligence"),
                 role=body.get("role")
             )
 
