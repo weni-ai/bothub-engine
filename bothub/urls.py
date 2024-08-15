@@ -33,7 +33,8 @@ schema_view = get_schema_view(
 )
 
 urlpatterns = [
-    path("", schema_view.with_ui("redoc")),
+    path("", r200),
+    path("docs/", schema_view.with_ui("redoc")),
     path("v2/", include(bothub_api_v2_urls)),
     path("admin/", admin.site.urls),
     path("ping/", ping, name="ping"),
