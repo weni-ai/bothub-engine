@@ -1,3 +1,11 @@
+# 6.15.3
+## *Fix*
+  - move docs page to /docs, leave / as healthcheck endpoint
+
+# 6.15.2
+## *Fix*
+  - remove base prompt extra space
+
 # 6.15.1
 ## *Fix* 
   - create user if not exist
