@@ -16,8 +16,7 @@ from bothub.common.models import (
     ZeroshotLogs
 )
 
-from .usecases.format_prompt import FormatPrompt
-from .usecases.format_classification import FormatClassification
+from .usecases.invoke_model import InvokeModel
 
 from bothub.api.v2.zeroshot.permissions import ZeroshotTokenPermission
 
@@ -84,52 +83,10 @@ class ZeroShotFastPredictAPIView(APIView):
     permission_classes = [ZeroshotTokenPermission]
 
     def post(self, request):
-
         data = request.data
-
-        prompt_formatter = FormatPrompt()
-
-        language = data.get("language", prompt_formatter.get_default_language())
-        prompt = prompt_formatter.generate_prompt(language, data)
-
-        payload = json.dumps({
-            "input": {
-                "prompt": prompt,
-                "sampling_params": {
-                    "max_tokens": settings.ZEROSHOT_MAX_TOKENS,
-                    "n": settings.ZEROSHOT_N,
-                    "top_p": settings.ZEROSHOT_TOP_P,
-                    "tok_k": settings.ZEROSHOT_TOK_K,
-                    "temperature": settings.ZEROSHOT_TEMPERATURE,
-                    "do_sample": settings.ZEROSHOT_DO_SAMPLE,
-                    "stop": settings.ZEROSHOT_STOP
-                }
-
-            }
-        })
-
-        headers = {
-            "Content-Type": "application/json; charset: utf-8",
-            "Authorization": f"Bearer {settings.ZEROSHOT_TOKEN}",
-        }
-        response_nlp = None
         try:
-            url = settings.ZEROSHOT_BASE_NLP_URL
-            if len(settings.ZEROSHOT_SUFFIX) > 0:
-                url += settings.ZEROSHOT_SUFFIX
-            response_nlp = requests.post(
-                headers=headers,
-                url=url,
-                data=payload
-            )
-
-            response = {"output": {}}
-            if response_nlp.status_code == 200:
-                classification = response_nlp.json()
-                classification_formatter = FormatClassification(language, classification)
-                formatted_classification = classification_formatter.get_classify(data)
-                
-                response["output"] = formatted_classification
+            invoke_model = InvokeModel(data)
+            response = invoke_model.invoke()
 
             ZeroshotLogs.objects.create(
                 text=data.get("text"),
@@ -140,7 +97,7 @@ class ZeroShotFastPredictAPIView(APIView):
                 language=data.get("language")
             )
 
-            return Response(status=response_nlp.status_code, data=response if response_nlp.status_code == 200 else {"error": response_nlp.text})
+            return Response(status=200, data=response if response.get("output") else {"error": response})
         except Exception as error:
             logger.error(f"[ - ] Zeroshot fast predict: {error}")
-            return Response(status=response_nlp.status_code if response_nlp else 500, data={"error": error})
+            return Response(status=500, data={"error": str(error)})
