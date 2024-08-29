@@ -1,6 +1,7 @@
 import requests
 import logging
 import json
+import traceback
 
 from django.conf import settings
 
@@ -93,11 +94,12 @@ class ZeroShotFastPredictAPIView(APIView):
                 classification=response["output"].get("classification"),
                 other=response["output"].get("other", False),
                 options=data.get("options"),
-                nlp_log=str(response_nlp.json()),
+                nlp_log=str(json.dumps(response)),
                 language=data.get("language")
             )
 
             return Response(status=200, data=response if response.get("output") else {"error": response})
         except Exception as error:
+            traceback.print_exc()
             logger.error(f"[ - ] Zeroshot fast predict: {error}")
             return Response(status=500, data={"error": str(error)})
