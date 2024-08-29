@@ -89,7 +89,7 @@ class InvokeModel:
             "prompt": prompt
         })
 
-        response = bedrock.invoke_model(
+        bedrock_response = bedrock_runtime.invoke_model(
             body=payload,
             contentType='application/json',
             accept='application/json',
@@ -97,7 +97,7 @@ class InvokeModel:
             trace='ENABLED'
         )
 
-        classification = json.loads(response['body'].read().decode('utf-8'))
+        classification = json.loads(bedrock_response['body'].read().decode('utf-8'))
 
         classification_formatter = FormatClassification(classification)
         formatted_classification = classification_formatter.get_classification(self.zeroshot_data)

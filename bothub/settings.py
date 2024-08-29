@@ -130,7 +130,7 @@ env = environ.Env(
     ZEROSHOT_TOP_K = (int, 10),
     ZEROSHOT_TEMPERATURE = (float, 0.1),
     ZEROSHOT_DO_SAMPLE = (bool, False),
-    ZEROSHOT_STOP = (str, "\n"),
+    ZEROSHOT_STOP = (list, ["<|end_of_text|>", "<|eot_id|>"]),
     ZEROSHOT_MODEL_BACKEND = (str, "runpod"),
 )
 
