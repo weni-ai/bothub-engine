@@ -62,6 +62,8 @@ from bothub.common.models import (
     RepositoryVote,
     RequestRepositoryAuthorization,
     RepositoryVersionLanguage,
+    RepositoryEvaluate,
+    RepositoryEvaluateResult,
     Organization,
 )
 from bothub.common.usecase.repositorylog.export import ExportRepositoryLogUseCase
@@ -132,6 +134,8 @@ from bothub.api.v2.internal.connect_rest_client import (
     ConnectRESTClient as ConnectClient,
 )
 from bothub.event_driven.publisher.rabbitmq_publisher import RabbitMQPublisher
+
+from bothub.utils import levenshtein_distance
 
 User = get_user_model()
 
@@ -726,21 +730,55 @@ class RepositoryViewSet(
         user_authorization = repository.get_user_authorization(request.user)
         if not user_authorization.can_write:
             raise PermissionDenied()
-        serializer = EvaluateSerializer(data=request.data)  # pragma: no cover
-        serializer.is_valid(raise_exception=True)  # pragma: no cover
+        data = request.data
+        response = []
+        version_languages = RepositoryVersionLanguage.objects.filter(repository_version__pk=data.get("repository_version"))
+        for version_language in version_languages:
+            if not repository.have_at_least_one_test_phrase_registered(version_language.language):
+                continue
+            if "language" in data:
+                data["language"] = version_language.language
+            else:
+                data.update({"language": version_language.language})
+            serializer = EvaluateSerializer(data=data)  # pragma: no cover
+            serializer.is_valid(raise_exception=True)  # pragma: no cover
 
-        try:
-            request = repository.request_nlp_manual_evaluate(  # pragma: no cover
-                user_authorization, serializer.data
-            )
-        except DjangoValidationError as e:
-            raise APIException(e.message, code=400)
+            try:
+                nlp_request = repository.request_nlp_manual_evaluate(  # pragma: no cover
+                    user_authorization, serializer.data
+                )
+            except DjangoValidationError as e:
+                raise APIException(e.message, code=400)
 
-        if request.status_code != status.HTTP_200_OK:  # pragma: no cover
-            raise APIException(
-                {"status_code": request.status_code}, code=request.status_code
-            )  # pragma: no cover
-        return Response(request.json())  # pragma: no cover
+            if nlp_request.status_code != status.HTTP_200_OK:  # pragma: no cover
+                raise APIException(
+                    {"status_code": nlp_request.status_code}, code=nlp_request.status_code
+                )  # pragma: no cover
+            
+            nlp_response = nlp_request.json()
+
+            evaluate_id = nlp_response.get("evaluate_id")
+            evaluate_result = RepositoryEvaluateResult.objects.get(pk=evaluate_id)
+            if request.data.get("evaluate_type", False):
+                evaluate_result.evaluate_type = request.data.get("evaluate_type")
+                evaluate_result.save()
+            logs = json.loads(evaluate_result.log)
+            intent_count = 0
+            intent_success = 0
+
+            for res in logs:
+                intent_count += 1
+                intent_success += 1 if res.get("intent_status") == "success" else 0
+
+            result_data = {
+                "accuracy": evaluate_result.intent_results.accuracy,
+                "intents_count": intent_count,
+                "intents_success": intent_success,
+                "evalute_type": evaluate_result.evaluate_type,
+            }
+            nlp_response.update(result_data)
+            response.append(nlp_response)
+        return Response(response)  # pragma: no cover
 
     @action(
         detail=True,
@@ -798,6 +836,47 @@ class RepositoryViewSet(
         except DjangoValidationError as e:
             response = {"can_run_evaluate_automatic": False, "messages": e}
         return Response(response)  # pragma: no cover
+
+
+    @action(
+        detail=True,
+        methods=["GET"],
+        url_name="get-recommendations-repository",
+    )
+    def get_recommendations_repository(self, request, **kwargs):
+        repository = self.get_object()
+        user_authorization = repository.get_user_authorization(request.user)
+        if not user_authorization.can_write:
+            raise PermissionDenied()
+        
+        examples = RepositoryExample.objects.filter(repository_version_language__repository_version__repository=repository)
+        intents = {}
+        sum_intents = 0
+        qnt_intents = 0
+        sum_distance = 0
+
+        for example in examples:
+            if example.intent.text not in intents:
+                intents[example.intent.text] = {"text": [], "count": 0, "distance": 0}
+            intents[example.intent.text]["text"].append(example.text)
+            intents[example.intent.text]["count"] += 1
+            sum_intents += 1
+            qnt_intents += 1
+        response = {"add_phares_to": [], "more_diversity": []}
+        avg_intents = (sum_intents/qnt_intents)
+        for intent in intents:
+            for i in range(0, intents[intent]['count']):
+                for j in range(i, intents[intent]['count']):
+                    intents[intent]['distance'] += levenshtein_distance(intents[intent]['text'][i], intents[intent]['text'][j])
+            sum_distance += intents[intent]['distance']
+            
+        avg_distance = sum_distance / qnt_intents
+        for intent in intents:
+            if intents[intent]['count'] < avg_intents:
+                response["add_phares_to"].append(intent)
+            if intents[intent]['distance'] < avg_distance:
+                response["more_diversity"].append(intent)
+        return Response(data=response)
 
 
 @method_decorator(
